@@ -1,0 +1,55 @@
+timeline:
+  - day: Day 0
+    time_of_day: 雨夜，下班後
+    chapter: ch001
+    location: 未命名現代虛構都市／十字路口返家路上
+    event: 林遠下班返家途中遇上失控貨車，於瀕死瞬間答應未知黑影的救命契約。
+    state_change: 從普通上班族轉為契約成立中的瀕死者，與燼建立連結。
+
+  - day: Day 0 to Day 1
+    time_of_day: 昏迷與夢境期間
+    chapter: ch001
+    location: 意識空間／不明
+    event: 林遠夢見灰色絲線、修長人影與灰霧入體，經歷如同靈魂拆解重塑的痛楚。
+    state_change: 肉身重組開始，陰陽契約完成。
+
+  - day: Day 1
+    time_of_day: 凌晨 03:42
+    chapter: ch002
+    location: 林遠住處／臥室與浴室
+    event: 林遠醒來後發現身體縮小、近乎全面女性化，並確認原本男性身體已消失。
+    state_change: 身份危機成形，自我認知與現實外觀徹底分裂。
+
+  - day: Day 1
+    time_of_day: 凌晨至深夜尾聲
+    chapter: ch003
+    location: 林遠住處／浴室、客廳、臥室
+    event: 燼正式現身，說明契約與不可逆轉的結果；林遠情緒失控，最終被燼強制安撫入睡。
+    state_change: 契約搭檔關係從夢境層面轉為現實同居危機。
+
+  - day: Day 1
+    time_of_day: 清晨 06:00 至午前
+    chapter: ch004
+    location: 林遠住處
+    event: 林遠發現近視消失，向公司請半天病假，並開始設計男性身分偽裝方案；燼宣告要入住。
+    state_change: 從單純崩潰轉入求生模式，建立脆弱的同居與日常維持框架。
+
+  - day: Day 1
+    time_of_day: 午後至傍晚
+    chapter: ch005
+    location: 廣告公司／資訊庫房、辦公區
+    event: 林遠成功撐過一次返工，在阿強面前險些露餡；阿強主動遞來熱薑茶表達關心。
+    state_change: 職場偽裝暫時成立，但已有旁人察覺異狀。
+
+  - day: Day 1
+    time_of_day: 晚上
+    chapter: ch006
+    location: 林遠住處／廚房吧台、客廳、臥室門口
+    event: 林遠盤點辭職、坦白、就醫等方案皆不可行，最終發訊息向阿強求助，並先把燼鎖進房間。
+    state_change: 準備把秘密從「獨自硬撐」推進到「可能有第一名知情盟友」。
+
+continuity_notes:
+  - >
+    草稿存在星期標記衝突：ch001 明言事故夜為「週五」，
+    ch005 則把返工當天稱為「週五」。目前先固定相對事件順序，
+    精確 weekday 待後續修稿統一。
