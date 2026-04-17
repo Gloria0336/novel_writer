@@ -13,6 +13,7 @@ describe("buildWorkspaceRequest", () => {
         maxCompletionTokens: 512,
         attachedPaths: ["backend/novel_db/novel_00/chapters/ch001.md"],
         autoAttachActiveFile: false,
+        autoAttachRelatedFiles: true,
       },
       history: [
         {
@@ -24,6 +25,7 @@ describe("buildWorkspaceRequest", () => {
         },
       ],
       prompt: "Rewrite the opening paragraph.",
+      repoStructure: "novel_00/\n  bible/\n    characters.yaml",
       attachedDrafts: [
         {
           path: "backend/novel_db/novel_00/chapters/ch001.md",
@@ -41,11 +43,11 @@ describe("buildWorkspaceRequest", () => {
       role: "system",
       content: "Be concise.",
     });
-    expect(request.messages[1].content).toContain("Current draft");
+    expect(request.messages[1].content).toContain("novel_00/");
+    expect(request.messages[2].content).toContain("Current draft");
     expect(request.messages.at(-1)).toEqual({
       role: "user",
       content: "Rewrite the opening paragraph.",
     });
   });
 });
-

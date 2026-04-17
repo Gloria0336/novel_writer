@@ -18,6 +18,7 @@ import { createWorkspaceConfig } from "./utils/constants";
 import { buildCommitTreeEntries } from "./utils/githubCommit";
 import { buildWorkspaceRequest } from "./utils/openRouter";
 import { flattenFilePaths, normalizeRepoTree } from "./utils/repoTree";
+import { resolveWorkspaceContext } from "./utils/workspaceContext";
 
 function createId() {
   return typeof crypto !== "undefined" && "randomUUID" in crypto ? crypto.randomUUID() : `${Date.now()}-${Math.random()}`;
@@ -78,6 +79,17 @@ function ConsoleApp() {
   const filePaths = useMemo(() => flattenFilePaths(treeNodes), [treeNodes]);
   const activeWorkspace =
     workspaceState.workspaces.find((workspace) => workspace.id === workspaceState.activeWorkspaceId) ?? workspaceState.workspaces[0];
+  const activeWorkspaceContext = useMemo(
+    () =>
+      resolveWorkspaceContext({
+        entries: snapshot.entries,
+        attachedPaths: activeWorkspace?.attachedPaths ?? [],
+        selectedPath: snapshot.selectedPath,
+        autoAttachActiveFile: activeWorkspace?.autoAttachActiveFile ?? true,
+        autoAttachRelatedFiles: activeWorkspace?.autoAttachRelatedFiles ?? true,
+      }),
+    [activeWorkspace, snapshot.entries, snapshot.selectedPath],
+  );
 
   const sidebarSplitter = useSplitter({
     direction: "horizontal",
@@ -303,10 +315,14 @@ function ConsoleApp() {
 
       setSendingWorkspaceId(workspaceId);
       try {
-        const allPaths = [...workspace.attachedPaths];
-        if (workspace.autoAttachActiveFile && snapshot.selectedPath) {
-          allPaths.push(snapshot.selectedPath);
-        }
+        const contextResolution = resolveWorkspaceContext({
+          entries: snapshot.entries,
+          attachedPaths: workspace.attachedPaths,
+          selectedPath: snapshot.selectedPath,
+          autoAttachActiveFile: workspace.autoAttachActiveFile,
+          autoAttachRelatedFiles: workspace.autoAttachRelatedFiles,
+        });
+        const allPaths = [...contextResolution.requestedPaths, ...contextResolution.autoContextPaths];
 
         const attachedDrafts = (await Promise.all([...new Set(allPaths)].map((path) => ensureDraftLoaded(path)))).filter(
           Boolean,
@@ -318,6 +334,7 @@ function ConsoleApp() {
           history,
           prompt,
           attachedDrafts,
+          repoStructure: contextResolution.structureSummary,
         });
 
         const sourceFilePaths = attachedDrafts.map((draft) => draft.path);
@@ -350,6 +367,7 @@ function ConsoleApp() {
       addMessage,
       ensureDraftLoaded,
       openRouterClient,
+      snapshot.entries,
       settings.uiPrefs.recentModels,
       snapshot.selectedPath,
       updateUiPrefs,
@@ -408,6 +426,7 @@ function ConsoleApp() {
               updateUiPrefs({ favoriteModels: [...favorites] });
             }}
             onUpdateWorkspace={updateWorkspace}
+            relatedContextCount={activeWorkspaceContext.autoContextPaths.length}
             recentModels={settings.uiPrefs.recentModels}
             selectedPath={snapshot.selectedPath}
             sendingWorkspaceId={sendingWorkspaceId}

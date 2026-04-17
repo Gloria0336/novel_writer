@@ -33,12 +33,17 @@ function normalizeWorkspaceState(state: WorkspaceState): WorkspaceState {
     return DEFAULT_WORKSPACE_STATE;
   }
 
-  const validIds = new Set(state.workspaces.map((workspace) => workspace.id));
-  const activeWorkspaceId = validIds.has(state.activeWorkspaceId) ? state.activeWorkspaceId : state.workspaces[0].id;
-  const messages = Object.fromEntries(state.workspaces.map((workspace) => [workspace.id, state.messages[workspace.id] ?? []]));
+  const workspaces = state.workspaces.map((workspace) => ({
+    ...workspace,
+    autoAttachRelatedFiles:
+      workspace.autoAttachRelatedFiles ?? DEFAULT_WORKSPACE_TEMPLATE.autoAttachRelatedFiles,
+  }));
+  const validIds = new Set(workspaces.map((workspace) => workspace.id));
+  const activeWorkspaceId = validIds.has(state.activeWorkspaceId) ? state.activeWorkspaceId : workspaces[0].id;
+  const messages = Object.fromEntries(workspaces.map((workspace) => [workspace.id, state.messages[workspace.id] ?? []]));
 
   return {
-    workspaces: state.workspaces,
+    workspaces,
     activeWorkspaceId,
     messages,
   };

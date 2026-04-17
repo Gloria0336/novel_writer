@@ -51,6 +51,20 @@ open_threads:
   - id: exorcist-sanctuary-entry
     hook: 獵魔殿何時介入，並以何種方式鎖定林遠與燼？
     introduced_in: worldbuild-planning
-    status: planned_not_revealed
-    stakes: 這將把私人求生問題升級為都市超自然追獵。
+    status: active
+    stakes: 這將把私人求生問題升級為都市超自然追獵。狼妖的出現暗示獵食者已開始頻繁活動。
     likely_payoff_window: 中期
+
+  - id: lin-yuan-power-awakening
+    hook: 林遠體內的「除魔師」潛力來源為何？為何契約後才覺醒？
+    introduced_in: ch009
+    status: active
+    stakes: 若能掌握這股力量，林遠可能不再僅僅是燼的附庸，甚至具備反制妖魔的能力。
+    likely_payoff_window: 近中期
+
+  - id: debt-to-jin
+    hook: 燼兩次救命皆強調「欠我一條命」，這份債務最終將以何種形式償還？
+    introduced_in: ch001
+    status: persistent
+    stakes: 每一次救命都加深了兩人的綁定，代價可能涉及靈魂或肉身的徹底淪陷。
+    likely_payoff_window: 中後期

@@ -23,6 +23,7 @@ export const DEFAULT_WORKSPACE_TEMPLATE: WorkspaceTemplate = {
   temperature: 0.7,
   maxCompletionTokens: 1200,
   autoAttachActiveFile: true,
+  autoAttachRelatedFiles: true,
 };
 
 export const DEFAULT_UI_PREFS = {
@@ -51,5 +52,6 @@ export function createWorkspaceConfig(template: WorkspaceTemplate, name?: string
     maxCompletionTokens: template.maxCompletionTokens,
     attachedPaths: [],
     autoAttachActiveFile: template.autoAttachActiveFile,
+    autoAttachRelatedFiles: template.autoAttachRelatedFiles,
   };
 }

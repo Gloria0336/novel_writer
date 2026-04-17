@@ -54,6 +54,7 @@ export interface WorkspaceConfig {
   maxCompletionTokens: number;
   attachedPaths: string[];
   autoAttachActiveFile: boolean;
+  autoAttachRelatedFiles: boolean;
 }
 
 export interface WorkspaceMessage {
@@ -70,6 +71,7 @@ export interface WorkspaceTemplate {
   temperature: number;
   maxCompletionTokens: number;
   autoAttachActiveFile: boolean;
+  autoAttachRelatedFiles: boolean;
 }
 
 export interface UiPrefs {

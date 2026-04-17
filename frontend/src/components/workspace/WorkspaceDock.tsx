@@ -12,6 +12,7 @@ interface WorkspaceDockProps {
   modelError?: string;
   favoriteModels: string[];
   recentModels: string[];
+  relatedContextCount: number;
   sendingWorkspaceId?: string;
   onSelectWorkspace: (workspaceId: string) => void;
   onAddWorkspace: () => void;
@@ -39,6 +40,7 @@ export function WorkspaceDock(props: WorkspaceDockProps) {
     modelError,
     favoriteModels,
     recentModels,
+    relatedContextCount,
     sendingWorkspaceId,
     onSelectWorkspace,
     onAddWorkspace,
@@ -310,6 +312,18 @@ export function WorkspaceDock(props: WorkspaceDockProps) {
             />
             自動附加目前文檔
           </label>
+
+          <label className="checkbox-row">
+            <input
+              checked={workspace.autoAttachRelatedFiles}
+              onChange={(event) => onUpdateWorkspace(workspace.id, { autoAttachRelatedFiles: event.target.checked })}
+              type="checkbox"
+            />
+            Auto-attach related canon files before send
+          </label>
+          {workspace.autoAttachRelatedFiles ? (
+            <div className="inline-status">{relatedContextCount} related files will be scanned for this workspace.</div>
+          ) : null}
 
           <div className="panel-header">
             <h4>附加檔案</h4>

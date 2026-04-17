@@ -5,8 +5,9 @@ export function buildWorkspaceRequest(params: {
   history: WorkspaceMessage[];
   prompt: string;
   attachedDrafts: DraftEntry[];
+  repoStructure?: string;
 }): OpenRouterChatRequest {
-  const { workspace, history, prompt, attachedDrafts } = params;
+  const { workspace, history, prompt, attachedDrafts, repoStructure } = params;
 
   const contextBlocks = attachedDrafts.map((draft) => {
     return `檔案：${draft.path}\n\`\`\`\n${draft.draftContent}\n\`\`\``;
@@ -18,6 +19,14 @@ export function buildWorkspaceRequest(params: {
     messages.push({
       role: "system",
       content: workspace.systemPrompt.trim(),
+    });
+  }
+
+  if (repoStructure?.trim()) {
+    messages.push({
+      role: "system",
+      content:
+        `Review this relevant workspace structure before you answer. Use it to find canon, outline, and chapter context.\n\n${repoStructure.trim()}`,
     });
   }
 
