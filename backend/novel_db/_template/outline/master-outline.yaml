@@ -1,0 +1,31 @@
+canon_outline:
+  project_status: planning
+  current_chapter: planned
+  current_endpoint: 尚未開始正文
+  canon_scope:
+    covered_chapters: []
+    note: 僅記錄已寫成正文的 canon 與可直接接續的落點。
+  chapter_beats:
+    - chapter: ch001
+      beat: 主角第一次面對核心衝突。
+      outcome: 故事主前提成立。
+  character_state_snapshot:
+    protagonist: >
+      記錄主角在目前 canon 中的最新狀態，方便跨章維持一致。
+  near_term_next_steps:
+    - 第一章要完成的劇情轉折
+  continuity_flags:
+    - 若後續需要統一稱呼、時間或規則，請在此標記。
+
+speculative_long_arc:
+  editable: true
+  status: author_adjustable_projection
+  note: 這一區是根據目前方向做的長線推演，非既定 canon，可自由修改。
+  central_questions:
+    - 主角最終要解決的核心問題是什麼？
+  projected_arc:
+    - phase: 第一階段 / 開局
+      function: 建立角色、世界與主要衝突。
+      likely_material:
+        - 第一個重大轉折
+        - 第一個需要付出代價的選擇

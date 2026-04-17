@@ -1,0 +1,7 @@
+open_threads:
+  - id: core-mystery
+    hook: 故事目前最重要、尚未揭曉的懸念是什麼？
+    introduced_in: ch001
+    status: open
+    stakes: 如果這條線被揭開，會改變哪些角色、關係或世界規則？
+    likely_payoff_window: 中期
