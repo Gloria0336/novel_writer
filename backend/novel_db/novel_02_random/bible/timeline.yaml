@@ -1,0 +1,11 @@
+﻿timeline:
+  - day: Day 1
+    time_of_day: 上午
+    chapter: ch001
+    location: 主要場景名稱
+    event: 主角第一次面對核心衝突或故事承諾。
+    state_change: 第一章結束後，角色或局勢出現的明確變化。
+
+continuity_notes:
+  - 若有日期、年齡、地點、時間順序或稱呼需要統一，請記在這裡。
+

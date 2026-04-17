@@ -14,7 +14,7 @@ open_threads:
     likely_payoff_window: 中後期
 
   - id: public-passing
-    hook: 林遠能否長期以現有偽裝維持「男性上班族」身分而不穿幫？
+    hook: 林遠能否靠外派客戶端支援與新員工證方案，持續維持「林遠」這個社會身分而不穿幫？
     introduced_in: ch004
     status: open
     stakes: 一旦失敗，工作、房貸、社交圈與人身安全都可能崩盤。
@@ -28,11 +28,25 @@ open_threads:
     likely_payoff_window: 中期
 
   - id: a-qiang-confidant
-    hook: 阿強是否會成為第一個知道真相的普通人盟友？
+    hook: 阿強成為第一個知道真相的普通人盟友後，能否真的穩住局面而不是把風險一併放大？
     introduced_in: ch005
-    status: imminent
-    stakes: 會直接改變林遠的孤軍狀態，也可能擴大暴露風險。
-    likely_payoff_window: 下章至近期
+    status: active
+    stakes: 這直接改變林遠的孤軍狀態，也把秘密共享、掩護作業與信任壓力推上檯面。
+    likely_payoff_window: 近期持續線
+
+  - id: client-site-cover-plan
+    hook: 阿強提出的「客戶端資安支援借調＋新員工證」方案，實際執行時會遇到哪些破綻與代價？
+    introduced_in: ch007
+    status: open
+    stakes: 若方案成功，林遠可暫時脫離總部熟人視線；若失敗，將同時引爆公司內部與現實身份危機。
+    likely_payoff_window: 近期
+
+  - id: lin-yuan-a-qiang-romantic-tension
+    hook: 阿強在知情後仍能自然調侃並逼近林遠，這份朋友義氣是否會逐漸轉向更曖昧的牽引？
+    introduced_in: ch007
+    status: emerging
+    stakes: 這會改變林遠對自我、友情與新身體的感受，也可能讓掩護關係變得更複雜。
+    likely_payoff_window: 近中期
 
   - id: exorcist-sanctuary-entry
     hook: 獵魔殿何時介入，並以何種方式鎖定林遠與燼？

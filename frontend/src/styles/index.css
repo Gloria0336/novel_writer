@@ -36,7 +36,7 @@ body {
     radial-gradient(circle at top left, rgba(196, 108, 58, 0.12), transparent 28%),
     linear-gradient(180deg, #f6f2e9 0%, #efe7da 100%);
   color: var(--text);
-  overflow: hidden;
+  overflow: auto;
 }
 
 button,
@@ -61,6 +61,7 @@ pre {
   min-height: 100dvh;
   display: flex;
   flex-direction: column;
+  overflow: hidden;
 }
 
 .topbar {
@@ -81,6 +82,13 @@ pre {
   align-items: center;
   gap: 10px;
   flex-wrap: wrap;
+}
+
+.topbar-group > *,
+.inline-row > *,
+.workspace-dock-bar > *,
+.panel-header > * {
+  min-width: 0;
 }
 
 .topbar-title {
@@ -139,6 +147,7 @@ pre {
   flex: 1;
   display: flex;
   flex-direction: column;
+  overflow: hidden;
   padding: 14px calc(14px + var(--safe-right)) calc(14px + var(--safe-bottom)) calc(14px + var(--safe-left));
   gap: 0;
 }
@@ -156,6 +165,8 @@ pre {
 
 .dock-panel {
   background: transparent;
+  min-height: 0;
+  overflow: hidden;
 }
 
 .splitter {
@@ -224,6 +235,7 @@ pre {
   color: var(--text);
   background: rgba(255, 255, 255, 0.58);
   transition: transform 120ms ease, background 120ms ease, border-color 120ms ease;
+  max-width: 100%;
 }
 
 .ghost-button:hover,
@@ -491,6 +503,7 @@ pre {
   display: flex;
   flex-direction: column;
   gap: 12px;
+  overflow: hidden;
 }
 
 .workspace-dock-bar {
@@ -499,6 +512,7 @@ pre {
   align-items: center;
   gap: 12px;
   flex-wrap: wrap;
+  min-width: 0;
 }
 
 .workspace-tab-strip {
@@ -524,12 +538,14 @@ pre {
   display: flex;
   flex-direction: column;
   gap: 14px;
+  overflow: hidden;
 }
 
 .workspace-settings {
   display: grid;
   gap: 14px;
   padding: 18px;
+  min-width: 0;
 }
 
 .message-list {
@@ -546,6 +562,7 @@ pre {
   padding: 14px 16px;
   border: 1px solid var(--border);
   background: rgba(255, 255, 255, 0.7);
+  min-width: 0;
 }
 
 .role-user {
@@ -569,6 +586,19 @@ pre {
   display: flex;
   gap: 8px;
   flex-wrap: wrap;
+  min-width: 0;
+}
+
+.panel-banner,
+.inline-status,
+.message-bubble pre,
+.chip-button,
+.workspace-tab,
+.ghost-button,
+.solid-button,
+.danger-button {
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .panel-empty {
@@ -692,10 +722,6 @@ pre {
 }
 
 @media (max-width: 430px) {
-  body {
-    overflow: hidden;
-  }
-
   .topbar {
     position: sticky;
     top: 0;

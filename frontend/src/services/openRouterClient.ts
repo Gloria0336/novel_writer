@@ -1,24 +1,27 @@
 import type { ModelInfo, OpenRouterChatRequest } from "../types/app";
 
+interface ModelResponseItem {
+  id?: string;
+  name?: string;
+  description?: string;
+  context_length?: number;
+  architecture?: {
+    modality?: string;
+    input_modalities?: string[];
+    output_modalities?: string[];
+  };
+  supported_parameters?: string[];
+}
+
 interface ModelsResponse {
-  data: Array<{
-    id: string;
-    name: string;
-    description?: string;
-    context_length: number;
-    architecture: {
-      input_modalities?: string[];
-      output_modalities?: string[];
-    };
-    supported_parameters?: string[];
-  }>;
+  data?: ModelResponseItem[];
 }
 
 interface ChatResponse {
-  choices: Array<{
-    message: {
-      role: "assistant";
-      content: string;
+  choices?: Array<{
+    message?: {
+      role?: "assistant";
+      content?: string;
     };
   }>;
 }
@@ -33,7 +36,43 @@ function buildHeaders(apiKey: string): HeadersInit {
     Authorization: `Bearer ${apiKey}`,
     "Content-Type": "application/json",
     "HTTP-Referer": "https://gloria0336.github.io/novel_writer/",
-    "X-OpenRouter-Title": "小說工作台",
+    "X-OpenRouter-Title": "Novel Writer",
+  };
+}
+
+function normalizeModalities(value: unknown): string[] {
+  return Array.isArray(value) ? value.filter((item): item is string => typeof item === "string") : [];
+}
+
+function supportsTextOutput(model: ModelInfo): boolean {
+  if (model.outputModalities.includes("text")) {
+    return true;
+  }
+
+  if (model.outputModalities.length === 0) {
+    return true;
+  }
+
+  return false;
+}
+
+function normalizeModel(item: ModelResponseItem): ModelInfo | null {
+  if (typeof item.id !== "string" || item.id.trim().length === 0) {
+    return null;
+  }
+
+  const inputModalities = normalizeModalities(item.architecture?.input_modalities);
+  const outputModalities = normalizeModalities(item.architecture?.output_modalities);
+  const supportedParameters = normalizeModalities(item.supported_parameters);
+
+  return {
+    id: item.id,
+    name: typeof item.name === "string" && item.name.trim().length > 0 ? item.name : item.id,
+    description: typeof item.description === "string" ? item.description : undefined,
+    contextLength: typeof item.context_length === "number" ? item.context_length : 0,
+    inputModalities,
+    outputModalities,
+    supportedParameters,
   };
 }
 
@@ -49,18 +88,18 @@ export class OpenRouterClient {
       throw await parseError(response);
     }
 
-    const data = (await response.json()) as ModelsResponse;
-    return data.data
-      .map((model) => ({
-        id: model.id,
-        name: model.name,
-        description: model.description,
-        contextLength: model.context_length,
-        inputModalities: model.architecture.input_modalities ?? [],
-        outputModalities: model.architecture.output_modalities ?? [],
-        supportedParameters: model.supported_parameters ?? [],
-      }))
-      .filter((model) => model.outputModalities.includes("text"));
+    let data: ModelsResponse;
+    try {
+      data = (await response.json()) as ModelsResponse;
+    } catch {
+      throw new Error("OpenRouter returned invalid JSON while loading models.");
+    }
+
+    if (!Array.isArray(data.data)) {
+      throw new Error("OpenRouter returned an unexpected models payload.");
+    }
+
+    return data.data.map(normalizeModel).filter((model): model is ModelInfo => model !== null && supportsTextOutput(model));
   }
 
   async sendChat(request: OpenRouterChatRequest): Promise<string> {
@@ -80,8 +119,14 @@ export class OpenRouterClient {
       throw await parseError(response);
     }
 
-    const data = (await response.json()) as ChatResponse;
-    return data.choices[0]?.message.content ?? "";
+    let data: ChatResponse;
+    try {
+      data = (await response.json()) as ChatResponse;
+    } catch {
+      throw new Error("OpenRouter returned invalid JSON while generating text.");
+    }
+
+    return typeof data.choices?.[0]?.message?.content === "string" ? data.choices[0].message.content : "";
   }
 
   async testConnection(): Promise<void> {

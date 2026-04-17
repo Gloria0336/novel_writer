@@ -69,6 +69,11 @@ describe("API clients", () => {
               },
               supported_parameters: [],
             },
+            {
+              id: "mystery/model",
+              name: "Mystery model",
+              context_length: 64000,
+            },
           ],
         }),
       ),
@@ -81,7 +86,9 @@ describe("API clients", () => {
       expect.objectContaining({
         id: "openai/gpt-4o-mini",
       }),
+      expect.objectContaining({
+        id: "mystery/model",
+      }),
     ]);
   });
 });
-

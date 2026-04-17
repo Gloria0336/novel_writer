@@ -1,0 +1,31 @@
+﻿characters:
+  - id: protagonist
+    name: 主角名稱
+    aliases:
+      - 常用稱呼
+    role: 主角 / 敘事核心
+    age: 未定
+    occupation: 身分、職業或社會定位
+    appearance_public: >
+      外界通常看到的樣貌、穿著或第一印象。
+    appearance_current: >
+      角色目前的最新外觀與狀態；若與平時無差異，也可簡述目前呈現方式。
+    personality:
+      - 特質一
+      - 特質二
+      - 特質三
+    speech_style:
+      baseline: 平常說話節奏、語氣與慣用詞。
+      under_stress: 在壓力、恐懼或憤怒時的口吻變化。
+      humor: 調侃、自嘲或開玩笑時的風格。
+    abilities:
+      - 專長、資源或特殊能力
+    current_status: >
+      角色目前所處位置、困境、秘密或最新變化。
+    goals:
+      - 短期目標
+      - 長期目標
+    secrets:
+      - 尚未公開的重要資訊
+    first_appearance: planned
+

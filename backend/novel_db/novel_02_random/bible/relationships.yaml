@@ -1,0 +1,13 @@
+﻿relationships:
+  - pair:
+      - protagonist
+      - ally
+    dynamic: >
+      描述這段關係目前的互動方式、權力分布、情緒基調與依存程度。
+    trust_level: 中
+    tension: 中
+    conflict_points:
+      - 對同一件事的立場不同
+      - 尚未說開的重要秘密
+    last_updated_in: planned
+

@@ -1,7 +1,7 @@
 canon_outline:
   project_status: active
-  current_chapter: ch006
-  current_endpoint: 阿強已到門外，林遠正準備開門。
+  current_chapter: ch007
+  current_endpoint: 阿強已知情並提出外派專案與新員工證方案，離開後林遠獨自消化羞恥與希望。
   canon_scope:
     covered_chapters:
       - ch001
@@ -30,6 +30,9 @@ canon_outline:
     - chapter: ch006
       beat: 林遠走投無路，決定向阿強求助，並先隔離燼。
       outcome: 秘密即將首次外流。
+    - chapter: ch007
+      beat: 林遠向阿強坦白變身真相，阿強震驚後仍選擇協助，提出外派專案與偽造員工證方案。
+      outcome: 第一位知情盟友成立，短期偽裝新路線成形。
   character_state_snapshot:
     lin-yuan: >
       處於強烈身份失調與求生偽裝期，暫時尚未接受契約現實，
@@ -38,12 +41,13 @@ canon_outline:
       自認掌握局勢，對人類生活抱持旁觀與戲弄態度，
       但實際上已在林遠生活中占據不可忽視的位置。
     a-qiang: >
-      已感覺林遠不對勁，即將成為第一位被捲入主線的普通人。
+      已成為第一位知情者，雖然震驚仍選擇站在林遠這邊，
+      並開始用自己的人脈與行動力協助掩護。
   near_term_next_steps:
-    - 阿強進門後的反應與信任測試
-    - 林遠是否坦白契約與變身真相
-    - 燼是否違反約定出面
-    - 第一個讓阿強親眼看見「不可能現象」的事件
+    - 阿強如何實際推動客戶端借調與假員工證
+    - 林遠是否能用新身份避開公司熟人
+    - 燼對阿強知情與新計畫的態度
+    - 阿強何時接觸到真正的超自然現象
   continuity_flags:
     - >
       章節 weekday 存在衝突：ch001 寫事故夜是週五，
