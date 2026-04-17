@@ -54,7 +54,7 @@ function buildHeaders(token?: string, extraHeaders?: HeadersInit): HeadersInit {
 
 async function parseError(response: Response): Promise<Error> {
   if (response.status === 401 || response.status === 403) {
-    return new GitHubAuthError("GitHub PAT 無效、缺權限，或目前已命中 API 限制。");
+    return new GitHubAuthError("GitHub PAT 無效、權限不足，或目前無法使用 GitHub API。");
   }
 
   const body = await response.text();
@@ -151,7 +151,7 @@ export class GitHubClient {
         sha,
         content: "",
         isEditable: false,
-        readOnlyReason: "這個檔案不是可安全編輯的 UTF-8 文字檔，因此目前僅允許唯讀。",
+        readOnlyReason: "這個檔案不是有效的 UTF-8 文字內容，目前無法在編輯器中開啟。",
       };
     }
   }
@@ -164,7 +164,7 @@ export class GitHubClient {
   }): Promise<string> {
     const latestHead = await this.getBranchHead();
     if (latestHead !== params.headSha) {
-      throw new GitHubConflictError("branch HEAD 已更新，請先重新整理 HEAD 並確認草稿差異。");
+      throw new GitHubConflictError("分支的 HEAD 已更新，請先重新整理後再提交變更。");
     }
 
     const treeResponse = await fetch(`${this.repoBase}/git/trees`, {
@@ -223,7 +223,7 @@ export class GitHubClient {
 
     if (!updateResponse.ok) {
       if (updateResponse.status === 409 || updateResponse.status === 422) {
-        throw new GitHubConflictError("提交時發現 branch 已前進，請重新整理後再提交。");
+        throw new GitHubConflictError("提交失敗：目前分支可能已被其他更新改寫，請重新整理後再試一次。");
       }
       throw await parseError(updateResponse);
     }
@@ -235,4 +235,3 @@ export class GitHubClient {
     await this.getBranchHead();
   }
 }
-

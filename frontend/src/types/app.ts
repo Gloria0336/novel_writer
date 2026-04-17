@@ -75,6 +75,7 @@ export interface WorkspaceTemplate {
 export interface UiPrefs {
   sidebarOpen: boolean;
   sidebarWidth: number;
+  dockOpen: boolean;
   dockHeight: number;
   favoriteModels: string[];
   recentModels: string[];
@@ -130,4 +131,3 @@ export interface OpenRouterChatRequest {
   temperature: number;
   maxCompletionTokens: number;
 }
-

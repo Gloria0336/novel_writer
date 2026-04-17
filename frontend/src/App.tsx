@@ -1,23 +1,23 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { EditorPane, type EditorHandle } from "./components/editor/EditorPane";
+import { AppShell } from "./components/layout/AppShell";
+import { SettingsModal } from "./components/layout/SettingsModal";
+import { TopBar } from "./components/layout/TopBar";
+import { Sidebar } from "./components/repo/Sidebar";
+import { WorkspaceDock } from "./components/workspace/WorkspaceDock";
+import { useSplitter } from "./hooks/useSplitter";
 import { GitHubClient, GitHubConflictError } from "./services/githubClient";
 import { OpenRouterClient } from "./services/openRouterClient";
-import { DraftStoreProvider, useDraftStore } from "./stores/DraftStore";
 import { CommitStoreProvider, useCommitStore } from "./stores/CommitStore";
+import { DraftStoreProvider, useDraftStore } from "./stores/DraftStore";
 import { RepoStoreProvider, useRepoStore } from "./stores/RepoStore";
 import { SettingsStoreProvider, useSettingsStore } from "./stores/SettingsStore";
 import { WorkspaceStoreProvider, useWorkspaceStore } from "./stores/WorkspaceStore";
-import { AppShell } from "./components/layout/AppShell";
-import { TopBar } from "./components/layout/TopBar";
-import { SettingsModal } from "./components/layout/SettingsModal";
-import { Sidebar } from "./components/repo/Sidebar";
-import { EditorPane, type EditorHandle } from "./components/editor/EditorPane";
-import { WorkspaceDock } from "./components/workspace/WorkspaceDock";
-import { useSplitter } from "./hooks/useSplitter";
 import type { DraftEntry, ModelInfo, WorkspaceMessage } from "./types/app";
-import { flattenFilePaths, normalizeRepoTree } from "./utils/repoTree";
-import { buildWorkspaceRequest } from "./utils/openRouter";
-import { buildCommitTreeEntries } from "./utils/githubCommit";
 import { createWorkspaceConfig } from "./utils/constants";
+import { buildCommitTreeEntries } from "./utils/githubCommit";
+import { buildWorkspaceRequest } from "./utils/openRouter";
+import { flattenFilePaths, normalizeRepoTree } from "./utils/repoTree";
 
 function createId() {
   return typeof crypto !== "undefined" && "randomUUID" in crypto ? crypto.randomUUID() : `${Date.now()}-${Math.random()}`;
@@ -42,22 +42,26 @@ function AppProviders() {
 function ConsoleApp() {
   const { settings, resolvedRepoConfig, updateUiPrefs, setSettings, clearSecrets } = useSettingsStore();
   const { snapshot, updateEntries, setSelectedPath } = useRepoStore();
-  const { drafts, setDrafts, upsertLoadedFile, updateDraftContent, resetDraftToHead, discardDraft, replaceOriginalFromHead } = useDraftStore();
-  const { commitDraft, setCommitMessage, toggleIncludedPath, includeAllDirty, syncIncludedPaths, resetCommitDraft } = useCommitStore();
-  const { state: workspaceState, addWorkspace, updateWorkspace, removeWorkspace, setActiveWorkspaceId, addMessage, clearMessages } = useWorkspaceStore();
+  const { drafts, setDrafts, upsertLoadedFile, updateDraftContent, resetDraftToHead, discardDraft, replaceOriginalFromHead } =
+    useDraftStore();
+  const { commitDraft, setCommitMessage, toggleIncludedPath, includeAllDirty, syncIncludedPaths, resetCommitDraft } =
+    useCommitStore();
+  const { state: workspaceState, addWorkspace, updateWorkspace, removeWorkspace, setActiveWorkspaceId, addMessage, clearMessages } =
+    useWorkspaceStore();
 
   const editorHandleRef = useRef<EditorHandle | null>(null);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [repoStatus, setRepoStatus] = useState<"idle" | "loading" | "ready" | "error">("idle");
-  const [repoError, setRepoError] = useState<string>("");
+  const [repoError, setRepoError] = useState("");
   const [fileStatus, setFileStatus] = useState<"idle" | "loading">("idle");
-  const [fileError, setFileError] = useState<string>("");
-  const [commitStatus, setCommitStatus] = useState<string>("");
+  const [fileError, setFileError] = useState("");
+  const [commitStatus, setCommitStatus] = useState("");
+  const [commitTone, setCommitTone] = useState<"success" | "error">("success");
   const [isSubmittingCommit, setIsSubmittingCommit] = useState(false);
   const [models, setModels] = useState<ModelInfo[]>([]);
   const [modelLoading, setModelLoading] = useState(false);
-  const [modelError, setModelError] = useState<string>("");
-  const [sendingWorkspaceId, setSendingWorkspaceId] = useState<string>("");
+  const [modelError, setModelError] = useState("");
+  const [sendingWorkspaceId, setSendingWorkspaceId] = useState("");
 
   const repoClient = useMemo(() => new GitHubClient(resolvedRepoConfig), [resolvedRepoConfig]);
   const openRouterClient = useMemo(
@@ -72,23 +76,23 @@ function ConsoleApp() {
   const selectedDraft = snapshot.selectedPath ? drafts[snapshot.selectedPath] : undefined;
   const treeNodes = useMemo(() => normalizeRepoTree(snapshot.entries), [snapshot.entries]);
   const filePaths = useMemo(() => flattenFilePaths(treeNodes), [treeNodes]);
+  const activeWorkspace =
+    workspaceState.workspaces.find((workspace) => workspace.id === workspaceState.activeWorkspaceId) ?? workspaceState.workspaces[0];
 
   const sidebarSplitter = useSplitter({
     direction: "horizontal",
     value: settings.uiPrefs.sidebarWidth,
-    min: 260,
-    max: 520,
+    min: 180,
+    max: 360,
     onChange: (nextValue) => updateUiPrefs({ sidebarWidth: nextValue }),
   });
   const dockSplitter = useSplitter({
     direction: "vertical",
     value: settings.uiPrefs.dockHeight,
-    min: 220,
-    max: 520,
+    min: 180,
+    max: 420,
     onChange: (nextValue) => updateUiPrefs({ dockHeight: nextValue }),
   });
-
-  const activeWorkspace = workspaceState.workspaces.find((workspace) => workspace.id === workspaceState.activeWorkspaceId) ?? workspaceState.workspaces[0];
 
   useEffect(() => {
     syncIncludedPaths(dirtyDrafts.map((draft) => draft.path));
@@ -117,7 +121,7 @@ function ConsoleApp() {
       setRepoStatus("ready");
     } catch (error) {
       setRepoStatus("error");
-      setRepoError(error instanceof Error ? error.message : "Failed to load repository tree.");
+      setRepoError(error instanceof Error ? error.message : "載入檔案樹失敗。");
     }
   }, [repoClient, setSelectedPath, snapshot.selectedPath, updateEntries]);
 
@@ -138,10 +142,10 @@ function ConsoleApp() {
         } else {
           upsertLoadedFile(file);
         }
-        setFileStatus("idle");
       } catch (error) {
+        setFileError(error instanceof Error ? error.message : "載入文檔失敗。");
+      } finally {
         setFileStatus("idle");
-        setFileError(error instanceof Error ? error.message : "Failed to load file.");
       }
     },
     [replaceOriginalFromHead, repoClient, snapshot.entries, upsertLoadedFile],
@@ -154,10 +158,7 @@ function ConsoleApp() {
   }, [loadRepoTree, snapshot.entries.length]);
 
   useEffect(() => {
-    if (!snapshot.selectedPath) {
-      return;
-    }
-    if (drafts[snapshot.selectedPath]) {
+    if (!snapshot.selectedPath || drafts[snapshot.selectedPath]) {
       return;
     }
     void loadFile(snapshot.selectedPath);
@@ -171,6 +172,7 @@ function ConsoleApp() {
     }
 
     let cancelled = false;
+
     const run = async () => {
       setModelLoading(true);
       setModelError("");
@@ -181,7 +183,7 @@ function ConsoleApp() {
         }
       } catch (error) {
         if (!cancelled) {
-          setModelError(error instanceof Error ? error.message : "Failed to load OpenRouter models.");
+          setModelError(error instanceof Error ? error.message : "載入 OpenRouter 模型清單失敗。");
         }
       } finally {
         if (!cancelled) {
@@ -250,6 +252,7 @@ function ConsoleApp() {
           if (!existing) {
             continue;
           }
+
           const updatedEntry = refreshed.entries.find((item) => item.path === path && item.type === "blob");
           next[path] = {
             ...existing,
@@ -262,12 +265,14 @@ function ConsoleApp() {
       });
 
       resetCommitDraft(resolvedRepoConfig.branch);
-      setCommitStatus("Commit completed successfully.");
+      setCommitTone("success");
+      setCommitStatus("提交完成。");
     } catch (error) {
+      setCommitTone("error");
       if (error instanceof GitHubConflictError) {
         setCommitStatus(error.message);
       } else {
-        setCommitStatus(error instanceof Error ? error.message : "Commit failed.");
+        setCommitStatus(error instanceof Error ? error.message : "提交失敗。");
       }
     } finally {
       setIsSubmittingCommit(false);
@@ -291,8 +296,9 @@ function ConsoleApp() {
       if (!workspace) {
         return;
       }
+
       if (!openRouterClient) {
-        throw new Error("OpenRouter API key 尚未設定。");
+        throw new Error("尚未設定 OpenRouter API key。");
       }
 
       setSendingWorkspaceId(workspaceId);
@@ -314,12 +320,13 @@ function ConsoleApp() {
           attachedDrafts,
         });
 
+        const sourceFilePaths = attachedDrafts.map((draft) => draft.path);
         const userMessage: WorkspaceMessage = {
           id: createId(),
           role: "user",
           content: prompt,
           createdAt: Date.now(),
-          sourceFilePaths: attachedDrafts.map((draft) => draft.path),
+          sourceFilePaths,
         };
         addMessage(workspaceId, userMessage);
 
@@ -329,7 +336,7 @@ function ConsoleApp() {
           role: "assistant",
           content: response,
           createdAt: Date.now(),
-          sourceFilePaths: attachedDrafts.map((draft) => draft.path),
+          sourceFilePaths,
         });
 
         updateUiPrefs({
@@ -339,7 +346,16 @@ function ConsoleApp() {
         setSendingWorkspaceId("");
       }
     },
-    [addMessage, ensureDraftLoaded, openRouterClient, settings.uiPrefs.recentModels, snapshot.selectedPath, updateUiPrefs, workspaceState.messages, workspaceState.workspaces],
+    [
+      addMessage,
+      ensureDraftLoaded,
+      openRouterClient,
+      settings.uiPrefs.recentModels,
+      snapshot.selectedPath,
+      updateUiPrefs,
+      workspaceState.messages,
+      workspaceState.workspaces,
+    ],
   );
 
   return (
@@ -354,7 +370,9 @@ function ConsoleApp() {
             modelError={modelError}
             modelLoading={modelLoading}
             models={models}
-            onAddWorkspace={() => addWorkspace(createWorkspaceConfig(settings.defaultWorkspaceTemplate, `Workspace ${workspaceState.workspaces.length + 1}`))}
+            onAddWorkspace={() =>
+              addWorkspace(createWorkspaceConfig(settings.defaultWorkspaceTemplate, `對話 ${workspaceState.workspaces.length + 1}`))
+            }
             onAttachPath={(workspaceId, path) => {
               const workspace = workspaceState.workspaces.find((item) => item.id === workspaceId);
               if (!workspace || workspace.attachedPaths.includes(path)) {
@@ -397,6 +415,7 @@ function ConsoleApp() {
           />
         }
         dockHeight={settings.uiPrefs.dockHeight}
+        dockOpen={settings.uiPrefs.dockOpen}
         editor={
           <EditorPane
             draft={selectedDraft}
@@ -455,8 +474,7 @@ function ConsoleApp() {
         sidebarWidth={settings.uiPrefs.sidebarWidth}
         topBar={
           <TopBar
-            hasGitHubToken={Boolean(settings.githubPat)}
-            hasOpenRouterKey={Boolean(settings.openRouterApiKey)}
+            dockOpen={settings.uiPrefs.dockOpen}
             onOpenSettings={() => setIsSettingsOpen(true)}
             onRefreshRepo={() => {
               void loadRepoTree();
@@ -464,6 +482,7 @@ function ConsoleApp() {
                 void loadFile(snapshot.selectedPath, true);
               }
             }}
+            onToggleDock={() => updateUiPrefs({ dockOpen: !settings.uiPrefs.dockOpen })}
             onToggleSidebar={() => updateUiPrefs({ sidebarOpen: !settings.uiPrefs.sidebarOpen })}
             repoConfig={resolvedRepoConfig}
             repoStatus={repoStatus}
@@ -474,8 +493,10 @@ function ConsoleApp() {
       />
 
       {repoError ? <div className="toast-banner error">{repoError}</div> : null}
-      {commitStatus ? <div className={`toast-banner ${commitStatus.includes("successfully") ? "success" : "error"}`}>{commitStatus}</div> : null}
-      {activeWorkspace && !settings.openRouterApiKey ? <div className="toast-banner">設定 OpenRouter API key 後，AI dock 才能送出 prompt。</div> : null}
+      {commitStatus ? <div className={`toast-banner ${commitTone}`}>{commitStatus}</div> : null}
+      {activeWorkspace && !settings.openRouterApiKey ? (
+        <div className="toast-banner">請先在設定中填入 OpenRouter API key，AI 對話區才能使用。</div>
+      ) : null}
 
       <SettingsModal
         isOpen={isSettingsOpen}
@@ -492,21 +513,21 @@ function ConsoleApp() {
               githubToken: token,
             });
             await client.testConnection();
-            return "GitHub connection OK";
+            return "GitHub 連線正常。";
           } catch (error) {
-            return error instanceof Error ? error.message : "GitHub test failed";
+            return error instanceof Error ? error.message : "GitHub 測試失敗。";
           }
         }}
         onTestOpenRouter={async (apiKey) => {
           if (!apiKey) {
-            return "Missing OpenRouter API key";
+            return "請先輸入 OpenRouter API key。";
           }
           try {
             const client = new OpenRouterClient(apiKey);
             await client.testConnection();
-            return "OpenRouter connection OK";
+            return "OpenRouter 連線正常。";
           } catch (error) {
-            return error instanceof Error ? error.message : "OpenRouter test failed";
+            return error instanceof Error ? error.message : "OpenRouter 測試失敗。";
           }
         }}
         settings={settings}

@@ -18,16 +18,18 @@ export const DEFAULT_COMMIT_DRAFT: CommitDraft = {
 
 export const DEFAULT_WORKSPACE_TEMPLATE: WorkspaceTemplate = {
   model: "openai/gpt-4o-mini",
-  systemPrompt: "你是小說協作編輯，請優先維持設定一致、語氣穩定，並明確標示你改寫的重點。",
+  systemPrompt:
+    "你是小說寫作助理。請以繁體中文協助整理設定、改寫段落、延伸靈感與檢查前後一致性。若使用者要直接修改文檔，請盡量回覆可直接貼回編輯器的內容。",
   temperature: 0.7,
   maxCompletionTokens: 1200,
   autoAttachActiveFile: true,
 };
 
 export const DEFAULT_UI_PREFS = {
-  sidebarOpen: false,
-  sidebarWidth: 320,
-  dockHeight: 320,
+  sidebarOpen: true,
+  sidebarWidth: 240,
+  dockOpen: true,
+  dockHeight: 240,
   favoriteModels: [] as string[],
   recentModels: [] as string[],
 };
@@ -42,7 +44,7 @@ export function createWorkspaceConfig(template: WorkspaceTemplate, name?: string
   const id = typeof crypto !== "undefined" && "randomUUID" in crypto ? crypto.randomUUID() : `ws-${Date.now()}`;
   return {
     id,
-    name: name ?? "Workspace",
+    name: name ?? "新對話",
     model: template.model,
     systemPrompt: template.systemPrompt,
     temperature: template.temperature,
@@ -51,4 +53,3 @@ export function createWorkspaceConfig(template: WorkspaceTemplate, name?: string
     autoAttachActiveFile: template.autoAttachActiveFile,
   };
 }
-

@@ -44,9 +44,10 @@ export function Sidebar(props: SidebarProps) {
       <section className="tree-panel">
         <div className="panel-header">
           <div>
-            <div className="eyebrow">Repository</div>
-            <h3>File tree</h3>
+            <div className="eyebrow">檔案</div>
+            <h3>檔案樹</h3>
           </div>
+          <span className="inline-status">{branch}</span>
         </div>
         <FileTree
           dirtyPaths={dirtyDrafts.map((draft) => draft.path)}
@@ -55,21 +56,24 @@ export function Sidebar(props: SidebarProps) {
           selectedPath={selectedPath}
         />
       </section>
-      <CommitPanel
-        branch={branch}
-        dirtyDrafts={dirtyDrafts}
-        hasGitHubToken={hasGitHubToken}
-        includedPaths={includedPaths}
-        isSubmitting={isSubmittingCommit}
-        message={commitMessage}
-        onCommit={onCommit}
-        onDiscardDraft={onDiscardDraft}
-        onIncludeAll={onIncludeAllDirty}
-        onMessageChange={onCommitMessageChange}
-        onRefreshHead={onRefreshHead}
-        onTogglePath={onToggleCommitPath}
-      />
+
+      <details className="sidebar-drawer">
+        <summary>版本控制</summary>
+        <CommitPanel
+          branch={branch}
+          dirtyDrafts={dirtyDrafts}
+          hasGitHubToken={hasGitHubToken}
+          includedPaths={includedPaths}
+          isSubmitting={isSubmittingCommit}
+          message={commitMessage}
+          onCommit={onCommit}
+          onDiscardDraft={onDiscardDraft}
+          onIncludeAll={onIncludeAllDirty}
+          onMessageChange={onCommitMessageChange}
+          onRefreshHead={onRefreshHead}
+          onTogglePath={onToggleCommitPath}
+        />
+      </details>
     </div>
   );
 }
-

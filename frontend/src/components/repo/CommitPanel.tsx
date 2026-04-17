@@ -39,26 +39,26 @@ export function CommitPanel(props: CommitPanelProps) {
     <section className="commit-panel">
       <div className="panel-header">
         <div>
-          <div className="eyebrow">Commit</div>
-          <h3>Dirty files</h3>
+          <div className="eyebrow">版本控制</div>
+          <h3>變更檔案</h3>
         </div>
-        <span className="inline-status">branch: {branch}</span>
+        <span className="inline-status">分支：{branch}</span>
       </div>
 
-      {!hasGitHubToken ? <div className="panel-banner muted">尚未提供 GitHub PAT，現在是唯讀模式，commit 區已停用。</div> : null}
+      {!hasGitHubToken ? <div className="panel-banner muted">尚未設定 GitHub PAT，目前無法提交到 GitHub。</div> : null}
 
       <div className="inline-row">
         <button className="ghost-button" onClick={onRefreshHead} type="button">
-          Refresh HEAD
+          重新整理
         </button>
         <button className="ghost-button" onClick={onIncludeAll} type="button">
-          Include all dirty
+          全選變更
         </button>
       </div>
 
       <div className="dirty-list">
         {dirtyDrafts.length === 0 ? (
-          <div className="panel-empty">目前沒有未提交的本地草稿。</div>
+          <div className="panel-empty">目前沒有尚未提交的變更。</div>
         ) : (
           dirtyDrafts.map((draft) => {
             const diff = buildLineDiff(draft.originalContent, draft.draftContent);
@@ -71,9 +71,9 @@ export function CommitPanel(props: CommitPanelProps) {
                   </label>
                 </summary>
                 <div className="inline-row">
-                  <span className="inline-status">{draft.isEditable ? "editable" : "read-only"}</span>
+                  <span className="inline-status">{draft.isEditable ? "可編輯" : "唯讀"}</span>
                   <button className="ghost-button" onClick={() => onDiscardDraft(draft.path)} type="button">
-                    Discard draft
+                    放棄草稿
                   </button>
                 </div>
                 <pre className="diff-preview">
@@ -90,12 +90,12 @@ export function CommitPanel(props: CommitPanelProps) {
       </div>
 
       <label>
-        Commit message
+        提交訊息
         <textarea
           className="text-area"
           disabled={!hasGitHubToken}
           onChange={(event) => onMessageChange(event.target.value)}
-          placeholder="Summarize this editing batch..."
+          placeholder="簡述這次修改內容..."
           rows={3}
           value={message}
         />
@@ -106,9 +106,8 @@ export function CommitPanel(props: CommitPanelProps) {
         onClick={onCommit}
         type="button"
       >
-        {isSubmitting ? "Committing..." : "Commit selected changes"}
+        {isSubmitting ? "提交中..." : "提交選取的變更"}
       </button>
     </section>
   );
 }
-

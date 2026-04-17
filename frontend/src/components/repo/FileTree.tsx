@@ -65,13 +65,17 @@ export function FileTree(props: FileTreeProps) {
     return (
       <div key={node.id} className="tree-directory">
         <button className="tree-folder" onClick={() => toggle(node.path)} type="button">
-          <span>{isExpanded ? "▾" : "▸"}</span>
+          <span className="tree-arrow">{isExpanded ? "▾" : "▸"}</span>
           <span>{node.name}</span>
         </button>
         {isExpanded ? <div className="tree-children">{(node.children ?? []).map(renderNode)}</div> : null}
       </div>
     );
   };
+
+  if (nodes.length === 0) {
+    return <div className="panel-empty">目前沒有可顯示的檔案。</div>;
+  }
 
   return <div className="file-tree">{nodes.map(renderNode)}</div>;
 }

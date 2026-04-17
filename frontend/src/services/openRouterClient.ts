@@ -33,7 +33,7 @@ function buildHeaders(apiKey: string): HeadersInit {
     Authorization: `Bearer ${apiKey}`,
     "Content-Type": "application/json",
     "HTTP-Referer": "https://gloria0336.github.io/novel_writer/",
-    "X-OpenRouter-Title": "Novel Writer Console",
+    "X-OpenRouter-Title": "小說工作台",
   };
 }
 

@@ -1,8 +1,8 @@
 import { useEffect, useMemo, useRef } from "react";
-import CodeMirror from "@uiw/react-codemirror";
+import { json } from "@codemirror/lang-json";
 import { markdown } from "@codemirror/lang-markdown";
 import { yaml } from "@codemirror/lang-yaml";
-import { json } from "@codemirror/lang-json";
+import CodeMirror from "@uiw/react-codemirror";
 import type { EditorView } from "@codemirror/view";
 import type { DraftEntry } from "../../types/app";
 import { getFileExtension } from "../../utils/fileAccess";
@@ -47,9 +47,9 @@ export function EditorPane(props: EditorPaneProps) {
   if (!selectedPath) {
     return (
       <div className="editor-empty">
-        <div className="eyebrow">Editor</div>
-        <h2>Select a file from the repo tree</h2>
-        <p>你可以瀏覽整個 repo，但只有 `backend/novel_db` 內的指定文字檔可編輯。</p>
+        <div className="eyebrow">文檔</div>
+        <h2>請先從左側檔案樹選擇文檔</h2>
+        <p>選取後，內容會顯示在這裡並可直接編輯。</p>
       </div>
     );
   }
@@ -58,20 +58,24 @@ export function EditorPane(props: EditorPaneProps) {
     <div className="editor-pane">
       <div className="editor-header">
         <div>
-          <div className="eyebrow">Editor</div>
+          <div className="eyebrow">文檔</div>
           <h2>{selectedPath}</h2>
         </div>
         <div className="inline-row">
-          {draft ? <span className={`status-pill ${draft.draftContent !== draft.originalContent ? "status-live" : "status-muted"}`}>{draft.draftContent !== draft.originalContent ? "dirty" : "synced"}</span> : null}
+          {draft ? (
+            <span className={`status-pill ${draft.draftContent !== draft.originalContent ? "status-live" : "status-muted"}`}>
+              {draft.draftContent !== draft.originalContent ? "尚未提交" : "已同步"}
+            </span>
+          ) : null}
           <button className="ghost-button" disabled={!draft} onClick={onResetToHead} type="button">
-            Reset to HEAD
+            還原為最新版本
           </button>
         </div>
       </div>
 
       {draft && !draft.isEditable ? <div className="panel-banner muted">{draft.readOnlyReason}</div> : null}
       {error ? <div className="panel-banner error">{error}</div> : null}
-      {isLoading ? <div className="panel-banner">Loading file...</div> : null}
+      {isLoading ? <div className="panel-banner">文檔載入中...</div> : null}
 
       <div className="editor-surface">
         <CodeMirror
@@ -119,7 +123,7 @@ export function EditorPane(props: EditorPaneProps) {
               },
             });
           }}
-          theme="dark"
+          theme="light"
           value={draft?.draftContent ?? ""}
         />
       </div>

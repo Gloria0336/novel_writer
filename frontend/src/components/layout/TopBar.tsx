@@ -4,59 +4,51 @@ interface TopBarProps {
   repoConfig: RepoConfig;
   selectedPath?: string;
   sidebarOpen: boolean;
+  dockOpen: boolean;
   repoStatus: "idle" | "loading" | "ready" | "error";
-  hasGitHubToken: boolean;
-  hasOpenRouterKey: boolean;
   onToggleSidebar: () => void;
+  onToggleDock: () => void;
   onRefreshRepo: () => void;
   onOpenSettings: () => void;
 }
 
 export function TopBar(props: TopBarProps) {
-  const {
-    repoConfig,
-    selectedPath,
-    sidebarOpen,
-    repoStatus,
-    hasGitHubToken,
-    hasOpenRouterKey,
-    onToggleSidebar,
-    onRefreshRepo,
-    onOpenSettings,
-  } = props;
+  const { repoConfig, selectedPath, sidebarOpen, dockOpen, repoStatus, onToggleSidebar, onToggleDock, onRefreshRepo, onOpenSettings } =
+    props;
+
+  const repoStatusLabel = {
+    idle: "待命",
+    loading: "同步中",
+    ready: "已就緒",
+    error: "錯誤",
+  }[repoStatus];
 
   return (
     <header className="topbar">
       <div className="topbar-group">
         <button className="ghost-button" onClick={onToggleSidebar} type="button">
-          {sidebarOpen ? "Hide Sidebar" : "Show Sidebar"}
+          {sidebarOpen ? "隱藏檔案樹" : "顯示檔案樹"}
         </button>
         <div>
-          <div className="eyebrow">Novel Writer Console</div>
-          <div className="topbar-title">
-            {repoConfig.owner}/{repoConfig.repo} <span>@ {repoConfig.branch}</span>
-          </div>
+          <div className="eyebrow">小說工作台</div>
+          <div className="topbar-title">{selectedPath ?? "尚未選取文檔"}</div>
         </div>
       </div>
-      <div className="topbar-center">
-        <span className={`status-pill status-${repoStatus}`}>{repoStatus}</span>
-        <span className={`status-pill ${hasGitHubToken ? "status-live" : "status-muted"}`}>
-          GitHub {hasGitHubToken ? "PAT ready" : "read-only"}
-        </span>
-        <span className={`status-pill ${hasOpenRouterKey ? "status-live" : "status-muted"}`}>
-          OpenRouter {hasOpenRouterKey ? "key ready" : "offline"}
-        </span>
-      </div>
       <div className="topbar-group">
-        <div className="selected-file-chip">{selectedPath ?? "No file selected"}</div>
+        <span className={`status-pill status-${repoStatus}`}>{repoStatusLabel}</span>
+        <div className="selected-file-chip">
+          {repoConfig.owner}/{repoConfig.repo}@{repoConfig.branch}
+        </div>
         <button className="ghost-button" onClick={onRefreshRepo} type="button">
-          Refresh HEAD
+          重新整理
+        </button>
+        <button className="ghost-button" onClick={onToggleDock} type="button">
+          {dockOpen ? "隱藏 AI 區" : "顯示 AI 區"}
         </button>
         <button className="solid-button" onClick={onOpenSettings} type="button">
-          Settings
+          設定
         </button>
       </div>
     </header>
   );
 }
-

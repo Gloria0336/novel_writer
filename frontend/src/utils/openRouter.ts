@@ -9,7 +9,7 @@ export function buildWorkspaceRequest(params: {
   const { workspace, history, prompt, attachedDrafts } = params;
 
   const contextBlocks = attachedDrafts.map((draft) => {
-    return `檔案: ${draft.path}\n\`\`\`\n${draft.draftContent}\n\`\`\``;
+    return `檔案：${draft.path}\n\`\`\`\n${draft.draftContent}\n\`\`\``;
   });
 
   const messages: OpenRouterChatRequest["messages"] = [];
@@ -24,7 +24,7 @@ export function buildWorkspaceRequest(params: {
   if (contextBlocks.length > 0) {
     messages.push({
       role: "system",
-      content: `以下是本輪可引用的檔案內容，請在回答時優先遵守其設定與語境。\n\n${contextBlocks.join("\n\n")}`,
+      content: `以下是目前附加給你的文檔內容。請優先根據這些資料回答，避免憑空補設定。\n\n${contextBlocks.join("\n\n")}`,
     });
   }
 
@@ -47,4 +47,3 @@ export function buildWorkspaceRequest(params: {
     maxCompletionTokens: workspace.maxCompletionTokens,
   };
 }
-

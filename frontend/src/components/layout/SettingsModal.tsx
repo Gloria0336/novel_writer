@@ -16,8 +16,8 @@ export function SettingsModal(props: SettingsModalProps) {
   const { isOpen, settings, onClose, onSave, onClearSecrets, onTestGitHub, onTestOpenRouter } = props;
   const [localSettings, setLocalSettings] = useState<AppSettings>(settings);
   const [overrideRepo, setOverrideRepo] = useState(Boolean(settings.repoOverride));
-  const [githubStatus, setGitHubStatus] = useState<string>("");
-  const [openRouterStatus, setOpenRouterStatus] = useState<string>("");
+  const [githubStatus, setGitHubStatus] = useState("");
+  const [openRouterStatus, setOpenRouterStatus] = useState("");
 
   useEffect(() => {
     if (!isOpen) {
@@ -48,11 +48,11 @@ export function SettingsModal(props: SettingsModalProps) {
       <div className="modal-card" role="dialog" aria-modal="true" onClick={(event) => event.stopPropagation()}>
         <div className="modal-header">
           <div>
-            <div className="eyebrow">Secrets & defaults</div>
-            <h2>Console Settings</h2>
+            <div className="eyebrow">設定</div>
+            <h2>工作台設定</h2>
           </div>
           <button className="ghost-button" onClick={onClose} type="button">
-            Close
+            關閉
           </button>
         </div>
 
@@ -61,7 +61,7 @@ export function SettingsModal(props: SettingsModalProps) {
         </div>
 
         <section className="settings-section">
-          <h3>Secrets</h3>
+          <h3>憑證</h3>
           <label>
             GitHub fine-grained PAT
             <input
@@ -82,14 +82,15 @@ export function SettingsModal(props: SettingsModalProps) {
               className="ghost-button"
               type="button"
               onClick={async () => {
-                setGitHubStatus("Testing...");
+                setGitHubStatus("測試中...");
                 setGitHubStatus(await onTestGitHub(localSettings.githubPat));
               }}
             >
-              Test GitHub
+              測試 GitHub
             </button>
             <span className="inline-status">{githubStatus}</span>
           </div>
+
           <label>
             OpenRouter API key
             <input
@@ -110,30 +111,30 @@ export function SettingsModal(props: SettingsModalProps) {
               className="ghost-button"
               type="button"
               onClick={async () => {
-                setOpenRouterStatus("Testing...");
+                setOpenRouterStatus("測試中...");
                 setOpenRouterStatus(await onTestOpenRouter(localSettings.openRouterApiKey));
               }}
             >
-              Test OpenRouter
+              測試 OpenRouter
             </button>
             <span className="inline-status">{openRouterStatus}</span>
           </div>
           <button className="danger-button" onClick={onClearSecrets} type="button">
-            Clear saved secrets
+            清除已儲存的憑證
           </button>
         </section>
 
         <section className="settings-section">
           <div className="inline-row">
-            <h3>Repo target</h3>
+            <h3>目標儲存庫</h3>
             <label className="checkbox-row">
               <input checked={overrideRepo} onChange={(event) => setOverrideRepo(event.target.checked)} type="checkbox" />
-              Override default repo target
+              覆寫預設儲存庫
             </label>
           </div>
           <div className="settings-grid">
             <label>
-              Owner
+              擁有者
               <input
                 className="text-input"
                 type="text"
@@ -151,7 +152,7 @@ export function SettingsModal(props: SettingsModalProps) {
               />
             </label>
             <label>
-              Repo
+              儲存庫
               <input
                 className="text-input"
                 type="text"
@@ -169,7 +170,7 @@ export function SettingsModal(props: SettingsModalProps) {
               />
             </label>
             <label>
-              Branch
+              分支
               <input
                 className="text-input"
                 type="text"
@@ -190,9 +191,9 @@ export function SettingsModal(props: SettingsModalProps) {
         </section>
 
         <section className="settings-section">
-          <h3>Default workspace template</h3>
+          <h3>預設 AI 對話設定</h3>
           <label>
-            Default model
+            預設模型
             <input
               className="text-input"
               type="text"
@@ -209,7 +210,7 @@ export function SettingsModal(props: SettingsModalProps) {
             />
           </label>
           <label>
-            Default system prompt
+            預設系統提示
             <textarea
               className="text-area"
               rows={5}
@@ -247,7 +248,7 @@ export function SettingsModal(props: SettingsModalProps) {
               />
             </label>
             <label>
-              Max completion tokens
+              最大回覆 Token
               <input
                 className="text-input"
                 type="number"
@@ -281,13 +282,13 @@ export function SettingsModal(props: SettingsModalProps) {
               }
               type="checkbox"
             />
-            Auto-attach active file for new workspaces
+            新對話預設自動附加目前文檔
           </label>
         </section>
 
         <div className="modal-footer">
           <button className="ghost-button" onClick={onClose} type="button">
-            Cancel
+            取消
           </button>
           <button
             className="solid-button"
@@ -305,11 +306,10 @@ export function SettingsModal(props: SettingsModalProps) {
             }
             type="button"
           >
-            Save Settings
+            儲存設定
           </button>
         </div>
       </div>
     </div>
   );
 }
-
