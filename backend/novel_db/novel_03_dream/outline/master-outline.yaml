@@ -1,0 +1,61 @@
+canon_outline:
+  project_status: drafting
+  current_chapter: ch002
+  current_endpoint: >
+    主角完成 D-34 水族館夢境回收，帶著鯨魚布偶返回現實。
+    水族館已從被維持的展示狀態退回破敗廢墟，下一章可直接承接回收後處理。
+  canon_scope:
+    covered_chapters:
+      - ch000
+      - ch001
+      - ch002
+    note: 僅記錄已寫成正文的 canon 與可直接接續的落點。
+  chapter_beats:
+    - chapter: ch000
+      beat: >
+        建立主角在衰退城市中的例行生活與監測工作，
+        並以 D-34 區異常任務作為故事切入點。
+      outcome: 主角離開穩定日常，前往事件現場。
+    - chapter: ch001
+      beat: >
+        建立 D-34 水族館異常的空間質感，讓讀者感受到
+        現實廢墟與被保存的夢境展示正在重疊。
+      outcome: 主角接近異常核心，準備深入處理。
+    - chapter: ch002
+      beat: >
+        主角進入夢境縫隙，辨識並回收核心物件鯨魚布偶，
+        讓異常空間解除維持狀態。
+      outcome: 第一個具體案件成立，故事開始擁有可追索的物件線索。
+  character_state_snapshot:
+    protagonist: >
+      安具備成熟的異常巡查與回收能力。
+      ch002 結束時手上持有本次任務的核心物件鯨魚布偶，
+      對世界與工作的更深背景仍保持沉默。
+  near_term_next_steps:
+    - 揭露回收物的標準處理流程或保存機制
+    - 讓鯨魚布偶觸發更具體的記憶、紀錄或新異常線索
+    - 適度揭露主角與其工作系統的關係
+  continuity_flags:
+    - 安的姓名已揭露，但身分與所屬單位揭露仍要控制節奏。
+    - 文體重視安靜觀察與空白感，避免突然轉成高密度說明文。
+    - 異常的可怕之處偏向秩序偏移與被保存的夢，而不是直接怪物化。
+
+speculative_long_arc:
+  editable: true
+  status: author_adjustable_projection
+  note: 這一區是根據目前方向做的長線推演，非既定 canon，可自由修改。
+  central_questions:
+    - 城市的人為何持續消失，而主角為何被留下來處理殘留的夢境？
+    - 夢境核心物件只是異常殘渣，還是某種能保存人類存在痕跡的容器？
+    - 主角執行回收工作究竟是在維持世界，還是在為某個系統延後崩潰？
+  projected_arc:
+    - phase: 第一階段 / 開局
+      function: 建立世界衰退、異常回收流程與主角的孤獨職能。
+      likely_material:
+        - 第二個異常案例或對鯨魚布偶的解析
+        - 第一個揭露主角外部關係或工作系統的場景
+    - phase: 第二階段 / 追索
+      function: 從單一案件延伸到夢境來源、失蹤者或城市結構真相。
+      likely_material:
+        - 不同異常之間開始產生共通規律
+        - 主角被迫面對自己的過去或職責真相

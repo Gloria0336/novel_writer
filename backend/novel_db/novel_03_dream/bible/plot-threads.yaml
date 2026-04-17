@@ -1,0 +1,28 @@
+open_threads:
+  - id: dwindling-city
+    hook: 這座城市的人口為何是在沒有戰爭與災難斷裂的情況下慢慢消失？
+    introduced_in: ch000
+    status: open
+    stakes: 這將決定世界的本質、主角工作的真正意義，以及所有異常是否只是結果而非原因。
+    likely_payoff_window: 中後期
+
+  - id: d34-aquarium-anomaly
+    hook: D-34 水族館為何會以「明天仍要開館」般的狀態維持夢境展區？
+    introduced_in: ch001
+    status: partially_resolved
+    stakes: 若不能理解異常形成機制，就無法判斷其他場域是否也存在相同的夢境殘留。
+    likely_payoff_window: 近中期
+
+  - id: whale-plush-core
+    hook: 鯨魚布偶為何會成為整個夢境縫隙的穩定核心？
+    introduced_in: ch002
+    status: open
+    stakes: 這可能指向某段被保存的記憶、某個失落的人，或異常回收系統真正處理的其實是什麼。
+    likely_payoff_window: 近期
+
+  - id: protagonist-and-system
+    hook: 主角所屬的系統、訓練背景與任務流程究竟是誰建立的？
+    introduced_in: ch000
+    status: open
+    stakes: 一旦揭露，會重新定義主角是否只是維護者、倖存者，或某種更大型機制中的一部分。
+    likely_payoff_window: 中期
