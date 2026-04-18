@@ -62,6 +62,20 @@ open_threads:
     stakes: 若能掌握這股力量，林遠可能不再僅僅是燼的附庸，甚至具備反制妖魔的能力。
     likely_payoff_window: 近中期
 
+  - id: contract-hunger-cycle
+    hook: 林遠在 ch012~15 首次爆發契約飢餓並完成補給後，未來這種需求會如何週期性發作、能否以別的方式緩解？
+    introduced_in: ch012
+    status: active
+    stakes: 這直接牽動林遠的身體自主、與燼的權力關係，以及她能否在戰鬥需求與日常生活之間找到較低代價的平衡。
+    likely_payoff_window: 近期持續線
+
+  - id: body-feminization-progression
+    hook: 第一次陰陽調和後，林遠的胸部與身體曲線已出現再次發育跡象；這種女性化進程會持續到什麼程度？
+    introduced_in: ch016
+    status: emerging
+    stakes: 這將直接衝擊林遠的身份偽裝、衣著需求與自我認同，也會讓外界更容易察覺異常。
+    likely_payoff_window: 近期
+
   - id: debt-to-jin
     hook: 燼兩次救命皆強調「欠我一條命」，這份債務最終將以何種形式償還？
     introduced_in: ch001
