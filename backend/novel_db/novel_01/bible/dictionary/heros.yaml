@@ -1,0 +1,121 @@
+heros:
+  - id: saints
+    name: 聖徒（基督教封聖者）
+    aliases:
+      - 基督教封聖者
+    classification: 人類強者
+    authenticity: 部分真實存在，部分為傳說與真實混合
+    power_source:
+      - 神明賜予
+    current_status: 已逝，遺留聖骨與聖物仍具神力
+    profile: >
+      聖徒並非一般的基督教能力者。獲得封聖稱號者無論古代或現代，
+      皆代表其信仰達到常人難以企及的虔誠程度，並因此獲得神明直接賜予的特殊神力，
+      足以對抗遠超普通能力者所能應對的妖魔威脅。
+    achievements:
+      - 留下聖骨、聖器、衣物等具神力遺物
+      - 成為西方宗教派系最重要的神器來源之一
+    special_notes: >
+      每一位獲得封聖的人物，其遺物在死後仍保有程度不等的神力。
+    representative_cases:
+      - 聖喬治：記錄有對抗未確認妖魔的紀錄，疑似領域等級以上個體
+      - 聖女貞德：神明賜予的戰場加持，死後聖物仍被多個獵魔殿分部爭奪保管
+
+  - id: heracles
+    name: 海克力士
+    aliases:
+      - 赫拉克勒斯
+    classification: 人類強者
+    authenticity: 真實存在，傳說誇大
+    power_source:
+      - 神明血脈
+      - 後天經歷強化
+    current_status: 已逝，力量隨肉身消亡
+    profile: >
+      歷史上確實存在過此人，以神明血脈為基礎的天生體質使其身體能力遠超常人，
+      其後半生的試煉與經歷進一步強化了這份天賦。
+    achievements:
+      - 傳說中的十二項偉業有部分對應妖魔事件紀錄
+    special_notes: >
+      相關記錄留存於獵魔殿早期檔案，但細節已嚴重失真。死後並未成神。
+    representative_cases: []
+
+  - id: gilgamesh
+    name: 吉爾伽美什
+    aliases: []
+    classification: 人類強者
+    authenticity: 傳說與真實混合，身世不可考
+    power_source:
+      - 神明血脈（三分之二神之子孫）
+      - 自身修為
+    current_status: 已逝或下落不可考
+    profile: >
+      最古老的有記錄英雄之一，與獵魔殿的前身組織有直接淵源。
+    achievements:
+      - 被部分史學派系認為參與了獵魔殿前身的建立
+      - 追求永生的旅程留有古老文獻側面記載
+    special_notes: >
+      其旅程目的疑似與某個被封印的古代存在有關，細節已不可考。
+    representative_cases: []
+
+  - id: hou-yi
+    name: 后羿
+    aliases: []
+    classification: 人類強者
+    authenticity: 傳說與真實混合，身世不可考
+    power_source:
+      - 純粹自身修為
+      - 天賦
+    current_status: 已逝或下落不可考
+    profile: >
+      射落九日的傳說在這個世界觀中指向某次古代的大規模妖魔事件，
+      「九日」很可能是九個同時活動的高等妖魔的比喻記載，而非字面意義。
+    achievements:
+      - 以純粹人類天賦與修為對抗大規模高等妖魔威脅
+    special_notes: >
+      是已知不依賴神明血脈或賜予而達到頂點的人類強者之一。
+    representative_cases: []
+
+  - id: buddha
+    name: 佛陀（釋迦牟尼）
+    aliases:
+      - 釋迦牟尼
+    classification: 人類強者
+    authenticity: 真實存在，現已成為神明
+    power_source:
+      - 淵念修為
+      - 自身意志
+      - 智慧
+    current_status: 已超脫為神明，存在於神明維度
+    profile: >
+      佛陀是這個世界觀中少數由人間存在修煉至極致後超脫成神的案例之一。
+      其在人間時期純粹以淵念修為為基礎，不依賴任何神明賜予，
+      憑藉意志與智慧掌握淵念的極致平衡，最終超越人類修為的上限，進入神明維度。
+    achievements:
+      - 由人類修行者超脫成神
+      - 成為佛教能力者體系最重要的信仰依據
+    special_notes: >
+      現今的佛陀已是佛教體系所信奉的神明之一，與其他神明同樣無法直接干涉人間，
+      只能透過信眾虔誠的修行回應其力量。
+    representative_cases: []
+
+  - id: mazu
+    name: 媽祖
+    aliases: []
+    classification: 人類強者
+    authenticity: 真實存在，現為人神之間的特殊存在
+    power_source:
+      - 極強天賦
+      - 神明認可
+    current_status: 持續存在於人與神之間，真實所在不明
+    profile: >
+      媽祖是目前已知最特殊的案例之一。她不像佛陀那樣完全超脫進入神明維度，
+      而是以一種介於人與神之間的存在形態持續存在至今，既非純粹的神明，也不再是普通的人類，
+      是這個世界觀中唯一已知的此類存在。
+    achievements:
+      - 人間時期即具極強的天賦型淵念感知能力
+      - 長期回應人間苦難，保護航海者與海難者
+    special_notes: >
+      據推測其之所以未完全神化，與她主動選擇繼續關注人間事務有關。
+      獵魔殿對其現況掌握有限，其真實所在與意圖不明，是高層少數無法完全納入監管體系的存在之一。
+    representative_cases: []

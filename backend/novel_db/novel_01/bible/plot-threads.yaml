@@ -1,9 +1,9 @@
 open_threads:
   - id: accident-origin
-    hook: 林遠遭遇的貨車事故究竟只是意外，還是更大超自然鏈條的開端？
+    hook: 林遠遭遇的貨車事故究竟只是表面意外，還是燼在感知到特殊資質後刻意推動的接觸？
     introduced_in: ch001
     status: open
-    stakes: 若事故並非單純巧合，林遠可能早已被某方盯上。
+    stakes: 若事故本身就是設局，林遠從踏入契約起就不是被動受害者，而是被挑中的對象。
     likely_payoff_window: 近中期
 
   - id: contract-irreversible
@@ -21,11 +21,18 @@ open_threads:
     likely_payoff_window: 近期持續線
 
   - id: jin-intentions
-    hook: 燼真正為何選擇林遠、又希望從契約中得到什麼？
+    hook: 燼真正為何選擇林遠、又希望從契約中得到什麼？這份選擇與阿爾迪爾的異常淵念環境是否有關？
     introduced_in: ch001
     status: open
     stakes: 這決定他是危險的寄生者、不得已的同盟，還是更複雜的存在。
     likely_payoff_window: 中期
+
+  - id: tianjiang-remnant
+    hook: 阿爾迪爾千年前的災厄級妖魔「天降」是否仍以殘魂或意識形式殘存，並逐步影響現代城市？
+    introduced_in: worldbuild-planning
+    status: open
+    stakes: 若天降復甦風險成真，林遠與燼的私人求生將被捲入整座城市與獵魔殿都無法忽視的更高層災厄。
+    likely_payoff_window: 中後期
 
   - id: a-qiang-confidant
     hook: 阿強成為第一個知道真相的普通人盟友後，能否真的穩住局面而不是把風險一併放大？
@@ -52,11 +59,11 @@ open_threads:
     hook: 獵魔殿何時介入，並以何種方式鎖定林遠與燼？
     introduced_in: worldbuild-planning
     status: active
-    stakes: 這將把私人求生問題升級為都市超自然追獵。狼妖的出現暗示獵食者已開始頻繁活動。
+    stakes: 這將把私人求生問題升級為都市超自然政治。獵魔殿未必只會追殺，也可能試圖拉攏、監管或利用林遠與燼。
     likely_payoff_window: 中期
 
   - id: lin-yuan-power-awakening
-    hook: 林遠體內的「除魔師」潛力來源為何？為何契約後才覺醒？
+    hook: 林遠體內的「除魔師」潛力來源為何？這股力量與阿爾迪爾的淵念環境、天降餘波以及契約本身有何關聯？
     introduced_in: ch009
     status: active
     stakes: 若能掌握這股力量，林遠可能不再僅僅是燼的附庸，甚至具備反制妖魔的能力。

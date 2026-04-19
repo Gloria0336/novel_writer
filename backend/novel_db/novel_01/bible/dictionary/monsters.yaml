@@ -1,0 +1,147 @@
+monsters:
+  - id: nine-tailed-fox
+    name: 九尾狐
+    aliases: []
+    classification: 災厄級妖魔
+    level: 天壽
+    origin_emotions:
+      - 慕情
+      - 悲傷
+    current_status: 自由活動
+    appearance: >
+      人形，外表與人類無異，長期混入人間社會。行蹤不定，隨興趣流動，
+      從不在單一對象身上深入依賴。
+    origin: ""
+    abilities:
+      - 情感操控
+      - 情緒感知
+      - 情緒寄生
+    behavior: >
+      可誘發、滯留或改變他人的情感傾向，同時被動感知周遭人物的情緒走向。
+      進食方式為情緒寄生，寄居於他人的深厚感情之中汲取養分。
+    sealing_or_fate: ""
+    notes: >
+      各地鄉野雜談中多有側面記錄，真實面目眾說紛紜，獵魔殿確認其存在但難以追蹤。
+
+  - id: cthulhu
+    name: 克蘇魯
+    aliases: []
+    classification: 災厄級妖魔
+    level: 災厄
+    origin_emotions:
+      - 恐懼
+      - 未知
+    current_status: 沉眠於深海或未知維度
+    appearance: ""
+    origin: >
+      人類對未知、深海、宇宙的原始恐懼長年累積凝聚而成，是人類文明尚未出現之前就已存在的可能之一，
+      亦或是文明擴張後對宇宙尺度無知的集體恐懼產物。無論何者，其規模遠超一般妖魔的理解範疇。
+    abilities:
+      - 夢境侵入
+      - 精神污染
+      - 理智侵蝕
+    behavior: >
+      並未完全清醒，然而即便沉眠，其意識仍以某種方式滲透至人間。
+      對特定敏感體質者透過夢境侵入，初期表現為反覆出現的異常夢境與無法解釋的恐懼感，
+      持續接觸者將逐漸喪失理智，終至精神崩潰或主動尋找其所在。
+    sealing_or_fate: >
+      沉眠位置不明，獵魔殿存有多份接觸者記錄，均以發瘋告終。列為最高監視級別，無有效對策。
+    notes: ""
+
+  - id: leviathan
+    name: 利維坦
+    aliases: []
+    classification: 災厄級妖魔
+    level: 災厄（超越天壽上限）
+    origin_emotions:
+      - 憤怒
+      - 混亂
+      - 絕望
+    current_status: 被封印於深海
+    appearance: ""
+    origin: >
+      古代海洋文明的集體憤怒與絕望凝聚而成。那些被大海吞噬、被征服者屠殺、
+      被時代遺忘的人們所積累的怒火與絕望，最終在某個無人見證的時刻於深海底部凝聚成形。
+    abilities:
+      - 深海級破壞
+      - 災厄擴散
+      - 海域異常誘發
+    behavior: >
+      一旦封印鬆動，其所在海域將出現異常海況、船隻失聯等前兆。
+    sealing_or_fate: >
+      目前以某種古代封印術階級手段封印於深海特定座標，封印技術已超出現代任何單一宗教派系的能力範疇，
+      推測為多宗教聯合施術的遺產。封印穩固程度定期由獵魔殿海洋分部監測，目前維持穩定。
+    notes: >
+      利維坦至今從未被真正消滅，只被壓制。是獵魔殿高層少數真正謹慎對待的案例。
+
+  - id: jormungandr
+    name: 耶夢加得
+    aliases: []
+    classification: 災厄級妖魔
+    level: 災厄（超越天壽上限）
+    origin_emotions:
+      - 絕望
+      - 恐懼（天災）
+    current_status: 已消滅
+    appearance: ""
+    origin: >
+      古代北歐民族對天災、漫長寒冬與深海的原始恐懼凝聚而成，
+      是寒帶文明在生存極限下所積累的集體絕望的產物。
+    abilities:
+      - 寒流擴散
+      - 巨浪引發
+      - 地動影響
+      - 天災級被動壓迫
+    behavior: >
+      存在期間並非主動獵食，其天壽等級的淵念積累本身就足以在周遭造成天災規模的被動影響。
+    sealing_or_fate: >
+      與古代英雄索爾同歸於盡。索爾的對決被後世傳為北歐神話，真相已難以還原。
+    notes: ""
+
+  - id: faceless-one
+    name: 無面者
+    aliases: []
+    classification: 災厄級妖魔
+    level: 領域
+    origin_emotions:
+      - 貪婪
+      - 空虛
+    current_status: 被封印或鎮壓於某處
+    appearance: >
+      無固定外形，會將自身變化為目標最渴望之物或之人的樣貌，以此引誘對方靠近。
+    origin: ""
+    abilities:
+      - 變化擬態
+      - 貪婪污染
+      - 心智失控誘發
+    behavior: >
+      甦醒後主動尋找特定寶物或執念極深的人群，其存在本身會向周遭漫溢一種令人心智失控的貪婪氛圍，
+      導致附近人物為爭奪各自渴望之物而陷入瘋狂廝殺。無面者本身不具感情，
+      進食純粹是為了填補自身永遠無法填滿的空洞。
+    sealing_or_fate: >
+      目前封印地點為獵魔殿機密，解封條件不明。
+    notes: >
+      有記錄顯示歷史上多個城市的集體暴動與無面者的甦醒周期相吻合。
+
+  - id: medusa
+    name: 美杜莎
+    aliases: []
+    classification: 災厄級妖魔
+    level: 領域
+    origin_emotions:
+      - 嫉妒
+      - 渴望被看見
+    current_status: 已被消滅
+    appearance: ""
+    origin: >
+      某個曾對神明虔誠祈禱卻遭到懲罰的女性魂魄，在極度不甘與嫉妒中凝聚變質而成。
+      其誕生本身帶有對神明裁判的怨恨，使其能力具有強烈的「強迫注視」特性。
+    abilities:
+      - 目光石化
+      - 強迫注視
+      - 領域壓迫
+    behavior: >
+      領域充滿了對美貌與注視的渴求，進入領域者會感受到一種無法解釋的被迫注視衝動。
+    sealing_or_fate: >
+      被某位持有神明賜予反射盾牌的英雄所斬殺，其首級據說仍保有石化能力，下落不明。
+    notes: ""
