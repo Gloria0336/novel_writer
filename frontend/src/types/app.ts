@@ -79,13 +79,22 @@ export interface WorkspaceTemplate {
 }
 
 export interface UiPrefs {
-  activeView: "ai" | "files";
+  activeView: "ai" | "editor" | "files";
   sidebarOpen: boolean;
   sidebarWidth: number;
   dockOpen: boolean;
   dockHeight: number;
   favoriteModels: string[];
   recentModels: string[];
+  tweaksOpen?: boolean;
+}
+
+export interface TweakSettings {
+  uiFont: "Instrument Sans" | "Lora" | "JetBrains Mono";
+  editorFont: "Instrument Sans" | "Lora" | "JetBrains Mono";
+  fontSize: number;
+  editorFontSize: number;
+  editorLineHeight: number;
 }
 
 export interface AppSettings {
@@ -93,6 +102,8 @@ export interface AppSettings {
   repoOverride?: RepoOverrideConfig;
   uiPrefs: UiPrefs;
   defaultWorkspaceTemplate: WorkspaceTemplate;
+  openRouterApiKey?: string;
+  tweaks: TweakSettings;
 }
 
 export interface RepoSnapshot {

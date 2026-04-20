@@ -1,6 +1,6 @@
-import type { AppSettings, CommitDraft, RepoConfig, WorkspaceConfig, WorkspaceTemplate } from "../types/app";
+import type { AppSettings, CommitDraft, RepoConfig, TweakSettings, WorkspaceConfig, WorkspaceTemplate } from "../types/app";
 
-export const STORAGE_SCHEMA_VERSION = 2;
+export const STORAGE_SCHEMA_VERSION = 3;
 export const STORAGE_PREFIX = "novel-writer-ui";
 export const GITHUB_API_VERSION = "2022-11-28";
 export const DEFAULT_BRIDGE_BASE_URL = "http://127.0.0.1:8787";
@@ -20,9 +20,9 @@ export const DEFAULT_COMMIT_DRAFT: CommitDraft = {
 export const DEFAULT_WORKSPACE_TEMPLATE: WorkspaceTemplate = {
   model: "openai/gpt-4o-mini",
   systemPrompt:
-    "You are a careful novel revision assistant. Keep canon and structure consistent, explain your reasoning briefly, and return production-ready rewrites when asked.",
-  temperature: 0.7,
-  maxCompletionTokens: 1200,
+    "你是專業的小說修稿助理。請維持既有世界觀與人物口吻，回覆簡潔；若使用者要求改稿，請提供可直接套用的完整檔案內容。",
+  temperature: 0.75,
+  maxCompletionTokens: 2200,
   autoAttachActiveFile: true,
   autoAttachRelatedFiles: true,
 };
@@ -30,17 +30,28 @@ export const DEFAULT_WORKSPACE_TEMPLATE: WorkspaceTemplate = {
 export const DEFAULT_UI_PREFS = {
   activeView: "ai" as const,
   sidebarOpen: true,
-  sidebarWidth: 240,
-  dockOpen: true,
+  sidebarWidth: 260,
+  dockOpen: false,
   dockHeight: 280,
   favoriteModels: [] as string[],
   recentModels: [] as string[],
+  tweaksOpen: false,
+};
+
+export const DEFAULT_TWEAKS: TweakSettings = {
+  uiFont: "Instrument Sans",
+  editorFont: "Lora",
+  fontSize: 16,
+  editorFontSize: 18,
+  editorLineHeight: 1.8,
 };
 
 export const DEFAULT_SETTINGS: AppSettings = {
   schemaVersion: STORAGE_SCHEMA_VERSION,
   uiPrefs: DEFAULT_UI_PREFS,
   defaultWorkspaceTemplate: DEFAULT_WORKSPACE_TEMPLATE,
+  openRouterApiKey: "",
+  tweaks: DEFAULT_TWEAKS,
 };
 
 export function createWorkspaceConfig(template: WorkspaceTemplate, name?: string): WorkspaceConfig {

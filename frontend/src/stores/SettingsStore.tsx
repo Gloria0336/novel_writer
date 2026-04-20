@@ -10,6 +10,7 @@ interface SettingsStoreValue {
   setSettings: Dispatch<SetStateAction<AppSettings>>;
   updateSettings: (patch: Partial<AppSettings>) => void;
   updateUiPrefs: (patch: Partial<AppSettings["uiPrefs"]>) => void;
+  updateTweaks: (patch: Partial<AppSettings["tweaks"]>) => void;
   updateDefaultWorkspaceTemplate: (patch: Partial<AppSettings["defaultWorkspaceTemplate"]>) => void;
   clearSecrets: () => void;
 }
@@ -23,10 +24,15 @@ function mergeSettings(partial: AppSettings): AppSettings {
     uiPrefs: {
       ...DEFAULT_SETTINGS.uiPrefs,
       ...partial.uiPrefs,
+      activeView: partial.uiPrefs?.activeView === "files" ? "editor" : (partial.uiPrefs?.activeView ?? DEFAULT_SETTINGS.uiPrefs.activeView),
     },
     defaultWorkspaceTemplate: {
       ...DEFAULT_SETTINGS.defaultWorkspaceTemplate,
       ...partial.defaultWorkspaceTemplate,
+    },
+    tweaks: {
+      ...DEFAULT_SETTINGS.tweaks,
+      ...partial.tweaks,
     },
   };
 }
@@ -59,6 +65,17 @@ export function SettingsStoreProvider({ children }: PropsWithChildren) {
           } as AppSettings),
         );
       },
+      updateTweaks: (patch) => {
+        setSettings((previous) =>
+          mergeSettings({
+            ...previous,
+            tweaks: {
+              ...mergeSettings(previous).tweaks,
+              ...patch,
+            },
+          } as AppSettings),
+        );
+      },
       updateDefaultWorkspaceTemplate: (patch) => {
         setSettings((previous) =>
           mergeSettings({
@@ -71,7 +88,12 @@ export function SettingsStoreProvider({ children }: PropsWithChildren) {
         );
       },
       clearSecrets: () => {
-        setSettings((previous) => mergeSettings(previous));
+        setSettings((previous) =>
+          mergeSettings({
+            ...previous,
+            openRouterApiKey: "",
+          } as AppSettings),
+        );
       },
     };
   }, [normalizedSettings, setSettings]);

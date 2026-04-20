@@ -1,4 +1,8 @@
-import type { DraftEntry, OpenRouterChatRequest, WorkspaceConfig, WorkspaceMessage } from "../types/app";
+import type { AiChatResponse, DraftEntry, OpenRouterChatRequest, WorkspaceConfig, WorkspaceMessage } from "../types/app";
+
+function buildContextBlock(draft: DraftEntry): string {
+  return [`Path: ${draft.path}`, "```", draft.draftContent, "```"].join("\n");
+}
 
 export function buildWorkspaceRequest(params: {
   workspace: WorkspaceConfig;
@@ -6,12 +10,10 @@ export function buildWorkspaceRequest(params: {
   prompt: string;
   attachedDrafts: DraftEntry[];
   repoStructure?: string;
+  targetPath?: string;
 }): OpenRouterChatRequest {
-  const { workspace, history, prompt, attachedDrafts, repoStructure } = params;
-
-  const contextBlocks = attachedDrafts.map((draft) => {
-    return `檔案：${draft.path}\n\`\`\`\n${draft.draftContent}\n\`\`\``;
-  });
+  const { workspace, history, prompt, attachedDrafts, repoStructure, targetPath } = params;
+  const contextBlocks = attachedDrafts.map(buildContextBlock);
 
   const messages: OpenRouterChatRequest["messages"] = [];
 
@@ -25,17 +27,27 @@ export function buildWorkspaceRequest(params: {
   if (repoStructure?.trim()) {
     messages.push({
       role: "system",
-      content:
-        `Review this relevant workspace structure before you answer. Use it to find canon, outline, and chapter context.\n\n${repoStructure.trim()}`,
+      content: `Relevant novel structure:\n\n${repoStructure.trim()}`,
     });
   }
 
   if (contextBlocks.length > 0) {
     messages.push({
       role: "system",
-      content: `以下是目前附加給你的文檔內容。請優先根據這些資料回答，避免憑空補設定。\n\n${contextBlocks.join("\n\n")}`,
+      content: `Attached file context:\n\n${contextBlocks.join("\n\n")}`,
     });
   }
+
+  messages.push({
+    role: "system",
+    content: [
+      targetPath ? `The target file being edited is: ${targetPath}` : "No target file was provided.",
+      "Return valid JSON with this exact shape:",
+      '{"assistantText":"short explanation for the user","proposedContent":"full rewritten file or null"}',
+      "If you are rewriting the target file, proposedContent must contain the complete file content.",
+      "Do not wrap the JSON in Markdown fences.",
+    ].join("\n\n"),
+  });
 
   for (const item of history) {
     messages.push({
@@ -55,4 +67,25 @@ export function buildWorkspaceRequest(params: {
     temperature: workspace.temperature,
     maxCompletionTokens: workspace.maxCompletionTokens,
   };
+}
+
+export function parseAiResponseEnvelope(text: string, targetPath?: string): AiChatResponse {
+  try {
+    const parsed = JSON.parse(text) as {
+      assistantText?: unknown;
+      proposedContent?: unknown;
+    };
+
+    return {
+      assistantText:
+        typeof parsed.assistantText === "string" && parsed.assistantText.trim().length > 0 ? parsed.assistantText : text,
+      proposedContent: typeof parsed.proposedContent === "string" ? parsed.proposedContent : undefined,
+      targetPath,
+    };
+  } catch {
+    return {
+      assistantText: text,
+      targetPath,
+    };
+  }
 }

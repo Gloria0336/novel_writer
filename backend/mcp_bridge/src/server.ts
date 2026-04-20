@@ -2,10 +2,10 @@ import { createServer } from "node:http";
 import { URL } from "node:url";
 import { BRIDGE_PORT, GITHUB_TOKEN, OPENROUTER_API_KEY } from "./config.js";
 import { OpenRouterBridgeClient } from "./openRouterClient.js";
-import { GitHubRestRepoAdapter, RepoAuthError, RepoConflictError } from "./repoAdapter.js";
+import { LocalFsRepoAdapter, RepoAuthError, RepoConflictError } from "./repoAdapter.js";
 import type { AiChatRequest, BridgeStatus, CommitRequest, RepoRef } from "./types.js";
 
-const repoAdapter = new GitHubRestRepoAdapter();
+const repoAdapter = new LocalFsRepoAdapter();
 const openRouterClient = new OpenRouterBridgeClient();
 
 function sendJson(response: import("node:http").ServerResponse, status: number, body: unknown) {

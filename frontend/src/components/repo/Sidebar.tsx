@@ -1,34 +1,28 @@
-import type { DraftEntry, RepoTreeNode } from "../../types/app";
+import type { RepoTreeNode } from "../../types/app";
 import { FileTree } from "./FileTree";
 
 interface SidebarProps {
   nodes: RepoTreeNode[];
   selectedPath?: string;
-  dirtyDrafts: DraftEntry[];
-  branch: string;
+  dirtyPaths: string[];
+  sidebarOpen: boolean;
   onSelectPath: (path: string) => void;
 }
 
 export function Sidebar(props: SidebarProps) {
-  const { nodes, selectedPath, dirtyDrafts, branch, onSelectPath } = props;
+  const { nodes, selectedPath, dirtyPaths, sidebarOpen, onSelectPath } = props;
 
   return (
-    <div className="sidebar-content">
-      <section className="tree-panel">
-        <div className="panel-header">
-          <div>
-            <div className="eyebrow">Repository</div>
-            <h3>Novel Files</h3>
-          </div>
-          <span className="inline-status">{branch}</span>
+    <aside className={`file-sidebar ${sidebarOpen ? "" : "is-collapsed"}`}>
+      <div className="file-sidebar-header">
+        <div>
+          <div className="eyebrow">檔案</div>
+          <h3>小說資料庫</h3>
         </div>
-        <FileTree
-          dirtyPaths={dirtyDrafts.map((draft) => draft.path)}
-          nodes={nodes}
-          onSelectPath={onSelectPath}
-          selectedPath={selectedPath}
-        />
-      </section>
-    </div>
+      </div>
+      <div className="file-sidebar-scroll">
+        <FileTree dirtyPaths={dirtyPaths} nodes={nodes} onSelectPath={onSelectPath} selectedPath={selectedPath} />
+      </div>
+    </aside>
   );
 }

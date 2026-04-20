@@ -1,88 +1,92 @@
-import type { BridgeStatus, RepoConfig } from "../../types/app";
-
 interface TopBarProps {
-  repoConfig: RepoConfig;
-  selectedPath?: string;
-  activeView: "ai" | "files";
-  repoStatus: "idle" | "loading" | "ready" | "error";
-  bridgeStatus?: BridgeStatus | null;
+  activeView: "ai" | "editor";
   sidebarOpen: boolean;
-  dockOpen: boolean;
-  onSwitchView: (view: "ai" | "files") => void;
-  onRefreshRepo: () => void;
+  tweaksOpen: boolean;
+  repoStatus: "idle" | "loading" | "ready" | "error";
+  onSwitchView: (view: "ai" | "editor") => void;
   onToggleSidebar: () => void;
-  onToggleDock: () => void;
+  onToggleTweaks: () => void;
   onOpenSettings: () => void;
 }
 
-export function TopBar(props: TopBarProps) {
-  const {
-    repoConfig,
-    selectedPath,
-    activeView,
-    repoStatus,
-    bridgeStatus,
-    sidebarOpen,
-    dockOpen,
-    onSwitchView,
-    onRefreshRepo,
-    onToggleSidebar,
-    onToggleDock,
-    onOpenSettings,
-  } = props;
+function StatusChip({ repoStatus }: Pick<TopBarProps, "repoStatus">) {
+  const labelMap = {
+    idle: "準備中",
+    loading: "載入中",
+    ready: "已連線",
+    error: "連線失敗",
+  } as const;
 
-  const repoStatusLabel = {
-    idle: "Idle",
-    loading: "Loading",
-    ready: "Ready",
-    error: "Error",
-  }[repoStatus];
+  return <span className={`topbar-status is-${repoStatus}`}>{labelMap[repoStatus]}</span>;
+}
+
+export function TopBar(props: TopBarProps) {
+  const { activeView, sidebarOpen, tweaksOpen, repoStatus, onSwitchView, onToggleSidebar, onToggleTweaks, onOpenSettings } = props;
 
   return (
     <header className="topbar">
-      <div className="topbar-group">
-        <div>
-          <div className="eyebrow">Novel Writer</div>
-          <div className="topbar-title">{selectedPath ?? "Select a chapter or canon file"}</div>
-        </div>
-        <nav className="topbar-nav" aria-label="Primary views">
-          <button
-            className={`workspace-tab ${activeView === "ai" ? "is-active" : ""}`}
-            onClick={() => onSwitchView("ai")}
-            type="button"
-          >
-            AI Chat
-          </button>
-          <button
-            className={`workspace-tab ${activeView === "files" ? "is-active" : ""}`}
-            onClick={() => onSwitchView("files")}
-            type="button"
-          >
-            Files
-          </button>
-        </nav>
+      <div className="topbar-brand">
+        <div className="brand-mark">Nw</div>
+        <span className="brand-name">Novel Writer</span>
       </div>
-      <div className="topbar-group">
-        <span className={`status-pill status-${repoStatus}`}>{repoStatusLabel}</span>
-        <span className="selected-file-chip">
-          {repoConfig.owner}/{repoConfig.repo}@{repoConfig.branch}
-        </span>
-        {bridgeStatus ? (
-          <span className={`status-pill ${bridgeStatus.ok ? "status-ready" : "status-error"}`}>
-            Bridge: {bridgeStatus.repoAdapter}
-          </span>
-        ) : null}
-        <button className="ghost-button" onClick={onRefreshRepo} type="button">
-          Refresh Repo
+
+      <div className="topbar-view-toggle" aria-label="切換視圖">
+        <button
+          className={`topbar-view-button ${activeView === "ai" ? "is-active" : ""}`}
+          onClick={() => onSwitchView("ai")}
+          type="button"
+        >
+          AI 工作區
         </button>
-        <button className="ghost-button" onClick={onToggleSidebar} type="button">
-          {sidebarOpen ? "Hide Sidebar" : "Show Sidebar"}
+        <button
+          className={`topbar-view-button ${activeView === "editor" ? "is-active" : ""}`}
+          onClick={() => onSwitchView("editor")}
+          type="button"
+        >
+          編輯器
         </button>
-        <button className="ghost-button" onClick={onToggleDock} type="button">
-          {dockOpen ? "Hide Changes" : "Show Changes"}
+      </div>
+
+      <div className="topbar-actions">
+        <StatusChip repoStatus={repoStatus} />
+        <button aria-label="總設定" className="icon-button" onClick={onOpenSettings} type="button">
+          <svg fill="none" height="14" viewBox="0 0 14 14" width="14">
+            <circle cx="7" cy="7" r="2.4" stroke="currentColor" strokeWidth="1.3" />
+            <path
+              d="M7 0.5v2M7 11.5v2M0.5 7h2M11.5 7h2M2.1 2.1l1.4 1.4M10.5 10.5l1.4 1.4M11.9 2.1l-1.4 1.4M3.5 10.5l-1.4 1.4"
+              stroke="currentColor"
+              strokeLinecap="round"
+              strokeWidth="1.3"
+            />
+          </svg>
         </button>
-        <button className="solid-button" onClick={onOpenSettings} type="button">
-          Settings
+        <button
+          aria-label="切換側欄"
+          className={`icon-button ${sidebarOpen ? "is-active" : ""}`}
+          onClick={onToggleSidebar}
+          type="button"
+        >
+          <svg fill="none" height="12" viewBox="0 0 15 12" width="15">
+            <rect height="10.8" rx="1.2" stroke="currentColor" strokeWidth="1.2" width="4.4" x=".6" y=".6" />
+            <line stroke="currentColor" strokeLinecap="round" strokeWidth="1.2" x1="7.5" x2="14" y1="1" y2="1" />
+            <line stroke="currentColor" strokeLinecap="round" strokeWidth="1.2" x1="7.5" x2="12" y1="6" y2="6" />
+            <line stroke="currentColor" strokeLinecap="round" strokeWidth="1.2" x1="7.5" x2="14" y1="11" y2="11" />
+          </svg>
+        </button>
+        <button
+          aria-label="外觀調整"
+          className={`icon-button ${tweaksOpen ? "is-active" : ""}`}
+          onClick={onToggleTweaks}
+          type="button"
+        >
+          <svg fill="none" height="14" viewBox="0 0 15 14" width="15">
+            <circle cx="5.5" cy="4.5" r="1.6" stroke="currentColor" strokeWidth="1.2" />
+            <circle cx="9.5" cy="9.5" r="1.6" stroke="currentColor" strokeWidth="1.2" />
+            <line stroke="currentColor" strokeLinecap="round" strokeWidth="1.2" x1="1" x2="3.9" y1="4.5" y2="4.5" />
+            <line stroke="currentColor" strokeLinecap="round" strokeWidth="1.2" x1="7.1" x2="14" y1="4.5" y2="4.5" />
+            <line stroke="currentColor" strokeLinecap="round" strokeWidth="1.2" x1="1" x2="7.9" y1="9.5" y2="9.5" />
+            <line stroke="currentColor" strokeLinecap="round" strokeWidth="1.2" x1="11.1" x2="14" y1="9.5" y2="9.5" />
+          </svg>
         </button>
       </div>
     </header>
