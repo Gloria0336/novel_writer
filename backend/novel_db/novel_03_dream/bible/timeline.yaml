@@ -2,7 +2,7 @@ timeline:
   - day: Day 837
     time_of_day: 早晨
     chapter: ch000
-    location: 主角的監測據點 -> 城市街道
+    location_id: monitoring-station
     event: >
       主角照常以咖啡、乾麵包與監測儀器聲開始一天，
       卻察覺節拍出現不該有的偏移，系統最終顯示 D-34 區異常並要求前往察看。
@@ -11,7 +11,7 @@ timeline:
   - day: Day 837
     time_of_day: 白天
     chapter: ch001
-    location: D-34 區水族館
+    location_id: d34-aquarium
     event: >
       主角抵達水族館，發現內部像被切入另一層空間；
       展廳燈光逐盞亮起、滴答聲形成新節奏，中央水缸維持著不合理的展示狀態。
@@ -20,7 +20,7 @@ timeline:
   - day: Day 837
     time_of_day: 同日稍後
     chapter: ch002
-    location: D-34 區水族館中央展廳 / 夢境縫隙核心
+    location_id: d34-dream-fissure
     event: >
       主角接觸水族箱玻璃後進入時間與空間失去意義的縫隙，
       找到夢境核心物件鯨魚布偶，並以裝置將整段夢境壓縮回收。
@@ -28,6 +28,7 @@ timeline:
 
 continuity_notes:
   - 「八百三十七天」是正文直接給出的重複日常跨度，後續若改成年月需回頭校正。
+  - `timeline.yaml` 已改用 `location_id` 對應 `bible/location.yaml`，新增場域時請優先補 location 條目。
   - 城市衰退不是因為明確戰爭或災難，而是人口與用途長期緩慢流失。
   - D-34 水族館在異常解除前呈現近乎正常營運的展示感，解除後才顯露破敗現實。
   - 目前只有安正式出場，後續新增角色時需留意第三人稱近距視角的資訊揭露節奏。

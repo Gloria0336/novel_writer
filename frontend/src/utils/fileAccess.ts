@@ -9,7 +9,7 @@ export function getEditableStatus(path: string): { isEditable: boolean; reason?:
   if (!EDITABLE_FILE_PATTERN.test(path)) {
     return {
       isEditable: false,
-      reason: "目前只允許編輯 `backend/novel_db` 內的 md、yaml、yml、json 與 txt 檔案。",
+      reason: "Only UTF-8 text files inside backend/novel_db with md, yaml, yml, json, or txt extensions are editable.",
     };
   }
 

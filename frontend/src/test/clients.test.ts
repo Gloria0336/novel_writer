@@ -1,94 +1,133 @@
 import { describe, expect, it } from "vitest";
 import { http, HttpResponse } from "msw";
-import { GitHubClient } from "../services/githubClient";
-import { OpenRouterClient } from "../services/openRouterClient";
+import { BridgeClient, BridgeConflictError } from "../services/bridgeClient";
 import { server } from "./server";
 
-describe("API clients", () => {
-  it("loads repo tree and file content through GitHub client", async () => {
+describe("BridgeClient", () => {
+  it("loads repo tree and file content through the bridge", async () => {
     server.use(
-      http.get("https://api.github.com/repos/Gloria0336/novel_writer/git/ref/heads/main", () =>
-        HttpResponse.json({ object: { sha: "head-sha" } }),
-      ),
-      http.get("https://api.github.com/repos/Gloria0336/novel_writer/git/commits/head-sha", () =>
-        HttpResponse.json({ tree: { sha: "tree-sha" } }),
-      ),
-      http.get("https://api.github.com/repos/Gloria0336/novel_writer/git/trees/tree-sha", () =>
+      http.get("http://127.0.0.1:8787/api/repo/tree", () =>
         HttpResponse.json({
-          sha: "tree-sha",
+          entries: [{ path: "backend/novel_db/novel_00/chapters/ch001.md", sha: "file-sha", type: "blob" }],
+          headSha: "head-sha",
+          baseTreeSha: "tree-sha",
           truncated: false,
-          tree: [{ path: "backend/novel_db/novel_00/chapters/ch001.md", sha: "file-sha", type: "blob" }],
         }),
       ),
-      http.get("https://api.github.com/repos/Gloria0336/novel_writer/contents/backend/novel_db/novel_00/chapters/ch001.md", () =>
-        new HttpResponse(new TextEncoder().encode("# Chapter"), {
-          headers: {
-            "Content-Type": "application/octet-stream",
-          },
+      http.get("http://127.0.0.1:8787/api/repo/file", () =>
+        HttpResponse.json({
+          path: "backend/novel_db/novel_00/chapters/ch001.md",
+          sha: "file-sha",
+          content: "# Chapter",
+          isEditable: true,
         }),
       ),
     );
 
-    const client = new GitHubClient({
+    const client = new BridgeClient();
+    const tree = await client.getRepoTree({
       owner: "Gloria0336",
       repo: "novel_writer",
       branch: "main",
     });
 
-    const tree = await client.getRepoTree();
     expect(tree.headSha).toBe("head-sha");
     expect(tree.entries).toHaveLength(1);
 
-    const file = await client.getFileContent("backend/novel_db/novel_00/chapters/ch001.md", "file-sha");
+    const file = await client.getFileContent(
+      {
+        owner: "Gloria0336",
+        repo: "novel_writer",
+        branch: "main",
+      },
+      "backend/novel_db/novel_00/chapters/ch001.md",
+      "file-sha",
+    );
+
     expect(file.content).toContain("Chapter");
     expect(file.isEditable).toBe(true);
   });
 
-  it("loads OpenRouter text models", async () => {
+  it("loads models and AI chat responses through the bridge", async () => {
     server.use(
-      http.get("https://openrouter.ai/api/v1/models", () =>
+      http.post("http://127.0.0.1:8787/api/ai/models", () =>
         HttpResponse.json({
-          data: [
+          models: [
             {
               id: "openai/gpt-4o-mini",
               name: "GPT-4o mini",
-              context_length: 128000,
-              architecture: {
-                input_modalities: ["text"],
-                output_modalities: ["text"],
-              },
-              supported_parameters: ["temperature"],
-            },
-            {
-              id: "image/model",
-              name: "Image model",
-              context_length: 0,
-              architecture: {
-                input_modalities: ["text"],
-                output_modalities: ["image"],
-              },
-              supported_parameters: [],
-            },
-            {
-              id: "mystery/model",
-              name: "Mystery model",
-              context_length: 64000,
+              contextLength: 128000,
+              inputModalities: ["text"],
+              outputModalities: ["text"],
+              supportedParameters: ["temperature"],
             },
           ],
         }),
       ),
+      http.post("http://127.0.0.1:8787/api/ai/chat", () =>
+        HttpResponse.json({
+          assistantText: "I rewrote the chapter opening.",
+          proposedContent: "# Chapter 1\n\nNew draft.",
+          targetPath: "backend/novel_db/novel_00/chapters/ch001.md",
+        }),
+      ),
     );
 
-    const client = new OpenRouterClient("test-key");
+    const client = new BridgeClient();
     const models = await client.getModels();
-
     expect(models).toEqual([
       expect.objectContaining({
         id: "openai/gpt-4o-mini",
       }),
-      expect.objectContaining({
-        id: "mystery/model",
-      }),
     ]);
+
+    const response = await client.sendChat({
+      repoRef: {
+        owner: "Gloria0336",
+        repo: "novel_writer",
+        branch: "main",
+      },
+      workspace: {
+        id: "ws-1",
+        name: "Workspace 1",
+        model: "openai/gpt-4o-mini",
+        systemPrompt: "Be precise.",
+        temperature: 0.7,
+        maxCompletionTokens: 512,
+        attachedPaths: [],
+        autoAttachActiveFile: true,
+        autoAttachRelatedFiles: true,
+      },
+      history: [],
+      prompt: "Rewrite the opening.",
+      attachedDrafts: [],
+      targetPath: "backend/novel_db/novel_00/chapters/ch001.md",
+    });
+
+    expect(response.proposedContent).toContain("New draft");
+  });
+
+  it("maps 409 responses to BridgeConflictError", async () => {
+    server.use(
+      http.post("http://127.0.0.1:8787/api/repo/commit", () =>
+        HttpResponse.json({ error: "Head changed." }, { status: 409 }),
+      ),
+    );
+
+    const client = new BridgeClient();
+
+    await expect(
+      client.createCommit({
+        repoRef: {
+          owner: "Gloria0336",
+          repo: "novel_writer",
+          branch: "main",
+        },
+        headSha: "head-1",
+        baseTreeSha: "tree-1",
+        message: "Test",
+        files: [],
+      }),
+    ).rejects.toBeInstanceOf(BridgeConflictError);
   });
 });

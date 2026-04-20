@@ -14,9 +14,15 @@
 ## 目前已整理內容
 
 - `chapters/`: `ch000.md`、`ch001.md`、`ch002.md`
-- `bible/`: 主角狀態、世界規則、時間線、開放懸念
+- `bible/`: 主角狀態、世界規則、地點資料、時間線、開放懸念
 - `outline/`: 目前 canon 落點與 Act 1 推進方向
-- `context/`: 可直接銜接下一章的摘要
+- `context/`: 可直接銜接下一章的摘要，以及尚未正式揭露的保密設定
+
+## 維護約定
+
+- 地理與場域資訊集中在 `bible/location.yaml`，時間線只引用 `location_id`。
+- `worldbuilding.md` 只放已在正文正式成立的資訊；未揭露真相請記錄在 `context/secrets-lockbox.md`。
+- 若新章改變長線方向，除了更新摘要，也要回看 `outline/master-outline.yaml`。
 
 ## 建議續寫方向
 

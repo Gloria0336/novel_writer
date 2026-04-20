@@ -56,7 +56,7 @@ export function FileTree(props: FileTreeProps) {
           type="button"
         >
           <span>{node.name}</span>
-          {dirtySet.has(node.path) ? <span className="tree-dirty-dot" /> : null}
+          {dirtySet.has(node.path) ? <span className="tree-dirty-dot" aria-label="Dirty draft" /> : null}
         </button>
       );
     }
@@ -74,7 +74,7 @@ export function FileTree(props: FileTreeProps) {
   };
 
   if (nodes.length === 0) {
-    return <div className="panel-empty">目前沒有可顯示的檔案。</div>;
+    return <div className="panel-empty">No files loaded yet.</div>;
   }
 
   return <div className="file-tree">{nodes.map(renderNode)}</div>;

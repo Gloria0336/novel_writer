@@ -2,126 +2,126 @@ timeline:
   - day: 2025/10/16 (Day 0)
     time_of_day: 雨夜，下班後
     chapter: ch001
-    location: 阿爾迪爾／十字路口返家路上
+    location_id: homebound-crossroad
     event: 林遠下班返家途中遇上疑似遭人為推動的失控貨車事故，於瀕死瞬間答應未知黑影的救命契約。
     state_change: 從普通上班族轉為契約成立中的瀕死者，與燼建立連結。
 
   - day: 2025/10/16 to 2025/10/17
     time_of_day: 昏迷與夢境期間
     chapter: ch001
-    location: 意識空間／不明
+    location_id: contract-dreamspace
     event: 林遠夢見灰色絲線、修長人影與灰霧入體，經歷如同靈魂拆解重塑的痛楚。
     state_change: 肉身重組開始，陰陽契約完成。
 
   - day: 2025/10/17 (Day 1)
     time_of_day: 凌晨 03:42
     chapter: ch002
-    location: 林遠住處／臥室與浴室
+    location_id: lin-yuan-apartment
     event: 林遠醒來後發現身體縮小、近乎全面女性化，並確認原本男性身體已消失。
     state_change: 身份危機成形，自我認知與現實外觀徹底分裂。
 
   - day: 2025/10/17 (Day 1)
     time_of_day: 凌晨至深夜尾聲
     chapter: ch003
-    location: 林遠住處／浴室、客廳、臥室
+    location_id: lin-yuan-apartment
     event: 燼正式現身，說明契約與不可逆轉的結果；林遠情緒失控，最終被燼強制安撫入睡。
     state_change: 契約搭檔關係從夢境層面轉為現實同居危機。
 
   - day: 2025/10/17 (Day 1)
     time_of_day: 清晨 06:00 至午前
     chapter: ch004
-    location: 林遠住處
+    location_id: lin-yuan-apartment
     event: 林遠發現近視消失，向公司請半天病假，並開始設計男性身分偽裝方案；燼宣告要入住。
     state_change: 從單純崩潰轉入求生模式，建立脆弱的同居與日常維持框架。
 
   - day: 2025/10/17 (Day 1)
     time_of_day: 午後至傍晚
     chapter: ch005
-    location: 廣告公司／資訊庫房、辦公區
+    location_id: ad-agency-office
     event: 林遠成功撐過一次返工，在阿強面前險些露餡；阿強主動遞來熱薑茶表達關心。
     state_change: 職場偽裝暫時成立，但已有旁人察覺異狀。
 
   - day: 2025/10/17 (Day 1)
     time_of_day: 晚上
     chapter: ch006
-    location: 林遠住處／廚房吧台、客廳、臥室門口
+    location_id: lin-yuan-apartment
     event: 林遠盤點辭職、坦白、就醫等方案皆不可行，最終發訊息向阿強求助，並先把燼鎖進房間。
     state_change: 準備把秘密從「獨自硬撐」推進到「可能有第一名知情盟友」。
 
   - day: 2025/10/17 (Day 1)
     time_of_day: 深夜前段
     chapter: ch007
-    location: 林遠住處／客廳、陽台
+    location_id: lin-yuan-apartment
     event: 阿強趕到林遠家中，林遠摘下口罩與帽子坦白真相，並以共同記憶與私密細節證明自己身分；兩人在陽台討論後，阿強提出外派客戶端資安支援與偽造新員工證的掩護方案。
     state_change: 阿強正式成為第一位人類知情者，林遠的職場偽裝從臨時遮掩轉向更主動的新身份運作。
 
   - day: 2025/10/17 (Day 1)
     time_of_day: 深夜
     chapter: ch008
-    location: 林遠住處外的街道（狩獵結界形成前後）
+    location_id: hunting-barrier-street
     event: 林遠在阿強離開後被燼刺激得情緒混亂，獨自外出散心，途中察覺街道異常寂靜並被拖入狩獵結界。
     state_change: 身份與情感混亂首次與都市超自然危機直接重疊，確認普通夜路也不再安全。
 
   - day: 2025/10/17 (Day 1)
     time_of_day: 深夜（接續 ch008 結尾）
     chapter: ch009
-    location: 街道（狩獵結界內）
+    location_id: hunting-barrier-street
     event: 林遠在返家途中被狼妖襲擊，生死關頭激發除魔師護罩並踢傷狼妖；燼最終出手斬首妖魔。
     state_change: 首次遭遇真實戰鬥，確認具備超自然力量潛力，並再次欠下燼的救命之恩。
 
   - day: 2025/10/17 (Day 1)
     time_of_day: 深夜
     chapter: ch010
-    location: 林遠住處（浴室、客廳）
+    location_id: lin-yuan-apartment
     event: 林遠靠隱匿咒紅著臉逃回家，在鏡子前觀察新身體並發現體內靈力流動；穿上舊衣服時因身體過於敏感而產生異樣反應。
     state_change: 對女性身體的自覺進一步加深，體感敏感度與超自然能量開始影響其日常生活。
 
   - day: 2025/10/17 (Day 1)
     time_of_day: 深夜稍晚
     chapter: ch011
-    location: 林遠住處／客廳、房門口
+    location_id: lin-yuan-apartment
     event: 燼向林遠說明妖魔由人類負面情感孕生、林遠具備除魔師潛質，並點破她在妖魔眼中已成為明亮獵物；林遠盛怒之下以灌注靈力的抱枕擊飛燼。
     state_change: 林遠正式得知自身被捲入的超自然框架，並第一次在日常場景中無意識輸出靈力。
 
   - day: 2025/10/17 (Day 1)
     time_of_day: 午夜前後
     chapter: ch012
-    location: 林遠住處／臥室、客廳
+    location_id: lin-yuan-apartment
     event: 戰後疲憊與靈力失衡引發契約飢餓，林遠在臥室中出現從小腹深處蔓延的燥熱、空虛與明顯情慾化反應；燼在門外等待並確認她體內累積的陰氣已達可進食狀態。
     state_change: 契約補給機制從理論變成迫近現實，林遠第一次被迫正面面對「陰陽調和」的需求。
 
   - day: 2025/10/18 (Day 2)
     time_of_day: 凌晨
     chapter: ch013
-    location: 林遠住處／臥室
+    location_id: lin-yuan-apartment
     event: 燼明言林遠體內陰性靈力過盛，若不以陽氣中和將有失控風險，並開始以肢體接觸與交合進行第一次正式補給。
     state_change: 契約中的「食糧／調和」規則被明確揭露，林遠被迫進入身體依賴燼的第一個不可逆場景。
 
   - day: 2025/10/18 (Day 2)
     time_of_day: 凌晨（接續 ch013）
     chapter: ch014
-    location: 林遠住處／臥室
+    location_id: lin-yuan-apartment
     event: 補給過程持續，燼以更明確的愛撫與侵入手段引導林遠失控，並驗證她的身體與靈力對契約補給高度適配。
     state_change: 快感、羞恥與靈力回路被進一步綁定，林遠對新身體的失控感急遽升高。
 
   - day: 2025/10/18 (Day 2)
     time_of_day: 凌晨至清晨前
     chapter: ch015
-    location: 林遠住處／臥室
+    location_id: lin-yuan-apartment
     event: 第一次陰陽調和完成至極端強度，林遠在連續高潮與劇烈身體負荷後昏迷；燼結束進食並做最低限度的清理與安置。
     state_change: 林遠的靈力失衡暫時被穩住，但肉身留下明顯痠痛、耗損與更深的心理陰影；燼則確認補給模式可行。
 
   - day: 2025/10/18 (Day 2)
     time_of_day: 早晨
     chapter: ch016
-    location: 林遠住處／臥室、浴室、餐廳、玄關
+    location_id: lin-yuan-apartment
     event: 林遠在全身痠軟與下半身疼痛中醒來，發現胸前再度微幅發育，意識到需要購買貼身衣物與新衣；燼已自在地進入早餐與外出同行模式，堅持跟她一起出門。
     state_change: 第一次補給的後遺症正式落到日常生活層面，身體偽裝成本上升，燼對公共空間的介入也更加直接。
 
   - day: 2025/10/18 (Day 2)
     time_of_day: 白天
     chapter: ch017
-    location: 百貨公司、甜點店、林遠住處
+    location_id: city-shopping-district
     event: 林遠在百貨公司經歷初次女性化購物，從排斥試穿到在店員讚美中陷落，共消費大量服飾與生活用品；燼全程隨行充當苦力並在回家後展現專業廚藝與家事能力。
     state_change: 對女性身份的物慾與審美開始覺醒，兩人關係從純粹的威脅轉向更複雜的日常依存。
 
@@ -130,6 +130,9 @@ continuity_notes:
     草稿存在星期標記衝突：ch001 明言事故夜為「週五」，
     但若以 2025/10/16 為 Day 0（週四），則 ch005 返工當天正好為週五。
     目前以 2025/10/16 為準，後續修稿統一 ch001 內容。
+  - >
+    `timeline.yaml` 已改用 `location_id` 對應 `bible/location.yaml`；
+    若新增街區、宗教場所或客戶端外派場景，請先補 location 條目再寫入時間線。
   - >
     ch013 與 ch014 目前使用相同章名「陰陽調和的初次祭典」。
     若不是刻意作為上下回呈現，後續可考慮區分副標，以免目錄或章節索引混淆。

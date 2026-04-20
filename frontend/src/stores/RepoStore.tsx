@@ -12,7 +12,7 @@ const DEFAULT_REPO_SNAPSHOT: RepoSnapshot = {
 interface RepoStoreValue {
   snapshot: RepoSnapshot;
   setSnapshot: Dispatch<SetStateAction<RepoSnapshot>>;
-  updateEntries: (entries: RepoTreeEntry[], headSha: string, baseTreeSha: string) => void;
+  updateEntries: (entries: RepoTreeEntry[], headSha: string, baseTreeSha: string, truncated?: boolean) => void;
   setSelectedPath: (path?: string) => void;
 }
 
@@ -25,12 +25,13 @@ export function RepoStoreProvider({ children }: PropsWithChildren) {
     () => ({
       snapshot,
       setSnapshot,
-      updateEntries: (entries, headSha, baseTreeSha) => {
+      updateEntries: (entries, headSha, baseTreeSha, truncated) => {
         setSnapshot((previous) => ({
           ...previous,
           entries,
           headSha,
           baseTreeSha,
+          truncated,
           lastFetchedAt: Date.now(),
         }));
       },

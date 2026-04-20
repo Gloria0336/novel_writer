@@ -22,6 +22,13 @@ characters:
       - 專長、資源或特殊能力
     current_status: >
       角色目前所處位置、困境、秘密或最新變化。
+    progressions:
+      - at_chapter: ch003
+        status: 角色第一次明確抗拒核心改變或故事推力。
+      - at_chapter: ch009
+        status: 角色首次主動使用能力、做出關鍵選擇或投入衝突。
+      - at_chapter: ch017 # 目前最新
+        status: 角色的身分認知、慾望、關係或代價進入新階段。
     goals:
       - 短期目標
       - 長期目標

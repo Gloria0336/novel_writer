@@ -1,0 +1,164 @@
+locations:
+  - id: aldir-city
+    name: 阿爾迪爾
+    type: 架空港口城市
+    region: 本作主要都市舞台
+    first_appearance: ch001
+    summary: >
+      生活節奏、職場壓力與都市景觀近似現代東亞大城，
+      同時是多元宗教與超自然勢力交會的港口城市。
+    atmosphere:
+      - 潮濕夜色、舊城區、現代通勤感與高密度都市壓力共存
+    narrative_functions:
+      - 日常生活舞台
+      - 超自然勢力交會點
+      - 身分危機與都市監視感的放大器
+    access_constraints:
+      - 現代職場、證件系統與熟人社會讓偽裝成本極高
+    linked_people_or_factions:
+      - 林遠
+      - 燼
+      - 阿強
+      - 多宗教勢力
+      - 獵魔殿
+    continuity_notes:
+      - 正文以現代中文轉譯日常對話與名詞，不代表當地語言直接對應現實世界。
+
+  - id: homebound-crossroad
+    name: 返家路上的十字路口
+    type: 都市街口
+    region: 阿爾迪爾市區
+    first_appearance: ch001
+    summary: >
+      林遠在雨夜下班返家途中遭遇失控貨車事故並被迫簽下陰陽契約的起點。
+    atmosphere:
+      - 雨夜
+      - 車燈與濕滑路面
+      - 瀕死瞬間的混亂感
+    narrative_functions:
+      - 故事起爆點
+      - 契約成立現場
+    access_constraints:
+      - 普通都市道路，危險來自突發事故與被操弄的意外
+    linked_people_or_factions:
+      - 林遠
+      - 燼
+    continuity_notes:
+      - 目前 canon 只確立為返家路段上的十字路口，尚未公開更精確地址。
+
+  - id: contract-dreamspace
+    name: 契約意識空間
+    type: 意識空間 / 契約場域
+    region: 不明
+    first_appearance: ch001
+    summary: >
+      林遠在瀕死與重塑期間進入的灰霧、絲線與人影交錯空間，
+      契約與肉身重組在此完成。
+    atmosphere:
+      - 灰霧
+      - 絲線
+      - 靈魂拆解重塑般的痛楚
+    narrative_functions:
+      - 契約成立
+      - 肉身改造過程的承載空間
+    access_constraints:
+      - 非自願進入，且目前只在契約成立時明確出現
+    linked_people_or_factions:
+      - 林遠
+      - 燼
+    continuity_notes:
+      - 與現實地理位置無法直接對應，視為超自然場域代號管理。
+
+  - id: lin-yuan-apartment
+    name: 林遠住處
+    type: 租屋住處 / 同居空間
+    region: 阿爾迪爾住宅區
+    first_appearance: ch002
+    summary: >
+      林遠確認身體被重塑、與燼展開危險同居、首次補給與後續日常善後都發生於此。
+    atmosphere:
+      - 浴室鏡面與強烈自我凝視
+      - 客廳與吧台的壓迫共居感
+      - 臥室中的羞恥、補給與失控餘波
+    narrative_functions:
+      - 安全屋與危險源並存的核心場景
+      - 身分偽裝與肉身焦慮的集中地
+      - 契約補給主要發生處
+    access_constraints:
+      - 空間私密但不等於安全，燼可自由出入並主導節奏
+    linked_people_or_factions:
+      - 林遠
+      - 燼
+      - 阿強
+    continuity_notes:
+      - 已出現臥室、浴室、客廳、廚房吧台、陽台與玄關等內部區域。
+
+  - id: ad-agency-office
+    name: 廣告公司
+    type: 職場 / 辦公空間
+    region: 阿爾迪爾商業區
+    first_appearance: ch005
+    summary: >
+      林遠需要維持原有男性社會身分的高風險場域，
+      已出現資訊庫房與辦公區，阿強也在此正式介入主線。
+    atmosphere:
+      - 上班節奏
+      - 熟人視線
+      - 工牌、證件與辦公系統帶來的壓力
+    narrative_functions:
+      - 身分危機的現實面
+      - 阿強登場與協助的起點
+    access_constraints:
+      - 熟人辨識、員工證、職場社交與行政系統都會放大暴露風險
+    linked_people_or_factions:
+      - 林遠
+      - 阿強
+    continuity_notes:
+      - 已知有資訊庫房與一般辦公區，後續若新增客戶端外派場景需另開條目。
+
+  - id: hunting-barrier-street
+    name: 狩獵結界街道
+    type: 夜間街道 / 妖魔狩獵場
+    region: 林遠住處外的返家路段
+    first_appearance: ch008
+    summary: >
+      阿強離開後，林遠外出散心時被拖入的異常街道；
+      ch009 在此遭遇狼妖襲擊並首次戰鬥。
+    atmosphere:
+      - 異常寂靜
+      - 被抹除的路人存在感
+      - 結界封閉感
+    narrative_functions:
+      - 都市超自然危機首次正面爆發
+      - 林遠除魔師潛力覺醒場
+    access_constraints:
+      - 普通人會被結界隔絕或忽略內部異常，未覺醒者難以強行突破
+    linked_people_or_factions:
+      - 林遠
+      - 燼
+      - 狼妖
+    continuity_notes:
+      - 目前視為一般街道被狩獵結界覆蓋後的臨時異常空間。
+
+  - id: city-shopping-district
+    name: 百貨公司商圈
+    type: 商業區 / 消費場景
+    region: 阿爾迪爾市中心
+    first_appearance: ch017
+    summary: >
+      林遠首次正式進行女性化購物的場域，包含百貨公司與甜點店等外出消費空間，
+      並讓她與燼的關係首次轉向近似日常約會與共居採買。
+    atmosphere:
+      - 明亮櫥窗
+      - 店員目光與試衣間壓力
+      - 甜點店的休息與鬆動感
+    narrative_functions:
+      - 女性身份適應與物慾覺醒
+      - 關係從威脅走向依存的轉折場
+    access_constraints:
+      - 公共空間人流密集，對偽裝與社會凝視更敏感
+    linked_people_or_factions:
+      - 林遠
+      - 燼
+    continuity_notes:
+      - ch017 事件尾聲已返回住處，但本章主場域仍以商圈活動為核心。

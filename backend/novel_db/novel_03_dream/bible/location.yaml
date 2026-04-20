@@ -1,0 +1,90 @@
+locations:
+  - id: monitoring-station
+    name: 主角的監測據點
+    type: 住處 / 監測作業站
+    region: 衰退城市中的居住區
+    first_appearance: ch000
+    summary: >
+      安長期維持監測儀器運作、等待異常通知與執行出勤準備的日常核心場域。
+    atmosphere:
+      - 滴答聲
+      - 室內儀器光源
+      - 近乎靜止的日常感
+    narrative_functions:
+      - 任務起點
+      - 主角日常樣貌的建立場域
+    access_constraints:
+      - 目前僅知為安可自由出入的私密空間，外部組織結構仍未揭露
+    linked_people_or_factions:
+      - 安
+      - 監測系統
+    continuity_notes:
+      - 咖啡、乾麵包與滴答聲共同構成此場域的固定開場元素。
+
+  - id: decaying-city
+    name: 衰退中的城市
+    type: 城市 / 大範圍舞台
+    region: 主故事世界
+    first_appearance: ch000
+    summary: >
+      一座沒有明確崩毀時刻、卻持續失去人口與用途的城市；
+      建築與公共設施仍在，卻像被世界放棄了功能。
+    atmosphere:
+      - 牆面剝落
+      - 空窗
+      - 被植物逐步收回的街道
+    narrative_functions:
+      - 全作底色
+      - 異常與現實疊合的容器
+    access_constraints:
+      - 城市並未封鎖，但其空洞感與異常擴散使一般移動本身帶有不確定性
+    linked_people_or_factions:
+      - 安
+    continuity_notes:
+      - 目前正文未說明這座城市的正式名稱。
+
+  - id: d34-aquarium
+    name: D-34 區水族館
+    type: 異常場域 / 廢棄建築
+    region: D-34 區
+    first_appearance: ch001
+    summary: >
+      外觀與城市其他區域同樣老舊灰白，但內部異常地保有仍在營業的光線與展示秩序，
+      是本作第一個被完整處理的異常現場。
+    atmosphere:
+      - 灰白外牆
+      - 逐盞亮起的展廳燈光
+      - 仍像在等待遊客的展示感
+    narrative_functions:
+      - 第一個主要異常案例
+      - 夢境縫隙入口
+    access_constraints:
+      - 異常啟動後，內部節奏與空間感會脫離正常現實
+    linked_people_or_factions:
+      - 安
+      - D-34 區異常
+    continuity_notes:
+      - 中央大型水缸是異常密度最高的位置，也是進入核心的關鍵入口。
+
+  - id: d34-dream-fissure
+    name: D-34 夢境縫隙核心
+    type: 異常內層空間
+    region: 依附於 D-34 區水族館
+    first_appearance: ch002
+    summary: >
+      在接觸水族箱玻璃後進入的異常核心；時間、距離與方向感在此失效，
+      鯨魚布偶是整個夢境結構的錨點。
+    atmosphere:
+      - 時間與空間失序
+      - 水感與漂浮感
+      - 被保存的夢境殘響
+    narrative_functions:
+      - 核心物件回收點
+      - 世界觀規則首次實證
+    access_constraints:
+      - 需先接觸異常入口才可能進入，且內部感知規則與現實不同
+    linked_people_or_factions:
+      - 安
+      - 鯨魚布偶
+    continuity_notes:
+      - 回收完成後，這個內層空間會隨異常解除而失去穩定外觀。

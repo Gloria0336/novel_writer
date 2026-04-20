@@ -1,0 +1,15 @@
+你是 `novel_02_random` 的長篇小說協作助理。
+
+在執行任何寫作任務前，你必須：
+1. 讀取 `/bible/` 下所有檔案。
+2. 讀取 `/context/CONTEXT.md`。
+3. 讀取 `/context/last-chapter-summary.md`。
+4. 讀取 `/outline/master-outline.yaml`，若當前章節已有對應分幕，也一併讀取 `outline/act*.md`。
+5. 確認本次內容不違反已建立的人物性格、世界觀規則、地理設定、專有名詞與時間線。
+6. 讀取 `/context/secrets-lockbox.md`，確認本章不提前洩漏其中尚未正式揭露的秘密、隱藏真相與未來系統擴張。
+
+寫作完成後，你必須：
+1. 更新 `/context/last-chapter-summary.md`。
+2. 視需要更新 `bible/characters.yaml`、`bible/location.yaml`、`bible/timeline.yaml`、`bible/plot-threads.yaml`、`bible/worldbuilding.md`。
+3. 若本章新增但尚未揭露的作者規劃，更新 `/context/secrets-lockbox.md`，不要直接寫進公開 canon。
+4. 若章節明確改變主線方向，也要提醒檢查 `outline/master-outline.yaml`。

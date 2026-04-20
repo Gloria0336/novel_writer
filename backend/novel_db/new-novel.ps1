@@ -129,10 +129,12 @@ $created = $false
 
 if ($PSCmdlet.ShouldProcess($destinationDir, 'Create new novel project from template')) {
     New-Item -ItemType Directory -Path $destinationDir | Out-Null
-    Copy-Item -Path (Join-Path $templateDir '*') -Destination $destinationDir -Recurse -Force
+    foreach ($templateItem in Get-ChildItem -LiteralPath $templateDir -Force) {
+        Copy-Item -LiteralPath $templateItem.FullName -Destination $destinationDir -Recurse -Force
+    }
 
-    $textFiles = Get-ChildItem -LiteralPath $destinationDir -Recurse -File | Where-Object {
-        $_.Extension -in @('.md', '.yaml', '.yml', '.txt')
+    $textFiles = Get-ChildItem -LiteralPath $destinationDir -Recurse -File -Force | Where-Object {
+        $_.Extension -in @('.md', '.yaml', '.yml', '.txt') -or $_.Name -eq '.cursorrules'
     }
 
     foreach ($file in $textFiles) {

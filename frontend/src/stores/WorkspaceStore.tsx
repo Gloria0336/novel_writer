@@ -4,7 +4,7 @@ import type { WorkspaceConfig, WorkspaceMessage, WorkspaceState } from "../types
 import { DEFAULT_WORKSPACE_TEMPLATE, createWorkspaceConfig } from "../utils/constants";
 import { usePersistentState } from "../hooks/usePersistentState";
 
-const initialWorkspace = createWorkspaceConfig(DEFAULT_WORKSPACE_TEMPLATE, "對話 1");
+const initialWorkspace = createWorkspaceConfig(DEFAULT_WORKSPACE_TEMPLATE, "Workspace 1");
 
 const DEFAULT_WORKSPACE_STATE: WorkspaceState = {
   workspaces: [initialWorkspace],

@@ -8,6 +8,7 @@ interface DraftStoreValue {
   setDrafts: Dispatch<SetStateAction<Record<string, DraftEntry>>>;
   upsertLoadedFile: (file: LoadedFile) => void;
   updateDraftContent: (path: string, draftContent: string) => void;
+  applySuggestedDraft: (file: LoadedFile, draftContent: string) => void;
   resetDraftToHead: (path: string, content: string, sha: string) => void;
   discardDraft: (path: string) => void;
   replaceOriginalFromHead: (file: LoadedFile) => void;
@@ -63,6 +64,23 @@ export function DraftStoreProvider({ children }: PropsWithChildren) {
               ...existing,
               draftContent,
               updatedAt: Date.now(),
+            },
+          };
+        });
+      },
+      applySuggestedDraft: (file, draftContent) => {
+        setDrafts((previous) => {
+          const existing = previous[file.path];
+          return {
+            ...previous,
+            [file.path]: {
+              path: file.path,
+              originalSha: existing?.originalSha ?? file.sha,
+              originalContent: existing?.originalContent ?? file.content,
+              draftContent,
+              isEditable: file.isEditable,
+              updatedAt: Date.now(),
+              readOnlyReason: file.readOnlyReason,
             },
           };
         });

@@ -1,11 +1,12 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import { DraftStoreProvider, useDraftStore } from "../stores/DraftStore";
+import { SettingsStoreProvider, useSettingsStore } from "../stores/SettingsStore";
 import { WorkspaceStoreProvider, useWorkspaceStore } from "../stores/WorkspaceStore";
 import { createWorkspaceConfig, DEFAULT_WORKSPACE_TEMPLATE } from "../utils/constants";
 
 function DraftHarness() {
-  const { drafts, upsertLoadedFile, updateDraftContent } = useDraftStore();
+  const { drafts, upsertLoadedFile, applySuggestedDraft } = useDraftStore();
   return (
     <div>
       <button
@@ -21,8 +22,21 @@ function DraftHarness() {
       >
         load
       </button>
-      <button onClick={() => updateDraftContent("backend/novel_db/novel_00/chapters/ch001.md", "Edited")} type="button">
-        edit
+      <button
+        onClick={() =>
+          applySuggestedDraft(
+            {
+              path: "backend/novel_db/novel_00/chapters/ch001.md",
+              sha: "sha-1",
+              content: "Original",
+              isEditable: true,
+            },
+            "Edited by AI",
+          )
+        }
+        type="button"
+      >
+        apply
       </button>
       <output>{drafts["backend/novel_db/novel_00/chapters/ch001.md"]?.draftContent ?? ""}</output>
     </div>
@@ -33,10 +47,7 @@ function WorkspaceHarness() {
   const { state, addWorkspace, addMessage, setActiveWorkspaceId } = useWorkspaceStore();
   return (
     <div>
-      <button
-        onClick={() => addWorkspace(createWorkspaceConfig(DEFAULT_WORKSPACE_TEMPLATE, "Checker"))}
-        type="button"
-      >
+      <button onClick={() => addWorkspace(createWorkspaceConfig(DEFAULT_WORKSPACE_TEMPLATE, "Checker"))} type="button">
         add
       </button>
       <button
@@ -47,6 +58,8 @@ function WorkspaceHarness() {
             content: "Scoped reply",
             createdAt: Date.now(),
             sourceFilePaths: [],
+            proposedContent: "Edited draft",
+            targetPath: "backend/novel_db/novel_00/chapters/ch001.md",
           })
         }
         type="button"
@@ -63,8 +76,20 @@ function WorkspaceHarness() {
   );
 }
 
+function SettingsHarness() {
+  const { settings, updateUiPrefs } = useSettingsStore();
+  return (
+    <div>
+      <button onClick={() => updateUiPrefs({ activeView: settings.uiPrefs.activeView === "ai" ? "files" : "ai" })} type="button">
+        toggle
+      </button>
+      <output data-testid="active-view">{settings.uiPrefs.activeView}</output>
+    </div>
+  );
+}
+
 describe("persistent stores", () => {
-  it("persists draft content to localStorage", () => {
+  it("persists AI-applied draft content to localStorage", () => {
     const { unmount } = render(
       <DraftStoreProvider>
         <DraftHarness />
@@ -72,8 +97,8 @@ describe("persistent stores", () => {
     );
 
     fireEvent.click(screen.getByText("load"));
-    fireEvent.click(screen.getByText("edit"));
-    expect(screen.getByText("Edited")).toBeInTheDocument();
+    fireEvent.click(screen.getByText("apply"));
+    expect(screen.getByText("Edited by AI")).toBeInTheDocument();
 
     unmount();
 
@@ -83,7 +108,7 @@ describe("persistent stores", () => {
       </DraftStoreProvider>,
     );
 
-    expect(screen.getByText("Edited")).toBeInTheDocument();
+    expect(screen.getByText("Edited by AI")).toBeInTheDocument();
   });
 
   it("keeps workspace messages isolated per workspace", () => {
@@ -103,5 +128,26 @@ describe("persistent stores", () => {
     expect(screen.getByTestId("message-count")).toHaveTextContent("0");
     expect(screen.getByTestId("first-count")).toHaveTextContent("1");
   });
-});
 
+  it("persists the selected top-level view", () => {
+    const { unmount } = render(
+      <SettingsStoreProvider>
+        <SettingsHarness />
+      </SettingsStoreProvider>,
+    );
+
+    expect(screen.getByTestId("active-view")).toHaveTextContent("ai");
+    fireEvent.click(screen.getByText("toggle"));
+    expect(screen.getByTestId("active-view")).toHaveTextContent("files");
+
+    unmount();
+
+    render(
+      <SettingsStoreProvider>
+        <SettingsHarness />
+      </SettingsStoreProvider>,
+    );
+
+    expect(screen.getByTestId("active-view")).toHaveTextContent("files");
+  });
+});

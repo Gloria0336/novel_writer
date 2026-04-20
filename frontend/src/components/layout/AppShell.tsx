@@ -18,7 +18,7 @@ export function AppShell(props: AppShellProps) {
     props;
 
   return (
-    <div className="app-shell">
+    <div className="workspace-layout">
       {topBar}
       <div className="shell-body">
         <aside

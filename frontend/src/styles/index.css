@@ -64,6 +64,20 @@ pre {
   overflow: hidden;
 }
 
+.app-view {
+  min-height: 0;
+  flex: 1;
+  padding: 14px calc(14px + var(--safe-right)) calc(14px + var(--safe-bottom)) calc(14px + var(--safe-left));
+}
+
+.workspace-layout {
+  min-height: 0;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
 .topbar {
   display: flex;
   justify-content: space-between;
@@ -82,6 +96,12 @@ pre {
   align-items: center;
   gap: 10px;
   flex-wrap: wrap;
+}
+
+.topbar-nav {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
 }
 
 .topbar-group > *,
@@ -120,6 +140,27 @@ pre {
   display: flex;
 }
 
+.view-grid {
+  min-height: 0;
+  height: 100%;
+  display: grid;
+  gap: 14px;
+}
+
+.ai-view {
+  grid-template-columns: minmax(260px, 340px) minmax(0, 1fr);
+}
+
+.view-sidebar,
+.view-main {
+  min-height: 0;
+}
+
+.view-sidebar .tree-panel,
+.view-main .workspace-dock {
+  height: 100%;
+}
+
 .sidebar-panel {
   width: 0;
   overflow: hidden;
@@ -148,7 +189,6 @@ pre {
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  padding: 14px calc(14px + var(--safe-right)) calc(14px + var(--safe-bottom)) calc(14px + var(--safe-left));
   gap: 0;
 }
 
@@ -685,12 +725,20 @@ pre {
     overflow: auto;
   }
 
+  .app-view {
+    padding: 12px;
+  }
+
+  .ai-view {
+    grid-template-columns: 1fr;
+  }
+
   .shell-body {
     flex-direction: column;
   }
 
   .content-panel {
-    padding: 12px;
+    padding: 0;
   }
 
   .sidebar-panel {
@@ -807,7 +855,7 @@ pre {
 
   .content-panel {
     height: 100%;
-    padding: 10px calc(10px + var(--safe-right)) calc(10px + var(--safe-bottom)) calc(10px + var(--safe-left));
+    padding: 0;
   }
 
   .editor-pane,

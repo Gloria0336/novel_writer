@@ -39,7 +39,6 @@ export function SettingsStoreProvider({ children }: PropsWithChildren) {
     const resolvedRepoConfig: RepoConfig = {
       ...DEFAULT_REPO_CONFIG,
       ...normalizedSettings.repoOverride,
-      githubToken: normalizedSettings.githubPat,
     };
 
     return {
@@ -72,13 +71,7 @@ export function SettingsStoreProvider({ children }: PropsWithChildren) {
         );
       },
       clearSecrets: () => {
-        setSettings((previous) =>
-          mergeSettings({
-            ...previous,
-            githubPat: undefined,
-            openRouterApiKey: undefined,
-          } as AppSettings),
-        );
+        setSettings((previous) => mergeSettings(previous));
       },
     };
   }, [normalizedSettings, setSettings]);

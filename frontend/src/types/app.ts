@@ -1,11 +1,13 @@
 export type Role = "system" | "user" | "assistant";
 
-export interface RepoConfig {
+export interface RepoRef {
   owner: string;
   repo: string;
   branch: string;
   githubToken?: string;
 }
+
+export type RepoConfig = RepoRef;
 
 export interface RepoOverrideConfig {
   owner: string;
@@ -63,6 +65,8 @@ export interface WorkspaceMessage {
   content: string;
   createdAt: number;
   sourceFilePaths: string[];
+  proposedContent?: string;
+  targetPath?: string;
 }
 
 export interface WorkspaceTemplate {
@@ -75,6 +79,7 @@ export interface WorkspaceTemplate {
 }
 
 export interface UiPrefs {
+  activeView: "ai" | "files";
   sidebarOpen: boolean;
   sidebarWidth: number;
   dockOpen: boolean;
@@ -85,8 +90,6 @@ export interface UiPrefs {
 
 export interface AppSettings {
   schemaVersion: number;
-  openRouterApiKey?: string;
-  githubPat?: string;
   repoOverride?: RepoOverrideConfig;
   uiPrefs: UiPrefs;
   defaultWorkspaceTemplate: WorkspaceTemplate;
@@ -96,6 +99,7 @@ export interface RepoSnapshot {
   entries: RepoTreeEntry[];
   headSha: string;
   baseTreeSha: string;
+  truncated?: boolean;
   selectedPath?: string;
   lastFetchedAt?: number;
 }
@@ -132,4 +136,17 @@ export interface OpenRouterChatRequest {
   }>;
   temperature: number;
   maxCompletionTokens: number;
+}
+
+export interface AiChatResponse {
+  assistantText: string;
+  proposedContent?: string;
+  targetPath?: string;
+}
+
+export interface BridgeStatus {
+  ok: boolean;
+  repoAdapter: string;
+  hasGitHubToken: boolean;
+  hasOpenRouterApiKey: boolean;
 }

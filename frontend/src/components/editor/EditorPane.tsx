@@ -47,9 +47,9 @@ export function EditorPane(props: EditorPaneProps) {
   if (!selectedPath) {
     return (
       <div className="editor-empty">
-        <div className="eyebrow">文檔</div>
-        <h2>請先從左側檔案樹選擇文檔</h2>
-        <p>選取後，內容會顯示在這裡並可直接編輯。</p>
+        <div className="eyebrow">Editor</div>
+        <h2>Select a file to inspect or revise.</h2>
+        <p>Use the AI Chat view to draft revisions, then confirm and polish them here before committing.</p>
       </div>
     );
   }
@@ -58,24 +58,24 @@ export function EditorPane(props: EditorPaneProps) {
     <div className="editor-pane">
       <div className="editor-header">
         <div>
-          <div className="eyebrow">文檔</div>
+          <div className="eyebrow">Editor</div>
           <h2>{selectedPath}</h2>
         </div>
         <div className="inline-row">
           {draft ? (
             <span className={`status-pill ${draft.draftContent !== draft.originalContent ? "status-live" : "status-muted"}`}>
-              {draft.draftContent !== draft.originalContent ? "尚未提交" : "已同步"}
+              {draft.draftContent !== draft.originalContent ? "Draft changed" : "Matches head"}
             </span>
           ) : null}
           <button className="ghost-button" disabled={!draft} onClick={onResetToHead} type="button">
-            還原為最新版本
+            Reset To Head
           </button>
         </div>
       </div>
 
       {draft && !draft.isEditable ? <div className="panel-banner muted">{draft.readOnlyReason}</div> : null}
       {error ? <div className="panel-banner error">{error}</div> : null}
-      {isLoading ? <div className="panel-banner">文檔載入中...</div> : null}
+      {isLoading ? <div className="panel-banner">Loading file content...</div> : null}
 
       <div className="editor-surface">
         <CodeMirror

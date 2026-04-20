@@ -1,23 +1,22 @@
 import { useEffect, useMemo, useState } from "react";
-import type { AppSettings } from "../../types/app";
+import type { AppSettings, BridgeStatus } from "../../types/app";
 import { DEFAULT_REPO_CONFIG } from "../../utils/constants";
 
 interface SettingsModalProps {
   isOpen: boolean;
   settings: AppSettings;
+  bridgeStatus?: BridgeStatus | null;
   onClose: () => void;
   onSave: (nextSettings: AppSettings) => void;
   onClearSecrets: () => void;
-  onTestGitHub: (token?: string) => Promise<string>;
-  onTestOpenRouter: (apiKey?: string) => Promise<string>;
+  onCheckBridge: () => Promise<string>;
 }
 
 export function SettingsModal(props: SettingsModalProps) {
-  const { isOpen, settings, onClose, onSave, onClearSecrets, onTestGitHub, onTestOpenRouter } = props;
+  const { isOpen, settings, bridgeStatus, onClose, onSave, onClearSecrets, onCheckBridge } = props;
   const [localSettings, setLocalSettings] = useState<AppSettings>(settings);
   const [overrideRepo, setOverrideRepo] = useState(Boolean(settings.repoOverride));
-  const [githubStatus, setGitHubStatus] = useState("");
-  const [openRouterStatus, setOpenRouterStatus] = useState("");
+  const [bridgeCheckStatus, setBridgeCheckStatus] = useState("");
 
   useEffect(() => {
     if (!isOpen) {
@@ -25,8 +24,7 @@ export function SettingsModal(props: SettingsModalProps) {
     }
     setLocalSettings(settings);
     setOverrideRepo(Boolean(settings.repoOverride));
-    setGitHubStatus("");
-    setOpenRouterStatus("");
+    setBridgeCheckStatus("");
   }, [isOpen, settings]);
 
   const repoFields = useMemo(
@@ -48,93 +46,55 @@ export function SettingsModal(props: SettingsModalProps) {
       <div className="modal-card" role="dialog" aria-modal="true" onClick={(event) => event.stopPropagation()}>
         <div className="modal-header">
           <div>
-            <div className="eyebrow">設定</div>
-            <h2>工作台設定</h2>
+            <div className="eyebrow">Settings</div>
+            <h2>Workspace Configuration</h2>
           </div>
           <button className="ghost-button" onClick={onClose} type="button">
-            關閉
+            Close
           </button>
         </div>
 
         <div className="settings-warning">
-          此站是純前端 GitHub Pages 應用，GitHub PAT 與 OpenRouter API key 只會存進你的瀏覽器 `localStorage`。這不是安全儲存，請只使用權限最小化的 token。
+          The browser no longer stores GitHub or OpenRouter secrets. Run the local bridge with environment variables instead.
         </div>
 
         <section className="settings-section">
-          <h3>憑證</h3>
-          <label>
-            GitHub fine-grained PAT
-            <input
-              className="text-input"
-              type="password"
-              value={localSettings.githubPat ?? ""}
-              onChange={(event) =>
-                setLocalSettings((previous) => ({
-                  ...previous,
-                  githubPat: event.target.value || undefined,
-                }))
-              }
-              placeholder="ghp_..."
-            />
-          </label>
+          <h3>Bridge</h3>
           <div className="inline-row">
             <button
               className="ghost-button"
               type="button"
               onClick={async () => {
-                setGitHubStatus("測試中...");
-                setGitHubStatus(await onTestGitHub(localSettings.githubPat));
+                setBridgeCheckStatus("Checking bridge...");
+                setBridgeCheckStatus(await onCheckBridge());
               }}
             >
-              測試 GitHub
+              Check Bridge
             </button>
-            <span className="inline-status">{githubStatus}</span>
+            <span className="inline-status">{bridgeCheckStatus}</span>
           </div>
-
-          <label>
-            OpenRouter API key
-            <input
-              className="text-input"
-              type="password"
-              value={localSettings.openRouterApiKey ?? ""}
-              onChange={(event) =>
-                setLocalSettings((previous) => ({
-                  ...previous,
-                  openRouterApiKey: event.target.value || undefined,
-                }))
-              }
-              placeholder="sk-or-..."
-            />
-          </label>
-          <div className="inline-row">
-            <button
-              className="ghost-button"
-              type="button"
-              onClick={async () => {
-                setOpenRouterStatus("測試中...");
-                setOpenRouterStatus(await onTestOpenRouter(localSettings.openRouterApiKey));
-              }}
-            >
-              測試 OpenRouter
-            </button>
-            <span className="inline-status">{openRouterStatus}</span>
-          </div>
+          {bridgeStatus ? (
+            <div className="panel-banner muted">
+              Repo adapter: {bridgeStatus.repoAdapter}. GitHub token: {bridgeStatus.hasGitHubToken ? "configured" : "missing"}. OpenRouter key:{" "}
+              {bridgeStatus.hasOpenRouterApiKey ? "configured" : "missing"}.
+            </div>
+          ) : null}
           <button className="danger-button" onClick={onClearSecrets} type="button">
-            清除已儲存的憑證
+            Clear legacy browser state
           </button>
         </section>
 
         <section className="settings-section">
           <div className="inline-row">
-            <h3>目標儲存庫</h3>
+            <h3>Repository Target</h3>
             <label className="checkbox-row">
               <input checked={overrideRepo} onChange={(event) => setOverrideRepo(event.target.checked)} type="checkbox" />
-              覆寫預設儲存庫
+              Override default repo
             </label>
           </div>
           <div className="settings-grid">
             <label>
-              擁有者
+              Owner
               <input
                 className="text-input"
                 type="text"
@@ -152,7 +112,7 @@ export function SettingsModal(props: SettingsModalProps) {
               />
             </label>
             <label>
-              儲存庫
+              Repo
               <input
                 className="text-input"
                 type="text"
@@ -170,7 +130,7 @@ export function SettingsModal(props: SettingsModalProps) {
               />
             </label>
             <label>
-              分支
+              Branch
               <input
                 className="text-input"
                 type="text"
@@ -191,9 +151,9 @@ export function SettingsModal(props: SettingsModalProps) {
         </section>
 
         <section className="settings-section">
-          <h3>預設 AI 對話設定</h3>
+          <h3>Default AI Workspace</h3>
           <label>
-            預設模型
+            Model
             <input
               className="text-input"
               type="text"
@@ -210,7 +170,7 @@ export function SettingsModal(props: SettingsModalProps) {
             />
           </label>
           <label>
-            預設系統提示
+            System prompt
             <textarea
               className="text-area"
               rows={5}
@@ -248,7 +208,7 @@ export function SettingsModal(props: SettingsModalProps) {
               />
             </label>
             <label>
-              最大回覆 Token
+              Max completion tokens
               <input
                 className="text-input"
                 type="number"
@@ -267,6 +227,25 @@ export function SettingsModal(props: SettingsModalProps) {
                 }
               />
             </label>
+            <label>
+              Default view
+              <select
+                className="select-input"
+                value={localSettings.uiPrefs.activeView}
+                onChange={(event) =>
+                  setLocalSettings((previous) => ({
+                    ...previous,
+                    uiPrefs: {
+                      ...previous.uiPrefs,
+                      activeView: event.target.value as "ai" | "files",
+                    },
+                  }))
+                }
+              >
+                <option value="ai">AI Chat</option>
+                <option value="files">Files</option>
+              </select>
+            </label>
           </div>
           <label className="checkbox-row">
             <input
@@ -282,13 +261,29 @@ export function SettingsModal(props: SettingsModalProps) {
               }
               type="checkbox"
             />
-            新對話預設自動附加目前文檔
+            Auto-attach the selected file
+          </label>
+          <label className="checkbox-row">
+            <input
+              checked={localSettings.defaultWorkspaceTemplate.autoAttachRelatedFiles}
+              onChange={(event) =>
+                setLocalSettings((previous) => ({
+                  ...previous,
+                  defaultWorkspaceTemplate: {
+                    ...previous.defaultWorkspaceTemplate,
+                    autoAttachRelatedFiles: event.target.checked,
+                  },
+                }))
+              }
+              type="checkbox"
+            />
+            Auto-attach related canon files
           </label>
         </section>
 
         <div className="modal-footer">
           <button className="ghost-button" onClick={onClose} type="button">
-            取消
+            Cancel
           </button>
           <button
             className="solid-button"
@@ -306,7 +301,7 @@ export function SettingsModal(props: SettingsModalProps) {
             }
             type="button"
           >
-            儲存設定
+            Save Settings
           </button>
         </div>
       </div>

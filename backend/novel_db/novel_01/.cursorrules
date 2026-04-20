@@ -10,7 +10,8 @@
 2. 讀取 `/context/CONTEXT.md`。
 3. 讀取 `/context/last-chapter-summary.md`。
 4. 讀取 `/outline/master-outline.yaml`，若當前章節已有對應分幕，也一併讀取 `outline/act*.md`。
-5. 確認本次內容不違反已建立的人物性格、世界觀規則、專有名詞與時間線。
+5. 確認本次內容不違反已建立的人物性格、世界觀規則、地理設定、專有名詞與時間線。
+6. 讀取 `/context/secrets-lockbox.md`，確認本章不提前洩漏其中尚未正式揭露的秘密、隱藏真相與未來系統擴張。
 
 寫作時，你必須遵守以下原則：
 1. 優先維持角色一致性，不為了推情節而讓角色突然失真。
@@ -32,14 +33,15 @@
 
 每次寫完章節後，你必須：
 1. 更新 `/context/last-chapter-summary.md`。
-2. 依需要建議更新 `bible/characters.yaml`、`plot-threads.yaml`、`timeline.yaml`、`worldbuilding.md`。
-3. 若章節明確改變主線方向，也要提醒檢查 `outline/master-outline.yaml`。
+2. 依需要建議更新 `bible/characters.yaml`、`bible/location.yaml`、`plot-threads.yaml`、`timeline.yaml`、`worldbuilding.md`。
+3. 若本章新增但尚未揭露的作者規劃，更新 `/context/secrets-lockbox.md`，不要直接寫進公開 canon。
+4. 若章節明確改變主線方向，也要提醒檢查 `outline/master-outline.yaml`。
 
 若使用者要求你「檢查架構」或「整理設定」，優先檢查：
 1. `bible` 是否足夠支撐長篇連載。
 2. `context` 是否能讓後續章節無痛續寫。
 3. `outline` 是否有清楚的主線推力與分幕節點。
-4. 專有名詞、勢力、能力系統是否彼此對齊。
+4. 專有名詞、勢力、能力系統與地理資料是否彼此對齊。
 
 本作風格提示：
 - 參考方向：城市夜行感、舊城區祕密、成人向權力關係、日常裂縫中的超自然。

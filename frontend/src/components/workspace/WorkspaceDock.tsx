@@ -23,9 +23,7 @@ interface WorkspaceDockProps {
   onDetachPath: (workspaceId: string, path: string) => void;
   onClearMessages: (workspaceId: string) => void;
   onToggleFavoriteModel: (modelId: string) => void;
-  onInsertToEditor: (content: string) => void;
-  onReplaceSelection: (content: string) => void;
-  onReplaceEditor: (content: string) => void;
+  onApplyProposedDraft: (workspaceId: string, messageId: string) => Promise<void>;
 }
 
 export function WorkspaceDock(props: WorkspaceDockProps) {
@@ -51,15 +49,14 @@ export function WorkspaceDock(props: WorkspaceDockProps) {
     onDetachPath,
     onClearMessages,
     onToggleFavoriteModel,
-    onInsertToEditor,
-    onReplaceSelection,
-    onReplaceEditor,
+    onApplyProposedDraft,
   } = props;
 
   const [promptMap, setPromptMap] = useState<Record<string, string>>({});
   const [attachInputMap, setAttachInputMap] = useState<Record<string, string>>({});
   const [modelSearchMap, setModelSearchMap] = useState<Record<string, string>>({});
   const [sendErrorMap, setSendErrorMap] = useState<Record<string, string>>({});
+  const [applyStateMap, setApplyStateMap] = useState<Record<string, string>>({});
   const workspace = workspaces.find((item) => item.id === activeWorkspaceId) ?? workspaces[0];
   const currentMessages = messages[workspace.id] ?? [];
   const modelSearch = modelSearchMap[workspace.id] ?? "";
@@ -76,7 +73,7 @@ export function WorkspaceDock(props: WorkspaceDockProps) {
     if (workspace.model && !filteredIds.has(workspace.model)) {
       const fallbackModel: ModelInfo = {
         id: workspace.model,
-        name: `${workspace.model}（目前使用）`,
+        name: `${workspace.model} (saved)`,
         contextLength: 0,
         inputModalities: ["text"],
         outputModalities: ["text"],
@@ -91,8 +88,9 @@ export function WorkspaceDock(props: WorkspaceDockProps) {
     <div className="workspace-dock">
       <div className="workspace-dock-bar">
         <div>
-          <div className="eyebrow">AI</div>
+          <div className="eyebrow">AI Revision</div>
           <h3>{workspace.name}</h3>
+          <div className="inline-status">Target file: {selectedPath ?? "Select a file from the sidebar"}</div>
         </div>
         <div className="inline-row">
           <div className="workspace-tab-strip">
@@ -108,10 +106,10 @@ export function WorkspaceDock(props: WorkspaceDockProps) {
             ))}
           </div>
           <button className="ghost-button" onClick={() => onClearMessages(workspace.id)} type="button">
-            清除對話
+            Clear Chat
           </button>
           <button className="solid-button" onClick={onAddWorkspace} type="button">
-            新增對話
+            New Workspace
           </button>
         </div>
       </div>
@@ -119,12 +117,12 @@ export function WorkspaceDock(props: WorkspaceDockProps) {
       <section className="workspace-chat">
         <div className="message-list">
           {currentMessages.length === 0 ? (
-            <div className="panel-empty">這裡會顯示你和 AI 的對話。輸入需求後就能開始。</div>
+            <div className="panel-empty">Choose a target file, describe the revision, and the assistant will propose a full-file draft.</div>
           ) : (
             currentMessages.map((message) => (
               <article className={`message-bubble role-${message.role}`} key={message.id}>
                 <div className="message-meta">
-                  <span>{message.role === "user" ? "你" : "AI"}</span>
+                  <span>{message.role === "user" ? "You" : "AI"}</span>
                   <span>
                     {new Date(message.createdAt).toLocaleTimeString("zh-TW", {
                       hour: "2-digit",
@@ -133,17 +131,37 @@ export function WorkspaceDock(props: WorkspaceDockProps) {
                   </span>
                 </div>
                 <pre>{message.content}</pre>
-                {message.role === "assistant" ? (
+                {message.sourceFilePaths.length > 0 ? (
+                  <div className="chip-row">
+                    {message.sourceFilePaths.map((path) => (
+                      <span className="chip-button" key={`${message.id}-${path}`}>
+                        {path}
+                      </span>
+                    ))}
+                  </div>
+                ) : null}
+                {message.role === "assistant" && message.proposedContent && message.targetPath ? (
                   <div className="inline-row">
-                    <button className="ghost-button" onClick={() => onInsertToEditor(message.content)} type="button">
-                      插入游標處
+                    <button
+                      className="solid-button"
+                      onClick={async () => {
+                        const key = `${workspace.id}:${message.id}`;
+                        try {
+                          setApplyStateMap((previous) => ({ ...previous, [key]: "Applying..." }));
+                          await onApplyProposedDraft(workspace.id, message.id);
+                          setApplyStateMap((previous) => ({ ...previous, [key]: "Applied to draft." }));
+                        } catch (error) {
+                          setApplyStateMap((previous) => ({
+                            ...previous,
+                            [key]: error instanceof Error ? error.message : "Failed to apply draft.",
+                          }));
+                        }
+                      }}
+                      type="button"
+                    >
+                      Apply To Draft
                     </button>
-                    <button className="ghost-button" onClick={() => onReplaceSelection(message.content)} type="button">
-                      取代選取內容
-                    </button>
-                    <button className="ghost-button" onClick={() => onReplaceEditor(message.content)} type="button">
-                      覆蓋整份文檔
-                    </button>
+                    <span className="inline-status">{applyStateMap[`${workspace.id}:${message.id}`] ?? `Target: ${message.targetPath}`}</span>
                   </div>
                 ) : null}
               </article>
@@ -152,12 +170,14 @@ export function WorkspaceDock(props: WorkspaceDockProps) {
         </div>
 
         {sendErrorMap[workspace.id] ? <div className="panel-banner error">{sendErrorMap[workspace.id]}</div> : null}
-        {selectedModelMissing ? <div className="panel-banner muted">目前選擇的模型不在最新清單中，但仍可直接送出請求。</div> : null}
+        {!selectedPath ? <div className="panel-banner muted">Select the file you want the AI to rewrite before sending a prompt.</div> : null}
+        {selectedModelMissing ? <div className="panel-banner muted">The saved model is not in the current bridge model list.</div> : null}
         {modelError ? <div className="panel-banner error">{modelError}</div> : null}
 
         <label>
-          輸入需求
+          Revision prompt
           <textarea
+            aria-label="Revision prompt"
             className="text-area prompt-area"
             onChange={(event) =>
               setPromptMap((previous) => ({
@@ -165,7 +185,7 @@ export function WorkspaceDock(props: WorkspaceDockProps) {
                 [workspace.id]: event.target.value,
               }))
             }
-            placeholder="例如：請幫我潤飾這段對白、延伸角色設定，或檢查前後設定是否衝突。"
+            placeholder="Example: tighten chapter pacing, preserve canon, and return the full updated markdown file."
             rows={4}
             value={promptMap[workspace.id] ?? ""}
           />
@@ -173,7 +193,7 @@ export function WorkspaceDock(props: WorkspaceDockProps) {
         <div className="inline-row prompt-actions">
           <button
             className="solid-button"
-            disabled={sendingWorkspaceId === workspace.id || !(promptMap[workspace.id] ?? "").trim()}
+            disabled={sendingWorkspaceId === workspace.id || !selectedPath || !(promptMap[workspace.id] ?? "").trim()}
             onClick={async () => {
               const prompt = (promptMap[workspace.id] ?? "").trim();
               if (!prompt) {
@@ -189,27 +209,27 @@ export function WorkspaceDock(props: WorkspaceDockProps) {
               } catch (error) {
                 setSendErrorMap((previous) => ({
                   ...previous,
-                  [workspace.id]: error instanceof Error ? error.message : "送出需求失敗。",
+                  [workspace.id]: error instanceof Error ? error.message : "Failed to send prompt.",
                 }));
               }
             }}
             type="button"
           >
-            {sendingWorkspaceId === workspace.id ? "送出中..." : "送出"}
+            {sendingWorkspaceId === workspace.id ? "Sending..." : "Send Prompt"}
           </button>
           <span className="inline-status">
-            已附加檔案 {workspace.attachedPaths.length} 個
-            {workspace.autoAttachActiveFile && selectedPath ? "，並自動帶入目前文檔" : ""}
+            Attached files: {workspace.attachedPaths.length}. Related canon files: {relatedContextCount}.
           </span>
         </div>
       </section>
 
       <details className="workspace-advanced">
-        <summary>進階設定</summary>
+        <summary>Workspace Settings</summary>
         <section className="workspace-settings">
           <label>
-            對話名稱
+            Workspace name
             <input
+              aria-label="Workspace name"
               className="text-input"
               onChange={(event) => onUpdateWorkspace(workspace.id, { name: event.target.value })}
               type="text"
@@ -218,7 +238,7 @@ export function WorkspaceDock(props: WorkspaceDockProps) {
           </label>
 
           <label>
-            搜尋模型
+            Search models
             <input
               className="text-input"
               onChange={(event) =>
@@ -227,14 +247,14 @@ export function WorkspaceDock(props: WorkspaceDockProps) {
                   [workspace.id]: event.target.value,
                 }))
               }
-              placeholder="輸入模型名稱或 ID"
+              placeholder="Filter by model id or name"
               type="text"
               value={modelSearch}
             />
           </label>
 
           <label>
-            模型
+            Model
             <select
               className="select-input"
               onChange={(event) => onUpdateWorkspace(workspace.id, { model: event.target.value })}
@@ -250,9 +270,9 @@ export function WorkspaceDock(props: WorkspaceDockProps) {
 
           <div className="inline-row">
             <button className="ghost-button" onClick={() => onToggleFavoriteModel(workspace.model)} type="button">
-              {favoriteModels.includes(workspace.model) ? "移除常用模型" : "加入常用模型"}
+              {favoriteModels.includes(workspace.model) ? "Unfavorite Model" : "Favorite Model"}
             </button>
-            <span className="inline-status">{modelLoading ? "模型載入中..." : `可用文字模型 ${models.length} 個`}</span>
+            <span className="inline-status">{modelLoading ? "Loading models..." : `${models.length} text models`}</span>
           </div>
 
           <div className="chip-row">
@@ -269,8 +289,9 @@ export function WorkspaceDock(props: WorkspaceDockProps) {
           </div>
 
           <label>
-            系統提示
+            System prompt
             <textarea
+              aria-label="System prompt"
               className="text-area"
               onChange={(event) => onUpdateWorkspace(workspace.id, { systemPrompt: event.target.value })}
               rows={5}
@@ -292,7 +313,7 @@ export function WorkspaceDock(props: WorkspaceDockProps) {
               />
             </label>
             <label>
-              最大回覆 Token
+              Max completion tokens
               <input
                 className="text-input"
                 min={64}
@@ -302,6 +323,10 @@ export function WorkspaceDock(props: WorkspaceDockProps) {
                 value={workspace.maxCompletionTokens}
               />
             </label>
+            <label>
+              Auto context status
+              <input className="text-input" disabled type="text" value={`${relatedContextCount} related files`} />
+            </label>
           </div>
 
           <label className="checkbox-row">
@@ -310,7 +335,7 @@ export function WorkspaceDock(props: WorkspaceDockProps) {
               onChange={(event) => onUpdateWorkspace(workspace.id, { autoAttachActiveFile: event.target.checked })}
               type="checkbox"
             />
-            自動附加目前文檔
+            Auto-attach selected file
           </label>
 
           <label className="checkbox-row">
@@ -319,17 +344,14 @@ export function WorkspaceDock(props: WorkspaceDockProps) {
               onChange={(event) => onUpdateWorkspace(workspace.id, { autoAttachRelatedFiles: event.target.checked })}
               type="checkbox"
             />
-            Auto-attach related canon files before send
+            Auto-attach related canon files
           </label>
-          {workspace.autoAttachRelatedFiles ? (
-            <div className="inline-status">{relatedContextCount} related files will be scanned for this workspace.</div>
-          ) : null}
 
           <div className="panel-header">
-            <h4>附加檔案</h4>
+            <h4>Attached Files</h4>
             {selectedPath ? (
               <button className="ghost-button" onClick={() => onAttachPath(workspace.id, selectedPath)} type="button">
-                附加目前文檔
+                Attach Selected File
               </button>
             ) : null}
           </div>
@@ -344,7 +366,7 @@ export function WorkspaceDock(props: WorkspaceDockProps) {
                   [workspace.id]: event.target.value,
                 }))
               }
-              placeholder="輸入或選擇檔案路徑"
+              placeholder="Pick an extra context path"
               type="text"
               value={attachInputMap[workspace.id] ?? ""}
             />
@@ -364,13 +386,13 @@ export function WorkspaceDock(props: WorkspaceDockProps) {
               }}
               type="button"
             >
-              附加
+              Attach
             </button>
           </div>
 
           <div className="chip-row">
             {workspace.attachedPaths.length === 0 ? (
-              <span className="inline-status">尚未手動附加檔案。</span>
+              <span className="inline-status">No extra context files attached.</span>
             ) : (
               workspace.attachedPaths.map((path) => (
                 <button className="chip-button" key={path} onClick={() => onDetachPath(workspace.id, path)} type="button">
@@ -382,7 +404,7 @@ export function WorkspaceDock(props: WorkspaceDockProps) {
 
           {workspaces.length > 1 ? (
             <button className="danger-button" onClick={() => onRemoveWorkspace(workspace.id)} type="button">
-              刪除此對話
+              Remove Workspace
             </button>
           ) : null}
         </section>

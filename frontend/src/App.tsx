@@ -3,20 +3,19 @@ import { EditorPane, type EditorHandle } from "./components/editor/EditorPane";
 import { AppShell } from "./components/layout/AppShell";
 import { SettingsModal } from "./components/layout/SettingsModal";
 import { TopBar } from "./components/layout/TopBar";
+import { CommitPanel } from "./components/repo/CommitPanel";
 import { Sidebar } from "./components/repo/Sidebar";
-import { WorkspaceDock } from "./components/workspace/WorkspaceDock";
+import { AiWorkspaceView } from "./components/workspace/AiWorkspaceView";
 import { useSplitter } from "./hooks/useSplitter";
-import { GitHubClient, GitHubConflictError } from "./services/githubClient";
-import { OpenRouterClient } from "./services/openRouterClient";
+import { BridgeClient, BridgeConflictError } from "./services/bridgeClient";
 import { CommitStoreProvider, useCommitStore } from "./stores/CommitStore";
 import { DraftStoreProvider, useDraftStore } from "./stores/DraftStore";
 import { RepoStoreProvider, useRepoStore } from "./stores/RepoStore";
 import { SettingsStoreProvider, useSettingsStore } from "./stores/SettingsStore";
 import { WorkspaceStoreProvider, useWorkspaceStore } from "./stores/WorkspaceStore";
-import type { DraftEntry, ModelInfo, WorkspaceMessage } from "./types/app";
+import type { BridgeStatus, DraftEntry, ModelInfo } from "./types/app";
 import { createWorkspaceConfig } from "./utils/constants";
 import { buildCommitTreeEntries } from "./utils/githubCommit";
-import { buildWorkspaceRequest } from "./utils/openRouter";
 import { flattenFilePaths, normalizeRepoTree } from "./utils/repoTree";
 import { resolveWorkspaceContext } from "./utils/workspaceContext";
 
@@ -43,16 +42,27 @@ function AppProviders() {
 function ConsoleApp() {
   const { settings, resolvedRepoConfig, updateUiPrefs, setSettings, clearSecrets } = useSettingsStore();
   const { snapshot, updateEntries, setSelectedPath } = useRepoStore();
-  const { drafts, setDrafts, upsertLoadedFile, updateDraftContent, resetDraftToHead, discardDraft, replaceOriginalFromHead } =
-    useDraftStore();
+  const {
+    drafts,
+    setDrafts,
+    upsertLoadedFile,
+    updateDraftContent,
+    applySuggestedDraft,
+    resetDraftToHead,
+    discardDraft,
+    replaceOriginalFromHead,
+  } = useDraftStore();
   const { commitDraft, setCommitMessage, toggleIncludedPath, includeAllDirty, syncIncludedPaths, resetCommitDraft } =
     useCommitStore();
   const { state: workspaceState, addWorkspace, updateWorkspace, removeWorkspace, setActiveWorkspaceId, addMessage, clearMessages } =
     useWorkspaceStore();
 
+  const bridgeClient = useMemo(() => new BridgeClient(), []);
   const editorHandleRef = useRef<EditorHandle | null>(null);
+  const selectedPathRef = useRef<string | undefined>(undefined);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [repoStatus, setRepoStatus] = useState<"idle" | "loading" | "ready" | "error">("idle");
+  const [bridgeStatus, setBridgeStatus] = useState<BridgeStatus | null>(null);
   const [repoError, setRepoError] = useState("");
   const [fileStatus, setFileStatus] = useState<"idle" | "loading">("idle");
   const [fileError, setFileError] = useState("");
@@ -63,12 +73,6 @@ function ConsoleApp() {
   const [modelLoading, setModelLoading] = useState(false);
   const [modelError, setModelError] = useState("");
   const [sendingWorkspaceId, setSendingWorkspaceId] = useState("");
-
-  const repoClient = useMemo(() => new GitHubClient(resolvedRepoConfig), [resolvedRepoConfig]);
-  const openRouterClient = useMemo(
-    () => (settings.openRouterApiKey ? new OpenRouterClient(settings.openRouterApiKey) : null),
-    [settings.openRouterApiKey],
-  );
 
   const dirtyDrafts = useMemo(
     () => Object.values(drafts).filter((draft) => draft.draftContent !== draft.originalContent),
@@ -101,8 +105,8 @@ function ConsoleApp() {
   const dockSplitter = useSplitter({
     direction: "vertical",
     value: settings.uiPrefs.dockHeight,
-    min: 180,
-    max: 420,
+    min: 220,
+    max: 460,
     onChange: (nextValue) => updateUiPrefs({ dockHeight: nextValue }),
   });
 
@@ -111,20 +115,38 @@ function ConsoleApp() {
   }, [dirtyDrafts, syncIncludedPaths]);
 
   useEffect(() => {
+    selectedPathRef.current = snapshot.selectedPath;
+  }, [snapshot.selectedPath]);
+
+  useEffect(() => {
     if (commitDraft.branch !== resolvedRepoConfig.branch) {
       resetCommitDraft(resolvedRepoConfig.branch);
     }
   }, [commitDraft.branch, resetCommitDraft, resolvedRepoConfig.branch]);
+
+  const loadBridgeStatus = useCallback(async () => {
+    try {
+      const status = await bridgeClient.getStatus();
+      setBridgeStatus(status);
+      return status;
+    } catch (error) {
+      setBridgeStatus(null);
+      throw error;
+    }
+  }, [bridgeClient]);
 
   const loadRepoTree = useCallback(async () => {
     setRepoStatus("loading");
     setRepoError("");
 
     try {
-      const result = await repoClient.getRepoTree();
-      updateEntries(result.entries, result.headSha, result.baseTreeSha);
+      const status = await loadBridgeStatus();
+      setBridgeStatus(status);
+      const result = await bridgeClient.getRepoTree(resolvedRepoConfig);
+      updateEntries(result.entries, result.headSha, result.baseTreeSha, result.truncated);
 
-      const selectedStillExists = snapshot.selectedPath && result.entries.some((entry) => entry.path === snapshot.selectedPath);
+      const selectedStillExists =
+        selectedPathRef.current && result.entries.some((entry) => entry.path === selectedPathRef.current);
       if (!selectedStillExists) {
         const firstFile = result.entries.find((entry) => entry.type === "blob");
         setSelectedPath(firstFile?.path);
@@ -133,9 +155,9 @@ function ConsoleApp() {
       setRepoStatus("ready");
     } catch (error) {
       setRepoStatus("error");
-      setRepoError(error instanceof Error ? error.message : "載入檔案樹失敗。");
+      setRepoError(error instanceof Error ? error.message : "Failed to load repository tree.");
     }
-  }, [repoClient, setSelectedPath, snapshot.selectedPath, updateEntries]);
+  }, [bridgeClient, loadBridgeStatus, resolvedRepoConfig, setSelectedPath, updateEntries]);
 
   const loadFile = useCallback(
     async (path: string, replaceFromHead = false) => {
@@ -148,26 +170,24 @@ function ConsoleApp() {
       setFileError("");
 
       try {
-        const file = await repoClient.getFileContent(path, entry.sha);
+        const file = await bridgeClient.getFileContent(resolvedRepoConfig, path, entry.sha);
         if (replaceFromHead) {
           replaceOriginalFromHead(file);
         } else {
           upsertLoadedFile(file);
         }
       } catch (error) {
-        setFileError(error instanceof Error ? error.message : "載入文檔失敗。");
+        setFileError(error instanceof Error ? error.message : "Failed to load file content.");
       } finally {
         setFileStatus("idle");
       }
     },
-    [replaceOriginalFromHead, repoClient, snapshot.entries, upsertLoadedFile],
+    [bridgeClient, replaceOriginalFromHead, resolvedRepoConfig, snapshot.entries, upsertLoadedFile],
   );
 
   useEffect(() => {
-    if (snapshot.entries.length === 0) {
-      void loadRepoTree();
-    }
-  }, [loadRepoTree, snapshot.entries.length]);
+    void loadRepoTree();
+  }, [loadRepoTree, resolvedRepoConfig.branch, resolvedRepoConfig.owner, resolvedRepoConfig.repo]);
 
   useEffect(() => {
     if (!snapshot.selectedPath || drafts[snapshot.selectedPath]) {
@@ -177,25 +197,28 @@ function ConsoleApp() {
   }, [drafts, loadFile, snapshot.selectedPath]);
 
   useEffect(() => {
-    if (!openRouterClient) {
-      setModels([]);
-      setModelError("");
-      return;
-    }
-
     let cancelled = false;
 
     const run = async () => {
       setModelLoading(true);
       setModelError("");
       try {
-        const nextModels = await openRouterClient.getModels();
+        const status = bridgeStatus ?? (await loadBridgeStatus());
+        if (!status.hasOpenRouterApiKey) {
+          if (!cancelled) {
+            setModels([]);
+            setModelError("The bridge is missing NOVEL_WRITER_OPENROUTER_API_KEY.");
+          }
+          return;
+        }
+        const nextModels = await bridgeClient.getModels();
         if (!cancelled) {
           setModels(nextModels);
         }
       } catch (error) {
         if (!cancelled) {
-          setModelError(error instanceof Error ? error.message : "載入 OpenRouter 模型清單失敗。");
+          setModels([]);
+          setModelError(error instanceof Error ? error.message : "Failed to load bridge models.");
         }
       } finally {
         if (!cancelled) {
@@ -208,7 +231,7 @@ function ConsoleApp() {
     return () => {
       cancelled = true;
     };
-  }, [openRouterClient]);
+  }, [bridgeClient, bridgeStatus, loadBridgeStatus, resolvedRepoConfig]);
 
   const ensureDraftLoaded = useCallback(
     async (path: string): Promise<DraftEntry | null> => {
@@ -222,7 +245,7 @@ function ConsoleApp() {
         return null;
       }
 
-      const loaded = await repoClient.getFileContent(path, entry.sha);
+      const loaded = await bridgeClient.getFileContent(resolvedRepoConfig, path, entry.sha);
       upsertLoadedFile(loaded);
       return {
         path: loaded.path,
@@ -234,7 +257,7 @@ function ConsoleApp() {
         readOnlyReason: loaded.readOnlyReason,
       };
     },
-    [drafts, repoClient, snapshot.entries, upsertLoadedFile],
+    [bridgeClient, drafts, resolvedRepoConfig, snapshot.entries, upsertLoadedFile],
   );
 
   const handleCommit = useCallback(async () => {
@@ -247,15 +270,16 @@ function ConsoleApp() {
         content: entry.content,
       }));
 
-      await repoClient.createCommit({
+      await bridgeClient.createCommit({
+        repoRef: resolvedRepoConfig,
         headSha: snapshot.headSha,
         baseTreeSha: snapshot.baseTreeSha,
         message: commitDraft.message,
         files,
       });
 
-      const refreshed = await repoClient.getRepoTree();
-      updateEntries(refreshed.entries, refreshed.headSha, refreshed.baseTreeSha);
+      const refreshed = await bridgeClient.getRepoTree(resolvedRepoConfig);
+      updateEntries(refreshed.entries, refreshed.headSha, refreshed.baseTreeSha, refreshed.truncated);
 
       setDrafts((previous) => {
         const next = { ...previous };
@@ -278,24 +302,24 @@ function ConsoleApp() {
 
       resetCommitDraft(resolvedRepoConfig.branch);
       setCommitTone("success");
-      setCommitStatus("提交完成。");
+      setCommitStatus("Commit completed successfully.");
     } catch (error) {
       setCommitTone("error");
-      if (error instanceof GitHubConflictError) {
+      if (error instanceof BridgeConflictError) {
         setCommitStatus(error.message);
       } else {
-        setCommitStatus(error instanceof Error ? error.message : "提交失敗。");
+        setCommitStatus(error instanceof Error ? error.message : "Commit failed.");
       }
     } finally {
       setIsSubmittingCommit(false);
     }
   }, [
+    bridgeClient,
     commitDraft.includedPaths,
     commitDraft.message,
     dirtyDrafts,
-    repoClient,
     resetCommitDraft,
-    resolvedRepoConfig.branch,
+    resolvedRepoConfig,
     setDrafts,
     snapshot.baseTreeSha,
     snapshot.headSha,
@@ -309,8 +333,8 @@ function ConsoleApp() {
         return;
       }
 
-      if (!openRouterClient) {
-        throw new Error("尚未設定 OpenRouter API key。");
+      if (!snapshot.selectedPath) {
+        throw new Error("Select the file you want the AI to revise first.");
       }
 
       setSendingWorkspaceId(workspaceId);
@@ -322,38 +346,38 @@ function ConsoleApp() {
           autoAttachActiveFile: workspace.autoAttachActiveFile,
           autoAttachRelatedFiles: workspace.autoAttachRelatedFiles,
         });
-        const allPaths = [...contextResolution.requestedPaths, ...contextResolution.autoContextPaths];
-
-        const attachedDrafts = (await Promise.all([...new Set(allPaths)].map((path) => ensureDraftLoaded(path)))).filter(
-          Boolean,
-        ) as DraftEntry[];
-
+        const allPaths = [...new Set([snapshot.selectedPath, ...contextResolution.requestedPaths, ...contextResolution.autoContextPaths])];
+        const attachedDrafts = (await Promise.all(allPaths.map((path) => ensureDraftLoaded(path)))).filter(Boolean) as DraftEntry[];
         const history = workspaceState.messages[workspaceId] ?? [];
-        const request = buildWorkspaceRequest({
-          workspace,
-          history,
-          prompt,
-          attachedDrafts,
-          repoStructure: contextResolution.structureSummary,
-        });
-
         const sourceFilePaths = attachedDrafts.map((draft) => draft.path);
-        const userMessage: WorkspaceMessage = {
+
+        addMessage(workspaceId, {
           id: createId(),
           role: "user",
           content: prompt,
           createdAt: Date.now(),
           sourceFilePaths,
-        };
-        addMessage(workspaceId, userMessage);
+          targetPath: snapshot.selectedPath,
+        });
 
-        const response = await openRouterClient.sendChat(request);
+        const response = await bridgeClient.sendChat({
+          repoRef: resolvedRepoConfig,
+          workspace,
+          history,
+          prompt,
+          attachedDrafts,
+          repoStructure: contextResolution.structureSummary,
+          targetPath: snapshot.selectedPath,
+        });
+
         addMessage(workspaceId, {
           id: createId(),
           role: "assistant",
-          content: response,
+          content: response.assistantText,
           createdAt: Date.now(),
           sourceFilePaths,
+          proposedContent: response.proposedContent,
+          targetPath: response.targetPath ?? snapshot.selectedPath,
         });
 
         updateUiPrefs({
@@ -365,10 +389,11 @@ function ConsoleApp() {
     },
     [
       addMessage,
+      bridgeClient,
       ensureDraftLoaded,
-      openRouterClient,
-      snapshot.entries,
+      resolvedRepoConfig,
       settings.uiPrefs.recentModels,
+      snapshot.entries,
       snapshot.selectedPath,
       updateUiPrefs,
       workspaceState.messages,
@@ -376,178 +401,204 @@ function ConsoleApp() {
     ],
   );
 
+  const handleApplyProposedDraft = useCallback(
+    async (workspaceId: string, messageId: string) => {
+      const message = (workspaceState.messages[workspaceId] ?? []).find((item) => item.id === messageId);
+      if (!message?.proposedContent || !message.targetPath) {
+        throw new Error("This message does not contain a proposed draft.");
+      }
+
+      const loadedDraft = await ensureDraftLoaded(message.targetPath);
+      if (!loadedDraft) {
+        throw new Error("Could not load the target file before applying the draft.");
+      }
+
+      applySuggestedDraft(
+        {
+          path: loadedDraft.path,
+          sha: loadedDraft.originalSha,
+          content: loadedDraft.originalContent,
+          isEditable: loadedDraft.isEditable,
+          readOnlyReason: loadedDraft.readOnlyReason,
+        },
+        message.proposedContent,
+      );
+      setSelectedPath(message.targetPath);
+    },
+    [applySuggestedDraft, ensureDraftLoaded, setSelectedPath, workspaceState.messages],
+  );
+
   return (
     <>
-      <AppShell
-        dock={
-          <WorkspaceDock
-            activeWorkspaceId={workspaceState.activeWorkspaceId}
-            availablePaths={filePaths}
-            favoriteModels={settings.uiPrefs.favoriteModels}
-            messages={workspaceState.messages}
-            modelError={modelError}
-            modelLoading={modelLoading}
-            models={models}
-            onAddWorkspace={() =>
-              addWorkspace(createWorkspaceConfig(settings.defaultWorkspaceTemplate, `對話 ${workspaceState.workspaces.length + 1}`))
+      <div className="app-shell">
+        <TopBar
+          activeView={settings.uiPrefs.activeView}
+          bridgeStatus={bridgeStatus}
+          dockOpen={settings.uiPrefs.dockOpen}
+          onOpenSettings={() => setIsSettingsOpen(true)}
+          onRefreshRepo={() => {
+            void loadRepoTree();
+            if (snapshot.selectedPath) {
+              void loadFile(snapshot.selectedPath, true);
             }
-            onAttachPath={(workspaceId, path) => {
-              const workspace = workspaceState.workspaces.find((item) => item.id === workspaceId);
-              if (!workspace || workspace.attachedPaths.includes(path)) {
-                return;
+          }}
+          onSwitchView={(view) => updateUiPrefs({ activeView: view })}
+          onToggleDock={() => updateUiPrefs({ dockOpen: !settings.uiPrefs.dockOpen })}
+          onToggleSidebar={() => updateUiPrefs({ sidebarOpen: !settings.uiPrefs.sidebarOpen })}
+          repoConfig={resolvedRepoConfig}
+          repoStatus={repoStatus}
+          selectedPath={snapshot.selectedPath}
+          sidebarOpen={settings.uiPrefs.sidebarOpen}
+        />
+
+        <div className="app-view">
+          {settings.uiPrefs.activeView === "ai" ? (
+            <AiWorkspaceView
+              activeWorkspaceId={workspaceState.activeWorkspaceId}
+              availablePaths={filePaths}
+              dirtyDrafts={dirtyDrafts}
+              favoriteModels={settings.uiPrefs.favoriteModels}
+              messages={workspaceState.messages}
+              modelError={modelError}
+              modelLoading={modelLoading}
+              models={models}
+              nodes={treeNodes}
+              onAddWorkspace={() =>
+                addWorkspace(createWorkspaceConfig(settings.defaultWorkspaceTemplate, `Workspace ${workspaceState.workspaces.length + 1}`))
               }
-              updateWorkspace(workspaceId, {
-                attachedPaths: [...workspace.attachedPaths, path],
-              });
-            }}
-            onClearMessages={clearMessages}
-            onDetachPath={(workspaceId, path) => {
-              const workspace = workspaceState.workspaces.find((item) => item.id === workspaceId);
-              if (!workspace) {
-                return;
+              onApplyProposedDraft={handleApplyProposedDraft}
+              onAttachPath={(workspaceId, path) => {
+                const workspace = workspaceState.workspaces.find((item) => item.id === workspaceId);
+                if (!workspace || workspace.attachedPaths.includes(path)) {
+                  return;
+                }
+                updateWorkspace(workspaceId, {
+                  attachedPaths: [...workspace.attachedPaths, path],
+                });
+              }}
+              onClearMessages={clearMessages}
+              onDetachPath={(workspaceId, path) => {
+                const workspace = workspaceState.workspaces.find((item) => item.id === workspaceId);
+                if (!workspace) {
+                  return;
+                }
+                updateWorkspace(workspaceId, {
+                  attachedPaths: workspace.attachedPaths.filter((item) => item !== path),
+                });
+              }}
+              onRemoveWorkspace={removeWorkspace}
+              onSelectPath={(path) => setSelectedPath(path)}
+              onSelectWorkspace={setActiveWorkspaceId}
+              onSendPrompt={handleSendPrompt}
+              onToggleFavoriteModel={(modelId) => {
+                const favorites = new Set(settings.uiPrefs.favoriteModels);
+                if (favorites.has(modelId)) {
+                  favorites.delete(modelId);
+                } else if (modelId) {
+                  favorites.add(modelId);
+                }
+                updateUiPrefs({ favoriteModels: [...favorites] });
+              }}
+              onUpdateWorkspace={updateWorkspace}
+              recentModels={settings.uiPrefs.recentModels}
+              relatedContextCount={activeWorkspaceContext.autoContextPaths.length}
+              selectedPath={snapshot.selectedPath}
+              sendingWorkspaceId={sendingWorkspaceId}
+              workspaces={workspaceState.workspaces}
+            />
+          ) : (
+            <AppShell
+              dock={
+                <CommitPanel
+                  branch={resolvedRepoConfig.branch}
+                  dirtyDrafts={dirtyDrafts}
+                  hasGitHubToken={Boolean(bridgeStatus?.hasGitHubToken)}
+                  includedPaths={commitDraft.includedPaths}
+                  isSubmitting={isSubmittingCommit}
+                  message={commitDraft.message}
+                  onCommit={handleCommit}
+                  onDiscardDraft={(path) => {
+                    discardDraft(path);
+                    if (snapshot.selectedPath === path) {
+                      void loadFile(path, true);
+                    }
+                  }}
+                  onIncludeAll={() => includeAllDirty(dirtyDrafts.map((draft) => draft.path))}
+                  onMessageChange={setCommitMessage}
+                  onRefreshHead={() => {
+                    void loadRepoTree();
+                    if (snapshot.selectedPath) {
+                      void loadFile(snapshot.selectedPath, true);
+                    }
+                  }}
+                  onTogglePath={toggleIncludedPath}
+                />
               }
-              updateWorkspace(workspaceId, {
-                attachedPaths: workspace.attachedPaths.filter((item) => item !== path),
-              });
-            }}
-            onInsertToEditor={(content) => editorHandleRef.current?.insertText(content)}
-            onRemoveWorkspace={removeWorkspace}
-            onReplaceEditor={(content) => editorHandleRef.current?.replaceAll(content)}
-            onReplaceSelection={(content) => editorHandleRef.current?.replaceSelection(content)}
-            onSelectWorkspace={setActiveWorkspaceId}
-            onSendPrompt={handleSendPrompt}
-            onToggleFavoriteModel={(modelId) => {
-              const favorites = new Set(settings.uiPrefs.favoriteModels);
-              if (favorites.has(modelId)) {
-                favorites.delete(modelId);
-              } else if (modelId) {
-                favorites.add(modelId);
+              dockHeight={settings.uiPrefs.dockHeight}
+              dockOpen={settings.uiPrefs.dockOpen}
+              editor={
+                <EditorPane
+                  draft={selectedDraft}
+                  error={fileError}
+                  isLoading={fileStatus === "loading"}
+                  onChange={(value) => {
+                    if (!snapshot.selectedPath) {
+                      return;
+                    }
+                    updateDraftContent(snapshot.selectedPath, value);
+                  }}
+                  onReady={(handle) => {
+                    editorHandleRef.current = handle;
+                  }}
+                  onResetToHead={() => {
+                    if (!snapshot.selectedPath || !selectedDraft) {
+                      return;
+                    }
+                    resetDraftToHead(snapshot.selectedPath, selectedDraft.originalContent, selectedDraft.originalSha);
+                  }}
+                  selectedPath={snapshot.selectedPath}
+                />
               }
-              updateUiPrefs({ favoriteModels: [...favorites] });
-            }}
-            onUpdateWorkspace={updateWorkspace}
-            relatedContextCount={activeWorkspaceContext.autoContextPaths.length}
-            recentModels={settings.uiPrefs.recentModels}
-            selectedPath={snapshot.selectedPath}
-            sendingWorkspaceId={sendingWorkspaceId}
-            workspaces={workspaceState.workspaces}
-          />
-        }
-        dockHeight={settings.uiPrefs.dockHeight}
-        dockOpen={settings.uiPrefs.dockOpen}
-        editor={
-          <EditorPane
-            draft={selectedDraft}
-            error={fileError}
-            isLoading={fileStatus === "loading"}
-            onChange={(value) => {
-              if (!snapshot.selectedPath) {
-                return;
+              onDockResizeStart={dockSplitter.startDragging}
+              onSidebarResizeStart={sidebarSplitter.startDragging}
+              sidebar={
+                <Sidebar
+                  branch={resolvedRepoConfig.branch}
+                  dirtyDrafts={dirtyDrafts}
+                  nodes={treeNodes}
+                  onSelectPath={(path) => setSelectedPath(path)}
+                  selectedPath={snapshot.selectedPath}
+                />
               }
-              updateDraftContent(snapshot.selectedPath, value);
-            }}
-            onReady={(handle) => {
-              editorHandleRef.current = handle;
-            }}
-            onResetToHead={() => {
-              if (!snapshot.selectedPath || !selectedDraft) {
-                return;
-              }
-              resetDraftToHead(snapshot.selectedPath, selectedDraft.originalContent, selectedDraft.originalSha);
-            }}
-            selectedPath={snapshot.selectedPath}
-          />
-        }
-        onDockResizeStart={dockSplitter.startDragging}
-        onSidebarResizeStart={sidebarSplitter.startDragging}
-        sidebar={
-          <Sidebar
-            branch={resolvedRepoConfig.branch}
-            commitMessage={commitDraft.message}
-            dirtyDrafts={dirtyDrafts}
-            hasGitHubToken={Boolean(resolvedRepoConfig.githubToken)}
-            includedPaths={commitDraft.includedPaths}
-            isSubmittingCommit={isSubmittingCommit}
-            nodes={treeNodes}
-            onCommit={handleCommit}
-            onCommitMessageChange={setCommitMessage}
-            onDiscardDraft={(path) => {
-              discardDraft(path);
-              if (snapshot.selectedPath === path) {
-                void loadFile(path, true);
-              }
-            }}
-            onIncludeAllDirty={() => includeAllDirty(dirtyDrafts.map((draft) => draft.path))}
-            onRefreshHead={() => {
-              void loadRepoTree();
-              if (snapshot.selectedPath) {
-                void loadFile(snapshot.selectedPath, true);
-              }
-            }}
-            onSelectPath={(path) => setSelectedPath(path)}
-            onToggleCommitPath={toggleIncludedPath}
-            selectedPath={snapshot.selectedPath}
-          />
-        }
-        sidebarOpen={settings.uiPrefs.sidebarOpen}
-        sidebarWidth={settings.uiPrefs.sidebarWidth}
-        topBar={
-          <TopBar
-            dockOpen={settings.uiPrefs.dockOpen}
-            onOpenSettings={() => setIsSettingsOpen(true)}
-            onRefreshRepo={() => {
-              void loadRepoTree();
-              if (snapshot.selectedPath) {
-                void loadFile(snapshot.selectedPath, true);
-              }
-            }}
-            onToggleDock={() => updateUiPrefs({ dockOpen: !settings.uiPrefs.dockOpen })}
-            onToggleSidebar={() => updateUiPrefs({ sidebarOpen: !settings.uiPrefs.sidebarOpen })}
-            repoConfig={resolvedRepoConfig}
-            repoStatus={repoStatus}
-            selectedPath={snapshot.selectedPath}
-            sidebarOpen={settings.uiPrefs.sidebarOpen}
-          />
-        }
-      />
+              sidebarOpen={settings.uiPrefs.sidebarOpen}
+              sidebarWidth={settings.uiPrefs.sidebarWidth}
+              topBar={null}
+            />
+          )}
+        </div>
+      </div>
 
       {repoError ? <div className="toast-banner error">{repoError}</div> : null}
       {commitStatus ? <div className={`toast-banner ${commitTone}`}>{commitStatus}</div> : null}
-      {activeWorkspace && !settings.openRouterApiKey ? (
-        <div className="toast-banner">請先在設定中填入 OpenRouter API key，AI 對話區才能使用。</div>
-      ) : null}
 
       <SettingsModal
+        bridgeStatus={bridgeStatus}
         isOpen={isSettingsOpen}
+        onCheckBridge={async () => {
+          try {
+            const status = await loadBridgeStatus();
+            return `Bridge ready. Adapter: ${status.repoAdapter}. GitHub: ${status.hasGitHubToken ? "ok" : "missing"}. OpenRouter: ${
+              status.hasOpenRouterApiKey ? "ok" : "missing"
+            }.`;
+          } catch (error) {
+            return error instanceof Error ? error.message : "Bridge check failed.";
+          }
+        }}
         onClearSecrets={clearSecrets}
         onClose={() => setIsSettingsOpen(false)}
         onSave={(nextSettings) => {
           setSettings(nextSettings);
           setIsSettingsOpen(false);
-        }}
-        onTestGitHub={async (token) => {
-          try {
-            const client = new GitHubClient({
-              ...resolvedRepoConfig,
-              githubToken: token,
-            });
-            await client.testConnection();
-            return "GitHub 連線正常。";
-          } catch (error) {
-            return error instanceof Error ? error.message : "GitHub 測試失敗。";
-          }
-        }}
-        onTestOpenRouter={async (apiKey) => {
-          if (!apiKey) {
-            return "請先輸入 OpenRouter API key。";
-          }
-          try {
-            const client = new OpenRouterClient(apiKey);
-            await client.testConnection();
-            return "OpenRouter 連線正常。";
-          } catch (error) {
-            return error instanceof Error ? error.message : "OpenRouter 測試失敗。";
-          }
         }}
         settings={settings}
       />

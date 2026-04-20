@@ -1,52 +1,88 @@
-import type { RepoConfig } from "../../types/app";
+import type { BridgeStatus, RepoConfig } from "../../types/app";
 
 interface TopBarProps {
   repoConfig: RepoConfig;
   selectedPath?: string;
+  activeView: "ai" | "files";
+  repoStatus: "idle" | "loading" | "ready" | "error";
+  bridgeStatus?: BridgeStatus | null;
   sidebarOpen: boolean;
   dockOpen: boolean;
-  repoStatus: "idle" | "loading" | "ready" | "error";
+  onSwitchView: (view: "ai" | "files") => void;
+  onRefreshRepo: () => void;
   onToggleSidebar: () => void;
   onToggleDock: () => void;
-  onRefreshRepo: () => void;
   onOpenSettings: () => void;
 }
 
 export function TopBar(props: TopBarProps) {
-  const { repoConfig, selectedPath, sidebarOpen, dockOpen, repoStatus, onToggleSidebar, onToggleDock, onRefreshRepo, onOpenSettings } =
-    props;
+  const {
+    repoConfig,
+    selectedPath,
+    activeView,
+    repoStatus,
+    bridgeStatus,
+    sidebarOpen,
+    dockOpen,
+    onSwitchView,
+    onRefreshRepo,
+    onToggleSidebar,
+    onToggleDock,
+    onOpenSettings,
+  } = props;
 
   const repoStatusLabel = {
-    idle: "待命",
-    loading: "同步中",
-    ready: "已就緒",
-    error: "錯誤",
+    idle: "Idle",
+    loading: "Loading",
+    ready: "Ready",
+    error: "Error",
   }[repoStatus];
 
   return (
     <header className="topbar">
       <div className="topbar-group">
-        <button className="ghost-button" onClick={onToggleSidebar} type="button">
-          {sidebarOpen ? "隱藏檔案樹" : "顯示檔案樹"}
-        </button>
         <div>
-          <div className="eyebrow">小說工作台</div>
-          <div className="topbar-title">{selectedPath ?? "尚未選取文檔"}</div>
+          <div className="eyebrow">Novel Writer</div>
+          <div className="topbar-title">{selectedPath ?? "Select a chapter or canon file"}</div>
         </div>
+        <nav className="topbar-nav" aria-label="Primary views">
+          <button
+            className={`workspace-tab ${activeView === "ai" ? "is-active" : ""}`}
+            onClick={() => onSwitchView("ai")}
+            type="button"
+          >
+            AI Chat
+          </button>
+          <button
+            className={`workspace-tab ${activeView === "files" ? "is-active" : ""}`}
+            onClick={() => onSwitchView("files")}
+            type="button"
+          >
+            Files
+          </button>
+        </nav>
       </div>
       <div className="topbar-group">
         <span className={`status-pill status-${repoStatus}`}>{repoStatusLabel}</span>
-        <div className="selected-file-chip">
+        <span className="selected-file-chip">
           {repoConfig.owner}/{repoConfig.repo}@{repoConfig.branch}
-        </div>
+        </span>
+        {bridgeStatus ? (
+          <span className={`status-pill ${bridgeStatus.ok ? "status-ready" : "status-error"}`}>
+            Bridge: {bridgeStatus.repoAdapter}
+          </span>
+        ) : null}
         <button className="ghost-button" onClick={onRefreshRepo} type="button">
-          重新整理
+          Refresh Repo
+        </button>
+        <button className="ghost-button" onClick={onToggleSidebar} type="button">
+          {sidebarOpen ? "Hide Sidebar" : "Show Sidebar"}
         </button>
         <button className="ghost-button" onClick={onToggleDock} type="button">
-          {dockOpen ? "隱藏 AI 區" : "顯示 AI 區"}
+          {dockOpen ? "Hide Changes" : "Show Changes"}
         </button>
         <button className="solid-button" onClick={onOpenSettings} type="button">
-          設定
+          Settings
         </button>
       </div>
     </header>
