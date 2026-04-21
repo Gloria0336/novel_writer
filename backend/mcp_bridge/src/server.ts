@@ -129,8 +129,8 @@ const server = createServer(async (request, response) => {
 
     if (request.method === "POST" && url.pathname === "/api/repo/commit") {
       const payload = await readJson<CommitRequest>(request);
-      const commitSha = await repoAdapter.commitFiles(payload);
-      sendJson(response, 200, { commitSha });
+      const result = await repoAdapter.commitFiles(payload);
+      sendJson(response, 200, result);
       return;
     }
 

@@ -3,19 +3,21 @@ import { EditorPane } from "./components/editor/EditorPane";
 import { SettingsModal } from "./components/layout/SettingsModal";
 import { TopBar } from "./components/layout/TopBar";
 import { TweaksPanel } from "./components/layout/TweaksPanel";
+import { CommitPanel } from "./components/repo/CommitPanel";
 import { Sidebar } from "./components/repo/Sidebar";
 import { ChatPanel } from "./components/workspace/ChatPanel";
 import { WorkspaceRail } from "./components/workspace/WorkspaceRail";
 import { BridgeClient } from "./services/bridgeClient";
 import { OpenRouterClient } from "./services/openRouterClient";
+import { CommitStoreProvider, useCommitStore } from "./stores/CommitStore";
 import { DraftStoreProvider, useDraftStore } from "./stores/DraftStore";
 import { RepoStoreProvider, useRepoStore } from "./stores/RepoStore";
 import { SettingsStoreProvider, useSettingsStore } from "./stores/SettingsStore";
 import { WorkspaceStoreProvider, useWorkspaceStore } from "./stores/WorkspaceStore";
-import type { DraftEntry } from "./types/app";
-import { createWorkspaceConfig } from "./utils/constants";
+import type { DraftEntry, RepoSnapshot } from "./types/app";
+import { MAX_ATTACHED_REFERENCE_FILES, NOVEL_DB_ROOT_PATH, createWorkspaceConfig } from "./utils/constants";
 import { buildWorkspaceRequest, parseAiResponseEnvelope } from "./utils/openRouter";
-import { normalizeRepoTree } from "./utils/repoTree";
+import { focusRepoTree, normalizeRepoTree } from "./utils/repoTree";
 import { resolveWorkspaceContext } from "./utils/workspaceContext";
 
 function createId() {
@@ -38,7 +40,9 @@ function AppProviders() {
       <RepoStoreProvider>
         <DraftStoreProvider>
           <WorkspaceStoreProvider>
-            <ConsoleApp />
+            <CommitStoreProvider>
+              <ConsoleApp />
+            </CommitStoreProvider>
           </WorkspaceStoreProvider>
         </DraftStoreProvider>
       </RepoStoreProvider>
@@ -49,8 +53,17 @@ function AppProviders() {
 function ConsoleApp() {
   const { settings, resolvedRepoConfig, updateSettings, updateTweaks, updateUiPrefs } = useSettingsStore();
   const { snapshot, updateEntries, setSelectedPath } = useRepoStore();
-  const { drafts, upsertLoadedFile, updateDraftContent, applySuggestedDraft, resetDraftToHead } = useDraftStore();
+  const {
+    drafts,
+    upsertLoadedFile,
+    updateDraftContent,
+    applySuggestedDraft,
+    resetDraftToHead,
+    discardDraft,
+    replaceOriginalFromHead,
+  } = useDraftStore();
   const { state: workspaceState, addWorkspace, updateWorkspace, setActiveWorkspaceId, addMessage } = useWorkspaceStore();
+  const { commitDraft, setCommitMessage, toggleIncludedPath, includeAllDirty, syncIncludedPaths, resetCommitDraft } = useCommitStore();
 
   const bridgeClient = useMemo(() => new BridgeClient(), []);
   const openRouterClient = useMemo(() => {
@@ -68,13 +81,19 @@ function ConsoleApp() {
   const [modelLoading, setModelLoading] = useState(false);
   const [modelError, setModelError] = useState("");
   const [sendingWorkspaceId, setSendingWorkspaceId] = useState("");
+  const [attachmentError, setAttachmentError] = useState("");
+  const [commitFeedback, setCommitFeedback] = useState<{ tone: "muted" | "error" | "success"; message: string }>({
+    tone: "muted",
+    message: "",
+  });
+  const [commitAction, setCommitAction] = useState<"" | "commit" | "push">("");
 
   const dirtyDrafts = useMemo(
     () => Object.values(drafts).filter((draft) => draft.draftContent !== draft.originalContent),
     [drafts],
   );
   const dirtyPaths = useMemo(() => dirtyDrafts.map((draft) => draft.path), [dirtyDrafts]);
-  const treeNodes = useMemo(() => normalizeRepoTree(snapshot.entries), [snapshot.entries]);
+  const treeNodes = useMemo(() => focusRepoTree(normalizeRepoTree(snapshot.entries), NOVEL_DB_ROOT_PATH), [snapshot.entries]);
   const selectedDraft = snapshot.selectedPath ? drafts[snapshot.selectedPath] : undefined;
   const activeWorkspace =
     workspaceState.workspaces.find((workspace) => workspace.id === workspaceState.activeWorkspaceId) ?? workspaceState.workspaces[0];
@@ -103,7 +122,21 @@ function ConsoleApp() {
     root.style.setProperty("--app-font-size", `${settings.tweaks.fontSize}px`);
   }, [settings.tweaks.fontSize, settings.tweaks.uiFont]);
 
-  const loadRepoTree = useCallback(async () => {
+  useEffect(() => {
+    syncIncludedPaths(dirtyPaths);
+  }, [dirtyPaths, syncIncludedPaths]);
+
+  useEffect(() => {
+    if (commitDraft.branch !== resolvedRepoConfig.branch) {
+      resetCommitDraft(resolvedRepoConfig.branch);
+    }
+  }, [commitDraft.branch, resolvedRepoConfig.branch, resetCommitDraft]);
+
+  useEffect(() => {
+    setAttachmentError("");
+  }, [activeWorkspace.id]);
+
+  const loadRepoTree = useCallback(async (): Promise<RepoSnapshot> => {
     setRepoStatus("loading");
     setRepoError("");
 
@@ -119,9 +152,11 @@ function ConsoleApp() {
       }
 
       setRepoStatus("ready");
+      return result;
     } catch (error) {
       setRepoStatus("error");
-      setRepoError(error instanceof Error ? error.message : "無法載入小說檔案。");
+      setRepoError(error instanceof Error ? error.message : "Failed to load the repository tree.");
+      throw error;
     }
   }, [bridgeClient, resolvedRepoConfig, setSelectedPath, updateEntries]);
 
@@ -139,7 +174,7 @@ function ConsoleApp() {
         const file = await bridgeClient.getFileContent(resolvedRepoConfig, path, entry.sha);
         upsertLoadedFile(file);
       } catch (error) {
-        setFileError(error instanceof Error ? error.message : "無法讀取檔案內容。");
+        setFileError(error instanceof Error ? error.message : "Failed to load the file.");
       } finally {
         setFileStatus("idle");
       }
@@ -148,7 +183,7 @@ function ConsoleApp() {
   );
 
   useEffect(() => {
-    void loadRepoTree();
+    void loadRepoTree().catch(() => undefined);
   }, [loadRepoTree]);
 
   useEffect(() => {
@@ -179,7 +214,7 @@ function ConsoleApp() {
       } catch (error) {
         if (!cancelled) {
           setModels([]);
-          setModelError(error instanceof Error ? error.message : "無法取得模型清單。");
+          setModelError(error instanceof Error ? error.message : "Failed to load models.");
         }
       } finally {
         if (!cancelled) {
@@ -221,13 +256,33 @@ function ConsoleApp() {
     [bridgeClient, drafts, resolvedRepoConfig, snapshot.entries, upsertLoadedFile],
   );
 
+  const handleToggleAttachment = useCallback(
+    (path: string) => {
+      const existing = activeWorkspace.attachedPaths ?? [];
+      if (existing.includes(path)) {
+        updateWorkspace(activeWorkspace.id, { attachedPaths: existing.filter((item) => item !== path) });
+        setAttachmentError("");
+        return;
+      }
+
+      if (existing.length >= MAX_ATTACHED_REFERENCE_FILES) {
+        setAttachmentError(`You can attach up to ${MAX_ATTACHED_REFERENCE_FILES} reference files.`);
+        return;
+      }
+
+      updateWorkspace(activeWorkspace.id, { attachedPaths: [...existing, path] });
+      setAttachmentError("");
+    },
+    [activeWorkspace, updateWorkspace],
+  );
+
   const handleSendPrompt = useCallback(
     async (prompt: string) => {
       if (!openRouterClient) {
-        throw new Error("請先在總設定填入 OpenRouter API 金鑰。");
+        throw new Error("OpenRouter API key is missing.");
       }
       if (!snapshot.selectedPath) {
-        throw new Error("請先選擇一個檔案。");
+        throw new Error("Choose a target file before sending a prompt.");
       }
 
       setSendingWorkspaceId(activeWorkspace.id);
@@ -299,12 +354,12 @@ function ConsoleApp() {
     async (messageId: string) => {
       const message = activeMessages.find((item) => item.id === messageId);
       if (!message?.proposedContent || !message.targetPath) {
-        throw new Error("這則訊息沒有可套用的草稿。");
+        throw new Error("This message does not contain a draft to apply.");
       }
 
       const loadedDraft = await ensureDraftLoaded(message.targetPath);
       if (!loadedDraft) {
-        throw new Error("套用前無法載入目標檔案。");
+        throw new Error("The target file could not be loaded.");
       }
 
       applySuggestedDraft(
@@ -321,6 +376,77 @@ function ConsoleApp() {
       updateUiPrefs({ activeView: "editor" });
     },
     [activeMessages, applySuggestedDraft, ensureDraftLoaded, setSelectedPath, updateUiPrefs],
+  );
+
+  const handleCommitAction = useCallback(
+    async (push: boolean) => {
+      const includedDrafts = dirtyDrafts.filter((draft) => commitDraft.includedPaths.includes(draft.path));
+      if (includedDrafts.length === 0) {
+        throw new Error("Select at least one changed file to commit.");
+      }
+
+      const message = commitDraft.message.trim();
+      if (!message) {
+        throw new Error("Enter a commit message first.");
+      }
+
+      setCommitAction(push ? "push" : "commit");
+      setCommitFeedback({ tone: "muted", message: push ? "Committing and pushing..." : "Committing..." });
+
+      try {
+        const result = await bridgeClient.createCommit({
+          repoRef: resolvedRepoConfig,
+          headSha: snapshot.headSha,
+          baseTreeSha: snapshot.baseTreeSha,
+          message,
+          files: includedDrafts.map((draft) => ({
+            path: draft.path,
+            content: draft.draftContent,
+          })),
+          push,
+        });
+
+        const refreshed = await loadRepoTree();
+        await Promise.all(
+          includedDrafts.map(async (draft) => {
+            const entry = refreshed.entries.find((item) => item.path === draft.path && item.type === "blob");
+            if (!entry) {
+              return;
+            }
+
+            const file = await bridgeClient.getFileContent(resolvedRepoConfig, draft.path, entry.sha);
+            replaceOriginalFromHead(file);
+          }),
+        );
+
+        resetCommitDraft(resolvedRepoConfig.branch);
+        setCommitFeedback({
+          tone: "success",
+          message: result.pushed
+            ? `Committed and pushed ${includedDrafts.length} files to ${result.pushedBranch ?? resolvedRepoConfig.branch}.`
+            : `Committed ${includedDrafts.length} files locally.`,
+        });
+      } catch (error) {
+        setCommitFeedback({
+          tone: "error",
+          message: error instanceof Error ? error.message : "Failed to commit the selected files.",
+        });
+      } finally {
+        setCommitAction("");
+      }
+    },
+    [
+      bridgeClient,
+      commitDraft.includedPaths,
+      commitDraft.message,
+      dirtyDrafts,
+      loadRepoTree,
+      replaceOriginalFromHead,
+      resetCommitDraft,
+      resolvedRepoConfig,
+      snapshot.baseTreeSha,
+      snapshot.headSha,
+    ],
   );
 
   return (
@@ -345,16 +471,20 @@ function ConsoleApp() {
               <WorkspaceRail
                 activeWorkspaceId={activeWorkspace.id}
                 onAddWorkspace={() =>
-                  addWorkspace(createWorkspaceConfig(settings.defaultWorkspaceTemplate, `工作區 ${workspaceState.workspaces.length + 1}`))
+                  addWorkspace(createWorkspaceConfig(settings.defaultWorkspaceTemplate, `Workspace ${workspaceState.workspaces.length + 1}`))
                 }
                 onSelectWorkspace={setActiveWorkspaceId}
                 workspaces={workspaceState.workspaces}
               />
 
               <Sidebar
+                attachedPaths={activeWorkspace.attachedPaths ?? []}
+                attachmentError={attachmentError}
+                attachmentLimit={MAX_ATTACHED_REFERENCE_FILES}
                 dirtyPaths={dirtyPaths}
                 nodes={treeNodes}
                 onSelectPath={(path) => setSelectedPath(path)}
+                onToggleAttachment={handleToggleAttachment}
                 selectedPath={snapshot.selectedPath}
                 sidebarOpen={settings.uiPrefs.sidebarOpen}
               />
@@ -362,11 +492,15 @@ function ConsoleApp() {
               <div className="chat-main">
                 <ChatPanel
                   apiKeyMissing={!openRouterClient}
+                  attachedPaths={activeWorkspace.attachedPaths ?? []}
+                  attachmentError={attachmentError}
+                  attachmentLimit={MAX_ATTACHED_REFERENCE_FILES}
                   messages={activeMessages}
                   modelError={modelError}
                   modelLoading={modelLoading}
                   models={models}
                   onApply={handleApplyProposedDraft}
+                  onDetachReference={handleToggleAttachment}
                   onSend={handleSendPrompt}
                   onUpdateWorkspace={(patch) => updateWorkspace(activeWorkspace.id, patch)}
                   relatedContextCount={activeWorkspaceContext.autoContextPaths.length}
@@ -379,9 +513,13 @@ function ConsoleApp() {
           ) : (
             <div className="editor-layout">
               <Sidebar
+                attachedPaths={activeWorkspace.attachedPaths ?? []}
+                attachmentError={attachmentError}
+                attachmentLimit={MAX_ATTACHED_REFERENCE_FILES}
                 dirtyPaths={dirtyPaths}
                 nodes={treeNodes}
                 onSelectPath={(path) => setSelectedPath(path)}
+                onToggleAttachment={handleToggleAttachment}
                 selectedPath={snapshot.selectedPath}
                 sidebarOpen={settings.uiPrefs.sidebarOpen}
               />
@@ -405,6 +543,26 @@ function ConsoleApp() {
                 onUpdateTweak={updateTweaks}
                 selectedPath={snapshot.selectedPath}
                 tweaks={settings.tweaks}
+              />
+
+              <CommitPanel
+                branch={resolvedRepoConfig.branch}
+                dirtyDrafts={dirtyDrafts}
+                includedPaths={commitDraft.includedPaths}
+                isSubmitting={commitAction !== ""}
+                message={commitDraft.message}
+                onCommit={() => void handleCommitAction(false)}
+                onCommitAndPush={() => void handleCommitAction(true)}
+                onDiscardDraft={discardDraft}
+                onIncludeAll={() => includeAllDirty(dirtyPaths)}
+                onMessageChange={setCommitMessage}
+                onRefreshHead={() => {
+                  void loadRepoTree().catch(() => undefined);
+                }}
+                onTogglePath={toggleIncludedPath}
+                statusMessage={commitFeedback.message}
+                statusTone={commitFeedback.tone}
+                submitLabel={commitAction === "push" ? "Committing and pushing..." : commitAction === "commit" ? "Committing..." : undefined}
               />
             </div>
           )}

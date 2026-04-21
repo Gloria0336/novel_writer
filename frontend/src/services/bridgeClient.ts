@@ -4,6 +4,7 @@ import type {
   DraftEntry,
   LoadedFile,
   ModelInfo,
+  RepoCommitResult,
   RepoConfig,
   RepoSnapshot,
   WorkspaceConfig,
@@ -17,6 +18,7 @@ interface CommitRequest {
   baseTreeSha: string;
   message: string;
   files: Array<{ path: string; content: string }>;
+  push?: boolean;
 }
 
 interface ChatRequest {
@@ -115,14 +117,13 @@ export class BridgeClient {
     });
   }
 
-  async createCommit(request: CommitRequest): Promise<string> {
-    const result = await this.request<{ commitSha: string }>("/api/repo/commit", {
+  async createCommit(request: CommitRequest): Promise<RepoCommitResult> {
+    return this.request<RepoCommitResult>("/api/repo/commit", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
       body: JSON.stringify(request),
     });
-    return result.commitSha;
   }
 }

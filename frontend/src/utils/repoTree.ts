@@ -68,6 +68,27 @@ export function normalizeRepoTree(entries: RepoTreeEntry[]): RepoTreeNode[] {
   return root.children ?? [];
 }
 
+export function focusRepoTree(nodes: RepoTreeNode[], targetPath: string): RepoTreeNode[] {
+  if (!targetPath.trim()) {
+    return nodes;
+  }
+
+  const segments = targetPath.split("/").filter(Boolean);
+  let currentNodes = nodes;
+  let currentNode: RepoTreeNode | undefined;
+
+  for (const segment of segments) {
+    currentNode = currentNodes.find((node) => node.kind === "directory" && node.name === segment);
+    if (!currentNode || currentNode.kind !== "directory") {
+      return nodes;
+    }
+
+    currentNodes = currentNode.children ?? [];
+  }
+
+  return currentNode?.children ?? nodes;
+}
+
 export function flattenFilePaths(nodes: RepoTreeNode[]): string[] {
   const result: string[] = [];
 
@@ -84,4 +105,3 @@ export function flattenFilePaths(nodes: RepoTreeNode[]): string[] {
   walk(nodes);
   return result;
 }
-

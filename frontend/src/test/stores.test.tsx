@@ -44,7 +44,8 @@ function DraftHarness() {
 }
 
 function WorkspaceHarness() {
-  const { state, addWorkspace, addMessage, setActiveWorkspaceId } = useWorkspaceStore();
+  const { state, addWorkspace, addMessage, setActiveWorkspaceId, updateWorkspace } = useWorkspaceStore();
+  const activeWorkspace = state.workspaces.find((workspace) => workspace.id === state.activeWorkspaceId) ?? state.workspaces[0];
   return (
     <div>
       <button onClick={() => addWorkspace(createWorkspaceConfig(DEFAULT_WORKSPACE_TEMPLATE, "Checker"))} type="button">
@@ -69,9 +70,20 @@ function WorkspaceHarness() {
       <button onClick={() => setActiveWorkspaceId(state.workspaces.at(-1)!.id)} type="button">
         switch
       </button>
+      <button
+        onClick={() =>
+          updateWorkspace(activeWorkspace.id, {
+            attachedPaths: Array.from({ length: 25 }, (_, index) => `backend/novel_db/novel_00/context/ref-${index}.md`),
+          })
+        }
+        type="button"
+      >
+        attach-many
+      </button>
       <output data-testid="active-name">{state.workspaces.find((workspace) => workspace.id === state.activeWorkspaceId)?.name}</output>
       <output data-testid="message-count">{(state.messages[state.activeWorkspaceId] ?? []).length}</output>
       <output data-testid="first-count">{(state.messages[state.workspaces[0].id] ?? []).length}</output>
+      <output data-testid="attached-count">{activeWorkspace.attachedPaths.length}</output>
     </div>
   );
 }
@@ -129,6 +141,17 @@ describe("persistent stores", () => {
     expect(screen.getByTestId("first-count")).toHaveTextContent("1");
   });
 
+  it("caps attached reference files at 20", () => {
+    render(
+      <WorkspaceStoreProvider>
+        <WorkspaceHarness />
+      </WorkspaceStoreProvider>,
+    );
+
+    fireEvent.click(screen.getByText("attach-many"));
+    expect(screen.getByTestId("attached-count")).toHaveTextContent("20");
+  });
+
   it("persists the selected top-level view", () => {
     const { unmount } = render(
       <SettingsStoreProvider>
@@ -138,7 +161,7 @@ describe("persistent stores", () => {
 
     expect(screen.getByTestId("active-view")).toHaveTextContent("ai");
     fireEvent.click(screen.getByText("toggle"));
-    expect(screen.getByTestId("active-view")).toHaveTextContent("files");
+    expect(screen.getByTestId("active-view")).toHaveTextContent("editor");
 
     unmount();
 
@@ -148,6 +171,6 @@ describe("persistent stores", () => {
       </SettingsStoreProvider>,
     );
 
-    expect(screen.getByTestId("active-view")).toHaveTextContent("files");
+    expect(screen.getByTestId("active-view")).toHaveTextContent("editor");
   });
 });

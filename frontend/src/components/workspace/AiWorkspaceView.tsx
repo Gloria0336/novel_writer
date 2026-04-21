@@ -1,4 +1,5 @@
 import type { DraftEntry, RepoTreeNode, WorkspaceConfig, WorkspaceMessage } from "../../types/app";
+import { MAX_ATTACHED_REFERENCE_FILES } from "../../utils/constants";
 import { FileTree } from "../repo/FileTree";
 import { WorkspaceDock } from "./WorkspaceDock";
 
@@ -71,9 +72,14 @@ export function AiWorkspaceView(props: AiWorkspaceViewProps) {
             <span className="inline-status">{selectedPath ? "Target ready" : "No file selected"}</span>
           </div>
           <FileTree
+            attachedPaths={[]}
+            attachmentLimit={MAX_ATTACHED_REFERENCE_FILES}
             dirtyPaths={dirtyDrafts.map((draft) => draft.path)}
+            expandedPaths={new Set(nodes.filter((node) => node.kind === "directory").map((node) => node.path))}
             nodes={nodes}
             onSelectPath={onSelectPath}
+            onToggleAttachment={() => undefined}
+            onToggleDirectory={() => undefined}
             selectedPath={selectedPath}
           />
         </section>

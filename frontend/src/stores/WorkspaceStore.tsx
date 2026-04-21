@@ -1,7 +1,7 @@
 import { createContext, useContext, useMemo } from "react";
 import type { Dispatch, PropsWithChildren, SetStateAction } from "react";
 import type { WorkspaceConfig, WorkspaceMessage, WorkspaceState } from "../types/app";
-import { DEFAULT_WORKSPACE_TEMPLATE, createWorkspaceConfig } from "../utils/constants";
+import { DEFAULT_WORKSPACE_TEMPLATE, MAX_ATTACHED_REFERENCE_FILES, createWorkspaceConfig } from "../utils/constants";
 import { usePersistentState } from "../hooks/usePersistentState";
 
 const initialWorkspace = createWorkspaceConfig(DEFAULT_WORKSPACE_TEMPLATE, "主要草稿");
@@ -36,7 +36,7 @@ function normalizeWorkspaceState(state: WorkspaceState): WorkspaceState {
   const workspaces = state.workspaces.map((workspace) => ({
     ...createWorkspaceConfig(DEFAULT_WORKSPACE_TEMPLATE, workspace.name || "主要草稿"),
     ...workspace,
-    attachedPaths: workspace.attachedPaths ?? [],
+    attachedPaths: [...new Set(workspace.attachedPaths ?? [])].slice(0, MAX_ATTACHED_REFERENCE_FILES),
     autoAttachActiveFile: workspace.autoAttachActiveFile ?? DEFAULT_WORKSPACE_TEMPLATE.autoAttachActiveFile,
     autoAttachRelatedFiles:
       workspace.autoAttachRelatedFiles ?? DEFAULT_WORKSPACE_TEMPLATE.autoAttachRelatedFiles,

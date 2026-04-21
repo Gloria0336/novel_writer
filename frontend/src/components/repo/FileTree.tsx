@@ -1,74 +1,69 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo } from "react";
 import type { RepoTreeNode } from "../../types/app";
 
 interface FileTreeProps {
   nodes: RepoTreeNode[];
   selectedPath?: string;
   dirtyPaths: string[];
+  attachedPaths: string[];
+  attachmentLimit: number;
+  expandedPaths: Set<string>;
   onSelectPath: (path: string) => void;
-}
-
-function collectDirectoryPaths(nodes: RepoTreeNode[]): string[] {
-  const directories: string[] = [];
-
-  const walk = (items: RepoTreeNode[]) => {
-    for (const node of items) {
-      if (node.kind === "directory") {
-        directories.push(node.path);
-        walk(node.children ?? []);
-      }
-    }
-  };
-
-  walk(nodes);
-  return directories;
+  onToggleDirectory: (path: string) => void;
+  onToggleAttachment: (path: string) => void;
 }
 
 export function FileTree(props: FileTreeProps) {
-  const { nodes, selectedPath, dirtyPaths, onSelectPath } = props;
+  const {
+    nodes,
+    selectedPath,
+    dirtyPaths,
+    attachedPaths,
+    attachmentLimit,
+    expandedPaths,
+    onSelectPath,
+    onToggleDirectory,
+    onToggleAttachment,
+  } = props;
   const dirtySet = useMemo(() => new Set(dirtyPaths), [dirtyPaths]);
-  const [expandedPaths, setExpandedPaths] = useState<Set<string>>(() => new Set(collectDirectoryPaths(nodes)));
-
-  useEffect(() => {
-    setExpandedPaths(new Set(collectDirectoryPaths(nodes)));
-  }, [nodes]);
-
-  const toggle = (path: string) => {
-    setExpandedPaths((previous) => {
-      const next = new Set(previous);
-      if (next.has(path)) {
-        next.delete(path);
-      } else {
-        next.add(path);
-      }
-      return next;
-    });
-  };
+  const attachedSet = useMemo(() => new Set(attachedPaths), [attachedPaths]);
+  const canAttachMore = attachedPaths.length < attachmentLimit;
 
   const renderNode = (node: RepoTreeNode) => {
     if (node.kind === "file") {
       const isSelected = node.path === selectedPath;
+      const isAttached = attachedSet.has(node.path);
 
       return (
-        <button
-          key={node.id}
-          className={`tree-file ${isSelected ? "is-selected" : ""}`}
-          onClick={() => onSelectPath(node.path)}
-          type="button"
-        >
-          <span>{node.name}</span>
-          {dirtySet.has(node.path) ? <span className="tree-dirty-dot" aria-label="draft dirty" /> : null}
-        </button>
+        <div className={`tree-file-row ${isSelected ? "is-selected" : ""} ${isAttached ? "is-attached" : ""}`} key={node.id}>
+          <button className={`tree-file ${isSelected ? "is-selected" : ""}`} onClick={() => onSelectPath(node.path)} type="button">
+            <span className="tree-file-label">
+              <span>{node.name}</span>
+              {dirtySet.has(node.path) ? <span className="tree-dirty-dot" aria-label="draft dirty" /> : null}
+            </span>
+          </button>
+          <button
+            aria-label={isAttached ? `Remove ${node.name} from references` : `Use ${node.name} as a reference file`}
+            className={`tree-attach-button ${isAttached ? "is-active" : ""}`}
+            disabled={!isAttached && !canAttachMore}
+            onClick={() => onToggleAttachment(node.path)}
+            type="button"
+          >
+            Ref
+          </button>
+        </div>
       );
     }
 
     const isExpanded = expandedPaths.has(node.path);
 
     return (
-      <div key={node.id} className="tree-directory">
-        <button className="tree-folder" onClick={() => toggle(node.path)} type="button">
-          <span className="tree-arrow">{isExpanded ? "v" : ">"}</span>
-          <span>{node.name}</span>
+      <div className="tree-directory" key={node.id}>
+        <button className="tree-folder" onClick={() => onToggleDirectory(node.path)} type="button">
+          <span className="tree-folder-label">
+            <span className="tree-arrow">{isExpanded ? "v" : ">"}</span>
+            <span>{node.name}</span>
+          </span>
         </button>
         {isExpanded ? <div className="tree-children">{(node.children ?? []).map(renderNode)}</div> : null}
       </div>
@@ -76,7 +71,7 @@ export function FileTree(props: FileTreeProps) {
   };
 
   if (nodes.length === 0) {
-    return <div className="panel-empty">目前沒有可用檔案。</div>;
+    return <div className="panel-empty">No files found inside the novel database.</div>;
   }
 
   return <div className="file-tree">{nodes.map(renderNode)}</div>;

@@ -130,4 +130,36 @@ describe("BridgeClient", () => {
       }),
     ).rejects.toBeInstanceOf(BridgeConflictError);
   });
+
+  it("returns commit and push metadata from the bridge", async () => {
+    server.use(
+      http.post("http://127.0.0.1:8787/api/repo/commit", () =>
+        HttpResponse.json({
+          commitSha: "abc123",
+          pushed: true,
+          pushedBranch: "main",
+        }),
+      ),
+    );
+
+    const client = new BridgeClient();
+    const result = await client.createCommit({
+      repoRef: {
+        owner: "Gloria0336",
+        repo: "novel_writer",
+        branch: "main",
+      },
+      headSha: "head-1",
+      baseTreeSha: "tree-1",
+      message: "Push test",
+      files: [{ path: "backend/novel_db/novel_00/chapters/ch001.md", content: "Updated" }],
+      push: true,
+    });
+
+    expect(result).toEqual({
+      commitSha: "abc123",
+      pushed: true,
+      pushedBranch: "main",
+    });
+  });
 });

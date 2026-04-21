@@ -269,6 +269,12 @@ pre {
   background: rgba(180, 86, 86, 0.08);
 }
 
+.panel-banner.success {
+  color: #20543c;
+  border-color: rgba(46, 125, 89, 0.24);
+  background: rgba(46, 125, 89, 0.08);
+}
+
 .main-area {
   min-height: 0;
   flex: 1;
@@ -290,7 +296,7 @@ pre {
 }
 
 .editor-layout {
-  grid-template-columns: 280px minmax(0, 1fr);
+  grid-template-columns: 280px minmax(0, 1fr) 360px;
 }
 
 .workspace-rail {
@@ -357,6 +363,14 @@ pre {
   border-bottom: 1px solid rgba(118, 91, 57, 0.1);
 }
 
+.file-sidebar-header,
+.panel-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+}
+
 .file-sidebar-scroll,
 .message-list,
 .tweaks-body {
@@ -366,6 +380,15 @@ pre {
 
 .file-sidebar-scroll {
   padding: 14px;
+}
+
+.sidebar-header-actions,
+.commit-submit-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  justify-content: flex-end;
 }
 
 .eyebrow {
@@ -391,7 +414,6 @@ pre {
   width: 100%;
   display: flex;
   align-items: center;
-  justify-content: space-between;
   gap: 10px;
   padding: 10px 12px;
   color: inherit;
@@ -399,6 +421,36 @@ pre {
   border-radius: 14px;
   border: 0;
   background: transparent;
+}
+
+.tree-folder {
+  justify-content: flex-start;
+}
+
+.tree-folder-label,
+.tree-file-label {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.tree-file-label span:first-child {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.tree-file-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px;
+  border-radius: 16px;
+}
+
+.tree-file-row.is-selected,
+.tree-file-row.is-attached {
+  background: rgba(168, 100, 56, 0.08);
 }
 
 .tree-folder:hover,
@@ -425,6 +477,26 @@ pre {
   border-radius: 50%;
   background: var(--accent);
   box-shadow: 0 0 0 5px rgba(168, 100, 56, 0.12);
+}
+
+.tree-attach-button {
+  min-width: 46px;
+  min-height: 32px;
+  padding: 0 10px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.72);
+}
+
+.tree-attach-button.is-active {
+  color: #fff8f2;
+  border-color: transparent;
+  background: linear-gradient(135deg, var(--accent-strong), #d08a58);
+}
+
+.tree-attach-button:disabled {
+  opacity: 0.42;
+  cursor: not-allowed;
 }
 
 .chat-main {
@@ -457,6 +529,16 @@ pre {
   background: rgba(255, 255, 255, 0.5);
   display: grid;
   gap: 14px;
+}
+
+.compact-chip-row {
+  margin-top: 0;
+}
+
+.checkbox-row {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .workspace-settings-grid {
@@ -611,6 +693,10 @@ pre {
   margin: 0 20px;
   padding: 12px 14px;
   border-radius: var(--radius-md);
+}
+
+.commit-panel .panel-banner {
+  margin: 0;
 }
 
 .tweaks-panel {
@@ -797,6 +883,64 @@ pre {
 
 .panel-empty {
   color: var(--muted);
+}
+
+.commit-panel {
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 18px 20px 20px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-lg);
+  overflow: hidden;
+}
+
+.dirty-list {
+  min-height: 0;
+  flex: 1;
+  display: grid;
+  gap: 10px;
+  overflow: auto;
+}
+
+.dirty-item {
+  padding: 12px 14px;
+  border-radius: 18px;
+  border: 1px solid rgba(118, 91, 57, 0.12);
+  background: rgba(255, 255, 255, 0.58);
+}
+
+.dirty-item summary {
+  cursor: pointer;
+}
+
+.diff-preview {
+  margin-top: 10px;
+  padding: 12px;
+  border-radius: 14px;
+  background: rgba(247, 240, 229, 0.82);
+  max-height: 220px;
+  overflow: auto;
+  font-size: 0.88rem;
+}
+
+.diff-added {
+  color: #20543c;
+}
+
+.diff-removed {
+  color: #7a2c2c;
+}
+
+.diff-unchanged {
+  color: var(--text);
+}
+
+.commit-actions-row {
+  justify-content: space-between;
 }
 
 @keyframes typingPulse {

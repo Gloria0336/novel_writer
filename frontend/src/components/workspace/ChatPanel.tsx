@@ -5,15 +5,19 @@ interface ChatPanelProps {
   workspace: WorkspaceConfig;
   messages: WorkspaceMessage[];
   selectedPath?: string;
+  attachedPaths: string[];
+  attachmentLimit: number;
   models: ModelInfo[];
   modelLoading: boolean;
   modelError?: string;
   apiKeyMissing: boolean;
   relatedContextCount: number;
   sending: boolean;
+  attachmentError?: string;
   onSend: (prompt: string) => Promise<void>;
   onApply: (messageId: string) => Promise<void>;
   onUpdateWorkspace: (patch: Partial<WorkspaceConfig>) => void;
+  onDetachReference: (path: string) => void;
 }
 
 function basename(path?: string): string {
@@ -25,15 +29,19 @@ export function ChatPanel(props: ChatPanelProps) {
     workspace,
     messages,
     selectedPath,
+    attachedPaths,
+    attachmentLimit,
     models,
     modelLoading,
     modelError,
     apiKeyMissing,
     relatedContextCount,
     sending,
+    attachmentError,
     onSend,
     onApply,
     onUpdateWorkspace,
+    onDetachReference,
   } = props;
 
   const [prompt, setPrompt] = useState("");
@@ -67,17 +75,33 @@ export function ChatPanel(props: ChatPanelProps) {
 
   const currentModelLabel = models.find((model) => model.id === workspace.model)?.name ?? workspace.model;
 
+  const submitPrompt = async () => {
+    const nextPrompt = prompt.trim();
+    if (!nextPrompt || sending || !selectedPath || apiKeyMissing) {
+      return;
+    }
+
+    try {
+      setSendError("");
+      setPrompt("");
+      await onSend(nextPrompt);
+    } catch (error) {
+      setSendError(error instanceof Error ? error.message : "Failed to send prompt.");
+      setPrompt(nextPrompt);
+    }
+  };
+
   return (
     <section className="chat-panel">
       <div className="chat-header">
         <div>
           <div className="chat-workspace-name">{workspace.name}</div>
-          <div className="chat-target">{selectedPath ? `↳ ${basename(selectedPath)}` : "尚未選擇檔案"}</div>
+          <div className="chat-target">{selectedPath ? `Target: ${basename(selectedPath)}` : "Choose a file to start."}</div>
         </div>
         <div className="chat-header-actions">
           <span className="status-pill">{currentModelLabel}</span>
           <button
-            aria-label="工作區設定"
+            aria-label="Toggle workspace settings"
             className={`icon-button ${showSettings ? "is-active" : ""}`}
             onClick={() => setShowSettings((value) => !value)}
             type="button"
@@ -99,11 +123,11 @@ export function ChatPanel(props: ChatPanelProps) {
         <div className="workspace-settings-panel">
           <div className="workspace-settings-grid">
             <label className="workspace-field">
-              <span>工作區名稱</span>
+              <span>Workspace name</span>
               <input className="text-input" onChange={(event) => onUpdateWorkspace({ name: event.target.value })} value={workspace.name} />
             </label>
             <label className="workspace-field">
-              <span>AI 模型</span>
+              <span>Model</span>
               <select className="select-input" onChange={(event) => onUpdateWorkspace({ model: event.target.value })} value={workspace.model}>
                 {modelOptions.map((model) => (
                   <option key={model.id} value={model.id}>
@@ -115,7 +139,7 @@ export function ChatPanel(props: ChatPanelProps) {
           </div>
 
           <label className="workspace-field">
-            <span>系統提示詞</span>
+            <span>System prompt</span>
             <textarea
               className="text-area"
               onChange={(event) => onUpdateWorkspace({ systemPrompt: event.target.value })}
@@ -126,7 +150,7 @@ export function ChatPanel(props: ChatPanelProps) {
 
           <div className="workspace-settings-grid">
             <label className="workspace-field">
-              <span>溫度 — {workspace.temperature.toFixed(1)}</span>
+              <span>Temperature {workspace.temperature.toFixed(1)}</span>
               <input
                 className="slider-input"
                 max={2}
@@ -138,7 +162,7 @@ export function ChatPanel(props: ChatPanelProps) {
               />
             </label>
             <label className="workspace-field">
-              <span>最大回覆長度（tokens）</span>
+              <span>Max completion tokens</span>
               <input
                 className="text-input"
                 min={256}
@@ -149,20 +173,35 @@ export function ChatPanel(props: ChatPanelProps) {
               />
             </label>
           </div>
+
+          <div className="workspace-field">
+            <span>Reference files {attachedPaths.length}/{attachmentLimit}</span>
+            <div className="chip-row compact-chip-row">
+              {attachedPaths.length === 0 ? (
+                <span className="inline-status">Pick reference files from the tree on the left.</span>
+              ) : (
+                attachedPaths.map((path) => (
+                  <button className="chip-button" key={path} onClick={() => onDetachReference(path)} type="button">
+                    {basename(path)} x
+                  </button>
+                ))
+              )}
+            </div>
+          </div>
         </div>
       ) : null}
 
       <div className="message-list" ref={listRef}>
         {messages.length === 0 && !sending ? (
           <div className="empty-chat">
-            <p>選擇一個檔案並描述修改需求，助理將提出完整草稿供你套用。</p>
+            <p>Select a file, choose reference files if needed, and describe the rewrite you want.</p>
           </div>
         ) : (
           <>
             {messages.map((message) => (
               <article className={`message-card role-${message.role}`} key={message.id}>
                 <div className="message-meta">
-                  <span>{message.role === "user" ? "你" : "助理"}</span>
+                  <span>{message.role === "user" ? "You" : "AI"}</span>
                   <span>
                     {new Date(message.createdAt).toLocaleTimeString("zh-TW", {
                       hour: "2-digit",
@@ -186,21 +225,21 @@ export function ChatPanel(props: ChatPanelProps) {
                       className="solid-button"
                       onClick={async () => {
                         try {
-                          setApplyStateMap((previous) => ({ ...previous, [message.id]: "套用中..." }));
+                          setApplyStateMap((previous) => ({ ...previous, [message.id]: "Applying..." }));
                           await onApply(message.id);
-                          setApplyStateMap((previous) => ({ ...previous, [message.id]: "草稿已更新，請切換至編輯器檢閱。" }));
+                          setApplyStateMap((previous) => ({ ...previous, [message.id]: "Applied to the draft." }));
                         } catch (error) {
                           setApplyStateMap((previous) => ({
                             ...previous,
-                            [message.id]: error instanceof Error ? error.message : "套用草稿失敗。",
+                            [message.id]: error instanceof Error ? error.message : "Failed to apply the draft.",
                           }));
                         }
                       }}
                       type="button"
                     >
-                      套用草稿
+                      Apply Draft
                     </button>
-                    <span className="inline-status">{applyStateMap[message.id] ?? (message.targetPath ? `目標：${basename(message.targetPath)}` : "")}</span>
+                    <span className="inline-status">{applyStateMap[message.id] ?? (message.targetPath ? `Target: ${basename(message.targetPath)}` : "")}</span>
                   </div>
                 ) : null}
               </article>
@@ -208,7 +247,7 @@ export function ChatPanel(props: ChatPanelProps) {
             {sending ? (
               <article className="message-card role-assistant is-pending">
                 <div className="message-meta">
-                  <span>助理</span>
+                  <span>AI</span>
                 </div>
                 <div className="typing-dots">
                   <span />
@@ -221,14 +260,17 @@ export function ChatPanel(props: ChatPanelProps) {
         )}
       </div>
 
-      {apiKeyMissing ? <div className="panel-banner error">請先在總設定填入 OpenRouter API 金鑰。</div> : null}
+      {apiKeyMissing ? <div className="panel-banner error">OpenRouter API key is missing.</div> : null}
       {modelError ? <div className="panel-banner error">{modelError}</div> : null}
+      {attachmentError ? <div className="panel-banner error">{attachmentError}</div> : null}
       {sendError ? <div className="panel-banner error">{sendError}</div> : null}
 
       <div className="chat-input-wrap">
         <div className="chat-info-row">
-          <span>{selectedPath ? `目標：${selectedPath}` : "請先選擇檔案"}</span>
-          <span>上下文：{selectedPath ? `${relatedContextCount} 個相關檔案` : "—"}</span>
+          <span>{selectedPath ? selectedPath : "Choose a target file first."}</span>
+          <span>
+            References {attachedPaths.length}/{attachmentLimit}. Auto context {selectedPath ? relatedContextCount : 0}.
+          </span>
         </div>
         <div className="prompt-row">
           <textarea
@@ -237,49 +279,18 @@ export function ChatPanel(props: ChatPanelProps) {
             onKeyDown={(event) => {
               if (event.key === "Enter" && (event.metaKey || event.ctrlKey)) {
                 event.preventDefault();
-                void (async () => {
-                  const nextPrompt = prompt.trim();
-                  if (!nextPrompt || sending || !selectedPath || apiKeyMissing) {
-                    return;
-                  }
-                  try {
-                    setSendError("");
-                    setPrompt("");
-                    await onSend(nextPrompt);
-                  } catch (error) {
-                    setSendError(error instanceof Error ? error.message : "送出失敗。");
-                    setPrompt(nextPrompt);
-                  }
-                })();
+                void submitPrompt();
               }
             }}
-            placeholder="描述你要調整的地方，例如節奏、語氣、鋪陳或世界觀一致性。"
+            placeholder="Describe what to revise, what to preserve, and what the AI should use from the selected reference files."
             rows={3}
             value={prompt}
           />
-          <button
-            className="send-button"
-            disabled={!prompt.trim() || sending || !selectedPath || apiKeyMissing}
-            onClick={async () => {
-              const nextPrompt = prompt.trim();
-              if (!nextPrompt) {
-                return;
-              }
-              try {
-                setSendError("");
-                setPrompt("");
-                await onSend(nextPrompt);
-              } catch (error) {
-                setSendError(error instanceof Error ? error.message : "送出失敗。");
-                setPrompt(nextPrompt);
-              }
-            }}
-            type="button"
-          >
-            送出
+          <button className="send-button" disabled={!prompt.trim() || sending || !selectedPath || apiKeyMissing} onClick={() => void submitPrompt()} type="button">
+            Send
           </button>
         </div>
-        <div className="inline-status">{modelLoading ? "模型清單載入中..." : `${models.length} 個可用模型`}</div>
+        <div className="inline-status">{modelLoading ? "Loading models..." : `${models.length} models available`}</div>
       </div>
     </section>
   );

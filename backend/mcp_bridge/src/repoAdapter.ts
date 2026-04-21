@@ -1,14 +1,24 @@
+import { execFile } from "node:child_process";
 import { createHash } from "node:crypto";
 import { readdir, readFile, stat, writeFile } from "node:fs/promises";
 import { relative, resolve, sep } from "node:path";
+import { promisify } from "node:util";
 import { getEditableStatus, tryDecodeUtf8 } from "./fileAccess.js";
-import type { CommitFileInput, LoadedFile, RepoRef, RepoTreeResponse } from "./types.js";
+import type { CommitFileInput, CommitResult, LoadedFile, RepoRef, RepoTreeResponse } from "./types.js";
+
+const execFileAsync = promisify(execFile);
 
 const WORKSPACE_ROOT = resolve(process.cwd(), "..", "..");
 const NOVEL_DB_ROOT = resolve(WORKSPACE_ROOT, "backend", "novel_db");
 
 export class RepoAuthError extends Error {}
 export class RepoConflictError extends Error {}
+
+type GitFailure = Error & {
+  code?: number | string;
+  stdout?: string;
+  stderr?: string;
+};
 
 export interface RepoAdapter {
   readonly name: string;
@@ -20,7 +30,8 @@ export interface RepoAdapter {
     baseTreeSha: string;
     message: string;
     files: CommitFileInput[];
-  }): Promise<string>;
+    push?: boolean;
+  }): Promise<CommitResult>;
 }
 
 function toProjectPath(absolutePath: string): string {
@@ -74,6 +85,32 @@ async function collectEntries(root: string): Promise<RepoTreeResponse["entries"]
   return entries;
 }
 
+async function runGit(args: string[]): Promise<{ stdout: string; stderr: string }> {
+  try {
+    const result = await execFileAsync("git", args, {
+      cwd: WORKSPACE_ROOT,
+      windowsHide: true,
+    });
+    return {
+      stdout: result.stdout.trim(),
+      stderr: result.stderr.trim(),
+    };
+  } catch (error) {
+    const failure = error as GitFailure;
+    const message = failure.stderr?.trim() || failure.stdout?.trim() || `git ${args.join(" ")} failed.`;
+    throw new Error(message);
+  }
+}
+
+async function canResolveGit(args: string[]): Promise<boolean> {
+  try {
+    await runGit(args);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 export class LocalFsRepoAdapter implements RepoAdapter {
   readonly name = "local-fs";
 
@@ -109,7 +146,7 @@ export class LocalFsRepoAdapter implements RepoAdapter {
         sha,
         content: "",
         isEditable: false,
-        readOnlyReason: "這個檔案不是可編輯的 UTF-8 文字內容。",
+        readOnlyReason: "This file is not valid UTF-8 text and cannot be edited in the browser.",
       };
     }
   }
@@ -120,16 +157,54 @@ export class LocalFsRepoAdapter implements RepoAdapter {
     baseTreeSha: string;
     message: string;
     files: CommitFileInput[];
-  }): Promise<string> {
+    push?: boolean;
+  }): Promise<CommitResult> {
+    if (params.files.length === 0) {
+      throw new Error("No files were selected for commit.");
+    }
+
+    const currentBranch = (await runGit(["branch", "--show-current"])).stdout;
+    if (!currentBranch) {
+      throw new Error("The workspace is not on a named git branch.");
+    }
+    if (currentBranch !== params.repoRef.branch) {
+      throw new Error(`The workspace is checked out on ${currentBranch}, not ${params.repoRef.branch}.`);
+    }
+
+    const projectPaths: string[] = [];
+
     for (const file of params.files) {
-      const absolutePath = ensureWithinNovelDb(file.path);
+      ensureWithinNovelDb(file.path);
       const editable = getEditableStatus(file.path);
       if (!editable.isEditable) {
         throw new Error(editable.reason ?? `File is not editable: ${file.path}`);
       }
-      await writeFile(absolutePath, file.content, "utf8");
+      await writeFile(resolve(WORKSPACE_ROOT, file.path), file.content, "utf8");
+      projectPaths.push(file.path);
     }
 
-    return buildSha(`${params.message}:${Date.now()}:${params.files.map((file) => file.path).join("|")}`);
+    const statusResult = await runGit(["status", "--porcelain", "--", ...projectPaths]);
+    if (!statusResult.stdout) {
+      throw new Error("No git changes were detected for the selected files.");
+    }
+
+    await runGit(["add", "--", ...projectPaths]);
+    await runGit(["commit", "-m", params.message, "--only", "--", ...projectPaths]);
+    const commitSha = (await runGit(["rev-parse", "HEAD"])).stdout;
+
+    if (params.push) {
+      const hasOriginRemote = await canResolveGit(["remote", "get-url", "origin"]);
+      if (!hasOriginRemote) {
+        throw new Error("Git remote 'origin' is not configured, so push is unavailable.");
+      }
+
+      await runGit(["push", "origin", `HEAD:${params.repoRef.branch}`]);
+    }
+
+    return {
+      commitSha,
+      pushed: Boolean(params.push),
+      pushedBranch: params.push ? params.repoRef.branch : undefined,
+    };
   }
 }

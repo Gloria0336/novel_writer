@@ -68,6 +68,13 @@ export interface CommitRequest {
   baseTreeSha: string;
   message: string;
   files: CommitFileInput[];
+  push?: boolean;
+}
+
+export interface CommitResult {
+  commitSha: string;
+  pushed: boolean;
+  pushedBranch?: string;
 }
 
 export interface AiChatRequest {

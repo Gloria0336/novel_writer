@@ -47,6 +47,12 @@ export interface CommitDraft {
   includedPaths: string[];
 }
 
+export interface RepoCommitResult {
+  commitSha: string;
+  pushed: boolean;
+  pushedBranch?: string;
+}
+
 export interface WorkspaceConfig {
   id: string;
   name: string;

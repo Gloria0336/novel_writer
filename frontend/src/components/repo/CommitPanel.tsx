@@ -7,12 +7,16 @@ interface CommitPanelProps {
   dirtyDrafts: DraftEntry[];
   includedPaths: string[];
   message: string;
-  hasGitHubToken: boolean;
   isSubmitting: boolean;
+  submitLabel?: string;
+  statusMessage?: string;
+  statusTone?: "muted" | "error" | "success";
+  pushAvailable?: boolean;
   onTogglePath: (path: string) => void;
   onIncludeAll: () => void;
   onMessageChange: (message: string) => void;
   onCommit: () => void;
+  onCommitAndPush: () => void;
   onRefreshHead: () => void;
   onDiscardDraft: (path: string) => void;
 }
@@ -23,33 +27,41 @@ export function CommitPanel(props: CommitPanelProps) {
     dirtyDrafts,
     includedPaths,
     message,
-    hasGitHubToken,
     isSubmitting,
+    submitLabel,
+    statusMessage,
+    statusTone = "muted",
+    pushAvailable = true,
     onTogglePath,
     onIncludeAll,
     onMessageChange,
     onCommit,
+    onCommitAndPush,
     onRefreshHead,
     onDiscardDraft,
   } = props;
 
   const includedSet = useMemo(() => new Set(includedPaths), [includedPaths]);
+  const canSubmit = dirtyDrafts.length > 0 && includedPaths.length > 0 && message.trim().length > 0 && !isSubmitting;
 
   return (
     <section className="commit-panel">
       <div className="panel-header">
         <div>
-          <div className="eyebrow">Changes</div>
-          <h3>Commit Drafts</h3>
+          <div className="eyebrow">Version Control</div>
+          <h3>Commit And Push</h3>
         </div>
         <span className="inline-status">Branch: {branch}</span>
       </div>
 
-      {!hasGitHubToken ? <div className="panel-banner muted">The bridge does not have a GitHub token configured.</div> : null}
+      <div className="panel-banner">
+        Only files inside <code>backend/novel_db</code> can be committed from this UI.
+      </div>
+      {statusMessage ? <div className={`panel-banner ${statusTone === "error" ? "error" : statusTone === "success" ? "success" : ""}`}>{statusMessage}</div> : null}
 
-      <div className="inline-row">
+      <div className="inline-row commit-actions-row">
         <button className="ghost-button" onClick={onRefreshHead} type="button">
-          Refresh Head
+          Refresh Repo
         </button>
         <button className="ghost-button" onClick={onIncludeAll} type="button">
           Include All Dirty
@@ -93,21 +105,21 @@ export function CommitPanel(props: CommitPanelProps) {
         Commit message
         <textarea
           className="text-area"
-          disabled={!hasGitHubToken}
           onChange={(event) => onMessageChange(event.target.value)}
           placeholder="Describe the narrative or canon change..."
           rows={3}
           value={message}
         />
       </label>
-      <button
-        className="solid-button"
-        disabled={!hasGitHubToken || dirtyDrafts.length === 0 || includedPaths.length === 0 || !message.trim() || isSubmitting}
-        onClick={onCommit}
-        type="button"
-      >
-        {isSubmitting ? "Committing..." : "Commit Selected Changes"}
-      </button>
+
+      <div className="commit-submit-row">
+        <button className="ghost-button" disabled={!canSubmit} onClick={onCommit} type="button">
+          {isSubmitting && submitLabel === "Committing..." ? submitLabel : "Commit Only"}
+        </button>
+        <button className="solid-button" disabled={!canSubmit || !pushAvailable} onClick={onCommitAndPush} type="button">
+          {isSubmitting && submitLabel ? submitLabel : "Commit And Push"}
+        </button>
+      </div>
     </section>
   );
 }
