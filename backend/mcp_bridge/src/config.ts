@@ -45,6 +45,7 @@ loadDotEnv();
 export const BRIDGE_PORT = Number(process.env.NOVEL_WRITER_BRIDGE_PORT ?? "8787");
 export const GITHUB_TOKEN = process.env.NOVEL_WRITER_GITHUB_TOKEN;
 export const OPENROUTER_API_KEY = process.env.NOVEL_WRITER_OPENROUTER_API_KEY;
+export const OPERA_BASE_URL = (process.env.NOVEL_WRITER_OPERA_BASE_URL ?? "http://127.0.0.1:8000/api").replace(/\/+$/, "");
 
 export const GITHUB_API_VERSION = "2022-11-28";
 export const OPENROUTER_REFERER = "http://127.0.0.1:4173/";

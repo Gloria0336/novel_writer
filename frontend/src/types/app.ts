@@ -167,3 +167,30 @@ export interface BridgeStatus {
   hasGitHubToken: boolean;
   hasOpenRouterApiKey: boolean;
 }
+
+export interface OperaExportOptions {
+  secretHandling: "director_only";
+}
+
+export interface OperaImportedCounts {
+  worldEntries: number;
+  actors: number;
+  timelineEvents: number;
+  directorNotes: number;
+}
+
+export interface OperaExportResponse {
+  campaignId: string;
+  campaignName: string;
+  importedCounts: OperaImportedCounts;
+  warnings: string[];
+}
+
+export interface OperaIntegrationStatus {
+  ok: boolean;
+  reachable: boolean;
+  baseUrl: string;
+  service?: string;
+  supportedSecretHandling: string[];
+  error?: string;
+}

@@ -148,6 +148,10 @@ pre {
   box-shadow: 0 8px 18px rgba(168, 100, 56, 0.22);
 }
 
+.topbar-export-button {
+  white-space: nowrap;
+}
+
 .topbar-status,
 .status-pill,
 .draft-pill {
@@ -781,6 +785,39 @@ pre {
   background: rgba(46, 125, 89, 0.08);
 }
 
+.modal-summary {
+  margin-top: 18px;
+  display: grid;
+  gap: 14px;
+}
+
+.modal-metric-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.modal-metric {
+  padding: 12px 14px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.64);
+}
+
+.modal-metric span {
+  display: block;
+  color: var(--muted);
+  font-size: 0.82rem;
+}
+
+.modal-list {
+  margin: 0;
+  padding-left: 18px;
+  display: grid;
+  gap: 6px;
+  color: var(--muted);
+}
+
 .modal-field {
   margin-top: 18px;
 }
@@ -1057,5 +1094,9 @@ pre {
   .workspace-settings-panel {
     margin-left: 14px;
     margin-right: 14px;
+  }
+
+  .modal-metric-grid {
+    grid-template-columns: 1fr;
   }
 }

@@ -7,21 +7,32 @@ interface TopBarProps {
   onToggleSidebar: () => void;
   onToggleTweaks: () => void;
   onOpenSettings: () => void;
+  onOpenOperaExport: () => void;
 }
 
 function StatusChip({ repoStatus }: Pick<TopBarProps, "repoStatus">) {
   const labelMap = {
-    idle: "準備中",
-    loading: "載入中",
-    ready: "已連線",
-    error: "連線失敗",
+    idle: "Idle",
+    loading: "Loading",
+    ready: "Ready",
+    error: "Error",
   } as const;
 
   return <span className={`topbar-status is-${repoStatus}`}>{labelMap[repoStatus]}</span>;
 }
 
 export function TopBar(props: TopBarProps) {
-  const { activeView, sidebarOpen, tweaksOpen, repoStatus, onSwitchView, onToggleSidebar, onToggleTweaks, onOpenSettings } = props;
+  const {
+    activeView,
+    sidebarOpen,
+    tweaksOpen,
+    repoStatus,
+    onSwitchView,
+    onToggleSidebar,
+    onToggleTweaks,
+    onOpenSettings,
+    onOpenOperaExport,
+  } = props;
 
   return (
     <header className="topbar">
@@ -30,26 +41,29 @@ export function TopBar(props: TopBarProps) {
         <span className="brand-name">Novel Writer</span>
       </div>
 
-      <div className="topbar-view-toggle" aria-label="切換視圖">
+      <div className="topbar-view-toggle" aria-label="Primary view switcher">
         <button
           className={`topbar-view-button ${activeView === "ai" ? "is-active" : ""}`}
           onClick={() => onSwitchView("ai")}
           type="button"
         >
-          AI 工作區
+          AI
         </button>
         <button
           className={`topbar-view-button ${activeView === "editor" ? "is-active" : ""}`}
           onClick={() => onSwitchView("editor")}
           type="button"
         >
-          編輯器
+          Editor
         </button>
       </div>
 
       <div className="topbar-actions">
         <StatusChip repoStatus={repoStatus} />
-        <button aria-label="總設定" className="icon-button" onClick={onOpenSettings} type="button">
+        <button className="ghost-button topbar-export-button" onClick={onOpenOperaExport} type="button">
+          Export to Opera
+        </button>
+        <button aria-label="Open settings" className="icon-button" onClick={onOpenSettings} type="button">
           <svg fill="none" height="14" viewBox="0 0 14 14" width="14">
             <circle cx="7" cy="7" r="2.4" stroke="currentColor" strokeWidth="1.3" />
             <path
@@ -61,7 +75,7 @@ export function TopBar(props: TopBarProps) {
           </svg>
         </button>
         <button
-          aria-label="切換側欄"
+          aria-label="Toggle sidebar"
           className={`icon-button ${sidebarOpen ? "is-active" : ""}`}
           onClick={onToggleSidebar}
           type="button"
@@ -74,7 +88,7 @@ export function TopBar(props: TopBarProps) {
           </svg>
         </button>
         <button
-          aria-label="外觀調整"
+          aria-label="Toggle tweaks panel"
           className={`icon-button ${tweaksOpen ? "is-active" : ""}`}
           onClick={onToggleTweaks}
           type="button"

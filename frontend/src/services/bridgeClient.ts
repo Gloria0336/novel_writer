@@ -4,6 +4,9 @@ import type {
   DraftEntry,
   LoadedFile,
   ModelInfo,
+  OperaExportOptions,
+  OperaExportResponse,
+  OperaIntegrationStatus,
   RepoCommitResult,
   RepoConfig,
   RepoSnapshot,
@@ -29,6 +32,11 @@ interface ChatRequest {
   attachedDrafts: DraftEntry[];
   repoStructure?: string;
   targetPath?: string;
+}
+
+interface OperaExportRequest {
+  novelId: string;
+  options?: OperaExportOptions;
 }
 
 export class BridgeConflictError extends Error {}
@@ -119,6 +127,20 @@ export class BridgeClient {
 
   async createCommit(request: CommitRequest): Promise<RepoCommitResult> {
     return this.request<RepoCommitResult>("/api/repo/commit", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(request),
+    });
+  }
+
+  async getOperaStatus(): Promise<OperaIntegrationStatus> {
+    return this.request<OperaIntegrationStatus>("/api/integrations/opera/status");
+  }
+
+  async exportNovelToOpera(request: OperaExportRequest): Promise<OperaExportResponse> {
+    return this.request<OperaExportResponse>("/api/integrations/opera/export", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

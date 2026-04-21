@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { EditorPane } from "./components/editor/EditorPane";
+import { OperaExportModal } from "./components/layout/OperaExportModal";
 import { SettingsModal } from "./components/layout/SettingsModal";
 import { TopBar } from "./components/layout/TopBar";
 import { TweaksPanel } from "./components/layout/TweaksPanel";
@@ -14,8 +15,9 @@ import { DraftStoreProvider, useDraftStore } from "./stores/DraftStore";
 import { RepoStoreProvider, useRepoStore } from "./stores/RepoStore";
 import { SettingsStoreProvider, useSettingsStore } from "./stores/SettingsStore";
 import { WorkspaceStoreProvider, useWorkspaceStore } from "./stores/WorkspaceStore";
-import type { DraftEntry, RepoSnapshot } from "./types/app";
+import type { DraftEntry, OperaExportResponse, OperaIntegrationStatus, RepoSnapshot } from "./types/app";
 import { MAX_ATTACHED_REFERENCE_FILES, NOVEL_DB_ROOT_PATH, createWorkspaceConfig } from "./utils/constants";
+import { detectNovelIdFromPath, listNovelIds } from "./utils/novelIntegration";
 import { buildWorkspaceRequest, parseAiResponseEnvelope } from "./utils/openRouter";
 import { focusRepoTree, normalizeRepoTree } from "./utils/repoTree";
 import { resolveWorkspaceContext } from "./utils/workspaceContext";
@@ -87,6 +89,12 @@ function ConsoleApp() {
     message: "",
   });
   const [commitAction, setCommitAction] = useState<"" | "commit" | "push">("");
+  const [isOperaExportOpen, setIsOperaExportOpen] = useState(false);
+  const [operaStatus, setOperaStatus] = useState<OperaIntegrationStatus>();
+  const [operaStatusLoading, setOperaStatusLoading] = useState(false);
+  const [operaExporting, setOperaExporting] = useState(false);
+  const [operaExportError, setOperaExportError] = useState("");
+  const [operaExportResult, setOperaExportResult] = useState<OperaExportResponse>();
 
   const dirtyDrafts = useMemo(
     () => Object.values(drafts).filter((draft) => draft.draftContent !== draft.originalContent),
@@ -110,6 +118,11 @@ function ConsoleApp() {
         autoAttachRelatedFiles: activeWorkspace.autoAttachRelatedFiles ?? true,
       }),
     [activeWorkspace, snapshot.entries, snapshot.selectedPath],
+  );
+  const availableNovelIds = useMemo(() => listNovelIds(snapshot.entries), [snapshot.entries]);
+  const suggestedNovelId = useMemo(
+    () => detectNovelIdFromPath(snapshot.selectedPath) ?? availableNovelIds[0],
+    [availableNovelIds, snapshot.selectedPath],
   );
 
   useEffect(() => {
@@ -135,6 +148,31 @@ function ConsoleApp() {
   useEffect(() => {
     setAttachmentError("");
   }, [activeWorkspace.id]);
+
+  const loadOperaStatus = useCallback(async () => {
+    setOperaStatusLoading(true);
+    try {
+      const result = await bridgeClient.getOperaStatus();
+      setOperaStatus(result);
+    } catch (error) {
+      setOperaStatus({
+        ok: false,
+        reachable: false,
+        baseUrl: "",
+        supportedSecretHandling: ["director_only"],
+        error: error instanceof Error ? error.message : "Failed to load Opera status.",
+      });
+    } finally {
+      setOperaStatusLoading(false);
+    }
+  }, [bridgeClient]);
+
+  useEffect(() => {
+    if (!isOperaExportOpen) {
+      return;
+    }
+    void loadOperaStatus();
+  }, [isOperaExportOpen, loadOperaStatus]);
 
   const loadRepoTree = useCallback(async (): Promise<RepoSnapshot> => {
     setRepoStatus("loading");
@@ -449,11 +487,39 @@ function ConsoleApp() {
     ],
   );
 
+  const handleOpenOperaExport = useCallback(() => {
+    setOperaExportError("");
+    setOperaExportResult(undefined);
+    setIsOperaExportOpen(true);
+  }, []);
+
+  const handleExportToOpera = useCallback(
+    async (novelId: string) => {
+      setOperaExporting(true);
+      setOperaExportError("");
+      setOperaExportResult(undefined);
+      try {
+        const result = await bridgeClient.exportNovelToOpera({
+          novelId,
+          options: { secretHandling: "director_only" },
+        });
+        setOperaExportResult(result);
+        await loadOperaStatus();
+      } catch (error) {
+        setOperaExportError(error instanceof Error ? error.message : "Failed to export to Opera.");
+      } finally {
+        setOperaExporting(false);
+      }
+    },
+    [bridgeClient, loadOperaStatus],
+  );
+
   return (
     <>
       <div className="app-shell">
         <TopBar
           activeView={activeView}
+          onOpenOperaExport={handleOpenOperaExport}
           onOpenSettings={() => setIsSettingsOpen(true)}
           onSwitchView={(view) => updateUiPrefs({ activeView: view })}
           onToggleSidebar={() => updateUiPrefs({ sidebarOpen: !settings.uiPrefs.sidebarOpen })}
@@ -576,6 +642,21 @@ function ConsoleApp() {
         onClose={() => setIsSettingsOpen(false)}
         onSave={(apiKey) => updateSettings({ openRouterApiKey: apiKey })}
         openRouterApiKey={settings.openRouterApiKey}
+      />
+      <OperaExportModal
+        exportError={operaExportError}
+        exportResult={operaExportResult}
+        exporting={operaExporting}
+        initialNovelId={suggestedNovelId}
+        isOpen={isOperaExportOpen}
+        novels={availableNovelIds}
+        onClose={() => setIsOperaExportOpen(false)}
+        onExport={handleExportToOpera}
+        onRefreshStatus={() => {
+          void loadOperaStatus();
+        }}
+        status={operaStatus}
+        statusLoading={operaStatusLoading}
       />
     </>
   );

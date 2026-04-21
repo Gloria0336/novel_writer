@@ -162,4 +162,45 @@ describe("BridgeClient", () => {
       pushedBranch: "main",
     });
   });
+
+  it("loads Opera integration status and exports a novel through the bridge", async () => {
+    server.use(
+      http.get("http://127.0.0.1:8787/api/integrations/opera/status", () =>
+        HttpResponse.json({
+          ok: true,
+          reachable: true,
+          baseUrl: "http://127.0.0.1:8000/api",
+          service: "novel-writer-import",
+          supportedSecretHandling: ["director_only"],
+        }),
+      ),
+      http.post("http://127.0.0.1:8787/api/integrations/opera/export", async ({ request }) => {
+        const body = (await request.json()) as { novelId: string };
+        expect(body.novelId).toBe("novel_01");
+        return HttpResponse.json({
+          campaignId: "campaign-1",
+          campaignName: "Novel 01",
+          importedCounts: {
+            worldEntries: 6,
+            actors: 4,
+            timelineEvents: 2,
+            directorNotes: 2,
+          },
+          warnings: [],
+        });
+      }),
+    );
+
+    const client = new BridgeClient();
+    const status = await client.getOperaStatus();
+    expect(status.ok).toBe(true);
+    expect(status.baseUrl).toContain("8000");
+
+    const result = await client.exportNovelToOpera({
+      novelId: "novel_01",
+      options: { secretHandling: "director_only" },
+    });
+    expect(result.importedCounts.timelineEvents).toBe(2);
+    expect(result.campaignName).toBe("Novel 01");
+  });
 });

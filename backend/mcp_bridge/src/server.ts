@@ -2,8 +2,9 @@ import { createServer } from "node:http";
 import { URL } from "node:url";
 import { BRIDGE_PORT, GITHUB_TOKEN, OPENROUTER_API_KEY } from "./config.js";
 import { OpenRouterBridgeClient } from "./openRouterClient.js";
+import { exportNovelToOpera, getOperaStatus } from "./operaIntegration.js";
 import { LocalFsRepoAdapter, RepoAuthError, RepoConflictError } from "./repoAdapter.js";
-import type { AiChatRequest, BridgeStatus, CommitRequest, RepoRef } from "./types.js";
+import type { AiChatRequest, BridgeStatus, CommitRequest, OperaExportRequest, RepoRef } from "./types.js";
 
 const repoAdapter = new LocalFsRepoAdapter();
 const openRouterClient = new OpenRouterBridgeClient();
@@ -130,6 +131,19 @@ const server = createServer(async (request, response) => {
     if (request.method === "POST" && url.pathname === "/api/repo/commit") {
       const payload = await readJson<CommitRequest>(request);
       const result = await repoAdapter.commitFiles(payload);
+      sendJson(response, 200, result);
+      return;
+    }
+
+    if (request.method === "GET" && url.pathname === "/api/integrations/opera/status") {
+      const result = await getOperaStatus();
+      sendJson(response, 200, result);
+      return;
+    }
+
+    if (request.method === "POST" && url.pathname === "/api/integrations/opera/export") {
+      const payload = await readJson<OperaExportRequest>(request);
+      const result = await exportNovelToOpera(payload);
       sendJson(response, 200, result);
       return;
     }
