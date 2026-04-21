@@ -1,91 +1,77 @@
 open_threads:
   - id: accident-origin
-    hook: 林遠遭遇的貨車事故究竟只是表面意外，還是燼在感知到特殊資質後刻意推動的接觸？
+    hook: 林遠在雨夜遭遇的失控車禍太過巧合，燼也不像是單純碰巧路過。
     introduced_in: ch001
     status: open
-    stakes: 若事故本身就是設局，林遠從踏入契約起就不是被動受害者，而是被挑中的對象。
-    likely_payoff_window: 近中期
+    stakes: 若事故本身與超自然力量有關，林遠從一開始就不是偶然受害者。
+    likely_payoff_window: 中篇
 
   - id: contract-irreversible
-    hook: 燼聲稱陰陽契約一旦成立就無法解除，這是否完全屬實？
+    hook: 燼明言陰陽契約不可逆，但其完整規則、上限與代價仍未說明。
     introduced_in: ch003
-    status: open
-    stakes: 決定林遠能否恢復原貌、如何看待未來人生，以及是否可能反制燼。
-    likely_payoff_window: 中後期
-
-  - id: public-passing
-    hook: 林遠能否靠外派客戶端支援與新員工證方案，持續維持「林遠」這個社會身分而不穿幫？
-    introduced_in: ch004
-    status: open
-    stakes: 一旦失敗，工作、房貸、社交圈與人身安全都可能崩盤。
-    likely_payoff_window: 近期持續線
+    status: active
+    stakes: 這決定林遠是否還有任何重獲主導權的可能。
+    likely_payoff_window: 中長篇
 
   - id: jin-intentions
-    hook: 燼真正為何選擇林遠、又希望從契約中得到什麼？這份選擇與阿爾迪爾的異常淵念環境是否有關？
+    hook: 燼對林遠的興趣明顯超出單純救命或進食，且會私下外出接觸未知對象。
     introduced_in: ch001
-    status: open
-    stakes: 這決定他是危險的寄生者、不得已的同盟，還是更複雜的存在。
-    likely_payoff_window: 中期
-
-  - id: tianjiang-remnant
-    hook: 阿爾迪爾千年前的災厄級妖魔「天降」是否仍以殘魂或意識形式殘存，並逐步影響現代城市？
-    introduced_in: worldbuild-planning
-    status: open
-    stakes: 若天降復甦風險成真，林遠與燼的私人求生將被捲入整座城市與獵魔殿都無法忽視的更高層災厄。
-    likely_payoff_window: 中後期
-
-  - id: a-qiang-confidant
-    hook: 阿強成為第一個知道真相的普通人盟友後，能否真的穩住局面而不是把風險一併放大？
-    introduced_in: ch005
     status: active
-    stakes: 這直接改變林遠的孤軍狀態，也把秘密共享、掩護作業與信任壓力推上檯面。
-    likely_payoff_window: 近期持續線
+    stakes: 燼的真實動機將左右林遠到底是被保護、被培養，還是被利用。
+    likely_payoff_window: 中篇
 
-  - id: client-site-cover-plan
-    hook: 阿強提出的「客戶端資安支援借調＋新員工證」方案，實際執行時會遇到哪些破綻與代價？
+  - id: public-identity-cover
+    hook: 阿強替林遠安排了淵聲研究所外派案與替代識別資料，但這套掩護隨時可能穿幫。
     introduced_in: ch007
-    status: open
-    stakes: 若方案成功，林遠可暫時脫離總部熟人視線；若失敗，將同時引爆公司內部與現實身份危機。
+    status: active
+    stakes: 一旦身分暴露，林遠將同時失去工作、社會位置與安全邊界。
     likely_payoff_window: 近期
-
-  - id: lin-yuan-a-qiang-romantic-tension
-    hook: 阿強在知情後仍能自然調侃並逼近林遠，這份朋友義氣是否會逐漸轉向更曖昧的牽引？
-    introduced_in: ch007
-    status: emerging
-    stakes: 這會改變林遠對自我、友情與新身體的感受，也可能讓掩護關係變得更複雜。
-    likely_payoff_window: 近中期
-
-  - id: exorcist-sanctuary-entry
-    hook: 獵魔殿何時介入，並以何種方式鎖定林遠與燼？
-    introduced_in: worldbuild-planning
-    status: active
-    stakes: 這將把私人求生問題升級為都市超自然政治。獵魔殿未必只會追殺，也可能試圖拉攏、監管或利用林遠與燼。
-    likely_payoff_window: 中期
 
   - id: lin-yuan-power-awakening
-    hook: 林遠體內的「除魔師」潛力來源為何？這股力量與阿爾迪爾的淵念環境、天降餘波以及契約本身有何關聯？
+    hook: 林遠已經能在極端狀況下踢飛狼妖、展開銀色防護，卻完全不懂如何主動使用力量。
     introduced_in: ch009
     status: active
-    stakes: 若能掌握這股力量，林遠可能不再僅僅是燼的附庸，甚至具備反制妖魔的能力。
-    likely_payoff_window: 近中期
+    stakes: 若無法掌握靈力，他只會不斷成為更高級妖魔的獵物。
+    likely_payoff_window: 近期到中篇
 
   - id: contract-hunger-cycle
-    hook: 林遠在 ch012~15 首次爆發契約飢餓並完成補給後，未來這種需求會如何週期性發作、能否以別的方式緩解？
+    hook: 戰鬥與靈力活化後會引發強烈的陰陽失衡與飢渴，必須靠燼調和。
     introduced_in: ch012
     status: active
-    stakes: 這直接牽動林遠的身體自主、與燼的權力關係，以及她能否在戰鬥需求與日常生活之間找到較低代價的平衡。
-    likely_payoff_window: 近期持續線
+    stakes: 這不只關乎生理存活，也會持續加深林遠對燼的依賴。
+    likely_payoff_window: 持續性主線壓力
 
   - id: body-feminization-progression
-    hook: 第一次陰陽調和後，林遠的胸部與身體曲線已出現再次發育跡象；這種女性化進程會持續到什麼程度？
+    hook: 林遠的身體在變身後並未固定，胸口曲線、敏感度與整體女性化程度仍持續變化。
     introduced_in: ch016
-    status: emerging
-    stakes: 這將直接衝擊林遠的身份偽裝、衣著需求與自我認同，也會讓外界更容易察覺異常。
-    likely_payoff_window: 近期
+    status: active
+    stakes: 身體持續改變會進一步壓迫林遠的自我認同與日常偽裝能力。
+    likely_payoff_window: 持續性角色線
 
-  - id: debt-to-jin
-    hook: 燼兩次救命皆強調「欠我一條命」，這份債務最終將以何種形式償還？
-    introduced_in: ch001
-    status: persistent
-    stakes: 每一次救命都加深了兩人的綁定，代價可能涉及靈魂或肉身的徹底淪陷。
-    likely_payoff_window: 中後期
+  - id: a-qiang-confidant
+    hook: 阿強已成為知情者與掩護者，但他對林遠的情感似乎不再只是兄弟義氣。
+    introduced_in: ch007
+    status: active
+    stakes: 人類世界唯一穩定支點可能成為新情感變數，也可能成為被波及的弱點。
+    likely_payoff_window: 近期到中篇
+
+  - id: yuansheng-institute-mystery
+    hook: 淵聲研究所雖已公開露出表面身分與工作內容，但對外資訊依然稀少，工作流程極度老派，舊城區氛圍與內部人物也都明顯不單純。
+    introduced_in: ch018
+    status: active
+    stakes: 研究所可能是林遠理解超自然世界的入口，也可能是新的風險中心。
+    likely_payoff_window: 近期主線
+
+  - id: su-lin-hidden-capability
+    hook: 蘇臨表面上只是熱情行政與資料組組長，但她在研究所內的真正情報價值顯然還沒完全浮出來。
+    introduced_in: ch019
+    status: emerging
+    stakes: 她若掌握了比表面更多的異常線索，林遠可能會更早被研究所核心注意到。
+    likely_payoff_window: 近期到中篇
+
+  - id: old-city-malice
+    hook: ch019 的舊城區充滿異樣視線、荒敗氣息與說不出的惡意，與一般市區質感明顯不同。
+    introduced_in: ch019
+    status: emerging
+    stakes: 舊城區本身可能藏有更深的污染、勢力或事件來源。
+    likely_payoff_window: 近期
