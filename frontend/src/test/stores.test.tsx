@@ -92,7 +92,7 @@ function SettingsHarness() {
   const { settings, updateUiPrefs } = useSettingsStore();
   return (
     <div>
-      <button onClick={() => updateUiPrefs({ activeView: settings.uiPrefs.activeView === "ai" ? "files" : "ai" })} type="button">
+      <button onClick={() => updateUiPrefs({ activeView: settings.uiPrefs.activeView === "ai" ? "opera" : "ai" })} type="button">
         toggle
       </button>
       <output data-testid="active-view">{settings.uiPrefs.activeView}</output>
@@ -161,7 +161,7 @@ describe("persistent stores", () => {
 
     expect(screen.getByTestId("active-view")).toHaveTextContent("ai");
     fireEvent.click(screen.getByText("toggle"));
-    expect(screen.getByTestId("active-view")).toHaveTextContent("editor");
+    expect(screen.getByTestId("active-view")).toHaveTextContent("opera");
 
     unmount();
 
@@ -171,6 +171,6 @@ describe("persistent stores", () => {
       </SettingsStoreProvider>,
     );
 
-    expect(screen.getByTestId("active-view")).toHaveTextContent("editor");
+    expect(screen.getByTestId("active-view")).toHaveTextContent("opera");
   });
 });

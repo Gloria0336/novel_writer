@@ -6,3 +6,4 @@ frontend/test-results/
 backend/mcp_bridge/node_modules/
 backend/mcp_bridge/dist/
 backend/mcp_bridge/.env
+workspace.env

@@ -18,13 +18,18 @@ interface SettingsStoreValue {
 const SettingsStoreContext = createContext<SettingsStoreValue | null>(null);
 
 function mergeSettings(partial: AppSettings): AppSettings {
+  const normalizedActiveView =
+    partial.uiPrefs?.activeView === "files"
+      ? "editor"
+      : (partial.uiPrefs?.activeView ?? DEFAULT_SETTINGS.uiPrefs.activeView);
+
   return {
     ...DEFAULT_SETTINGS,
     ...partial,
     uiPrefs: {
       ...DEFAULT_SETTINGS.uiPrefs,
       ...partial.uiPrefs,
-      activeView: partial.uiPrefs?.activeView === "files" ? "editor" : (partial.uiPrefs?.activeView ?? DEFAULT_SETTINGS.uiPrefs.activeView),
+      activeView: normalizedActiveView,
     },
     defaultWorkspaceTemplate: {
       ...DEFAULT_SETTINGS.defaultWorkspaceTemplate,

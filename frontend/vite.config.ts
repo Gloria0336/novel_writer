@@ -16,7 +16,8 @@ export default defineConfig(({ command }) => ({
     },
   },
   server: {
-    port: 4173,
+    host: "127.0.0.1",
+    port: Number(process.env.NOVEL_WRITER_FRONTEND_PORT ?? "4173"),
   },
   test: {
     environment: "jsdom",

@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { EditorPane } from "./components/editor/EditorPane";
+import { OperaConsole } from "./components/layout/OperaConsole";
 import { OperaExportModal } from "./components/layout/OperaExportModal";
 import { SettingsModal } from "./components/layout/SettingsModal";
 import { TopBar } from "./components/layout/TopBar";
@@ -16,7 +17,7 @@ import { RepoStoreProvider, useRepoStore } from "./stores/RepoStore";
 import { SettingsStoreProvider, useSettingsStore } from "./stores/SettingsStore";
 import { WorkspaceStoreProvider, useWorkspaceStore } from "./stores/WorkspaceStore";
 import type { DraftEntry, OperaExportResponse, OperaIntegrationStatus, RepoSnapshot } from "./types/app";
-import { MAX_ATTACHED_REFERENCE_FILES, NOVEL_DB_ROOT_PATH, createWorkspaceConfig } from "./utils/constants";
+import { DEFAULT_OPERA_FRONTEND_URL, MAX_ATTACHED_REFERENCE_FILES, NOVEL_DB_ROOT_PATH, createWorkspaceConfig } from "./utils/constants";
 import { detectNovelIdFromPath, listNovelIds } from "./utils/novelIntegration";
 import { buildWorkspaceRequest, parseAiResponseEnvelope } from "./utils/openRouter";
 import { focusRepoTree, normalizeRepoTree } from "./utils/repoTree";
@@ -106,7 +107,8 @@ function ConsoleApp() {
   const activeWorkspace =
     workspaceState.workspaces.find((workspace) => workspace.id === workspaceState.activeWorkspaceId) ?? workspaceState.workspaces[0];
   const activeMessages = workspaceState.messages[activeWorkspace.id] ?? [];
-  const activeView = settings.uiPrefs.activeView === "editor" ? "editor" : "ai";
+  const activeView =
+    settings.uiPrefs.activeView === "opera" ? "opera" : settings.uiPrefs.activeView === "editor" ? "editor" : "ai";
   const tweaksOpen = settings.uiPrefs.tweaksOpen ?? false;
   const activeWorkspaceContext = useMemo(
     () =>
@@ -168,11 +170,11 @@ function ConsoleApp() {
   }, [bridgeClient]);
 
   useEffect(() => {
-    if (!isOperaExportOpen) {
+    if (!isOperaExportOpen && activeView !== "opera") {
       return;
     }
     void loadOperaStatus();
-  }, [isOperaExportOpen, loadOperaStatus]);
+  }, [activeView, isOperaExportOpen, loadOperaStatus]);
 
   const loadRepoTree = useCallback(async (): Promise<RepoSnapshot> => {
     setRepoStatus("loading");
@@ -576,7 +578,7 @@ function ConsoleApp() {
                 />
               </div>
             </div>
-          ) : (
+          ) : activeView === "editor" ? (
             <div className="editor-layout">
               <Sidebar
                 attachedPaths={activeWorkspace.attachedPaths ?? []}
@@ -629,6 +631,17 @@ function ConsoleApp() {
                 statusMessage={commitFeedback.message}
                 statusTone={commitFeedback.tone}
                 submitLabel={commitAction === "push" ? "Committing and pushing..." : commitAction === "commit" ? "Committing..." : undefined}
+              />
+            </div>
+          ) : (
+            <div className="opera-layout">
+              <OperaConsole
+                frontendUrl={DEFAULT_OPERA_FRONTEND_URL}
+                onRefreshStatus={() => {
+                  void loadOperaStatus();
+                }}
+                status={operaStatus}
+                statusLoading={operaStatusLoading}
               />
             </div>
           )}

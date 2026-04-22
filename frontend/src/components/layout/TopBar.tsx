@@ -1,9 +1,9 @@
 interface TopBarProps {
-  activeView: "ai" | "editor";
+  activeView: "ai" | "editor" | "opera";
   sidebarOpen: boolean;
   tweaksOpen: boolean;
   repoStatus: "idle" | "loading" | "ready" | "error";
-  onSwitchView: (view: "ai" | "editor") => void;
+  onSwitchView: (view: "ai" | "editor" | "opera") => void;
   onToggleSidebar: () => void;
   onToggleTweaks: () => void;
   onOpenSettings: () => void;
@@ -55,6 +55,13 @@ export function TopBar(props: TopBarProps) {
           type="button"
         >
           Editor
+        </button>
+        <button
+          className={`topbar-view-button ${activeView === "opera" ? "is-active" : ""}`}
+          onClick={() => onSwitchView("opera")}
+          type="button"
+        >
+          Opera
         </button>
       </div>
 

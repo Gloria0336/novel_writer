@@ -85,7 +85,7 @@ export interface WorkspaceTemplate {
 }
 
 export interface UiPrefs {
-  activeView: "ai" | "editor" | "files";
+  activeView: "ai" | "editor" | "opera" | "files";
   sidebarOpen: boolean;
   sidebarWidth: number;
   dockOpen: boolean;
