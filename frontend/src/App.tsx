@@ -581,7 +581,7 @@ function ConsoleApp() {
                 submitLabel={commitAction === "push" ? "Committing and pushing..." : commitAction === "commit" ? "Committing..." : undefined}
               />
             </div>
-          )}
+          ) : null}
         </div>
 
         <TweaksPanel onChange={updateTweaks} tweaks={settings.tweaks} visible={tweaksOpen} />
