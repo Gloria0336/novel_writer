@@ -1,13 +1,78 @@
-﻿relationships:
+relationships:
   - pair:
-      - protagonist
-      - ally
+      - mountain-hunter
+      - old-village-chief
     dynamic: >
-      描述這段關係目前的互動方式、權力分布、情緒基調與依存程度。
+      老村長是走投無路的委託人，山獵人是最後被請來的討伐者。兩者關係以懸賞與救命請託為核心，
+      情感交流極少，但村長把村莊存亡押在山獵人身上。
+    trust_level: 低到中
+    tension: 中
+    conflict_points:
+      - 山獵人要價高，村民對其能力與動機有疑慮。
+      - 山獵人冷漠寡言，沒有給村莊任何情緒安撫。
+    last_updated_in: ch001
+
+  - pair:
+      - mountain-hunter
+      - mountain-demon
+    dynamic: >
+      討伐者與獵物的關係。山妖是壓垮村莊的巨大威脅，山獵人則以冷靜、精準且不拖泥帶水的方式完成斬殺。
+    trust_level: 無
+    tension: 高
+    conflict_points:
+      - 山妖佔據深山資源並捕食村民。
+      - 山獵人接下懸賞後直接進入山妖領域。
+    last_updated_in: ch001
+
+  - pair:
+      - old-village-chief
+      - mountain-demon
+    dynamic: >
+      山妖長期摧毀村莊生計與人口安全，老村長代表村莊承擔失敗討伐後的殘局。
+    trust_level: 無
+    tension: 高
+    conflict_points:
+      - 山妖吞食走獸、靈泉與村民。
+      - 多次討伐團進入隘口後未歸。
+      - 老村長已耗盡村莊最後資源發布懸賞。
+    last_updated_in: ch001
+
+  - pair:
+      - aethlandir-house
+      - humans
+    dynamic: >
+      艾瑟蘭迪爾家族及精靈主導層長期掌握帝國政治、經濟與科技架構；人類憑數量、軍事與平民院席次快速崛起，
+      正在改變三族聯盟原有分工。
+    trust_level: 中
+    tension: 高
+    conflict_points:
+      - 人類平民院席次持續上升。
+      - 精靈貴族院以制度性手段阻撓權力重組。
+      - 家族軍事話語權正在流失。
+    last_updated_in: world-bible
+
+  - pair:
+      - elves
+      - dwarves
+    dynamic: >
+      精靈提供知識理論與領導方向，矮人提供工業製造與機械工藝。雙方同屬三族聯盟核心，
+      但矮人因城邦與氏族分裂而政治話語權不足。
     trust_level: 中
     tension: 中
     conflict_points:
-      - 對同一件事的立場不同
-      - 尚未說開的重要秘密
-    last_updated_in: planned
+      - 矮人的實際工業貢獻高於政治影響力。
+      - 精靈長期掌握文化與制度話語權。
+    last_updated_in: world-bible
 
+  - pair:
+      - known-powers
+      - dark-dimension
+    dynamic: >
+      各大勢力都已有黑暗次元滲透相關情報，但因政治算計、利益博弈與互不信任，沒有人願意公開承認或承擔共同應對成本。
+    trust_level: 無
+    tension: 高
+    conflict_points:
+      - 次元壁裂縫擴大與異常事件頻繁出現。
+      - 五百年前魔族全面入侵的歷史被多數人視為傳說。
+      - 各勢力選擇沉默，導致危機延誤。
+    last_updated_in: world-bible

@@ -1,8 +1,48 @@
-﻿open_threads:
-  - id: core-mystery
-    hook: 故事目前最重要、尚未揭曉的懸念是什麼？
-    introduced_in: ch001
+open_threads:
+  - id: dark-dimension-infiltration
+    hook: 黑暗次元已進入滲透初期，但各勢力因政治算計選擇沉默。
+    introduced_in: world-bible
     status: open
-    stakes: 如果這條線被揭開，會改變哪些角色、關係或世界規則？
+    stakes: >
+      若次元壁再次大規模破裂，五百年前的魔族全面入侵可能重演；各勢力的互不信任會放大災難。
+    likely_payoff_window: 長期
+
+  - id: aethlan-power-realignment
+    hook: 艾瑟蘭帝國的人類平民院與軍事力量正在崛起，精靈貴族院與艾瑟蘭迪爾家族面臨權力重組。
+    introduced_in: world-bible
+    status: open
+    stakes: >
+      三族聯盟原有的「精靈主導、人類執行、矮人製造」格局可能瓦解，引發制度改革或內部衝突。
     likely_payoff_window: 中期
 
+  - id: dwarven-political-frustration
+    hook: 矮人掌握工業命脈，卻因城邦與氏族分裂導致集體政治話語權不足。
+    introduced_in: world-bible
+    status: open
+    stakes: >
+      若矮人的不滿被政治勢力利用，三族聯盟的工業基礎與魔導科技供應鏈可能被動搖。
+    likely_payoff_window: 中期
+
+  - id: knight-orders-hidden-truths
+    hook: 空騎團掌握未知高空堡壘與飛行核心技術；聖殿騎士團外界認知與內部真相不一致。
+    introduced_in: world-bible
+    status: open
+    stakes: >
+      騎士團表面中立或使命單純，實際可能掌握足以改變國際局勢的技術、身分與歷史秘密。
+    likely_payoff_window: 中期
+
+  - id: mountain-demon-origin
+    hook: ch001 的山妖已被斬殺，但其來源、形成原因與是否牽涉黑暗次元尚未公開。
+    introduced_in: ch001
+    status: open
+    stakes: >
+      若山妖不是孤立事件，而是黑暗次元滲透、妖族異常或地方勢力失控的徵兆，西邊群山事件可能只是更大危機的前兆。
+    likely_payoff_window: 短期到中期
+
+  - id: mountain-hunter-identity
+    hook: 山獵人展現超出普通討伐者的追蹤、機動與斬殺能力，但真實身分與過往完全未公開。
+    introduced_in: ch001
+    status: open
+    stakes: >
+      他的力量來源、與公會或騎士體系是否有關，會影響讀者對第一章事件尺度的理解。
+    likely_payoff_window: 短期到中期

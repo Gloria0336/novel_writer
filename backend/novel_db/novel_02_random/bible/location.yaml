@@ -1,18 +1,160 @@
 locations:
-  - id: main-location
-    name: 主要場景名稱
-    type: 住處 / 校園 / 公司 / 街區 / 異界
-    region: 城市、行政區或更大的地理範圍
+  - id: starborne-flat-world
+    name: 漂浮於無盡星空之上的平面大陸
+    type: 世界 / 平面大陸
+    region: 宇宙星空之中
+    first_appearance: world-bible
+    summary: >
+      由創世眾神以星空物質凝聚而成的巨大平面島嶼。現今由兩塊主大陸與中間島群構成，
+      大陸邊緣有瀑布般的土石傾入虛空。
+    atmosphere:
+      - 從宇宙視角看如黑暗海洋中的發光陸地
+      - 星光、魔法泉源與古老神話感並存
+    narrative_functions:
+      - 世界總舞台
+      - 創世神話與眾神之戰遺產
+      - 次元壁危機的承載空間
+    access_constraints:
+      - 非一般角色可離開或從外部觀測的尺度
+      - 邊緣接續虛空，具高度危險性
+    linked_people_or_factions:
+      - 創世眾神
+      - 七大種族
+      - 黑暗次元
+    continuity_notes:
+      - 世界不是球體，而是漂浮於星空中的巨大平面大陸。
+
+  - id: first-continent-aethlan-empire
+    name: 第一大陸 / 艾瑟蘭帝國
+    type: 主大陸 / 君主立憲帝國
+    region: 兩大陸之一
+    first_appearance: world-bible
+    summary: >
+      以中國地理為原型，中央為廣袤平原丘陵與大陸型氣候，三面臨海。
+      由人類、精靈、矮人的三族聯盟共同建立。
+    atmosphere:
+      - 魔導科技昌明
+      - 貴族院與平民院政治角力明顯
+      - 邊境和平表象下有魔族侵擾
+    narrative_functions:
+      - 三族聯盟政治主舞台
+      - 人類崛起與精靈主導權衝突
+      - 北境魔族侵擾與次元壁滲透線
+    access_constraints:
+      - 北方高原與南方叢林為半自治少數民族聚居地
+      - 北方深處仍有大片未探索土地
+      - 邊境魔族勢力多為敵對態勢
+    linked_people_or_factions:
+      - 艾瑟蘭迪爾家族
+      - 三族聯盟
+      - 貴族院
+      - 平民院
+      - 聖殿騎士團
+    continuity_notes:
+      - 精靈長期掌握貴族院與知識話語權；人類在平民院與軍事上快速上升；矮人掌握工業命脈但政治分裂。
+
+  - id: second-continent-great-league
+    name: 第二大陸 / 大聯盟
+    type: 主大陸 / 鬆散政治聯盟
+    region: 兩大陸之一
+    first_appearance: world-bible
+    summary: >
+      比第一大陸更大且地形複雜，多山、水系縱橫，中央有廣袤沙漠。
+      各成員國自願遵守共同公約，但無強制執行機構與統一軍隊。
+    atmosphere:
+      - 多元但缺乏共同認同
+      - 北方純種族國家較多
+      - 南方複合勢力與種族混居較常見
+    narrative_functions:
+      - 多國外交、冒險者文化與種族政治舞台
+      - 妖族帝國、人獸王國、多元聯邦等勢力互動區
+    access_constraints:
+      - 聯盟規範靠自願遵守，跨國協調困難
+      - 大國制衡維持現狀，衝突風險潛伏
+    linked_people_or_factions:
+      - 熊族王國
+      - 虎族王國
+      - 狐族王國
+      - 妖族帝國
+      - 人獸王國
+      - 多元聯邦
+    continuity_notes:
+      - 越往北方越多純種族國家；南方以種族混居複合勢力為主。
+
+  - id: middle-sea-islands
+    name: 中間海域與島群
+    type: 危險海域 / 島群 / 無政府地帶
+    region: 兩大陸之間
+    first_appearance: world-bible
+    summary: >
+      兩大陸之間的危險地帶，部分區域是眾神之戰遺留的次元壁薄弱點。
+      島群各自為政，海盜文化主導。
+    atmosphere:
+      - 危機四伏
+      - 航路知識即權力
+      - 亡命者、流亡者、冒險者混雜
+    narrative_functions:
+      - 跨陸交通阻礙
+      - 海盜與航路控制權衝突
+      - 次元異常事件發生區
+    access_constraints:
+      - 只有極少數已知特定航路可安全通行
+      - 海盜勢力可能徵收過路費或直接劫掠
+      - 部分區域有空間異常與次元壁薄弱風險
+    linked_people_or_factions:
+      - 海盜勢力
+      - 航海公會
+      - 空騎團
+    continuity_notes:
+      - 船運是跨陸交通主流；飛船速度快但昂貴；空間傳送陣最快也最昂貴，且節點稀少。
+
+  - id: western-mountain-village
+    name: 西邊群山下的村莊
+    type: 村莊 / 懸賞起點
+    region: 西邊群山山腳
     first_appearance: ch001
     summary: >
-      這個地點在正文中已成立的功能、樣貌與角色為何會來到這裡。
+      原本山產豐隆，近年因深山山妖佔據大山、捕食走獸與村民而衰敗。
+      村莊多次討伐失敗，老村長最後變賣一切請來山獵人。
     atmosphere:
-      - 固定會被感知到的聲音、氣味、光線或材質
+      - 清晨晨霧
+      - 村民低聲竊語與絕望氣氛
+      - 因人口與經濟流失而衰敗
     narrative_functions:
-      - 安全屋 / 衝突現場 / 情報交換 / 儀式空間
+      - ch001 委託來源
+      - 呈現山妖造成的民生代價
+      - 山獵人登場場景
     access_constraints:
-      - 出入門檻、營業時間、通勤限制、監視風險或危險來源
+      - 通往深山的隘口過去有多支討伐團失蹤
+      - 村莊資源已幾乎耗盡
     linked_people_or_factions:
-      - 角色、組織或勢力名稱
+      - 老村長
+      - 山獵人
+      - 山妖
     continuity_notes:
-      - 方位、樓層、附近地標、移動時間等需要保持一致的資訊
+      - 老村長去城裡前尚有驢子，回村時只剩拐杖與山獵人。
+
+  - id: deep-mountain-spirit-lake
+    name: 深山湖畔
+    type: 靈泉 / 戰鬥場景
+    region: 西邊群山深處
+    first_appearance: ch001
+    summary: >
+      位於山坳間，四面嶙峋岩壁與墨綠密林，湖面平靜如磨光石板。
+      靈氣在此匯聚，山妖在湖邊飲水並被山獵人斬殺。
+    atmosphere:
+      - 靈氣濃稠且帶腥甜氣味
+      - 山鳥與蟲鳴消失，風過松針聲格外清晰
+      - 湖面泛著輕微光澤
+    narrative_functions:
+      - ch001 決戰地點
+      - 靈泉資源與山妖佔據的核心
+      - 展示山獵人追蹤、狙擊與近戰能力
+    access_constraints:
+      - 山路狹窄且多碎石樹根
+      - 山妖長期盤踞，普通討伐隊難以抵達或生還
+    linked_people_or_factions:
+      - 山獵人
+      - 山妖
+    continuity_notes:
+      - 山獵人以獸骨指向西北方找到此地；山妖死亡後靈氣失去依附並散入空氣。

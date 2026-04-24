@@ -1,38 +1,159 @@
-﻿characters:
-  - id: protagonist
-    name: 主角名稱
+characters:
+  - id: mountain-hunter
+    name: 山獵人
     aliases:
-      - 常用稱呼
-    role: 主角 / 敘事核心
-    age: 未定
-    occupation: 身分、職業或社會定位
+      - 獵人
+      - 熊一般的大漢
+    role: 短篇一主角 / 討伐者
+    age: 未公開
+    species: 未公開
+    occupation: 接受懸賞的獵人或武裝討伐者
     appearance_public: >
-      外界通常看到的樣貌、穿著或第一印象。
+      高挑壯碩，長髮與鬍鬚久未整理，遮住大半面容；身穿厚重熊皮獵裝，
+      遠看像一頭熊，背負長弓與大太刀。
     appearance_current: >
-      角色目前的最新外觀與狀態；若與平時無差異，也可簡述目前呈現方式。
+      ch001 清晨獨自進入西邊群山，熊皮獵裝沾滿晨霧，完成討伐後拭淨刀身並離開湖畔。
     personality:
-      - 特質一
-      - 特質二
-      - 特質三
+      - 冷漠寡言
+      - 行動沉穩
+      - 對危險近乎無動於衷
+      - 戰鬥時乾淨精準
     speech_style:
-      baseline: 平常說話節奏、語氣與慣用詞。
-      under_stress: 在壓力、恐懼或憤怒時的口吻變化。
-      humor: 調侃、自嘲或開玩笑時的風格。
+      baseline: 極少說話，回答短促直接。
+      under_stress: 正文尚未出現失控或明顯情緒波動。
+      humor: 未出現。
     abilities:
-      - 專長、資源或特殊能力
+      - 以獸骨追蹤山妖方位
+      - 使用骨箭與長弓進行精準狙擊
+      - 使用大太刀近身斬殺大型妖物
+      - 山地行動能力極強，能在碎石、樹枝與巨型敵人身上快速換位
     current_status: >
-      角色目前所處位置、困境、秘密或最新變化。
+      ch001 已斬殺佔據深山湖畔的山妖，未久留、未領受村民反應即轉身離開。
     progressions:
-      - at_chapter: ch003
-        status: 角色第一次明確抗拒核心改變或故事推力。
-      - at_chapter: ch009
-        status: 角色首次主動使用能力、做出關鍵選擇或投入衝突。
-      - at_chapter: ch017 # 目前最新
-        status: 角色的身分認知、慾望、關係或代價進入新階段。
+      - at_chapter: ch001
+        status: 接受老村長最後懸賞，獨自進山。
+      - at_chapter: ch001
+        status: 在深山湖畔射瞎山妖左眼，破壞其腿部筋腱，最終斬首。
     goals:
-      - 短期目標
-      - 長期目標
+      - 完成懸賞任務
+      - 未公開的長期目標
     secrets:
-      - 尚未公開的重要資訊
-    first_appearance: planned
+      - 真實身分、過往經歷與力量來源尚未公開。
+    first_appearance: ch001
 
+  - id: old-village-chief
+    name: 老村長
+    aliases:
+      - 村長
+    role: 委託人 / 村莊代表
+    age: 年老
+    species: 人類或未公開
+    occupation: 西邊群山下村莊的村長
+    appearance_public: >
+      年老而疲憊，曾有驢子代步；為了最後一次懸賞變賣一切，回村時只剩陪伴多年的拐杖。
+    appearance_current: >
+      ch001 清晨站在村口，目送山獵人進入山林。
+    personality:
+      - 為村莊存亡孤注一擲
+      - 願意放下身段求助
+      - 承受長期失敗與失去村民的壓力
+    speech_style:
+      baseline: 懇求、沉重，帶有求救意味。
+      under_stress: 淚聲俱下。
+      humor: 未出現。
+    abilities:
+      - 動員村莊殘餘資源發布懸賞
+      - 前往城裡尋找可處理山妖的人
+    current_status: >
+      已將最後希望押在山獵人身上；ch001 中未描寫他得知討伐結果的反應。
+    progressions:
+      - at_chapter: ch001
+        status: 變賣所有可用資源，帶回山獵人。
+    goals:
+      - 拯救村莊
+      - 終結山妖對山產、靈泉與村民的威脅
+    secrets: []
+    first_appearance: ch001
+
+  - id: mountain-demon
+    name: 山妖
+    aliases:
+      - 佔據大山的妖物
+    role: ch001 主要威脅
+    age: 未公開
+    species: 妖族或大型妖物
+    occupation: 佔據深山與靈泉的掠食者
+    appearance_public: >
+      體型龐大，脊背高聳，肌肉如山石，渾身覆暗褐色硬甲，縫隙長出粗硬毛束；
+      兩眼混濁發黃，飲水時能使湖面與碎石震動。
+    appearance_current: >
+      ch001 已於深山湖畔被山獵人斬首。
+    personality:
+      - 傲慢
+      - 掠食性強
+      - 首次受傷時憤怒且不可置信
+    speech_style:
+      baseline: 以嘶吼與嚎叫表現。
+      under_stress: 震怒、慘嚎。
+      humor: 無。
+    abilities:
+      - 巨大肉體力量
+      - 硬甲防禦
+      - 以山中走獸、靈泉與村民為食
+      - 涎液具有高熱或腐蝕性，滴落地面會砸出冒熱氣凹洞
+    current_status: >
+      ch001 死亡，威脅暫時解除。
+    progressions:
+      - at_chapter: ch001
+        status: 被骨箭射中左眼。
+      - at_chapter: ch001
+        status: 右腿筋腱被切斷後失衡跪地。
+      - at_chapter: ch001
+        status: 喉嚨弱點遭大太刀切開，頭顱落地。
+    goals:
+      - 佔據深山資源
+      - 捕食山中生物與村民
+    secrets:
+      - 其來源、是否受黑暗次元或其他勢力影響尚未公開。
+    first_appearance: ch001
+
+  - id: aethlandir-house
+    name: 艾瑟蘭迪爾家族
+    aliases:
+      - House Aethlandir
+      - 舊帝國的觀星者
+    role: 世界級政治家族 / 艾瑟蘭帝國掌權者
+    age: 家族歷史萬年以上
+    species: 精靈
+    occupation: 政治、經濟與魔導科技上層架構掌控者
+    appearance_public: >
+      作為家族與勢力存在，並非單一角色。外界認知其制度完善、人才配置精準、政治判斷冷靜。
+    appearance_current: >
+      仍掌控帝國政治、經濟與科技領域，但軍事話語權正因人類崛起而逐漸流失。
+    personality:
+      - 理性
+      - 制度導向
+      - 將歷史視為政治判斷而非道德辯解
+      - 重視情報與天象研究傳承
+    speech_style:
+      baseline: 家族敘事偏冷靜、史觀化、重視結果。
+      under_stress: 可能轉向路線分歧與權力防衛。
+      humor: 未定。
+    abilities:
+      - 萬年級家族教育與人才培育制度
+      - 政治資訊收集與顧問傳統
+      - 貴族院與知識機構話語權
+      - 魔導科技產業上層架構掌控
+    current_status: >
+      面對人類平民院席次上升與軍事力量擴張，家族內部出現強硬阻撓與重新定位兩種方向。
+    progressions:
+      - at_chapter: world-bible
+        status: 由古精靈帝國占星使傳統延續而來。
+      - at_chapter: world-bible
+        status: 眾神之戰後離開森林，主動與人類、矮人建立聯盟，成為艾瑟蘭帝國基石。
+    goals:
+      - 維持家族在帝國中的主導地位
+      - 找出人類崛起後的新權力位置
+    secrets:
+      - 家族內部路線分歧尚可作為後續劇情推進點。
+    first_appearance: world-bible
