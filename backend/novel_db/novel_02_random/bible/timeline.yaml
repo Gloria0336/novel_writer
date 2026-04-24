@@ -1,11 +1,68 @@
-﻿timeline:
+timeline:
+  - day: 太古之初
+    time_of_day: 神話時代
+    chapter: world-bible
+    location_id: starborne-flat-world
+    event: 創世眾神以宇宙星空物質凝聚平面大陸，與原初四族共同生活。
+    state_change: 世界成形，神與種族共居的樂園時代開始。
+
+  - day: 太古紀・裂變
+    time_of_day: 神話時代
+    chapter: world-bible
+    location_id: starborne-flat-world
+    event: 眾神之間產生嫌隙，黑暗次元腐化妖神與獸神，引爆眾神之戰。
+    state_change: 次元壁在多處破裂，魔族誕生。
+
+  - day: 太古紀・終戰
+    time_of_day: 神話時代
+    chapter: world-bible
+    location_id: starborne-flat-world
+    event: 眾神之戰將大陸一分為二，妖神與獸神殞落。
+    state_change: 神體碎片孕育妖族，潰散神力成為魔法泉源。
+
+  - day: 約兩千年前
+    time_of_day: 神退紀
+    chapter: world-bible
+    location_id: starborne-flat-world
+    event: 眾神陸續離去，最後可靠記錄僅確認生命女神、人神與龍神仍存於世。
+    state_change: 此後眾神幾乎徹底沉默，神祇是否仍存在成為疑問。
+
+  - day: 眾神之戰後
+    time_of_day: 古精靈帝國式微期
+    chapter: world-bible
+    location_id: first-continent-aethlan-empire
+    event: 艾瑟蘭迪爾家族先祖離開森林，與人類、矮人尋求聯盟。
+    state_change: 三族聯盟日後成為艾瑟蘭帝國基石，部分傳統精靈視其為背叛。
+
+  - day: 五百年前
+    time_of_day: 魔族全面入侵
+    chapter: world-bible
+    location_id: starborne-flat-world
+    event: 上一次魔族全面入侵發生。
+    state_change: 戰爭記憶在當下多數人認知中逐漸變成傳說。
+
+  - day: 當下
+    time_of_day: 和平時代
+    chapter: world-bible
+    location_id: starborne-flat-world
+    event: 魔導科技高度發展，各勢力維持表面和平；黑暗次元開始小規模滲透。
+    state_change: 次元壁不穩定性加劇，但各勢力因政治利益與不信任選擇沉默。
+
   - day: Day 1
-    time_of_day: 上午
+    time_of_day: 清晨
     chapter: ch001
-    location_id: main-location
-    event: 主角第一次面對核心衝突或故事承諾。
-    state_change: 第一章結束後，角色或局勢出現的明確變化。
+    location_id: western-mountain-village
+    event: 老村長變賣一切後帶回山獵人，村民在村口目送山獵人進山。
+    state_change: 村莊最後一次討伐山妖的懸賞正式開始。
+
+  - day: Day 1
+    time_of_day: 清晨至上午
+    chapter: ch001
+    location_id: deep-mountain-spirit-lake
+    event: 山獵人以獸骨尋跡抵達深山湖畔，射瞎山妖左眼後近身斬殺山妖。
+    state_change: 佔據深山、吞食走獸靈泉與村民的山妖死亡，村莊威脅暫時解除。
 
 continuity_notes:
-  - 若有日期、年齡、地點代號、時間順序或稱呼需要統一，請記在這裡。
-
+  - 現今距上次魔族全面入侵約五百年，距眾神最後可靠記錄約兩千年。
+  - 世界地理是兩塊主大陸加中間島群，不是單一大陸或球形世界。
+  - ch001 的山妖死亡已是正文 canon；其來源與是否牽涉黑暗次元尚未公開。
