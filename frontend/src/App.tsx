@@ -1,10 +1,9 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { EditorPane } from "./components/editor/EditorPane";
-import { OperaConsole } from "./components/layout/OperaConsole";
-import { OperaExportModal } from "./components/layout/OperaExportModal";
 import { SettingsModal } from "./components/layout/SettingsModal";
 import { TopBar } from "./components/layout/TopBar";
 import { TweaksPanel } from "./components/layout/TweaksPanel";
+import { OperaView } from "./components/opera/OperaView";
 import { CommitPanel } from "./components/repo/CommitPanel";
 import { Sidebar } from "./components/repo/Sidebar";
 import { ChatPanel } from "./components/workspace/ChatPanel";
@@ -13,12 +12,12 @@ import { BridgeClient } from "./services/bridgeClient";
 import { OpenRouterClient } from "./services/openRouterClient";
 import { CommitStoreProvider, useCommitStore } from "./stores/CommitStore";
 import { DraftStoreProvider, useDraftStore } from "./stores/DraftStore";
+import { OperaStoreProvider } from "./stores/OperaStore";
 import { RepoStoreProvider, useRepoStore } from "./stores/RepoStore";
 import { SettingsStoreProvider, useSettingsStore } from "./stores/SettingsStore";
 import { WorkspaceStoreProvider, useWorkspaceStore } from "./stores/WorkspaceStore";
-import type { DraftEntry, OperaExportResponse, OperaIntegrationStatus, RepoSnapshot } from "./types/app";
-import { DEFAULT_OPERA_FRONTEND_URL, MAX_ATTACHED_REFERENCE_FILES, NOVEL_DB_ROOT_PATH, createWorkspaceConfig } from "./utils/constants";
-import { detectNovelIdFromPath, listNovelIds } from "./utils/novelIntegration";
+import type { DraftEntry, RepoSnapshot } from "./types/app";
+import { MAX_ATTACHED_REFERENCE_FILES, NOVEL_DB_ROOT_PATH, createWorkspaceConfig } from "./utils/constants";
 import { buildWorkspaceRequest, parseAiResponseEnvelope } from "./utils/openRouter";
 import { focusRepoTree, normalizeRepoTree } from "./utils/repoTree";
 import { resolveWorkspaceContext } from "./utils/workspaceContext";
@@ -43,9 +42,11 @@ function AppProviders() {
       <RepoStoreProvider>
         <DraftStoreProvider>
           <WorkspaceStoreProvider>
-            <CommitStoreProvider>
-              <ConsoleApp />
-            </CommitStoreProvider>
+            <OperaStoreProvider>
+              <CommitStoreProvider>
+                <ConsoleApp />
+              </CommitStoreProvider>
+            </OperaStoreProvider>
           </WorkspaceStoreProvider>
         </DraftStoreProvider>
       </RepoStoreProvider>
@@ -90,12 +91,6 @@ function ConsoleApp() {
     message: "",
   });
   const [commitAction, setCommitAction] = useState<"" | "commit" | "push">("");
-  const [isOperaExportOpen, setIsOperaExportOpen] = useState(false);
-  const [operaStatus, setOperaStatus] = useState<OperaIntegrationStatus>();
-  const [operaStatusLoading, setOperaStatusLoading] = useState(false);
-  const [operaExporting, setOperaExporting] = useState(false);
-  const [operaExportError, setOperaExportError] = useState("");
-  const [operaExportResult, setOperaExportResult] = useState<OperaExportResponse>();
 
   const dirtyDrafts = useMemo(
     () => Object.values(drafts).filter((draft) => draft.draftContent !== draft.originalContent),
@@ -108,7 +103,11 @@ function ConsoleApp() {
     workspaceState.workspaces.find((workspace) => workspace.id === workspaceState.activeWorkspaceId) ?? workspaceState.workspaces[0];
   const activeMessages = workspaceState.messages[activeWorkspace.id] ?? [];
   const activeView =
-    settings.uiPrefs.activeView === "opera" ? "opera" : settings.uiPrefs.activeView === "editor" ? "editor" : "ai";
+    settings.uiPrefs.activeView === "editor"
+      ? "editor"
+      : settings.uiPrefs.activeView === "opera"
+      ? "opera"
+      : "ai";
   const tweaksOpen = settings.uiPrefs.tweaksOpen ?? false;
   const activeWorkspaceContext = useMemo(
     () =>
@@ -121,12 +120,6 @@ function ConsoleApp() {
       }),
     [activeWorkspace, snapshot.entries, snapshot.selectedPath],
   );
-  const availableNovelIds = useMemo(() => listNovelIds(snapshot.entries), [snapshot.entries]);
-  const suggestedNovelId = useMemo(
-    () => detectNovelIdFromPath(snapshot.selectedPath) ?? availableNovelIds[0],
-    [availableNovelIds, snapshot.selectedPath],
-  );
-
   useEffect(() => {
     selectedPathRef.current = snapshot.selectedPath;
   }, [snapshot.selectedPath]);
@@ -150,31 +143,6 @@ function ConsoleApp() {
   useEffect(() => {
     setAttachmentError("");
   }, [activeWorkspace.id]);
-
-  const loadOperaStatus = useCallback(async () => {
-    setOperaStatusLoading(true);
-    try {
-      const result = await bridgeClient.getOperaStatus();
-      setOperaStatus(result);
-    } catch (error) {
-      setOperaStatus({
-        ok: false,
-        reachable: false,
-        baseUrl: "",
-        supportedSecretHandling: ["director_only"],
-        error: error instanceof Error ? error.message : "Failed to load Opera status.",
-      });
-    } finally {
-      setOperaStatusLoading(false);
-    }
-  }, [bridgeClient]);
-
-  useEffect(() => {
-    if (!isOperaExportOpen && activeView !== "opera") {
-      return;
-    }
-    void loadOperaStatus();
-  }, [activeView, isOperaExportOpen, loadOperaStatus]);
 
   const loadRepoTree = useCallback(async (): Promise<RepoSnapshot> => {
     setRepoStatus("loading");
@@ -489,41 +457,13 @@ function ConsoleApp() {
     ],
   );
 
-  const handleOpenOperaExport = useCallback(() => {
-    setOperaExportError("");
-    setOperaExportResult(undefined);
-    setIsOperaExportOpen(true);
-  }, []);
-
-  const handleExportToOpera = useCallback(
-    async (novelId: string) => {
-      setOperaExporting(true);
-      setOperaExportError("");
-      setOperaExportResult(undefined);
-      try {
-        const result = await bridgeClient.exportNovelToOpera({
-          novelId,
-          options: { secretHandling: "director_only" },
-        });
-        setOperaExportResult(result);
-        await loadOperaStatus();
-      } catch (error) {
-        setOperaExportError(error instanceof Error ? error.message : "Failed to export to Opera.");
-      } finally {
-        setOperaExporting(false);
-      }
-    },
-    [bridgeClient, loadOperaStatus],
-  );
-
   return (
     <>
       <div className="app-shell">
         <TopBar
           activeView={activeView}
-          onOpenOperaExport={handleOpenOperaExport}
           onOpenSettings={() => setIsSettingsOpen(true)}
-          onSwitchView={(view) => updateUiPrefs({ activeView: view })}
+          onSwitchView={(view: "ai" | "editor" | "opera") => updateUiPrefs({ activeView: view })}
           onToggleSidebar={() => updateUiPrefs({ sidebarOpen: !settings.uiPrefs.sidebarOpen })}
           onToggleTweaks={() => updateUiPrefs({ tweaksOpen: !tweaksOpen })}
           repoStatus={repoStatus}
@@ -578,6 +518,14 @@ function ConsoleApp() {
                 />
               </div>
             </div>
+          ) : activeView === "opera" ? (
+            <OperaView
+              bridgeClient={bridgeClient}
+              models={models}
+              openRouterClient={openRouterClient}
+              repoConfig={resolvedRepoConfig}
+              repoEntries={snapshot.entries}
+            />
           ) : activeView === "editor" ? (
             <div className="editor-layout">
               <Sidebar
@@ -633,17 +581,6 @@ function ConsoleApp() {
                 submitLabel={commitAction === "push" ? "Committing and pushing..." : commitAction === "commit" ? "Committing..." : undefined}
               />
             </div>
-          ) : (
-            <div className="opera-layout">
-              <OperaConsole
-                frontendUrl={DEFAULT_OPERA_FRONTEND_URL}
-                onRefreshStatus={() => {
-                  void loadOperaStatus();
-                }}
-                status={operaStatus}
-                statusLoading={operaStatusLoading}
-              />
-            </div>
           )}
         </div>
 
@@ -655,21 +592,6 @@ function ConsoleApp() {
         onClose={() => setIsSettingsOpen(false)}
         onSave={(apiKey) => updateSettings({ openRouterApiKey: apiKey })}
         openRouterApiKey={settings.openRouterApiKey}
-      />
-      <OperaExportModal
-        exportError={operaExportError}
-        exportResult={operaExportResult}
-        exporting={operaExporting}
-        initialNovelId={suggestedNovelId}
-        isOpen={isOperaExportOpen}
-        novels={availableNovelIds}
-        onClose={() => setIsOperaExportOpen(false)}
-        onExport={handleExportToOpera}
-        onRefreshStatus={() => {
-          void loadOperaStatus();
-        }}
-        status={operaStatus}
-        statusLoading={operaStatusLoading}
       />
     </>
   );

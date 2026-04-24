@@ -85,7 +85,7 @@ export interface WorkspaceTemplate {
 }
 
 export interface UiPrefs {
-  activeView: "ai" | "editor" | "opera" | "files";
+  activeView: "ai" | "editor" | "opera";
   sidebarOpen: boolean;
   sidebarWidth: number;
   dockOpen: boolean;
@@ -168,29 +168,3 @@ export interface BridgeStatus {
   hasOpenRouterApiKey: boolean;
 }
 
-export interface OperaExportOptions {
-  secretHandling: "director_only";
-}
-
-export interface OperaImportedCounts {
-  worldEntries: number;
-  actors: number;
-  timelineEvents: number;
-  directorNotes: number;
-}
-
-export interface OperaExportResponse {
-  campaignId: string;
-  campaignName: string;
-  importedCounts: OperaImportedCounts;
-  warnings: string[];
-}
-
-export interface OperaIntegrationStatus {
-  ok: boolean;
-  reachable: boolean;
-  baseUrl: string;
-  service?: string;
-  supportedSecretHandling: string[];
-  error?: string;
-}

@@ -1,10 +1,10 @@
-import type { AppSettings, CommitDraft, RepoConfig, TweakSettings, WorkspaceConfig, WorkspaceTemplate } from "../types/app";
+import type { AppSettings, CommitDraft, RepoConfig, TweakSettings, UiPrefs, WorkspaceConfig, WorkspaceTemplate } from "../types/app";
 
 export const STORAGE_SCHEMA_VERSION = 3;
+export const DEFAULT_OPERA_GM_MODEL = "openai/gpt-4o-mini";
 export const STORAGE_PREFIX = "novel-writer-ui";
 export const GITHUB_API_VERSION = "2022-11-28";
 export const DEFAULT_BRIDGE_BASE_URL = "http://127.0.0.1:8787";
-export const DEFAULT_OPERA_FRONTEND_URL = import.meta.env.VITE_OPERA_FRONTEND_URL ?? "http://127.0.0.1:5173";
 export const NOVEL_DB_ROOT_PATH = "backend/novel_db";
 export const MAX_ATTACHED_REFERENCE_FILES = 20;
 
@@ -30,8 +30,8 @@ export const DEFAULT_WORKSPACE_TEMPLATE: WorkspaceTemplate = {
   autoAttachRelatedFiles: true,
 };
 
-export const DEFAULT_UI_PREFS = {
-  activeView: "ai" as const,
+export const DEFAULT_UI_PREFS: UiPrefs = {
+  activeView: "ai",
   sidebarOpen: true,
   sidebarWidth: 260,
   dockOpen: false,

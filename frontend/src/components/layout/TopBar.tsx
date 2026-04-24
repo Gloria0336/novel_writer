@@ -7,7 +7,6 @@ interface TopBarProps {
   onToggleSidebar: () => void;
   onToggleTweaks: () => void;
   onOpenSettings: () => void;
-  onOpenOperaExport: () => void;
 }
 
 function StatusChip({ repoStatus }: Pick<TopBarProps, "repoStatus">) {
@@ -31,7 +30,6 @@ export function TopBar(props: TopBarProps) {
     onToggleSidebar,
     onToggleTweaks,
     onOpenSettings,
-    onOpenOperaExport,
   } = props;
 
   return (
@@ -67,9 +65,6 @@ export function TopBar(props: TopBarProps) {
 
       <div className="topbar-actions">
         <StatusChip repoStatus={repoStatus} />
-        <button className="ghost-button topbar-export-button" onClick={onOpenOperaExport} type="button">
-          Export to Opera
-        </button>
         <button aria-label="Open settings" className="icon-button" onClick={onOpenSettings} type="button">
           <svg fill="none" height="14" viewBox="0 0 14 14" width="14">
             <circle cx="7" cy="7" r="2.4" stroke="currentColor" strokeWidth="1.3" />
