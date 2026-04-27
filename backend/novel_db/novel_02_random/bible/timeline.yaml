@@ -20,6 +20,13 @@ timeline:
     event: 眾神之戰將大陸一分為二，妖神與獸神殞落。
     state_change: 神體碎片孕育妖族，潰散神力成為魔法泉源。
 
+  - day: 太古紀・月神殞落（星落曆 元年）
+    time_of_day: 神話時代
+    chapter: world-bible
+    location_id: main-moon-broken-palace
+    event: 月神在不明戰鬥中死亡，主月宮遭衝擊破碎；副月宮因尚未成熟而完好保存。
+    state_change: 主月成為殘破的破碎月宮，在星空中自主聚合運行；副月完整保留，成為尚未誕生的第二個月神。精靈學者以此為紀元建立星落曆。
+
   - day: 約兩千年前
     time_of_day: 神退紀
     chapter: world-bible
@@ -34,6 +41,13 @@ timeline:
     event: 艾瑟蘭迪爾家族先祖離開森林，與人類、矮人尋求聯盟。
     state_change: 三族聯盟日後成為艾瑟蘭帝國基石，部分傳統精靈視其為背叛。
 
+  - day: 盟約曆 元年（現今 2256 年前）
+    time_of_day: 建國紀元
+    chapter: world-bible
+    location_id: first-continent-aethlan-empire
+    event: 三族聯盟正式建立艾瑟蘭帝國，盟約曆由此起算。
+    state_change: 世俗政治以盟約曆為通行曆法，精靈學者私下仍附注星落曆年份。
+
   - day: 五百年前
     time_of_day: 魔族全面入侵
     chapter: world-bible
@@ -41,21 +55,21 @@ timeline:
     event: 上一次魔族全面入侵發生。
     state_change: 戰爭記憶在當下多數人認知中逐漸變成傳說。
 
-  - day: 當下
+  - day: 當下（盟約曆 2256 年）
     time_of_day: 和平時代
     chapter: world-bible
     location_id: starborne-flat-world
     event: 魔導科技高度發展，各勢力維持表面和平；黑暗次元開始小規模滲透。
     state_change: 次元壁不穩定性加劇，但各勢力因政治利益與不信任選擇沉默。
 
-  - day: Day 1
+  - day: 盟約曆 2256 年 08 月 20 日（星落曆 2481 年 12 月 26 日）
     time_of_day: 清晨
     chapter: ch001
     location_id: western-mountain-village
     event: 老村長變賣一切後帶回山獵人，村民在村口目送山獵人進山。
     state_change: 村莊最後一次討伐山妖的懸賞正式開始。
 
-  - day: Day 1
+  - day: 盟約曆 2256 年 08 月 20 日（星落曆 2481 年 12 月 26 日）
     time_of_day: 清晨至上午
     chapter: ch001
     location_id: deep-mountain-spirit-lake
@@ -63,6 +77,8 @@ timeline:
     state_change: 佔據深山、吞食走獸靈泉與村民的山妖死亡，村莊威脅暫時解除。
 
 continuity_notes:
-  - 現今距上次魔族全面入侵約五百年，距眾神最後可靠記錄約兩千年。
+  - 現今為盟約曆 2256 年；距上次魔族全面入侵約五百年，距眾神最後可靠記錄約兩千年。
+  - 星落曆以月神殞落為元年，比盟約曆更古老；兩曆落差是精靈身分認同的活細節。
+  - 主月週期 30 天、副月週期 20 天，最小公倍數 60 天，構成雙月同圓等主要天象。
   - 世界地理是兩塊主大陸加中間島群，不是單一大陸或球形世界。
   - ch001 的山妖死亡已是正文 canon；其來源與是否牽涉黑暗次元尚未公開。

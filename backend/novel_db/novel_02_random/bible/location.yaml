@@ -108,6 +108,80 @@ locations:
     continuity_notes:
       - 船運是跨陸交通主流；飛船速度快但昂貴；空間傳送陣最快也最昂貴，且節點稀少。
 
+  - id: sun-solar-palace
+    name: 日宮（太陽神之殿）
+    type: 神殿 / 天體
+    region: 天空高空，無法接近
+    first_appearance: world-bible
+    summary: >
+      太陽神以神力鑄造的神殿，承載於太陽之上、依固定軌道自主運行。
+      太陽神離去後，日宮完好保存，太陽仍熾烈地在既定軌道上運行。
+      任何飛行器均無法接近，空騎團高空堡壘亦有已知高度上限；內部是否空置，至今無人知曉。
+    atmosphere:
+      - 熾烈、神聖、遙不可及
+      - 佔星者視其為「太陽神的遺言」，無法被回應的神殿
+    narrative_functions:
+      - 神明已離去卻遺物仍存的象徵
+      - 日月同框（日蝕）時成為宗教詮釋焦點
+    access_constraints:
+      - 完全無法接近，無任何已知進入方式
+      - 高度超過空騎團高空堡壘的已知上限
+    linked_people_or_factions:
+      - 太陽神（已離去）
+      - 空騎團（已知高度極限的參照）
+    continuity_notes:
+      - 太陽神與月神是唯二以神殿形式留下天體的神明，其他神明未有類似記錄。
+
+  - id: main-moon-broken-palace
+    name: 主月（破碎月宮）
+    type: 神殿遺跡 / 天體
+    region: 天空，依原有軌道運行
+    first_appearance: world-bible
+    summary: >
+      月神最初的神殿，月神死亡時遭受衝擊而破碎。
+      碎片靠殘存神力維持引力、在原有軌道自主聚合運行，成為殘缺的月亮。
+      銀白色，體積較大，表面有明顯裂痕與缺口，夜晚光芒中可見不規則暗塊。週期 30 天。
+    atmosphere:
+      - 殘破中仍保有冷白光芒
+      - 裂痕與缺口是月神死亡的直接見證
+      - 碎片流星雨出現時被視為凶兆
+    narrative_functions:
+      - 月神之死的視覺見證，每晚可見
+      - 大型碎片脫落事件可作為情節觸發點
+      - 各地宗教解讀分歧的核心符號
+    access_constraints:
+      - 無法接近，構成流星雨的碎片具撞擊風險
+    linked_people_or_factions:
+      - 月神（已死亡）
+      - 生命女神（與月神共創女神魔法體系）
+    continuity_notes:
+      - 月神之名、死因及細節在各文化流傳版本中存在大量出入，是神學與史學爭議核心。
+      - 可確認的事實：主月宮在某個時刻破碎了，副月宮完好保留。
+
+  - id: secondary-moon-lunar-palace
+    name: 副月（副月宮・新月雛形）
+    type: 神殿 / 天體 / 未成形神明
+    region: 天空，依原有軌道運行
+    first_appearance: world-bible
+    summary: >
+      月神在持續成長過程中孕育的新月雛形，是尚未完全成形的第二個月神胚胎。
+      月神死亡時因尚未成熟而未成為攻擊目標，完好保留至今。
+      帶淡藍紫色澤，體積較小，外觀完整無損。週期 20 天。
+    atmosphere:
+      - 完整且帶冷藍紫光
+      - 在殘破主月旁顯得格外刺目
+      - 各地宗教對其態度截然不同：敬畏、期待、或試圖干預
+    narrative_functions:
+      - 未誕生神明的存在，潛在的世界觀衝突核心
+      - 「副月凌主月」天象可用作儀式或情節時間錨
+      - 各宗教勢力對副月的立場可反映其信仰本質
+    access_constraints:
+      - 無法接近
+    linked_people_or_factions:
+      - 月神（孕育者，已死亡）
+    continuity_notes:
+      - 各地宗教對副月存在根本分歧：有人奉為繼承者、有人畏為不穩定核心、也有人試圖干預其成長進程。
+
   - id: western-mountain-village
     name: 西邊群山下的村莊
     type: 村莊 / 懸賞起點
