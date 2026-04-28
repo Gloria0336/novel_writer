@@ -1,0 +1,361 @@
+species:
+  - id: human
+    name: 人類
+    category: major_species
+    origin: 原初四族之一
+    first_appearance: world-bible
+    source_sections:
+      - worldbuilding.md#七大種族
+      - worldbuilding.md#節日
+      - worldbuilding.md#飲食
+      - worldbuilding.md#日常禮儀
+    summary: >
+      凝聚力與繁殖力強，適應力高。在三族聯盟中提供勞動力、工程創新與快速成長的人口基礎。
+    traits:
+      biological:
+        - 繁殖力強
+        - 適應力高
+      social:
+        - 凝聚力強
+        - 是三族聯盟的人口與勞動力基礎
+      magical: []
+    cultural_profile:
+      food:
+        - 厚重、份量大、口味鹹香。
+        - 燉肉、烤餅與根莖類蔬菜是主食圈核心。
+        - 發展出以麵包為媒介的包夾文化，是街頭常見便食形式。
+      etiquette:
+        - 日常問候較隨意，點頭或揮手皆可。
+        - 平民社群在非正式場合傾向直呼名字，並逐漸影響更正式場合。
+      festivals:
+        - festival_double_moon_night
+        - festival_farewell_day
+    political_role:
+      - 三族聯盟的勞動力、工程創新與人口基礎。
+    related_locations:
+      - first-continent-aethlan-empire
+    related_species:
+      - elf
+      - dwarf
+    notes: []
+
+  - id: elf
+    name: 精靈
+    category: major_species
+    origin: 原初四族之一
+    first_appearance: world-bible
+    source_sections:
+      - worldbuilding.md#七大種族
+      - worldbuilding.md#節日
+      - worldbuilding.md#飲食
+      - worldbuilding.md#日常禮儀
+    summary: >
+      長壽、都市化且高度科技化。主導魔法理論系統化，是三族聯盟的知識與領導核心。
+    traits:
+      biological:
+        - 長壽
+      social:
+        - 都市化程度高
+        - 科技化程度高
+        - 對稱謂與社交禮節敏感
+      magical:
+        - 主導魔法理論系統化
+    cultural_profile:
+      food:
+        - 偏輕食、細工，講究食材原味與季節性。
+        - 對辛辣與過重調味有明顯迴避傾向。
+        - 正式精靈式餐宴可持續數小時，接近社交儀式。
+      etiquette:
+        - 私下場合保留古老的雙手合攏禮。
+        - 貴族對稱謂高度敏感，錯用稱謂是明確失禮。
+        - 對人類友人的死亡有獨立且繁複的哀悼禮節。
+      festivals:
+        - festival_double_moon_night
+        - festival_farewell_day
+    political_role:
+      - 三族聯盟的知識核心。
+      - 三族聯盟的領導核心。
+    related_locations:
+      - first-continent-aethlan-empire
+    related_species:
+      - human
+      - dwarf
+    notes: []
+
+  - id: dwarf
+    name: 矮人
+    category: major_species
+    origin: 原初四族之一
+    first_appearance: world-bible
+    source_sections:
+      - worldbuilding.md#七大種族
+      - worldbuilding.md#節日
+      - worldbuilding.md#飲食
+      - worldbuilding.md#日常禮儀
+    summary: >
+      對金屬與礦石有天賦直覺，是工業技術核心；但城邦與氏族分裂使其政治話語權低於實際貢獻。
+    traits:
+      biological: []
+      social:
+        - 城邦與氏族分裂削弱政治話語權。
+        - 熟識之間習慣以拳碰肩。
+      magical: []
+      craft:
+        - 對金屬與礦石有天賦直覺。
+        - 是帝國工業技術核心之一。
+    cultural_profile:
+      food:
+        - 以高熱量、高蛋白為核心。
+        - 釀酒文化極為發達。
+        - 矮人麥酒是帝國境內流通最廣的酒類之一。
+        - 重要場合共飲同一桶酒以示信任；拒絕共飲是明確冒犯。
+      etiquette:
+        - 熟識者以拳碰肩問候。
+      festivals:
+        - festival_double_moon_night
+        - festival_farewell_day
+    political_role:
+      - 工業技術核心。
+      - 實際貢獻高於政治話語權。
+    related_locations:
+      - first-continent-aethlan-empire
+    related_species:
+      - human
+      - elf
+    notes: []
+
+  - id: yaozu
+    name: 妖族
+    category: major_species
+    origin: 妖神與獸神神體碎片孕育的第一批祖先延續而來
+    first_appearance: world-bible
+    source_sections:
+      - worldbuilding.md#七大種族
+      - worldbuilding.md#魔族體系與階級
+    summary: >
+      由妖神與獸神神體碎片孕育的第一批祖先延續而來，後世也可由動植物及自然事物長久修煉形成。
+      妖族是多亞種集合，個體立場偏中立。
+    traits:
+      biological:
+        - 多亞種集合
+        - 可由動植物及自然事物長久修煉形成
+      social:
+        - 個體立場偏中立
+      magical:
+        - 具神識修煉基礎
+    corruption_risk:
+      demonology_ref: corrupted_yao
+      note: 修煉中的妖族遭黑暗能量侵蝕後可能異變為妖魔。
+    cultural_profile:
+      food: []
+      etiquette: []
+      festivals: []
+    related_species:
+      - beastfolk
+      - demonkind
+    notes: []
+
+  - id: demonkind
+    name: 魔族
+    category: umbrella_species
+    origin: 黑暗次元或腐化力量
+    first_appearance: world-bible
+    source_sections:
+      - worldbuilding.md#七大種族
+      - worldbuilding.md#魔族體系與階級
+      - demonology.yaml
+    summary: >
+      源自黑暗次元或腐化力量，外界常以邪惡標籤看待，但魔族內部有自身文化與秩序。
+      魔族不是單一種族，而是數個起源不同物種的統稱。
+    taxonomy_ref: demonology.yaml
+    branches:
+      - demon_class
+      - corrupted_class
+      - native_class
+    traits:
+      biological:
+        - 起源不一，包含黑暗次元原生、現界物種腐化、以及混合能量生成的新物種。
+      social:
+        - 內部存在自身文化與秩序。
+        - 整體與帝國及大陸諸族多半敵對。
+      magical:
+        - 可使用大陸魔法體系、純黑暗能量，或黑暗能量造成的腐化能力。
+    cultural_profile:
+      food: []
+      etiquette: []
+      festivals: []
+    related_species:
+      - human
+      - elf
+      - dwarf
+      - yaozu
+      - beastfolk
+    notes:
+      - 詳細分支、階級與個別類型見 demonology.yaml。
+
+  - id: beastfolk
+    name: 獸族
+    category: major_species
+    origin: 遠古祖先被認為是原初四族中的純獸
+    first_appearance: world-bible
+    source_sections:
+      - worldbuilding.md#七大種族
+      - worldbuilding.md#魔族體系與階級
+    summary: >
+      獸族是外界統稱，內部有自身稱呼。主流為完全獸型但具智慧的個體。
+    traits:
+      biological:
+        - 主流個體為完全獸型
+        - 具智慧
+      social:
+        - 外界統稱與內部自稱可能不同
+      magical: []
+    corruption_risk:
+      demonology_ref: corrupted_beastfolk
+      note: 獸族遭黑暗能量侵蝕後可能異變為魔獸。
+    cultural_profile:
+      food: []
+      etiquette: []
+      festivals: []
+    related_species:
+      - yaozu
+      - demonkind
+    notes: []
+
+  - id: demigod
+    name: 半神族
+    category: rare_species
+    origin: 創世神族留下的造物或遺產
+    first_appearance: world-bible
+    source_sections:
+      - worldbuilding.md#七大種族
+    summary: >
+      創世神族留下的造物或遺產，近乎不死、數量極少、全員天生施法，真實身分往往成謎。
+    traits:
+      biological:
+        - 近乎不死
+        - 數量極少
+      social:
+        - 真實身分往往成謎
+      magical:
+        - 全員天生施法
+    cultural_profile:
+      food: []
+      etiquette: []
+      festivals: []
+    related_species: []
+    notes: []
+
+festivals:
+  - id: festival_covenant_day
+    name: 盟約日
+    timing: 盟約曆 1 月 1 日
+    scope: 帝國全境
+    source_section: worldbuilding.md#節日
+    summary: >
+      帝國建立紀念日，全境公假三天，是帝國最具政治象徵意義的節日，也是官方發布重大政策的傳統時機。
+    participants:
+      - human
+      - elf
+      - dwarf
+      - empire_citizens
+    rituals:
+      - 首都舉行大型遊行。
+      - 帝王或攝政於皇宮廣場發表年度演說。
+      - 貴族院與平民院代表共同出席。
+      - 各地城市有煙火與魔導光演。
+    narrative_functions:
+      - 官方發布重大政策的傳統時機。
+      - 展示帝國秩序與三族共存的政治舞台。
+
+  - id: festival_double_moon_night
+    name: 雙月夜
+    timing: 每 60 天，主副月同圓之夜
+    scope: 帝國境內
+    source_section: worldbuilding.md#節日
+    summary: >
+      非固定日期，由占星者提前公告。帝國境內宗教氛圍最濃厚的節日。
+    participants:
+      - human
+      - elf
+      - dwarf
+    rituals:
+      - 精靈進行年度星象解讀儀式。
+      - 人類偏向家族團聚與許願。
+      - 矮人在此夜開爐鑄造重要器物。
+    beliefs:
+      - 精靈傳統認為雙月夜是占星最準確的時刻。
+      - 矮人認為此夜神力餘韻最強。
+    narrative_functions:
+      - 可用於星象預言、家族願望、重要器物鑄造等橋段。
+
+  - id: festival_rift_day
+    name: 裂痕日
+    timing: 神寂日之一，6 月末
+    scope: 帝國全境
+    source_section: worldbuilding.md#節日
+    summary: >
+      紀念眾神之戰與大陸分裂的哀悼日，全境禁止宣戰與簽署軍事協議。
+    participants:
+      - empire_citizens
+    rituals:
+      - 各地神殿開放。
+      - 民間在裂痕日前夕修繕家中破損器物，象徵不讓裂痕過夜。
+    laws_or_taboo:
+      - 唯一明文寫入帝國憲章的儀式性禁令。
+      - 禁止宣戰與簽署軍事協議。
+    narrative_functions:
+      - 可作為戰爭、外交與宗教衝突的限制條件。
+
+  - id: festival_farewell_day
+    name: 告別日
+    timing: 神寂日之一，10 月末
+    scope: 帝國境內
+    source_section: worldbuilding.md#節日
+    summary: >
+      紀念眾神陸續離去的哀悼時節中最重要的一天，傳說是最後一位神明沉默的日子。
+    participants:
+      - human
+      - elf
+      - dwarf
+      - empire_citizens
+    rituals:
+      - 精靈燃燒舊書信與記憶物，象徵放下。
+      - 人類偏向祭祖。
+      - 矮人封閉最深層礦坑入口一日。
+    related_customs:
+      - 帝國通行習俗是在告別日之前完成入土或火化。
+      - 遺留物由家族保管三年後方可轉讓。
+    narrative_functions:
+      - 可承載死亡、記憶、告別與神明沉默等主題。
+
+shared_culture:
+  - id: empire_formal_greeting
+    name: 帝國正式問候
+    source_section: worldbuilding.md#日常禮儀
+    summary: >
+      右手置於左胸、微微頷首，起源於三族聯盟簽約時設計的中性禮儀，刻意迴避任何單一族群的傳統姿勢。
+    participants:
+      - human
+      - elf
+      - dwarf
+
+  - id: empire_mixed_table
+    name: 混桌飲食
+    source_section: worldbuilding.md#飲食
+    summary: >
+      三族融合後，帝國城市發展出混桌飲食習慣。高端餐館提供三族套餐，各自保留風格但共享餐桌空間。
+    participants:
+      - human
+      - elf
+      - dwarf
+    narrative_functions:
+      - 帝國多族共存的日常體現之一。
+
+  - id: magitech_device_etiquette
+    name: 魔導裝置禮節
+    source_section: worldbuilding.md#日常禮儀
+    summary: >
+      在正式場合或神殿內使用個人魔導終端被視為失禮；商業場合則相對寬鬆，邊談事情邊查閱魔導終端是常見行為。
+    participants:
+      - empire_citizens

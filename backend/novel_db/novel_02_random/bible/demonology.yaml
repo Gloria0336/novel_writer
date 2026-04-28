@@ -1,0 +1,474 @@
+demonology:
+  id: demonkind
+  name: 魔族
+  category: umbrella_species
+  source_sections:
+    - worldbuilding.md#魔族體系與階級
+    - temp/demon_faction.md
+  summary: >
+    魔族是幾個不同種類物種的統稱，並非單一種族。依起源分為惡魔類、魔化類、原生類。
+    三大類之間地位有別，惡魔類最高，原生類居中，魔化類最低。
+  relationship_to_world:
+    default_relation: 與帝國及大陸其他種族多半敵對
+    exceptions: 僅極少數特例不主動與現界種族為敵
+  hierarchy:
+    formal_leader:
+      title: 魔王
+      required_origin: demon_class
+      role: 魔族政治正統的象徵延續
+      practical_authority: 有限
+    historical_unifier:
+      title: 魔帝
+      status: 已被殺
+      consequence: 統一魔族政權分裂，至今未再統一。
+    class_order:
+      - demon_class
+      - native_class
+      - corrupted_class
+    notes:
+      - 惡魔類各分支與派系多半各自為政。
+      - 部分魔化類與原生類個體會脫離惡魔類控制，自行形成地位較低的聚落。
+
+branches:
+  - id: demon_class
+    name: 惡魔類
+    rank: highest
+    origin: 黑暗次元原生物種
+    source_section: worldbuilding.md#惡魔類
+    summary: >
+      黑暗次元的原生物種，魔族正統，地位最高。可使用大陸魔法體系或更純粹的黑暗能量，
+      個體能力普遍強大。
+    political_status:
+      - 魔族正統
+      - 魔王必須出身此類
+      - 多數分支與派系各自為政
+    common_traits:
+      physical:
+        - 個體普遍強大
+      magical:
+        - 可使用大陸魔法體系
+        - 可使用純粹黑暗能量
+      social:
+        - 統治地位最高
+    subtypes:
+      - demon
+      - ancient_demon
+      - nightmare_demon
+      - flame_demon
+      - curse_demon
+      - giant_demon
+      - sky_demon
+      - ice_demon
+
+  - id: corrupted_class
+    name: 魔化類
+    rank: lowest
+    origin: 大陸物種遭黑暗能量侵蝕心智與肉體後異變
+    source_section: worldbuilding.md#魔化類
+    summary: >
+      由黑暗能量侵蝕大陸物種的心智與肉體而成，腐化過程單向且不可逆。
+      地位極低，多為各惡魔派系手下數量最龐大的基層戰力。
+    transformation_rules:
+      reversibility: irreversible
+      direction: 單向腐化
+      cause: 黑暗能量侵蝕
+    common_traits:
+      physical:
+        - 肉體異變
+      mental:
+        - 心智受侵蝕
+      social:
+        - 地位極低
+        - 多為砲灰或基層戰力
+    subtypes:
+      - corrupted_human
+      - corrupted_beast
+      - corrupted_plant
+      - corrupted_yao
+      - corrupted_beastfolk
+
+  - id: native_class
+    name: 原生類
+    rank: middle
+    origin: 黑暗次元能量與大陸生命能量融合生成的新物種
+    source_section: worldbuilding.md#原生類
+    summary: >
+      黑暗次元能量與大陸生命能量融合生成的全新物種，既非腐化體，也非原生惡魔。
+      構造通常較簡單，地位低，多為基層戰力或獨立聚落底層成員。
+    common_traits:
+      physical:
+        - 構造通常較簡單
+      magical:
+        - 由黑暗次元能量與大陸生命能量融合生成
+      social:
+        - 地位低
+        - 多為基層戰力或獨立聚落底層成員
+    subtypes:
+      - slime
+      - tentacle
+      - insectoid
+      - crystal
+
+subtypes:
+  - id: demon
+    name: 惡魔
+    branch: demon_class
+    status: 正統核心
+    source_section: worldbuilding.md#惡魔類
+    summary: >
+      惡魔類中的正統核心，類人外形，頭生角，成年平均體高約 2.5 公尺。
+      數量最少但能力最強、地位最高，是惡魔類中的支配階層。
+    traits:
+      physical:
+        - 類人外形
+        - 頭上大多有角
+        - 成年平均體高約 2.5 公尺
+      magical:
+        - 擅長攻擊型大陸魔法
+        - 攻擊常附帶黑暗能量
+        - 幾乎全員具備黑暗能量自癒能力
+      social:
+        - 數量最少
+        - 統治地位最高
+    roles:
+      - 支配階層
+      - 政治正統核心
+
+  - id: ancient_demon
+    name: 古魔
+    branch: demon_class
+    status: 古老原生物種
+    source_section: worldbuilding.md#惡魔類
+    summary: >
+      最古老的黑暗次元原生物種，形體多半不可名狀，不走大陸魔法體系，
+      偏重強悍肉身與純黑暗能量衝擊。
+    traits:
+      physical:
+        - 形狀奇特且不可名狀
+        - 沒有統一外形規律
+        - 體魄強壯
+      magical:
+        - 不使用大陸能量體系
+        - 可直接使用純粹黑暗能量衝擊
+      mental:
+        - 多半沒有群體觀念
+        - 智商低下
+        - 殺戮心與排他性極強
+    roles:
+      - 戰獸
+      - 守衛
+      - 打手
+    social_notes:
+      - 因難以管控，常被放逐、排擠或畏懼。
+
+  - id: nightmare_demon
+    name: 夢魔
+    branch: demon_class
+    status: 精神操控者
+    source_section: worldbuilding.md#惡魔類
+    summary: >
+      介於實體與虛體之間的類人種，成年個體背生 2 至 8 隻觸手。
+      能力以夢境操控、催眠、幻覺、精神連結與強制控制為主。
+    traits:
+      physical:
+        - 多為幽影型態
+        - 介於實體與虛體之間
+        - 外形類人
+        - 成年個體背部有 2 至 8 隻觸手
+      magical:
+        - 夢境操控
+        - 催眠
+        - 幻覺
+        - 虛像
+        - 精神連結
+        - 強制控制
+      social:
+        - 觸手數量越多，階級越高
+    rank_markers:
+      - 背部觸手數量
+    roles:
+      - 刺客
+      - 控場者
+
+  - id: flame_demon
+    name: 炎魔
+    branch: demon_class
+    status: 菁英中堅
+    source_section: worldbuilding.md#惡魔類
+    summary: >
+      體型巨大，皮膚通紅，頭生巨角，成年體高約 4 至 5 公尺。
+      全員不懼火焰，擅長火系魔法，多居火山地帶。
+    traits:
+      physical:
+        - 體型巨大
+        - 皮膚通紅
+        - 頭生巨角
+        - 成年體高約 4 至 5 公尺
+      magical:
+        - 不懼火焰
+        - 擅長火系魔法
+      habitat:
+        - 火山地帶
+    roles:
+      - 菁英中堅力量
+
+  - id: curse_demon
+    name: 咒魔
+    branch: demon_class
+    status: 非自然生成分支
+    source_section: worldbuilding.md#惡魔類
+    summary: >
+      惡魔類中唯一非自然生成的分支，由大型戰場的亡魂怨念聚集而生。
+      擅長詛咒、腐化、侵蝕、下蠱與死靈術，通常擔任軍師。
+    traits:
+      physical:
+        - 身形細長
+        - 外形類人但比例極細長
+      magical:
+        - 詛咒
+        - 腐化
+        - 侵蝕
+        - 下蠱
+        - 死靈術
+      origin:
+        - 大型戰場的亡魂怨念聚集而生
+      mental:
+        - 天生具有靈智
+    roles:
+      - 軍師
+
+  - id: giant_demon
+    name: 巨魔
+    branch: demon_class
+    status: 重型戰力
+    source_section: worldbuilding.md#惡魔類
+    summary: >
+      惡魔類中體型最龐大，成年平均體高約 7 至 10 公尺。
+      智力低，不使用魔法，但肉體戰力與防禦極高。
+    traits:
+      physical:
+        - 體型為惡魔類中最龐大
+        - 成年平均體高約 7 至 10 公尺
+        - 體技極強
+        - 防禦極高
+      magical:
+        - 不會使用魔法
+      mental:
+        - 智商極低
+    roles:
+      - 戰爭前鋒
+      - 戰將
+
+  - id: sky_demon
+    name: 天魔
+    branch: demon_class
+    status: 空戰骨幹
+    source_section: worldbuilding.md#惡魔類
+    summary: >
+      類鳥形、蝙蝠形或人形，背生翅膀。修行大陸法系但更偏重物理戰，
+      是惡魔類的重要突擊與空戰骨幹。
+    traits:
+      physical:
+        - 類鳥形、蝙蝠形或人形
+        - 背生翅膀
+      magical:
+        - 修行大陸法系
+      combat:
+        - 以物理攻擊為主
+    roles:
+      - 突擊戰力
+      - 空戰骨幹
+      - 菁英中堅力量
+
+  - id: ice_demon
+    name: 冰魔
+    branch: demon_class
+    status: 施法者
+    source_section: worldbuilding.md#惡魔類
+    summary: >
+      皮膚呈藍色或紫色，體型與惡魔相近。使用冰系魔法，魔法造詣強於防禦，
+      數量少於炎魔，常擔任施法者角色。
+    traits:
+      physical:
+        - 皮膚呈藍色或紫色
+        - 體型與惡魔相近
+      magical:
+        - 使用冰系魔法
+        - 魔法造詣強
+      weaknesses:
+        - 防禦較弱
+      social:
+        - 數量比炎魔少
+    roles:
+      - 魔法師
+      - 施法者
+
+  - id: corrupted_human
+    name: 腐人類
+    branch: corrupted_class
+    source_section: worldbuilding.md#魔化類
+    summary: >
+      人類或三族個體遭黑暗能量侵蝕後的異變結果。
+      外形退化為近似哥布林或地精的矮小邪惡生物。
+    source_species:
+      - human
+      - elf
+      - dwarf
+    traits:
+      physical:
+        - 矮小
+        - 外形近似哥布林或地精
+      combat:
+        - 以物理攻擊為主
+        - 個體戰力低
+      social:
+        - 數量極其龐大
+    roles:
+      - 砲灰
+
+  - id: corrupted_beast
+    name: 腐獸類
+    branch: corrupted_class
+    source_section: worldbuilding.md#魔化類
+    summary: >
+      一般走獸與飛禽遭侵蝕後形成，獸性與攻擊本能被極端放大。
+      分布最廣，幾乎遍及次元壁裂縫周邊生態區。
+    source_species:
+      - animals
+    traits:
+      physical:
+        - 體型膨脹
+        - 骨骼外露或增生
+        - 皮毛焦黑或帶黑暗能量光澤
+      mental:
+        - 動物本能仍存
+        - 完全喪失理性
+      social:
+        - 數量最多
+        - 分布最廣
+    habitat:
+      - 次元壁裂縫附近生態區
+
+  - id: corrupted_plant
+    name: 腐植類
+    branch: corrupted_class
+    source_section: worldbuilding.md#魔化類
+    summary: >
+      植物或自然地形長期受黑暗能量滲透後異變成具攻擊性的生命體。
+      通常固著或移動緩慢，但污染範圍廣且難以徹底清除。
+    source_species:
+      - plants
+      - natural_terrain
+    traits:
+      physical:
+        - 通常固著或移動緩慢
+      mental:
+        - 沒有心智
+      magical:
+        - 黑暗能量滲透自然物質後生成
+      ecological:
+        - 蔓延範圍廣
+        - 難以徹底清除
+    habitat:
+      - 黑暗次元裂縫附近污染地帶
+
+  - id: corrupted_yao
+    name: 妖魔
+    branch: corrupted_class
+    source_section: worldbuilding.md#魔化類
+    summary: >
+      修煉中的妖族遭黑暗能量侵蝕後的異變結果。
+      保留殘破自我意識卻全面偏向暴力與破壞，是魔化類中智力最高也最危險的一支。
+    source_species:
+      - yaozu
+    traits:
+      physical:
+        - 外形保留妖族原貌但帶有黑暗能量痕跡
+      mental:
+        - 保留殘破自我意識
+        - 偏向暴力與破壞
+        - 魔化類中智力最高
+      danger:
+        - 魔化類中最危險的一支
+
+  - id: corrupted_beastfolk
+    name: 魔獸
+    branch: corrupted_class
+    source_section: worldbuilding.md#魔化類
+    summary: >
+      獸族遭黑暗能量侵蝕後形成的異變體；兼具殘存智慧與失控獸性。
+      比腐獸類更有組織、比妖魔更難溝通。
+    source_species:
+      - beastfolk
+    traits:
+      mental:
+        - 殘存智慧與失控獸性並存
+        - 少數個體保留破碎記憶
+        - 不穩定
+      social:
+        - 比腐獸類更具組織性
+        - 比妖魔更難溝通
+
+  - id: slime
+    name: 史萊姆類
+    branch: native_class
+    source_section: worldbuilding.md#原生類
+    summary: >
+      黑暗能量凝聚成的半液態生命體，無固定形狀。
+      可吞噬並腐蝕接觸物質，以黑暗能量持續侵蝕周遭環境。
+    traits:
+      physical:
+        - 半液態生命體
+        - 無固定形狀
+      magical:
+        - 持續以黑暗能量侵蝕周遭環境
+      combat:
+        - 吞噬
+        - 腐蝕接觸物質
+
+  - id: tentacle
+    name: 觸手類
+    branch: native_class
+    source_section: worldbuilding.md#原生類
+    summary: >
+      多觸手構造生命體，可能固著也可能緩慢移動。
+      觸手帶有強烈腐蝕效果，是主要攻擊與捕食手段。
+    traits:
+      physical:
+        - 多觸手構造
+        - 可能固著或緩慢移動
+      combat:
+        - 觸手腐蝕
+        - 捕食
+
+  - id: insectoid
+    name: 蟲類
+    branch: native_class
+    source_section: worldbuilding.md#原生類
+    summary: >
+      小型群聚生命體，單體戰力弱，但以大量繁殖與集體行動構成威脅。
+      部分個體具寄生其他生物的能力。
+    traits:
+      physical:
+        - 小型群聚生命體
+      combat:
+        - 大量繁殖
+        - 集體行動
+        - 部分個體可寄生其他生物
+      weaknesses:
+        - 單體戰力弱
+
+  - id: crystal
+    name: 晶體類
+    branch: native_class
+    source_section: worldbuilding.md#原生類
+    summary: >
+      由黑暗能量結晶化形成，個體構造簡單，但可彼此組合成更複雜的晶體魔像。
+    traits:
+      physical:
+        - 黑暗能量結晶化生命體
+        - 個體構造簡單
+      magical:
+        - 可彼此組合成更複雜的晶體魔像
+      scaling_rules:
+        - 晶體魔像的規模與複雜度取決於參與組合的晶體數量與排列方式。

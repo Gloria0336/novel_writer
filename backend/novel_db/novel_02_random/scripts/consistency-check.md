@@ -4,7 +4,7 @@
 
 1. **邏輯衝突**: 是否有前文已設下的限制、規則或因果被違反？
 2. **角色口吻**: 角色說話方式是否與 `bible/characters.yaml` 的 `speech_style` 一致？
-3. **專有名詞與地理資訊**: 地名、術語、物品名稱、稱呼是否前後統一，並與 `bible/location.yaml` 對齊？
+3. **專有名詞、地理與組織資訊**: 地名、術語、物品名稱、組織稱呼、政治實體名稱是否前後統一，並與 `bible/location.yaml`、`bible/organizations.yaml` 對齊？
 4. **時間線**: `bible/timeline.yaml` 是否需要新增或修正本章事件與 `location_id`？
 5. **秘密外洩**: 本章是否提前說破 `context/secrets-lockbox.md` 中尚未正式揭露的資訊？
 6. **大綱對齊**: 本章是否讓 `outline/master-outline.yaml` 的當前落點過時？

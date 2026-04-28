@@ -9,7 +9,7 @@
 
 ## 目錄用途
 
-- `bible/`: 長期有效的角色、世界觀、關係、地點、時間線與伏筆資料。
+- `bible/`: 長期有效的角色、世界觀、關係、地點、組織、政治實體、時間線與伏筆資料。
 - `outline/`: 主線大綱、幕結構、長線規劃與待回收節點。
 - `context/`: 寫作前快速注入的最新摘要，以及只給作者與 AI 參考的未揭露秘密。
 - `chapters/`: 正文章節，建議使用 `ch001.md`、`ch002.md` 這種固定命名。
@@ -29,7 +29,7 @@
 
 - 章節檔名建議使用 `ch001.md`、`ch002.md`。
 - `bible/` 只存放目前仍有效、需要跨章追蹤的資訊。
-- 地理資訊優先集中在 `bible/location.yaml`，時間線僅引用對應地點。
+- 地理資訊優先集中在 `bible/location.yaml`，組織、團體與政治實體集中在 `bible/organizations.yaml`，時間線僅引用對應地點。
 - `worldbuilding.md` 只放已揭露且可公開引用的世界規則；未揭露內容請移到 `context/secrets-lockbox.md`。
 - `context/` 偏向「現在這一刻」的摘要，不應變成完整百科。
 - `temp/` 的內容除非明確整理進正式檔案，否則不算 canon。
@@ -40,6 +40,7 @@
 - 至少補完：
   - `bible/characters.yaml`
   - `bible/location.yaml`
+  - `bible/organizations.yaml`
   - `bible/worldbuilding.md`
   - `outline/master-outline.yaml`
   - `context/CONTEXT.md`
