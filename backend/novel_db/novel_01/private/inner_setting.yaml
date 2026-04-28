@@ -1,0 +1,45 @@
+meta:
+  title: 裏性格專區
+  scope: R-18 related character notes
+  source_of_truth: ../bible/characters.yaml
+  isolation_policy:
+    - This file is private-only and must not be imported into bible, outline, context, or chapters automatically.
+    - Data flow is one-way: ../bible/characters.yaml -> private/inner_setting.yaml.
+    - Do not copy notes from this file back into public canon unless the user explicitly requests it.
+    - Keep explicit R-18 details here only; public character files should reference neither this file nor its contents.
+  visibility: private
+  auto_context: false
+  backend_export: excluded
+  protected_from:
+    - opera_export
+    - auto_workspace_context
+    - bible_update
+    - consistency_check
+    - chapter_generation
+
+characters:
+  - character_id: lin-yuan
+    source: ../bible/characters.yaml#lin-yuan
+    inner_profile: "原為男性上班族，因契約被重塑為極度敏感的女性肉體。潛意識裡對自己女性化的身體既抗拒又無法控制地產生快感，特別是在被燼觸碰時，理性與本能的衝突會帶來強烈的羞恥感。"
+    r18_boundaries:
+      - "可接受高強度的強制愛或半強迫情節"
+      - "可接受因為陰性靈力過剩而主動求歡的失控狀態"
+      - "可接受身體改造或異物感描寫"
+    intimacy_triggers:
+      - "被燼用低沉的語氣嘲諷或命令時"
+      - "體內靈力累積過度導致發熱時"
+      - "感受到燼刻意釋放的魅魔威壓時"
+    private_notes: "林遠的身體對陽氣極度飢渴，在R-18場景中應著重描寫其心理上的抗拒與肉體上的絕對服從之間的巨大反差。"
+
+  - character_id: jin
+    source: ../bible/characters.yaml#jin
+    inner_profile: "高傲且惡劣的魅魔，把林遠視為專屬的獵物與食糧。享受掌控林遠身心的過程，喜歡看她因為羞恥和快感而崩潰的樣子。雖然表現得像個捕食者，但對林遠有著絕對的佔有慾和某種扭曲的保護慾。"
+    r18_boundaries:
+      - "可接受粗暴、掠奪式的性愛描寫"
+      - "可接受利用魅魔能力（如催眠、敏感度提升）進行調教"
+      - "不接受任何會對林遠造成永久性不可逆傷害的行為（他要的是活著的食糧）"
+    intimacy_triggers:
+      - "看到林遠拼命壓抑本能卻又忍不住流露出渴望的樣子"
+      - "林遠試圖反抗或逃離他的控制時"
+      - "林遠主動向他索求陽氣時"
+    private_notes: "燼在床上的表現應該是遊刃有餘且充滿侵略性的，他會故意用言語羞辱或挑逗林遠，但行動上會確保完全滿足她的身體需求。"
