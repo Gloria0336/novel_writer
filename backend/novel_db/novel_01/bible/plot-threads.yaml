@@ -28,10 +28,10 @@ open_threads:
     likely_payoff_window: 近期
 
   - id: lin-yuan-power-awakening
-    hook: 林遠已經能在極端狀況下踢飛狼妖、展開銀色防護，卻完全不懂如何主動使用力量。
+    hook: 林遠已經能在極端狀況下踢飛狼妖、展開銀色防護，並在 ch022 首次將淵念附著掃帚斬殺低階妖魔，但仍缺乏穩定控制。
     introduced_in: ch009
     status: active
-    stakes: 若無法掌握靈力，他只會不斷成為更高級妖魔的獵物。
+    stakes: 若無法掌握淵念與隱匿，他只會不斷成為更高級妖魔與獵魔殿的追蹤目標。
     likely_payoff_window: 近期到中篇
 
   - id: contract-hunger-cycle
@@ -42,7 +42,7 @@ open_threads:
     likely_payoff_window: 持續性主線壓力
 
   - id: body-feminization-progression
-    hook: 林遠的身體在變身後並未固定，胸口曲線、敏感度與整體女性化程度仍持續變化。
+    hook: 林遠的身體在變身後並未固定，第二次陰陽調和後胸口曲線、臉部成熟度與身形再次成長。
     introduced_in: ch016
     status: active
     stakes: 身體持續改變會進一步壓迫林遠的自我認同與日常偽裝能力。
@@ -56,16 +56,16 @@ open_threads:
     likely_payoff_window: 近期到中篇
 
   - id: yuansheng-institute-mystery
-    hook: 淵聲研究所雖已公開露出表面身分與工作內容，但對外資訊依然稀少，工作流程極度老派，舊城區氛圍與內部人物也都明顯不單純。
+    hook: 淵聲研究所雖已公開露出表面身分與工作內容，但對外資訊依然稀少，工作流程極度老派，紙本資料帶有「念」，且異常聲源近年正越來越集中。
     introduced_in: ch018
     status: active
     stakes: 研究所可能是林遠理解超自然世界的入口，也可能是新的風險中心。
     likely_payoff_window: 近期主線
 
   - id: su-lin-hidden-capability
-    hook: 蘇臨表面上只是熱情行政與資料組組長，但她在研究所內的真正情報價值顯然還沒完全浮出來。
+    hook: 蘇臨表面上只是熱情行政與資料組組長，但她已能從座標資料指出阿爾迪爾「聲源」集中趨勢，真正情報價值顯然還沒完全浮出來。
     introduced_in: ch019
-    status: emerging
+    status: active
     stakes: 她若掌握了比表面更多的異常線索，林遠可能會更早被研究所核心注意到。
     likely_payoff_window: 近期到中篇
 
@@ -75,3 +75,31 @@ open_threads:
     status: emerging
     stakes: 舊城區本身可能藏有更深的污染、勢力或事件來源。
     likely_payoff_window: 近期
+
+  - id: jin-new-job
+    hook: 燼在 ch020 宣稱自己找到工作，並暗示會以另一種方式與林遠再見。
+    introduced_in: ch020
+    status: emerging
+    stakes: 若燼的新工作與淵聲研究所或獵魔殿相關，林遠的職場安全邊界會被進一步打破。
+    likely_payoff_window: 近期
+
+  - id: hunter-hall-threat
+    hook: 便利商店事件後，修女與和尚搭檔抵達現場，判讀妖魔與林遠留下的淵念痕跡；燼隨後揭露獵魔殿可能淨化契約者。
+    introduced_in: ch022
+    status: active
+    stakes: 獵魔殿具備清場、監控干預與認知重建能力，一旦鎖定林遠，將形成比妖魔更制度化的威脅。
+    likely_payoff_window: 近期到中篇
+
+  - id: lake-demon-incident
+    hook: ch021~22 的湖邊公園與便利商店事件中，三隻水棲低階妖魔明確追著林遠行動。
+    introduced_in: ch021
+    status: open
+    stakes: 這次襲擊可能只是林遠氣息外洩引來的偶發捕食，也可能與阿爾迪爾異常聲源集中、舊城區污染或更大妖魔活躍有關。
+    likely_payoff_window: 近期
+
+  - id: stealth-training
+    hook: ch025 林遠在燼指導下第一次看見並收束外洩淵念，但只成功一小段。
+    introduced_in: ch025
+    status: active
+    stakes: 隱匿訓練決定林遠能否在研究所、獵魔殿與妖魔之間維持最低生存空間。
+    likely_payoff_window: 近期持續

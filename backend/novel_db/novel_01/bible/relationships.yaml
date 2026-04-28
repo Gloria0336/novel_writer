@@ -5,6 +5,7 @@ relationships:
     dynamic: >
       兩人是不可逆的契約共生關係。燼是林遠的救命者、加害者、力量來源與主要危險來源，
       林遠則是燼在現世立足的錨點與食糧。兩人互相需要，但極度缺乏平等與安全感。
+      ch025 起，燼同時成為林遠的隱匿與能力控制入門導師。
     trust_level: 低
     tension: 極高
     conflict_points:
@@ -12,7 +13,9 @@ relationships:
       - 燼習慣以戲弄、威壓與身體主導權控制局面
       - 林遠需要燼的力量與知識，但也懼怕自己對燼產生依賴
       - ch012~15 後兩人的關係加入明確的進食與性支配層面，情緒更複雜
-    last_updated_in: ch019
+      - ch023~25 後，林遠理解若不接受燼的教學，將同時面對妖魔捕食與獵魔殿淨化風險
+      - 燼的治癒與照顧會短暫降低林遠敵意，但也加深「被照料即被掌控」的不安
+    last_updated_in: ch025
 
   - pair:
       - lin-yuan
@@ -33,13 +36,15 @@ relationships:
       - su-lin
     dynamic: >
       新上司與新人的初始接觸。蘇臨對林遠抱持高度好奇與友善熱情，
-      林遠則在陌生環境中本能保持禮貌與戒備。
-    trust_level: 低到中
-    tension: 低
+      林遠則在陌生環境中本能保持禮貌與戒備。ch020 後，兩人開始圍繞紙本檔案、
+      異常聲源座標與資料整理形成工作協作。
+    trust_level: 中
+    tension: 低到中
     conflict_points:
       - 蘇臨對林遠外貌與性別落差感到意外
       - 林遠尚未判斷淵聲研究所是否安全
-    last_updated_in: ch019
+      - 蘇臨已指出阿爾迪爾異常聲源集中，林遠不確定她究竟知道多少
+    last_updated_in: ch020
 
   - pair:
       - lin-yuan
@@ -53,3 +58,28 @@ relationships:
       - 所長的言行與目光帶有侵略性
       - 林遠無法判斷對方是單純油滑，還是已察覺自己身上的異常
     last_updated_in: ch019
+
+  - pair:
+      - lin-yuan
+      - hunter-hall-nun
+    dynamic: >
+      尚未正面接觸。修女在便利商店事件後抵達現場，已察覺並記錄林遠留下的強烈淵念痕跡。
+    trust_level: 無
+    tension: 高
+    conflict_points:
+      - 林遠不知道獵魔殿現場人員已經接觸便利商店事件
+      - 修女無法立刻判斷那股淵念來自除魔師還是更強妖魔
+      - 若追查到林遠，可能引發淨化、審問或監管風險
+    last_updated_in: ch022
+
+  - pair:
+      - lin-yuan
+      - hunter-hall-monk
+    dynamic: >
+      尚未正面接觸。和尚與修女一同進行便利商店事件善後，代表獵魔殿的宗教混編行動模式。
+    trust_level: 無
+    tension: 高
+    conflict_points:
+      - 和尚參與現場清理，可能掌握林遠戰鬥留下的痕跡
+      - 林遠目前只從燼口中得知獵魔殿危險，尚未直接面對其成員
+    last_updated_in: ch022

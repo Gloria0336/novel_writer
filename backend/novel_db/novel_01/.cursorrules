@@ -31,6 +31,7 @@
 8. 若使用新術語，請與既有命名風格保持一致，避免同義混用。
 9. 若當前章節不是情慾重點章，優先寫壓抑、偽裝、懸疑、社交風險與異象滲透感，不要硬塞高強度親密戲。
 
+# 章節回顧檢查
 每次寫完章節後，你必須：
 1. 更新 `/context/last-chapter-summary.md`。
 2. 依需要建議更新 `bible/characters.yaml`、`bible/location.yaml`、`plot-threads.yaml`、`timeline.yaml`、`worldbuilding.md`。

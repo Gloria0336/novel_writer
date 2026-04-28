@@ -51,7 +51,7 @@ locations:
     region: 阿爾迪爾市區
     first_appearance: ch002
     summary: >
-      林遠醒來後發現變身、與燼同居、發生第一次靈力失控與第一次陰陽調和的核心場景。
+      林遠醒來後發現變身、與燼同居、發生靈力失控、陰陽調和與能力訓練的核心場景。
     atmosphere:
       - 私密
       - 壓迫
@@ -59,6 +59,7 @@ locations:
     narrative_functions:
       - 角色心理崩潰與重整的主舞台
       - 林遠與燼關係快速升溫又失衡的密閉空間
+      - 燼向林遠說明獵魔殿風險、治癒術與隱匿基礎的教學場域
 
   - id: ad-agency-office
     name: ADC 廣告公司
@@ -129,6 +130,7 @@ locations:
     summary: >
       對外是掛在民俗文化保存協會相關體系下、研究超自然事件並尋求資料整合的單位。
       實體空間老舊低調，仍大量依賴紙本檔案與人工整理資料。
+      ch020 顯示部分紙本字跡帶有「念」，會干擾普通 OCR 掃描辨識。
     atmosphere:
       - 低調
       - 老派
@@ -140,3 +142,56 @@ locations:
     continuity_notes:
       - ch018 先從公開資料與外派通知登場
       - ch019 才首次讓林遠實際進入內部空間與接觸蘇臨、所長
+      - ch020 開始讓林遠接觸異常聲波、座標與「聲源」集中趨勢資料
+
+  - id: late-night-noodle-stall
+    name: 深夜老麵攤
+    type: 巷弄小吃攤
+    region: 林遠住處附近
+    first_appearance: ch021
+    summary: >
+      林遠在週五深夜工作疲憊後外出吃宵夜的老舊麵攤，只有幾張小桌，
+      以熱湯麵、大骨湯香與蒸騰白煙提供短暫日常慰藉。
+    atmosphere:
+      - 市井
+      - 溫熱
+      - 短暫安全感
+    narrative_functions:
+      - 對比隨後湖邊妖魔襲擊的冷濕恐怖
+      - 強化林遠仍努力抓住普通生活節奏的日常感
+
+  - id: lakefront-park
+    name: 湖邊公園
+    type: 都市公園
+    region: 林遠住處附近
+    first_appearance: ch021
+    summary: >
+      白天是親子活動場所，午夜後路燈閃爍、湖面生出腥臭白霧。
+      林遠在此遭遇三隻水棲低階妖魔追襲。
+    atmosphere:
+      - 冷濕
+      - 魚腥
+      - 白霧
+      - 日常場域異化
+    narrative_functions:
+      - 第二次妖魔襲擊起點
+      - 顯示林遠即使在普通市區休閒場所也會被妖魔鎖定
+
+  - id: convenience-store-incident-site
+    name: 便利商店事件現場
+    type: 便利商店
+    region: 湖邊公園附近
+    first_appearance: ch022
+    summary: >
+      林遠逃離湖邊妖魔後闖入的燈火通明便利商店。
+      妖魔在此造成店員重傷與店內混亂，林遠以銀色淵念覆蓋掃帚反殺三隻妖魔；
+      事後疑似獵魔殿修女與和尚搭檔抵達現場善後。
+    atmosphere:
+      - 明亮日常被撕裂
+      - 血腥
+      - 監視器與目擊者壓力
+      - 超自然善後
+    narrative_functions:
+      - 林遠首次主動調動淵念附著物件戰鬥
+      - 獵魔殿正式進入公開 canon
+      - 把妖魔危機與世俗法律、監控、目擊者問題連接起來

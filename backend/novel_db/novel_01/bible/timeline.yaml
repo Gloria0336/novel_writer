@@ -139,9 +139,82 @@ timeline:
     event: 林遠首次抵達舊城區的淵聲研究所，認識蘇臨並與所長碰面，確認自己將接手紙本資料整理與數位化前置工作。
     state_change: 淵聲研究所線正式開啟，林遠進入全新的人際與情報環境。
 
+  - day: 2025/10/21 (Tuesday) to 2025/10/24 (Friday)
+    time_of_day: 工作日白天至週五傍晚
+    chapter: ch020
+    location_id: abyss-echo-research-institute
+    event: 林遠在研究所整理大量帶有「念」的異常聲波紙本檔案，蘇臨指出阿爾迪爾近兩年的異常「聲源」越來越集中，像有什麼正在醒來。
+    state_change: 林遠開始正式接觸研究所情報內容，研究所線從職場適應推進到城市異常線索。
+
+  - day: 2025/10/24 (Friday)
+    time_of_day: 傍晚返家後
+    chapter: ch020
+    location_id: lin-yuan-apartment
+    event: 林遠結束一週資料地獄後回家，燼宣稱自己找到工作，並暗示之後會以另一種方式與林遠再見。
+    state_change: 燼的外部行動轉為明確伏筆，可能和林遠新工作場域交會。
+
+  - day: 2025/10/24 (Friday)
+    time_of_day: 深夜
+    chapter: ch021
+    location_id: late-night-noodle-stall
+    event: 林遠疲憊外出吃熱湯麵補充熱量，短暫找回普通生活感。
+    state_change: 深夜日常場景成為第二次妖魔事件的前奏。
+
+  - day: 2025/10/24 (Friday)
+    time_of_day: 午夜前後
+    chapter: ch021
+    location_id: lakefront-park
+    event: 林遠在湖邊公園遭遇白霧、魚腥味與三隻水棲低階妖魔襲擊，靠本能銀光防護甩開怪物並逃向便利商店。
+    state_change: 林遠再次被妖魔鎖定，確認自身吸引力與危險範圍正在擴大。
+
+  - day: 2025/10/24 (Friday)
+    time_of_day: 深夜稍後
+    chapter: ch022
+    location_id: convenience-store-incident-site
+    event: 水棲妖魔追入便利商店，造成店員重傷與店內恐慌；林遠在燼的遠端提示後調動淵念，將銀光覆蓋掃帚並斬殺妖魔。
+    state_change: 林遠首次主動將淵念附著於物件戰鬥，但也在世俗現場留下大量異常痕跡。
+
+  - day: 2025/10/24 (Friday)
+    time_of_day: 深夜事件後
+    chapter: ch022
+    location_id: convenience-store-incident-site
+    event: 未具名修女與和尚抵達現場，判斷妖魔為化形期初期，並準備呼叫善後組進行急救與目擊者認知重建。
+    state_change: 獵魔殿體系首次在正文登場，林遠的淵念痕跡成為潛在追查線索。
+
+  - day: 2025/10/24 (Friday)
+    time_of_day: 深夜返家後
+    chapter: ch023
+    location_id: lin-yuan-apartment
+    event: 林遠慌亂返家，燼說明獵魔殿會處理超自然事故、清場、干預監控與洗腦目擊者，並警告契約者可能被視為墮落者淨化。
+    state_change: 林遠的威脅來源從妖魔擴大到超自然秩序本身。
+
+  - day: 2025/10/24 (Friday) to 2025/10/25 (Saturday)
+    time_of_day: 深夜至凌晨
+    chapter: ch024
+    location_id: lin-yuan-apartment
+    event: 戰鬥後陰陽失衡再次爆發，林遠與燼完成第二次完整陰陽調和。
+    state_change: 契約依賴與身體代價加深，林遠的肉體成長再次被推動。
+
+  - day: 2025/10/25 (Saturday)
+    time_of_day: 早上
+    chapter: ch025
+    location_id: lin-yuan-apartment
+    event: 林遠醒來後全身疼痛，燼餵早餐並以治癒術緩解疼痛；林遠發現胸口與身形再次成長。
+    state_change: 第二次調和後的身體成長被林遠主動歸納成規律，日常偽裝壓力進一步增加。
+
+  - day: 2025/10/25 (Saturday)
+    time_of_day: 早上稍後
+    chapter: ch025
+    location_id: lin-yuan-apartment
+    event: 林遠與燼討論獵魔殿風險，並在燼指導下第一次看見自己外洩的淵念，學會收束一小段氣息。
+    state_change: 林遠正式進入能力訓練期，從被動逃生轉向有限度的主動隱匿與自保。
+
 continuity_notes:
   - >
     章節內已明確標出 ch018 為 2025/10/19（星期日）、ch019 為 2025/10/20（星期一），
+    ch020 覆蓋 2025/10/21（星期二）至 2025/10/24（星期五），
+    ch021~24 主要集中於 2025/10/24（星期五）深夜，
+    ch025 為 2025/10/25（星期六）早上。
     故前序事件需回推為 2025/10/16（星期四）雨夜起始、10/17（星期五）公司與狼妖事件、10/18（星期六）購物日。
   - >
     ch012~15 與 ch016 間不存在明顯跳日，應視為 10/17 深夜延續至 10/18 清晨。
