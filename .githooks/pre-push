@@ -1,0 +1,10 @@
+#!/usr/bin/env sh
+set -e
+
+node backend/novel_db/flatten.mjs
+
+if [ -n "$(git status --porcelain -uall -- backend/novel_db/_exports)" ]; then
+  echo "Flatten exports are out of date. Commit backend/novel_db/_exports before pushing." >&2
+  git status --short -uall -- backend/novel_db/_exports >&2
+  exit 1
+fi

@@ -51,6 +51,7 @@ export interface RepoCommitResult {
   commitSha: string;
   pushed: boolean;
   pushedBranch?: string;
+  generatedFiles?: string[];
 }
 
 export interface WorkspaceConfig {

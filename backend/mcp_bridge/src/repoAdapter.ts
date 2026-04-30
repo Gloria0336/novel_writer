@@ -10,6 +10,8 @@ const execFileAsync = promisify(execFile);
 
 const WORKSPACE_ROOT = resolve(process.cwd(), "..", "..");
 const NOVEL_DB_ROOT = resolve(WORKSPACE_ROOT, "backend", "novel_db");
+const FLATTEN_SCRIPT_PATH = "backend/novel_db/flatten.mjs";
+const FLATTEN_OUTPUT_DIR = "backend/novel_db/_exports";
 
 export class RepoAuthError extends Error {}
 export class RepoConflictError extends Error {}
@@ -111,6 +113,30 @@ async function canResolveGit(args: string[]): Promise<boolean> {
   }
 }
 
+async function runFlattenExport(): Promise<string[]> {
+  try {
+    await execFileAsync("node", [FLATTEN_SCRIPT_PATH], {
+      cwd: WORKSPACE_ROOT,
+      windowsHide: true,
+    });
+  } catch (error) {
+    const failure = error as GitFailure;
+    const message = failure.stderr?.trim() || failure.stdout?.trim() || `node ${FLATTEN_SCRIPT_PATH} failed.`;
+    throw new Error(message);
+  }
+
+  const statusResult = await runGit(["status", "--porcelain", "-uall", "--", FLATTEN_OUTPUT_DIR]);
+  if (!statusResult.stdout) {
+    return [];
+  }
+
+  return statusResult.stdout
+    .split(/\r?\n/)
+    .map((line) => line.slice(3).trim())
+    .filter((line) => line.length > 0)
+    .map((line) => line.replace(/^"|"$/g, ""));
+}
+
 export class LocalFsRepoAdapter implements RepoAdapter {
   readonly name = "local-fs";
 
@@ -183,13 +209,15 @@ export class LocalFsRepoAdapter implements RepoAdapter {
       projectPaths.push(file.path);
     }
 
-    const statusResult = await runGit(["status", "--porcelain", "--", ...projectPaths]);
+    const generatedFiles = await runFlattenExport();
+    const commitPaths = [...new Set([...projectPaths, ...generatedFiles])];
+    const statusResult = await runGit(["status", "--porcelain", "--", ...commitPaths]);
     if (!statusResult.stdout) {
       throw new Error("No git changes were detected for the selected files.");
     }
 
-    await runGit(["add", "--", ...projectPaths]);
-    await runGit(["commit", "-m", params.message, "--only", "--", ...projectPaths]);
+    await runGit(["add", "--", ...commitPaths]);
+    await runGit(["commit", "-m", params.message, "--only", "--", ...commitPaths]);
     const commitSha = (await runGit(["rev-parse", "HEAD"])).stdout;
 
     if (params.push) {
@@ -205,6 +233,7 @@ export class LocalFsRepoAdapter implements RepoAdapter {
       commitSha,
       pushed: Boolean(params.push),
       pushedBranch: params.push ? params.repoRef.branch : undefined,
+      generatedFiles,
     };
   }
 }

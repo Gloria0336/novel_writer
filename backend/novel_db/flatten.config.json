@@ -1,0 +1,18 @@
+{
+  "version": 1,
+  "targets": ["novel_01", "novel_02_random", "novel_03_dream"],
+  "sourceRoot": "backend/novel_db",
+  "outputDir": "backend/novel_db/_exports",
+  "outputSuffix": ".flatten.md",
+  "includeExtensions": [".md", ".yaml", ".yml", ".json", ".txt"],
+  "exclude": {
+    "dirs": ["private", "temp", "_exports"],
+    "filenames": [],
+    "novelDirs": ["_template", "novel_00"]
+  },
+  "sectionOrder": [".cursorrules", "README.md", "context", "outline", "bible", "chapters", "scripts"],
+  "secretHandling": {
+    "includeSecretsLockbox": true,
+    "notice": "context/secrets-lockbox.md contains author/director-only unrevealed planning. Treat it as independent hidden knowledge, not public canon or character-known information."
+  }
+}

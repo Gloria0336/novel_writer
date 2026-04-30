@@ -75,6 +75,7 @@ export interface CommitResult {
   commitSha: string;
   pushed: boolean;
   pushedBranch?: string;
+  generatedFiles?: string[];
 }
 
 export interface AiChatRequest {

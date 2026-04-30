@@ -1,0 +1,5 @@
+#!/usr/bin/env sh
+set -e
+
+node backend/novel_db/flatten.mjs
+git add -- backend/novel_db/_exports

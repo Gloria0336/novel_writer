@@ -428,11 +428,13 @@ function ConsoleApp() {
         );
 
         resetCommitDraft(resolvedRepoConfig.branch);
+        const generatedCount = result.generatedFiles?.length ?? 0;
+        const generatedText = generatedCount > 0 ? ` Flatten exports updated: ${generatedCount}.` : "";
         setCommitFeedback({
           tone: "success",
           message: result.pushed
-            ? `Committed and pushed ${includedDrafts.length} files to ${result.pushedBranch ?? resolvedRepoConfig.branch}.`
-            : `Committed ${includedDrafts.length} files locally.`,
+            ? `Committed and pushed ${includedDrafts.length} files to ${result.pushedBranch ?? resolvedRepoConfig.branch}.${generatedText}`
+            : `Committed ${includedDrafts.length} files locally.${generatedText}`,
         });
       } catch (error) {
         setCommitFeedback({
