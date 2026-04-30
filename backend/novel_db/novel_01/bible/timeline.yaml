@@ -209,6 +209,27 @@ timeline:
     event: 林遠與燼討論獵魔殿風險，並在燼指導下第一次看見自己外洩的淵念，學會收束一小段氣息。
     state_change: 林遠正式進入能力訓練期，從被動逃生轉向有限度的主動隱匿與自保。
 
+  - day: 2025/10/27 (Monday)
+    time_of_day: 早上
+    chapter: ch026
+    location_id: lin-yuan-apartment
+    event: 林遠準備週一上班時，發現第二次調和後的身體成長讓上週襯衫明顯緊繃，因焦慮導致隱匿短暫破功並被燼嘲諷。
+    state_change: 林遠確認身體變化已進一步影響職場偽裝，隱匿必須在日常壓力中維持而非只在家中練習。
+
+  - day: 2025/10/27 (Monday)
+    time_of_day: 上午至中午
+    chapter: ch026
+    location_id: abyss-echo-research-institute
+    event: 林遠回到淵聲研究所，蘇臨察覺他氣色變化；林遠整理湖區異常資料時，看見都市親子公園、環湖步道與便利商店事件相關紀錄，隨後被蘇臨臨時帶去外勤。
+    state_change: 研究所正式開始接觸便利商店事件相關區域，林遠必須在工作流程中隱藏自己就是事件中心人物。
+
+  - day: 2025/10/27 (Monday)
+    time_of_day: 中午後
+    chapter: ch026
+    location_id: lakefront-park
+    event: 林遠與蘇臨前往都市親子公園調查上週五湖區異常，燼以淵聲研究所顧問身份現身，判斷水性妖魔已被殺死且現場被善後過，並指出湖區底下的異常不是剛開始。
+    state_change: 燼的新工作正式揭曉並侵入林遠工作場域；湖區異常被推進為可能另有源頭的主線線索。
+
 continuity_notes:
   - >
     章節內已明確標出 ch018 為 2025/10/19（星期日）、ch019 為 2025/10/20（星期一），

@@ -167,7 +167,8 @@ locations:
     first_appearance: ch021
     summary: >
       白天是親子活動場所，午夜後路燈閃爍、湖面生出腥臭白霧。
-      林遠在此遭遇三隻水棲低階妖魔追襲。
+      林遠在此遭遇三隻水棲低階妖魔追襲。ch026 中，蘇臨帶林遠重返白天的公園外勤調查，
+      燼以淵聲研究所顧問身份判斷妖魔已死、現場被善後過，且湖區底下仍有低頻異常聲音。
     atmosphere:
       - 冷濕
       - 魚腥
@@ -176,6 +177,7 @@ locations:
     narrative_functions:
       - 第二次妖魔襲擊起點
       - 顯示林遠即使在普通市區休閒場所也會被妖魔鎖定
+      - ch026 起成為研究所外勤調查與燼顧問身份揭曉的現場
 
   - id: convenience-store-incident-site
     name: 便利商店事件現場

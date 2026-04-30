@@ -77,10 +77,10 @@ open_threads:
     likely_payoff_window: 近期
 
   - id: jin-new-job
-    hook: 燼在 ch020 宣稱自己找到工作，並暗示會以另一種方式與林遠再見。
+    hook: 燼在 ch020 宣稱自己找到工作，並暗示會以另一種方式與林遠再見；ch026 正式以淵聲研究所顧問身份出現在湖區外勤現場。
     introduced_in: ch020
-    status: emerging
-    stakes: 若燼的新工作與淵聲研究所或獵魔殿相關，林遠的職場安全邊界會被進一步打破。
+    status: active
+    stakes: 燼已進入林遠的新工作場域，林遠的私人生活、契約訓練與研究所職場邊界被進一步打破。
     likely_payoff_window: 近期
 
   - id: hunter-hall-threat
@@ -91,14 +91,14 @@ open_threads:
     likely_payoff_window: 近期到中篇
 
   - id: lake-demon-incident
-    hook: ch021~22 的湖邊公園與便利商店事件中，三隻水棲低階妖魔明確追著林遠行動。
+    hook: ch021~22 的湖邊公園與便利商店事件中，三隻水棲低階妖魔明確追著林遠行動；ch026 顯示湖區殘留被處理得過於乾淨，且妖魔可能只是被引出來的表層現象。
     introduced_in: ch021
-    status: open
-    stakes: 這次襲擊可能只是林遠氣息外洩引來的偶發捕食，也可能與阿爾迪爾異常聲源集中、舊城區污染或更大妖魔活躍有關。
+    status: active
+    stakes: 這次襲擊可能只是林遠氣息外洩引來的偶發捕食，也可能與阿爾迪爾異常聲源集中、舊城區污染或更大妖魔活躍有關；若源頭不在湖中，公園可能只是更大異常的外圍反應。
     likely_payoff_window: 近期
 
   - id: stealth-training
-    hook: ch025 林遠在燼指導下第一次看見並收束外洩淵念，但只成功一小段。
+    hook: ch025 林遠在燼指導下第一次看見並收束外洩淵念，但只成功一小段；ch026 顯示他在外貌焦慮、職場觀察與現場調查刺激下仍會破功，但已能勉強把外洩收回。
     introduced_in: ch025
     status: active
     stakes: 隱匿訓練決定林遠能否在研究所、獵魔殿與妖魔之間維持最低生存空間。
