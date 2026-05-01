@@ -42,7 +42,7 @@ context/secrets-lockbox.md contains author/director-only unrevealed planning. Tr
 
 <!-- file_path: backend/novel_db/novel_02_random/.cursorrules -->
 
-```text
+`$language
 你是 `novel_02_random` 的長篇小說協作助理。
 
 在執行任何寫作任務前，你必須：
@@ -68,7 +68,7 @@ context/secrets-lockbox.md contains author/director-only unrevealed planning. Tr
 
 <!-- file_path: backend/novel_db/novel_02_random/README.md -->
 
-```markdown
+`$language
 # Random
 
 - `Novel ID`: `novel_02`
@@ -124,8 +124,8 @@ context/secrets-lockbox.md contains author/director-only unrevealed planning. Tr
 
 <!-- file_path: backend/novel_db/novel_02_random/context/CONTEXT.md -->
 
-```markdown
-﻿# Novel Context Compression (AI Injection Summary)
+`$language
+# Novel Context Compression (AI Injection Summary)
 > [!IMPORTANT]
 > 這是《Random》每次寫作前的核心摘要，用來維持長篇連貫性。內容應對齊最新 canon，並在章節累積後持續壓縮。
 
@@ -158,8 +158,8 @@ context/secrets-lockbox.md contains author/director-only unrevealed planning. Tr
 
 <!-- file_path: backend/novel_db/novel_02_random/context/last-chapter-summary.md -->
 
-```markdown
-﻿## Last Chapter Summary: planned
+`$language
+## Last Chapter Summary: planned
 
 - **章節功能**: 這一章在整體故事裡完成了什麼功能。
 - **主要事件**:
@@ -178,7 +178,7 @@ context/secrets-lockbox.md contains author/director-only unrevealed planning. Tr
 
 > Secret handling: this section contains author/director-only unrevealed planning. Treat it as independent hidden knowledge, not public canon or character-known information.
 
-```markdown
+`$language
 # Secrets Lockbox
 > [!IMPORTANT]
 > 這是作者與 AI 的保密工作檔，只記錄「尚未在正文正式揭露」的資訊。這些內容不能被角色無端知道、不能被旁白提前說破，也不應直接寫回公開 canon。
@@ -229,8 +229,8 @@ context/secrets-lockbox.md contains author/director-only unrevealed planning. Tr
 
 <!-- file_path: backend/novel_db/novel_02_random/outline/act1.md -->
 
-```markdown
-﻿# Act 1 Notes
+`$language
+# Act 1 Notes
 
 ## 本幕已成立的核心功能
 
@@ -259,8 +259,8 @@ context/secrets-lockbox.md contains author/director-only unrevealed planning. Tr
 
 <!-- file_path: backend/novel_db/novel_02_random/outline/master-outline.yaml -->
 
-```yaml
-﻿canon_outline:
+`$language
+canon_outline:
   project_status: planning
   current_chapter: planned
   current_endpoint: 尚未開始正文
@@ -299,7 +299,7 @@ speculative_long_arc:
 
 <!-- file_path: backend/novel_db/novel_02_random/bible/characters.yaml -->
 
-```yaml
+`$language
 characters:
   - id: mountain-hunter
     name: 山獵人
@@ -588,7 +588,7 @@ characters:
 
 <!-- file_path: backend/novel_db/novel_02_random/bible/demonology.yaml -->
 
-```yaml
+`$language
 demonology:
   id: demonkind
   name: 魔族
@@ -1071,7 +1071,7 @@ subtypes:
 
 <!-- file_path: backend/novel_db/novel_02_random/bible/inner_setting.yaml -->
 
-```yaml
+`$language
 inner_settings:
 
   - id: aella-flair
@@ -1092,7 +1092,7 @@ inner_settings:
 
 <!-- file_path: backend/novel_db/novel_02_random/bible/location.yaml -->
 
-```yaml
+`$language
 locations:
   - id: starborne-flat-world
     name: 漂浮於無盡星空之上的平面大陸
@@ -1415,7 +1415,7 @@ locations:
 
 <!-- file_path: backend/novel_db/novel_02_random/bible/organizations.yaml -->
 
-```yaml
+`$language
 organizations:
   - id: adventurers-guild
     name: 冒險者公會
@@ -1596,7 +1596,7 @@ organization_units:
 
 <!-- file_path: backend/novel_db/novel_02_random/bible/plot-threads.yaml -->
 
-```yaml
+`$language
 open_threads:
   - id: dark-dimension-infiltration
     hook: 黑暗次元已進入滲透初期，但各勢力因政治算計選擇沉默。
@@ -1653,7 +1653,7 @@ open_threads:
 
 <!-- file_path: backend/novel_db/novel_02_random/bible/relationships.yaml -->
 
-```yaml
+`$language
 relationships:
   - pair:
       - mountain-hunter
@@ -1740,7 +1740,7 @@ relationships:
 
 <!-- file_path: backend/novel_db/novel_02_random/bible/species.yaml -->
 
-```yaml
+`$language
 species:
   - id: human
     name: 人類
@@ -2110,7 +2110,7 @@ shared_culture:
 
 <!-- file_path: backend/novel_db/novel_02_random/bible/timeline.yaml -->
 
-```yaml
+`$language
 timeline:
   - day: 太古之初
     time_of_day: 神話時代
@@ -2203,7 +2203,7 @@ continuity_notes:
 
 <!-- file_path: backend/novel_db/novel_02_random/bible/worldbuilding.md -->
 
-```markdown
+`$language
 # Worldbuilding
 
 > [!IMPORTANT]
@@ -2372,7 +2372,7 @@ continuity_notes:
 
 <!-- file_path: backend/novel_db/novel_02_random/chapters/ch001.md -->
 
-```markdown
+`$language
 # 短篇一：山獵人
 
 - `pov: 全知`
@@ -2491,7 +2491,7 @@ continuity_notes:
 
 <!-- file_path: backend/novel_db/novel_02_random/chapters/ch002.md -->
 
-```markdown
+`$language
 # 艾瑟蘭皇室的一天
 
 * ` - 盟約曆 2256 年 10 月 1 日，週三`
@@ -2767,7 +2767,7 @@ continuity_notes:
 
 <!-- file_path: backend/novel_db/novel_02_random/chapters/ch003.md -->
 
-```markdown
+`$language
 ## 空騎團內部回顧報告
 
 **檔案編號**：SKR-2254-0101-NF-08/13
@@ -3295,8 +3295,8 @@ continuity_notes:
 
 <!-- file_path: backend/novel_db/novel_02_random/chapters/README.md -->
 
-```markdown
-﻿# Chapters
+`$language
+# Chapters
 
 - 這個資料夾只放正文章節。
 - 建議使用固定命名格式：`ch001.md`、`ch002.md`、`ch003.md`。
@@ -3317,7 +3317,7 @@ continuity_notes:
 
 <!-- file_path: backend/novel_db/novel_02_random/scripts/consistency-check.md -->
 
-```markdown
+`$language
 # 一致性檢查 (Consistency Check) Prompt
 
 請根據目前的章節草稿 `chXXX.md`，比對本專案 `bible/` 與 `outline/` 中的設定，確認以下重點：
@@ -3338,7 +3338,7 @@ continuity_notes:
 
 <!-- file_path: backend/novel_db/novel_02_random/scripts/update-bible.md -->
 
-```markdown
+`$language
 # 更新 Bible 指引
 
 當章節 `chXXX.md` 寫完後，請執行以下作業：

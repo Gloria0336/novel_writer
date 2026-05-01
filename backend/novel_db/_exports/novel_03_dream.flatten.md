@@ -38,7 +38,7 @@ context/secrets-lockbox.md contains author/director-only unrevealed planning. Tr
 
 <!-- file_path: backend/novel_db/novel_03_dream/.cursorrules -->
 
-```text
+`$language
 你是 `novel_03_dream` 的長篇小說協作助理。
 
 本作定位：
@@ -67,7 +67,7 @@ context/secrets-lockbox.md contains author/director-only unrevealed planning. Tr
 
 <!-- file_path: backend/novel_db/novel_03_dream/README.md -->
 
-```markdown
+`$language
 # Dream
 
 - `Novel ID`: `novel_03`
@@ -107,7 +107,7 @@ context/secrets-lockbox.md contains author/director-only unrevealed planning. Tr
 
 <!-- file_path: backend/novel_db/novel_03_dream/context/CONTEXT.md -->
 
-```markdown
+`$language
 # Novel Context Compression (AI Injection Summary)
 > [!IMPORTANT]
 > 這是《Dream》每次寫作前的核心摘要，用來維持長篇連貫性。內容應對齊最新 canon，並在章節累積後持續壓縮。
@@ -144,7 +144,7 @@ context/secrets-lockbox.md contains author/director-only unrevealed planning. Tr
 
 <!-- file_path: backend/novel_db/novel_03_dream/context/last-chapter-summary.md -->
 
-```markdown
+`$language
 ## Last Chapter Summary: ch002
 
 - **章節功能**: 正式揭露這個故事中的異常不是單純廢墟，而是可被回收的夢境縫隙，並讓主角完成第一個具體任務。
@@ -165,7 +165,7 @@ context/secrets-lockbox.md contains author/director-only unrevealed planning. Tr
 
 > Secret handling: this section contains author/director-only unrevealed planning. Treat it as independent hidden knowledge, not public canon or character-known information.
 
-```markdown
+`$language
 # Secrets Lockbox
 > [!IMPORTANT]
 > 這是《novel_03_dream》作者與 AI 的保密工作檔，只記錄尚未在正文正式揭露的資訊。這些內容不能被角色無端知道、不能被旁白提前說破，也不應直接寫回公開 canon。
@@ -203,7 +203,7 @@ context/secrets-lockbox.md contains author/director-only unrevealed planning. Tr
 
 <!-- file_path: backend/novel_db/novel_03_dream/outline/act1.md -->
 
-```markdown
+`$language
 # Act 1 Notes
 
 ## 本幕已成立的核心功能
@@ -236,7 +236,7 @@ context/secrets-lockbox.md contains author/director-only unrevealed planning. Tr
 
 <!-- file_path: backend/novel_db/novel_03_dream/outline/master-outline.yaml -->
 
-```yaml
+`$language
 canon_outline:
   project_status: drafting
   current_chapter: ch002
@@ -306,7 +306,7 @@ speculative_long_arc:
 
 <!-- file_path: backend/novel_db/novel_03_dream/bible/characters.yaml -->
 
-```yaml
+`$language
 characters:
   - id: protagonist
     name: 安
@@ -364,7 +364,7 @@ characters:
 
 <!-- file_path: backend/novel_db/novel_03_dream/bible/location.yaml -->
 
-```yaml
+`$language
 locations:
   - id: monitoring-station
     name: 主角的監測據點
@@ -463,7 +463,7 @@ locations:
 
 <!-- file_path: backend/novel_db/novel_03_dream/bible/plot-threads.yaml -->
 
-```yaml
+`$language
 open_threads:
   - id: dwindling-city
     hook: 這座城市的人口為何是在沒有戰爭與災難斷裂的情況下慢慢消失？
@@ -500,7 +500,7 @@ open_threads:
 
 <!-- file_path: backend/novel_db/novel_03_dream/bible/relationships.yaml -->
 
-```yaml
+`$language
 relationships: []
 ```
 
@@ -510,7 +510,7 @@ relationships: []
 
 <!-- file_path: backend/novel_db/novel_03_dream/bible/timeline.yaml -->
 
-```yaml
+`$language
 timeline:
   - day: Day 837
     time_of_day: 早晨
@@ -553,7 +553,7 @@ continuity_notes:
 
 <!-- file_path: backend/novel_db/novel_03_dream/bible/worldbuilding.md -->
 
-```markdown
+`$language
 # Worldbuilding
 
 > [!IMPORTANT]
@@ -588,7 +588,7 @@ continuity_notes:
 
 <!-- file_path: backend/novel_db/novel_03_dream/chapters/ch000.md -->
 
-```markdown
+`$language
 # 序章
 
 - `pov: 第三人稱近距 / 安`
@@ -646,7 +646,7 @@ continuity_notes:
 
 <!-- file_path: backend/novel_db/novel_03_dream/chapters/ch001.md -->
 
-```markdown
+`$language
 # 第一章｜夢景（暫定）
 
 - `pov: 第三人稱近距 / 安`
@@ -740,7 +740,7 @@ continuity_notes:
 
 <!-- file_path: backend/novel_db/novel_03_dream/chapters/ch002.md -->
 
-```markdown
+`$language
 # 第二章｜鯨魚布偶
 
 - `pov: 第三人稱近距 / 安`
@@ -844,7 +844,7 @@ continuity_notes:
 
 <!-- file_path: backend/novel_db/novel_03_dream/chapters/README.md -->
 
-```markdown
+`$language
 # Chapters
 
 - 這個資料夾只放正文章節。
@@ -866,7 +866,7 @@ continuity_notes:
 
 <!-- file_path: backend/novel_db/novel_03_dream/scripts/consistency-check.md -->
 
-```markdown
+`$language
 # 一致性檢查 (Consistency Check) Prompt
 
 請根據目前的章節草稿 `chXXX.md`，比對本專案 `bible/` 與 `outline/` 中的設定，確認以下重點：
@@ -887,7 +887,7 @@ continuity_notes:
 
 <!-- file_path: backend/novel_db/novel_03_dream/scripts/update-bible.md -->
 
-```markdown
+`$language
 # 更新 Bible 指引
 
 當章節 `chXXX.md` 寫完後，請執行以下作業：
