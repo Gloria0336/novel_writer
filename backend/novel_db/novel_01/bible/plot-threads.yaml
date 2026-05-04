@@ -56,14 +56,14 @@ open_threads:
     likely_payoff_window: 近期到中篇
 
   - id: yuansheng-institute-mystery
-    hook: 淵聲研究所雖已公開露出表面身分與工作內容，但對外資訊依然稀少，工作流程極度老派，紙本資料帶有「念」，且異常聲源近年正越來越集中。
+    hook: 淵聲研究所雖已公開露出表面身分與工作內容，但對外資訊依然稀少，工作流程極度老派，紙本資料帶有「念」，且異常聲源近年正越來越集中。ch027~28 顯示研究所與外部神秘訪客有情報往來，且外勤組出現離職、請假與外調造成的人力缺口。
     introduced_in: ch018
     status: active
     stakes: 研究所可能是林遠理解超自然世界的入口，也可能是新的風險中心。
     likely_payoff_window: 近期主線
 
   - id: su-lin-hidden-capability
-    hook: 蘇臨表面上只是熱情行政與資料組組長，但她已能從座標資料指出阿爾迪爾「聲源」集中趨勢，真正情報價值顯然還沒完全浮出來。
+    hook: 蘇臨表面上只是熱情行政與資料組組長，但她已能從座標資料指出阿爾迪爾「聲源」集中趨勢；ch028 她看到林遠建立的異常事件地圖後，意識到可能需要與所長討論是否往上報。
     introduced_in: ch019
     status: active
     stakes: 她若掌握了比表面更多的異常線索，林遠可能會更早被研究所核心注意到。
@@ -77,7 +77,7 @@ open_threads:
     likely_payoff_window: 近期
 
   - id: jin-new-job
-    hook: 燼在 ch020 宣稱自己找到工作，並暗示會以另一種方式與林遠再見；ch026 正式以淵聲研究所顧問身份出現在湖區外勤現場。
+    hook: 燼在 ch020 宣稱自己找到工作，並暗示會以另一種方式與林遠再見；ch026 正式以淵聲研究所顧問身份出現在湖區外勤現場；ch028 顯示他已能透過所長得知林遠外勤安排，並以顧問收入支付房租。
     introduced_in: ch020
     status: active
     stakes: 燼已進入林遠的新工作場域，林遠的私人生活、契約訓練與研究所職場邊界被進一步打破。
@@ -98,8 +98,41 @@ open_threads:
     likely_payoff_window: 近期
 
   - id: stealth-training
-    hook: ch025 林遠在燼指導下第一次看見並收束外洩淵念，但只成功一小段；ch026 顯示他在外貌焦慮、職場觀察與現場調查刺激下仍會破功，但已能勉強把外洩收回。
+    hook: ch025 林遠在燼指導下第一次看見並收束外洩淵念，但只成功一小段；ch026 顯示他在外貌焦慮、職場觀察與現場調查刺激下仍會破功；ch028 時已有微幅進步，但面對東蘇雜貨異香陷阱時仍會被削弱到難以調動淵念。
     introduced_in: ch025
     status: active
     stakes: 隱匿訓練決定林遠能否在研究所、獵魔殿與妖魔之間維持最低生存空間。
     likely_payoff_window: 近期持續
+
+  - id: mysterious-suited-visitor
+    hook: ch027 神秘西裝女人熟門熟路來到淵聲研究所，與所長談及公園、商店、傷者與不明威脅；離開時短暫看向林遠，讓林遠感覺自己被標記。
+    introduced_in: ch027
+    status: active
+    stakes: 她可能代表另一條情報或權力管道，且已注意到林遠；若她與獵魔殿、研究所上層或其他勢力有關，林遠的暴露風險會大幅升高。
+    likely_payoff_window: 近期到中篇
+
+  - id: lin-yuan-data-map
+    hook: ch028 林遠把研究所紙本資料整理成地圖分析系統，發現近三年異常事件強度與頻率升高，分布從港區、舊城區外圍朝市區內部滲入，且疑似沿特定路徑移動。
+    introduced_in: ch028
+    status: active
+    stakes: 這張圖可能把零散案件連成城市級異常擴散主線，也會讓林遠的技術能力被研究所核心更重視。
+    likely_payoff_window: 近期主線
+
+  - id: east-su-grocery-trap
+    hook: ch028 林遠單獨前往天蘇區東蘇雜貨訪談時，發現通報人敘述時間矛盾、店內物品停滯老舊，並被茶香削弱行動力與淵念調動；老人表露想吃掉林遠的捕食意圖。
+    introduced_in: ch028
+    status: active
+    stakes: 林遠首次在沒有燼或蘇臨陪同的外勤中被精準設局，若無法逃脫，將直接驗證燼所說「遲早會被吃掉」的風險。
+    likely_payoff_window: 立即
+
+  - id: aldir-ancient-disaster-geography
+    hook: >
+      阿爾迪爾西北天降坑港灣、天蘇區地底異常、降川水流輸送與各行政區淵念差異，
+      共同指向千年前未被史書如實記錄的城市災變。公開層只知道官方以古代隕石撞擊、
+      地質異常與職業性感知疲勞等說法掩蓋或簡化現象。
+    introduced_in: ch018
+    status: emerging
+    stakes: >
+      淵聲研究所追蹤的異常聲波與「聲源集中」趨勢，可能與城市地形本身的淵念流向有關。
+      一旦港灣、天蘇地底或降川輸送線出現變化，阿爾迪爾的日常區域也可能被異常擴散波及。
+    likely_payoff_window: 中期至長線

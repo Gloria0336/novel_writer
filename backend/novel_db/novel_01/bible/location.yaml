@@ -5,20 +5,263 @@ locations:
     region: 故事主要舞台
     first_appearance: ch001
     summary: >
-      表面上是普通都市，但暗處存在妖魔、結界與除魔師等超自然現象。
-      城市不同區塊的氛圍與危險程度差距極大。
+      中型現代沿岸都市，位於山脈與海灣之間的平原。城市表面與普通都會無異，
+      但暗處存在妖魔、結界、除魔師與淵念異常。西北方近正圓形的天降坑港灣，
+      以及東南方緩慢嵌入市區的麓野丘陵帶，是最鮮明的地理特徵。
+      千年前未被史書如實記錄的災變，至今仍影響地底淵念走向、港灣水體性質與城市異樣感。
     atmosphere:
       - 表層日常
       - 暗處壓抑
       - 夜間危險感強
+      - 現代都市底下埋著古老傷口
     narrative_functions:
       - 讓普通社會與超自然威脅重疊
       - 提供林遠日常身分與異變後求生的雙重場域
+      - 以不同行政區的淵念性質，區分事件危險度與勢力活動空間
+    geography:
+      terrain: 沿岸平原夾在西北港灣與東南山脈之間
+      signature_features:
+        - 西北側直徑約三至四公里的近圓形天降坑港灣
+        - 東南側由山脈向市區滲入的麓野丘陵帶
+        - 從東南山區斜向西北、最終注入港灣的降川
+      hidden_history_public_layer: >
+        官方歷史只承認古代地質異常與城市開發史，未公開說明千年前災變真相。
+        本資料僅保留可公開敘事層，不觸及 secrets-lockbox 內的未揭露真相。
+    administrative_districts:
+      - yanjiang-district
+      - yuankou-district
+      - guyuan-district
+      - luting-district
+      - tiansu-district
+      - jiangchuan-district
+      - anping-district
+      - luye-district
+
+  - id: yanjiang-district
+    name: 晏川區
+    english_name: YANJIANG DISTRICT
+    type: 行政區／商業核心
+    region: 阿爾迪爾市中心
+    first_appearance: ch001
+    function: 商業核心・城市名片
+    road_network: 格狀，街廓整齊，街道寬闊
+    summary: >
+      阿爾迪爾最光鮮的區域，也是外地人對城市的第一印象。
+      主要商業街沿格狀路網延伸，玻璃帷幕大樓與舊式騎樓街面並存，
+      形成同時活在數個年代的視覺感。ADC 廣告公司與市中心百貨商圈都在此區。
+    yuannian_profile:
+      intensity: ★★☆☆☆
+      nature: 人口情緒累積型
+      notes: >
+        背景濃度不高，但人口密集帶來的情緒積累會讓妖魔感知到較高密度的「香味」。
+    atmosphere:
+      - 繁盛
+      - 明亮
+      - 表面平靜
+      - 情緒氣味密集
+    narrative_functions:
+      - 呈現阿爾迪爾的城市名片與正常社會表層
+      - 承載林遠職場與購物商圈等日常壓力場景
+    name_note: 「晏」是平靜虛假的繁盛；「川」呼應格狀路網如水道縱橫。
+
+  - id: yuankou-district
+    name: 淵口區
+    english_name: YUANKOU DISTRICT
+    type: 行政區／工業港灣
+    region: 阿爾迪爾西北港灣
+    first_appearance: null
+    function: 工業港灣・貨運核心・天降坑主體
+    road_network: 沿坑壁弧形展開，內部格狀，舊碼頭段不規則
+    summary: >
+      佔據天降坑港灣核心地帶，是城市最古老的功能區之一。
+      工業碼頭、貨運倉庫、修船廠與魚獲集散市場沿坑壁分布。
+      新舊設施共用破舊基礎建設；越靠近坑底舊碼頭，路網越混亂，死路也越多。
+    yuannian_profile:
+      intensity: ★★★★★
+      nature: 坑底向上溢出型，陰性沉積，夜間加劇
+      notes: >
+        港灣水體夜間會升起微白薄霧與低頻聲響。工人稱之為「港鳴」，
+        離職後仍可能出現幻聽後遺症。淵聲研究所案例中，
+        「港口集體幻聽」是高頻事件分類。
+    atmosphere:
+      - 工業壓迫
+      - 潮濕暗藍
+      - 港鳴
+      - 舊碼頭迷路感
+    narrative_functions:
+      - 承載天降坑與港灣淵念的主要異常來源
+      - 作為工業、貨運與古災變殘響重疊的場域
+    name_note: 「淵」呼應淵念根源地；「口」是港口入口，也是坑底對外的缺口。
+
+  - id: guyuan-district
+    name: 古垣區
+    english_name: GUYUAN DISTRICT
+    type: 行政區／舊城
+    region: 阿爾迪爾舊城地帶
+    first_appearance: ch019
+    function: 舊城・有機聚落・淵聲研究所所在
+    road_network: 有機蔓延，小巷迷宮，多丁字路與袋狀死巷
+    summary: >
+      阿爾迪爾被現代城市發展刻意遺忘的部分。巷弄按數百年居住習慣自然生長，
+      像沒有中心點的網狀迷宮。建築年代橫跨數個世代，磁磚、紅磚、波浪板與鐵皮加蓋
+      粗糙縫合在一起。居民對外來者帶有一致性的低強度敵意，夜間尤其明顯。
+    yuannian_profile:
+      intensity: ★★★☆☆
+      nature: 負面情緒長期沉澱型，背景噪音質感
+      notes: >
+        與淵口區的坑底共鳴不同，更像長年負面情緒在地表以下沉澱成的背景噪音。
+    atmosphere:
+      - 荒涼
+      - 被遺忘
+      - 排外
+      - 小巷迷宮
+    narrative_functions:
+      - 放置淵聲研究所，讓研究所與城市舊傷口相連
+      - 與晏川區的光鮮日常形成反差
+    name_note: 「古」是歲月沉積；「垣」是老牆與切割空間的邊界。
+
+  - id: luting-district
+    name: 鷺汀區
+    english_name: LUTING DISTRICT
+    type: 行政區／休閒港灣
+    region: 天降坑北緣與西緣
+    first_appearance: null
+    function: 休閒港灣・觀光碼頭・餐飲娛樂
+    road_network: 沿坑緣弧線延伸，橫向連通道路整齊
+    summary: >
+      沿天降坑北緣與西緣坑壁斜坡展開，是坑灣地帶唯一被開發成休閒用途的段落。
+      餐廳、酒吧、小型旅館與觀光碼頭排列在水岸步道兩側，夏夜有燈串與露天座位。
+    yuannian_profile:
+      intensity: ★★★☆☆
+      nature: 港灣溢出的邊緣效應，白天不明顯
+      notes: >
+        夜間距離水面越近，港灣升起的低頻共鳴越明顯；敏感者可能頭暈與情緒波動，
+        多數人會歸因於酒精。
+    atmosphere:
+      - 觀光休閒
+      - 水岸燈光
+      - 夜間微暈
+      - 港灣低頻共鳴
+    narrative_functions:
+      - 提供港灣異常較溫和、可被日常娛樂掩蓋的面向
+      - 作為淵口區工業壓迫感的對照
+    name_note: 「鷺」是水邊悠閒意象；「汀」指坑緣斜坡近水線形成的平坦帶。
+
+  - id: tiansu-district
+    name: 天蘇區
+    english_name: TIANSU DISTRICT
+    type: 行政區／歷史遺跡緩衝帶
+    region: 淵口區與晏川區之間
+    first_appearance: ch028
+    function: 歷史遺跡緩衝帶・港區與商業核心過渡
+    road_network: 格狀，但比晏川區舊，街廓稍窄
+    summary: >
+      夾在淵口區與晏川區之間，地上是老舊商住混合區與等待拆遷的舊建築，
+      地下則埋著千年前天降落點核心衝擊區附近的複雜地層。
+      施工隊在此遇到異常地層結構的頻率全市最高，相關報告通常以「地質異常」結案。
+      ch028 中，林遠首次前往天蘇區東蘇路進行外勤訪談，老街與舊雜貨店呈現出表層日常、
+      物件停滯與地底壓迫感交疊的危險質地。
+    yuannian_profile:
+      intensity: ★★★★☆
+      nature: 地底高壓靜止型，被封壓而非流動
+      notes: >
+        淵念像被壓在地底深處。敏銳者在此會感到沉重下壓感，近似高壓環境中的耳鳴。
+    atmosphere:
+      - 老舊商住混合
+      - 空置店面
+      - 地底壓迫
+      - 歷史被埋藏
+    narrative_functions:
+      - 作為天降坑災變、港灣與現代市中心之間的地層緩衝
+      - 提供未來考古、施工異常或地底線索的舞台
+    name_note: 「天」是天降；「蘇」是甦醒、復生，暗示某些東西未完全死去。
+
+  - id: jiangchuan-district
+    name: 降川區
+    english_name: JIANGCHUAN DISTRICT
+    type: 行政區／河谷沿岸
+    region: 降川兩岸
+    first_appearance: null
+    function: 河谷沿岸・城市縫隙地帶
+    road_network: 順著河道走向的斜向街道，兩岸路網不對稱
+    summary: >
+      沿降川兩岸發展，由城市高速發展時期在河道兩側留下的邊角料聚合而成。
+      舊橋數量多但大小不一，部分列為歷史建物卻缺乏觀光價值。
+      兩岸建築多半背對河面，街道與周邊格狀路網交會時形成容易迷向的斜切路口。
+    yuannian_profile:
+      intensity: ★★★☆☆
+      nature: 水流輸送型，從山區緩慢帶入，夜間略升
+      notes: >
+        河水帶有低濃度淵念殘留。敏感者沿河或夜間站在橋上時，
+        可能聽見水面下傳來的輕微共鳴。
+    atmosphere:
+      - 河谷縫隙
+      - 斜向路口
+      - 舊橋
+      - 水下共鳴
+    narrative_functions:
+      - 連接東南山區與西北港灣的淵念輸送線
+      - 提供城市規劃難以歸類的灰色地帶
+
+  - id: anping-district
+    name: 安平區
+    english_name: ANPING DISTRICT
+    type: 行政區／中產住宅
+    region: 阿爾迪爾住宅核心
+    first_appearance: ch002
+    function: 中產住宅・日常生活核心
+    road_network: 整齊格狀，街廓均一，住宅用地為主
+    summary: >
+      阿爾迪爾居住人口最多、也最普通的區域。整齊住宅格網、超商、公園照明與維護步道
+      共同維持正常城市生活印象。林遠住處、湖邊公園、深夜老麵攤與便利商店事件現場都在此區。
+    yuannian_profile:
+      intensity: ★★☆☆☆
+      nature: 背景值低，但林遠住處附近存在局部異常波動
+      notes: >
+        ch025 後，林遠確認外洩淵念無法完全隱匿，安平區局部值開始波動。
+        對妖魔而言，安平區有時像無味空間中突然出現濃烈氣味點。
+    atmosphere:
+      - 普通
+      - 安穩
+      - 深夜便利
+      - 異常被日常抹平
+    narrative_functions:
+      - 承載林遠的居住日常與多次近身危機
+      - 讓超自然事件撕裂最普通的生活表層
+    name_note: 「安」是表面安穩；「平」是平整地景，也是抹平異常的努力。
+
+  - id: luye-district
+    name: 麓野區
+    english_name: LUYE DISTRICT
+    type: 行政區／山麓住宅
+    region: 阿爾迪爾東南山麓
+    first_appearance: null
+    function: 山麓住宅・半城半野過渡帶
+    road_network: 稀疏彎曲，貼著丘陵走，部分路段是泥土小徑改建
+    summary: >
+      東南山脈山麓滲入市區後形成的過渡地帶。建築密度隨地形升高迅速稀疏，
+      住宅之間有大量未開發山丘植被空間，路網彎曲，幾乎沒有真正筆直的路。
+      深處住宅刻意與城市服務網絡保持距離，外賣、計程車與便利商店都不方便抵達。
+    yuannian_profile:
+      intensity: ★★☆☆☆
+      nature: 山地流動型，中性，無明確方向性
+      notes: >
+        山裡的東西緩慢向下滲透，但沒有特別目的性。因距主要幹道遠，
+        是城市主要超自然勢力巡查網覆蓋較薄弱的地帶。
+    atmosphere:
+      - 半城半野
+      - 山麓孤立
+      - 夜間動靜
+      - 未被馴化
+    narrative_functions:
+      - 作為城市邊界與山地淵念流動的過渡舞台
+      - 保留未來地下勢力或巡查盲區相關事件空間
+    name_note: 「麓」是山腳地形；「野」是未被完全馴化的空間性質。
 
   - id: homebound-crossroad
     name: 返家十字路口
     type: 街道路口
-    region: 阿爾迪爾市區
+    region: 晏川區邊緣
     first_appearance: ch001
     summary: >
       林遠在雨夜險些被失控貨車撞死，並於此與燼締結契約。
@@ -48,7 +291,7 @@ locations:
   - id: lin-yuan-apartment
     name: 林遠住處
     type: 住家公寓
-    region: 阿爾迪爾市區
+    region: 安平區
     first_appearance: ch002
     summary: >
       林遠醒來後發現變身、與燼同居、發生靈力失控、陰陽調和與能力訓練的核心場景。
@@ -64,7 +307,7 @@ locations:
   - id: ad-agency-office
     name: ADC 廣告公司
     type: 職場
-    region: 阿爾迪爾商業區
+    region: 晏川區
     first_appearance: ch005
     summary: >
       林遠原本工作的公司，也是他最早嘗試用偽裝維持舊身分的場所。
@@ -79,7 +322,7 @@ locations:
   - id: hunting-barrier-street
     name: 狩獵結界街區
     type: 被妖魔結界覆蓋的街道
-    region: 林遠住處附近
+    region: 安平區
     first_appearance: ch008
     summary: >
       狼妖以狩獵結界隔絕一般人感知，在此伏擊林遠；
@@ -91,11 +334,13 @@ locations:
     narrative_functions:
       - 首次戰鬥
       - 顯示普通都市中超自然危險的真實存在
+    continuity_notes:
+      - 城市地理草稿 3-1 曾稱 ch008 狩獵結界事件在晏川區邊緣；本檔依草稿地點對照表與既有「林遠住處附近」設定，暫定為安平區。
 
   - id: city-shopping-district
     name: 市中心百貨商圈
     type: 商業購物區
-    region: 阿爾迪爾市中心
+    region: 晏川區
     first_appearance: ch017
     summary: >
       林遠被迫正式接觸女性服飾、內衣與外表管理，完成一次身分適應的社會化洗禮。
@@ -110,10 +355,11 @@ locations:
   - id: old-city-district
     name: 舊城區
     type: 老舊城區
-    region: 阿爾迪爾邊緣地帶
+    region: 古垣區
     first_appearance: ch019
     summary: >
-      淵聲研究所所在區域。街道破敗、行人稀少，整體帶有被時代遺忘與不友善的陰冷感。
+      淵聲研究所所在的舊城地帶，現已正式歸入古垣區設定。
+      街道破敗、行人稀少，整體帶有被時代遺忘與不友善的陰冷感。
     atmosphere:
       - 荒涼
       - 被遺忘
@@ -121,11 +367,13 @@ locations:
     narrative_functions:
       - 與市中心日常形成鮮明對比
       - 預示研究所與此地藏有更多不對勁之處
+    continuity_notes:
+      - 舊條目保留作為早期「舊城區」稱呼；行政區正式名稱為古垣區。
 
   - id: abyss-echo-research-institute
     name: 淵聲研究所
     type: 民間研究機構
-    region: 阿爾迪爾舊城區
+    region: 古垣區
     first_appearance: ch018
     summary: >
       對外是掛在民俗文化保存協會相關體系下、研究超自然事件並尋求資料整合的單位。
@@ -147,7 +395,7 @@ locations:
   - id: late-night-noodle-stall
     name: 深夜老麵攤
     type: 巷弄小吃攤
-    region: 林遠住處附近
+    region: 安平區
     first_appearance: ch021
     summary: >
       林遠在週五深夜工作疲憊後外出吃宵夜的老舊麵攤，只有幾張小桌，
@@ -163,7 +411,7 @@ locations:
   - id: lakefront-park
     name: 湖邊公園
     type: 都市公園
-    region: 林遠住處附近
+    region: 安平區
     first_appearance: ch021
     summary: >
       白天是親子活動場所，午夜後路燈閃爍、湖面生出腥臭白霧。
@@ -182,7 +430,7 @@ locations:
   - id: convenience-store-incident-site
     name: 便利商店事件現場
     type: 便利商店
-    region: 湖邊公園附近
+    region: 安平區
     first_appearance: ch022
     summary: >
       林遠逃離湖邊妖魔後闖入的燈火通明便利商店。
@@ -197,3 +445,24 @@ locations:
       - 林遠首次主動調動淵念附著物件戰鬥
       - 獵魔殿正式進入公開 canon
       - 把妖魔危機與世俗法律、監控、目擊者問題連接起來
+
+  - id: east-su-grocery
+    name: 東蘇雜貨
+    type: 老街雜貨店／外勤陷阱現場
+    region: 天蘇區東蘇路六十二號
+    first_appearance: ch028
+    summary: >
+      位於天蘇區東蘇路六十二號的老街街屋雜貨店，招牌紅底白字且褪色，鐵捲門只拉起一半。
+      店門口擺著較新的礦泉水箱，店內卻充滿積灰、過期包裝、未插電收銀機與停滯多年的商品。
+      林遠以淵聲研究所外勤支援身份前來訪談通報人，調查貨架後方夜間低語與亡妻呼喚聲，
+      卻被老人以香氣異常的茶飲陷阱削弱，淵念調動也受到壓制。
+    atmosphere:
+      - 老街日常
+      - 時間停滯
+      - 熱情過度
+      - 茶香異常
+      - 捕食陷阱
+    narrative_functions:
+      - 林遠首次單獨承接研究所外勤訪談的危機現場
+      - 顯示妖魔或異常捕食者會利用老街人情與長輩熱情降低戒心
+      - 將天蘇區從地理設定推進為正文危險場域
