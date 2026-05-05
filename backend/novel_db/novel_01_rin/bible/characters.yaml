@@ -1,0 +1,234 @@
+characters:
+  - id: tsukishiro-rin
+    name: 月城凜
+    aliases:
+      - 凜
+      - つきしろ・りん
+      - Tsukishiro Rin
+    role: 主角；神道系獵魔殿見習巫女與月城神社直系繼承人候選
+    age: 19
+    occupation: >
+      阿爾迪爾國立大學民俗學系一年級新生；獵魔殿神道系見習生，位階為見習巫女／第三階。
+      出身月城神社家族，被家族視為重振家聲的核心希望。
+    appearance_public: >
+      身高約 160cm，體型纖細但站姿挺拔。長黑髮平時綁低馬尾或半盤起，
+      日常穿針織衫、長裙與樂福鞋，看起來像普通大學生。
+      耳上戴著一對小銀勾耳環「月魂環」，外人多半只當成素雅飾品。
+    appearance_current: >
+      初始狀態為剛抵達阿爾迪爾、尚未被大學生活圈識破真實身分。
+      行李中常備白衣紅袴的正式巫女裝束與折疊式特製薙刀。
+      感應啟動時，深褐色瞳孔會短暫泛出淡金光。
+    personality:
+      - 明亮型自信
+      - 對未知事物先觀察再上手
+      - 能自然切換普通大學生模式
+      - 實戰時鋒利，非戰鬥場合有時懶散怕麻煩
+      - 對非人類的敵意有原則，能感化者不消滅，有罪者不容情
+    speech_style:
+      baseline: 清亮、用詞偏正但不端著，偶爾冒出「真有趣呢」、「那就試試看吧」之類老派少女腔。
+      under_stress: 仍會維持禮貌與判斷力，但句子變短，命令式語氣增加。
+      humor: 常用若無其事的耍賴包裝逃避雜事，例如宣稱自己是來唸書不是來當免費勞工。
+    abilities:
+      - 家傳血脈能力「月見」第一層：第六感感應，能直覺判斷危險方位、謊言、空間不協調與結界縫隙
+      - 月見第二層：短時預知，目前只會以碎片畫面或強烈直覺偶發
+      - 月見第三層：夢占與遠隔感應，家族官方列為禁術，真相未揭曉
+      - 月城家薙刀術與身法「踏月步」
+      - 手機式神「白曜」的符咒儲存、電子畫符與自動施咒輔助
+      - 血脈共鳴，可將月見感應集中於薙刀刃面，一擊命中妖魔本源
+    current_status: >
+      剛開始在阿爾迪爾國立大學建立普通學生身分，並執行獵魔殿見習任務。
+      她相信自己是為了證明能獨立才離家，尚不知道御影源三郎會把她的任務表現寫成週報回傳家族。
+      目前可穩定使用月見第一層，第二層偶發，第三層仍被家族禁令封住。
+    progressions:
+      - at_chapter: planned
+        status: 抵達阿爾迪爾並進入大學生活，建立「普通大學生」偽裝。
+      - at_chapter: planned
+        status: 初次見習任務中以月見與白曜完成獨立判斷，展現與林遠完全不同的主動型戰鬥邏輯。
+      - at_chapter: planned
+        status: 中期發現御影的週報，開始質疑自己的獨立是否只是家族允許的幻覺。
+    goals:
+      - 在大學生活中維持普通人身分
+      - 證明自己能不依賴家族完成見習任務
+      - 釐清月見第三層禁術背後的真相
+      - 在獵魔殿派系競合中保住自己的判斷權
+    known_secrets:
+      - 月城家將她視為重振家聲的工具兼希望
+      - 月魂環是月城家女性代代繼承的神器
+      - 她不知道御影同時肩負監視與評估任務
+    first_appearance: planned
+
+  - id: mikage-genzaburo
+    name: 御影源三郎
+    aliases:
+      - 御影
+      - みかげ・げんざぶろう
+      - Mikage Genzaburō
+      - 遠房舅公
+    role: 配角；月城神社派駐阿爾迪爾的護送人、監視者與培訓官
+    age: 62
+    occupation: >
+      對外以民俗學顧問名義接零星案子；真實身分為神道系獵魔殿元老級執行者，
+      退居二線後負責年輕家族成員培訓。
+    appearance_public: >
+      身材中等偏瘦，灰白短髮，常穿樸素深色和服或對襟外套。
+      外表像普通退休大叔，說話溫和，存在感不強。
+    appearance_current: >
+      住在凜租屋處步行十分鐘的小公寓，表面是遠房舅公與監護隨從。
+      實際上會記錄凜每次任務表現，並可代表家族行使裁量權。
+    personality:
+      - 表面慈祥
+      - 實際冷靜銳利
+      - 對凜有真實長輩式疼愛
+      - 職責高於情感
+      - 習慣以後援身分觀察年輕人
+    speech_style:
+      baseline: 慢、穩、常說「凜小姐，這個就交給我吧」或「不急，不急」。
+      under_stress: 去除客套後變得極短，像現場指揮口令。
+      toward_rin: 慈愛中帶著不容忽視的評估感。
+    abilities:
+      - 三十年前曾以一己之力鎮壓兩起 B 級異常事件
+      - 神道系結界、鎮壓與現場判讀經驗豐富
+      - 能調用阿爾迪爾獵魔殿其他派系支援
+      - 知道月見第三層部分內情
+    current_status: >
+      已隨凜抵達阿爾迪爾，表面只擔任生活照應者。
+      他比凜位階高，也握有家族授權；這會使他與凜的師長、監視者與親情三重關係在中期破裂。
+    progressions:
+      - at_chapter: planned
+        status: 以遠房舅公身分協助凜安頓租屋與入學生活。
+      - at_chapter: planned
+        status: 在見習任務中刻意只當後援，評估凜的獨立判斷。
+      - at_chapter: planned
+        status: 週報被凜發現後，兩人的信任關係進入核心衝突。
+    goals:
+      - 確保凜不脫離家族規劃
+      - 評估凜是否足以承接月城家的重振期待
+      - 在不背叛家族的前提下盡量保護凜
+    known_secrets:
+      - 每週向月城家回報凜的任務表現
+      - 知道家族對月見第三層另有真實打算
+    first_appearance: planned
+
+  - id: shirase-ayano
+    name: 白瀨綾乃
+    aliases:
+      - 綾乃
+      - しらせ・あやの
+      - Shirase Ayano
+    role: 配角；凜的大學朋友與日常錨點
+    age: 19
+    occupation: 阿爾迪爾國立大學文學系一年級學生
+    appearance_public: >
+      打扮明快、表情豐富，常帶著大學生社交圈中自然外放的熱鬧感。
+    appearance_current: >
+      在迎新活動認識凜，住在凜租屋附近。完全不知道凜的獵魔殿身分。
+    personality:
+      - 外放愛玩
+      - 八卦
+      - 熱心
+      - 直覺敏銳但常往錯方向猜
+      - 能把凜拉回普通大學生節奏
+    speech_style:
+      baseline: 口語、快、熱鬧，常把邀約與吐槽混在一起。
+      under_stress: 會先亂猜，再用行動照顧朋友。
+      toward_rin: 親近而好奇，常把凜的大家閨秀感當成有趣素材。
+    abilities:
+      - 熟悉普通學生社交節奏
+      - 能帶凜接觸夜唱、港邊燒烤與百貨血拼等日常場景
+      - 在不知情的情況下提供凜的身分隱匿壓力測試
+    current_status: >
+      是凜正常大學生模式中最重要的對接窗口。
+      中後期可能因凜身分意外暴露而成為情感關卡。
+    progressions:
+      - at_chapter: planned
+        status: 在迎新活動與凜成為朋友。
+      - at_chapter: planned
+        status: 多次把凜拖入普通學生行程，間接製造隱匿訓練實戰。
+    goals:
+      - 享受大學生活並拉凜加入自己的日常圈
+      - 弄清凜為什麼偶爾像有很多不能說的事
+    known_secrets: []
+    first_appearance: planned
+
+  - id: toyama-yusuke
+    name: 遠山悠介
+    aliases:
+      - 遠山學長
+      - とおやま・ゆうすけ
+      - Tōyama Yūsuke
+    role: 配角；民俗學系二年級指導學長與未揭曉伏筆人物
+    age: 20
+    occupation: 阿爾迪爾國立大學民俗學系二年級學生
+    appearance_public: >
+      溫和書生型，說話慢條斯理，笑容可掬但眼神不一定跟著笑。
+    appearance_current: >
+      研究方向為「現代都市傳說的口傳變異」，剛好覆蓋阿爾迪爾近年的異常事件擴散。
+      中期前不揭曉他究竟只是學者、其他勢力眼線，或同行隱藏者。
+    personality:
+      - 溫和有禮
+      - 觀察力過於敏銳
+      - 情緒表達克制
+      - 對凜的興趣動機不明
+    speech_style:
+      baseline: 慢、輕、像在整理觀察筆記。
+      under_stress: 語速仍不快，但會跳過寒暄直接問關鍵問題。
+      toward_rin: 以學術好奇包裝試探。
+    abilities:
+      - 熟悉都市傳說、口傳變異與校園民俗資料
+      - 能從普通資料中注意到異常事件擴散模式
+      - 真實立場未揭曉
+    current_status: >
+      作為指導學長接近凜。其研究主題與阿爾迪爾異常擴散過於吻合，
+      需在劇情線中保留三種解讀，不提前定案。
+    progressions:
+      - at_chapter: planned
+        status: 以指導學長身分認識凜。
+      - at_chapter: planned
+        status: 透過都市傳說研究逐步接近獵魔殿案件外圍。
+    goals:
+      - 完成都市傳說口傳變異研究
+      - 觀察凜是否與異常事件有關
+    known_secrets:
+      - 真實立場未揭曉
+    first_appearance: planned
+
+  - id: kirihara-chinatsu
+    name: 桐原千夏
+    aliases:
+      - 千夏
+      - きりはら・ちなつ
+      - Kirihara Chinatsu
+    role: 配角；上層社會情報通道與凜的中介型朋友
+    age: 19
+    occupation: 阿爾迪爾國立大學經營學系一年級學生
+    appearance_public: >
+      世家千金氣質明顯，穿著得體但不誇張，社交場合中自然熟練。
+    appearance_current: >
+      家裡經營進出口貿易，不屬於獵魔殿系統，也不知道凜的真實身分。
+      可能與 ADC 廣告公司有業務往來，保留與 novel_01 的可選交會點。
+    personality:
+      - 直率
+      - 不裝
+      - 社交敏銳
+      - 對凜的大家閨秀感有同類間的安心
+    speech_style:
+      baseline: 乾脆、禮貌但不過度修飾。
+      under_stress: 會迅速切換成家族商務場合訓練出的冷靜模式。
+      toward_rin: 帶有同階層默契的親近感。
+    abilities:
+      - 熟悉阿爾迪爾上層社會與商業圈人脈
+      - 能提供 ADC、港區貿易與城市社交活動相關情報
+      - 可成為凜在同行與純素人之外的中介支點
+    current_status: >
+      作為普通世家千金進入凜的大學生活圈。
+      她不知道超自然真相，但可能透過家族企業碰到 novel_01 的外圍事件。
+    progressions:
+      - at_chapter: planned
+        status: 與凜在校園社交活動中互相辨認出世家氣質。
+      - at_chapter: planned
+        status: 透過家族企業資訊帶出與 ADC 或港區商務的交會可能。
+    goals:
+      - 維持家族期待下的大學與社交表現
+      - 找到能不用過度表演也能相處的朋友
+    known_secrets: []
+    first_appearance: planned

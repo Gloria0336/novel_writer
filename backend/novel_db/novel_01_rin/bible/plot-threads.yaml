@@ -1,0 +1,63 @@
+open_threads:
+  - id: illusion-of-independence
+    hook: 凜以為自己離家到阿爾迪爾是為了證明獨立，實際上每一步都在御影與月城家的監視範圍內。
+    introduced_in: planned
+    status: active
+    stakes: 若凜發現真相，她與御影、月城家以及自身繼承人身分的信任關係都會被重寫。
+    likely_payoff_window: 中期
+
+  - id: tsukimi-third-layer
+    hook: 月見第三層「夢占與遠隔感應」被家族列為禁術，但反噬說可能只是封印真相的官方說法。
+    introduced_in: planned
+    status: open
+    stakes: 這條線可能牽涉月城家某代刻意編織的歷史，也會決定凜能否真正掌握家傳血脈。
+    likely_payoff_window: 長線
+
+  - id: hunter-hall-faction-cracks
+    hook: 獵魔殿內的神道系、天主教系與佛教系共存卻不完全互信，資源分配與現場裁量存在派系競爭。
+    introduced_in: planned
+    status: emerging
+    stakes: 凜的見習任務若捲入派系競爭，她可能同時面對妖魔與制度內壓力。
+    likely_payoff_window: 中期
+
+  - id: toyama-research
+    hook: 遠山悠介的研究主題太剛好對應阿爾迪爾近年異常事件擴散。
+    introduced_in: planned
+    status: open
+    stakes: 他可能只是敏銳學者，也可能是其他勢力眼線或同行隱藏者；揭曉立場會改變凜的校園安全感。
+    likely_payoff_window: 中期
+
+  - id: fallen-contractor-crossing
+    hook: 林遠的痕跡、獵魔殿案件報告、ADC 與淵聲研究所資料，都可能讓凜擦到 novel_01 主線邊緣。
+    introduced_in: planned
+    status: emerging
+    stakes: 交會可形成兩條故事線的立體呼應，但不可改寫林遠主線已建立的 canon。
+    likely_payoff_window: novel_01 中後期同步
+
+  - id: old-city-malice-shinto-view
+    hook: 凜以神道系巫女視角能感受到古垣區異常感的本質，與林遠在 novel_01 的被動恐懼形成對照。
+    introduced_in: planned
+    status: emerging
+    stakes: 這可能把舊城區惡意、千年災變與獵魔殿歷史連成長線。
+    likely_payoff_window: 中長線
+
+  - id: family-restoration-cost
+    hook: 凜逐漸意識到「重振家聲」需要的不只是任務功績，也可能要求她犧牲個人判斷與未來。
+    introduced_in: planned
+    status: active
+    stakes: 這會逼她判斷自己是月城家的希望，還是月城家延續權力的工具。
+    likely_payoff_window: 長線角色弧
+
+  - id: ayano-daily-anchor
+    hook: 白瀨綾乃代表凜的普通日常，凜對她的隱瞞與罪惡感會隨任務加重。
+    introduced_in: planned
+    status: active
+    stakes: 若綾乃意外接觸超自然事件，凜將被迫在保護朋友與維持秩序之間選擇。
+    likely_payoff_window: 中後期
+
+  - id: hakuyo-modern-shikigami
+    hook: 手機式神白曜是月城家把現代器物式神化的創新成果，可能引來神道系保守派與其他派系注意。
+    introduced_in: planned
+    status: open
+    stakes: 白曜若被視為可複製技術，凜的個人戰鬥工具可能變成派系資源爭奪點。
+    likely_payoff_window: 中期

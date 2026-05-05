@@ -1,0 +1,67 @@
+canon_outline:
+  project_status: planning
+  current_chapter: planned
+  current_endpoint: >
+    月城凜尚未開始正文。初始狀態為抵達阿爾迪爾、準備入學阿爾迪爾國立大學，
+    並在御影源三郎陪同下建立普通學生身分與見習巫女任務線。
+  canon_scope:
+    covered_chapters: []
+    note: 尚未有正文 canon；目前內容為起始設定與可調整規劃。
+  chapter_beats:
+    - chapter: ch001
+      beat: 入學前後的阿爾迪爾安頓與普通大學生偽裝建立。
+      outcome: 凜、御影、白瀨綾乃與大學生活圈登場，雙面生活前提成立。
+    - chapter: ch002
+      beat: 第一個低風險見習任務與白曜實戰。
+      outcome: 展示月見第一層、踏月步、符咒系統與御影後援式監視。
+    - chapter: ch003
+      beat: 遠山悠介與桐原千夏進入凜的校園社交與情報網。
+      outcome: 建立校園日常、世家社交與都市傳說研究三條外圍線。
+  character_state_snapshot:
+    tsukishiro-rin: >
+      神道系獵魔殿見習巫女，月城神社直系繼承人候選。
+      她相信自己正以大學生活證明獨立，但實際仍在家族與御影的評估之下。
+    mikage-genzaburo: >
+      對外是凜的遠房舅公與監護隨從，真實上是家族派駐的長老級監視者。
+      他疼愛凜，但會把職責置於情感之上。
+    university_circle: >
+      白瀨綾乃提供普通日常錨點；遠山悠介保留立場伏筆；
+      桐原千夏提供上層社會與 ADC 交會可能。
+  near_term_next_steps:
+    - 寫出凜抵達阿爾迪爾與入學日常，確立她的普通學生偽裝能力。
+    - 安排第一個 C 級以下見習任務，讓月見與白曜自然登場。
+    - 讓御影的後援與週報只露出蛛絲馬跡，不立即揭穿。
+    - 透過獵魔殿報告或校園傳聞遠端呼應 novel_01 的便利商店事件。
+  continuity_flags:
+    - novel_01_rin 與 novel_01 平行同期，共享阿爾迪爾世界觀，但不可改寫林遠主線已成立事件。
+    - 月見第三層、遠山悠介立場與月城家衰落真相皆標記為未揭曉，不應在早期寫死答案。
+    - 凜的戰鬥風格應與林遠形成鏡像：主動訓練、敏捷預讀、符咒協作，而非失控爆發。
+
+speculative_long_arc:
+  editable: true
+  status: author_adjustable_projection
+  note: 以下為依據目前設定推估的長線方向，非已定 canon。
+  central_questions:
+    - 凜能否在家族、獵魔殿與普通日常之間取得真正屬於自己的選擇權？
+    - 月見第三層的禁術真相究竟是保護、封印，還是家族權力結構的謊言？
+    - 她與林遠這條墮落契約者主線會只擦肩而過，還是成為獵魔殿視角的重要對照？
+  projected_arc:
+    - phase: 開局 / 雙面生活
+      function: 建立大學日常、見習任務、御影監視與白曜戰鬥系統。
+      likely_material:
+        - 入學與租屋
+        - 第一個見習任務
+        - 白瀨綾乃的日常邀約
+        - 御影不動聲色的任務評估
+    - phase: 中期 / 獨立破口
+      function: 揭露御影週報與家族監視，並讓獵魔殿派系競爭壓迫凜的判斷。
+      likely_material:
+        - 發現週報
+        - 遠山悠介立場逐步浮出
+        - 神道系與其他派系搶奪案件主導權
+    - phase: 長線 / 傳承真相
+      function: 推進月見第三層、月城家衰落原因與阿爾迪爾千年災變的關聯。
+      likely_material:
+        - 夢占碎片
+        - 月魂環異常共鳴
+        - 古垣區惡意與天蘇地底異常
