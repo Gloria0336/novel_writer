@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "targets": ["novel_01", "novel_02_random", "novel_03_dream"],
+  "targets": ["novel_01", "novel_01_rin", "novel_02_random", "novel_03_dream"],
   "sourceRoot": "backend/novel_db",
   "outputDir": "backend/novel_db/_exports",
   "outputSuffix": ".flatten.md",

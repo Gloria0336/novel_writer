@@ -6,6 +6,10 @@ const SCRIPT_DIR = path.dirname(fileURLToPath(import.meta.url));
 const WORKSPACE_ROOT = path.resolve(SCRIPT_DIR, "..", "..");
 const CONFIG_PATH = path.join(SCRIPT_DIR, "flatten.config.json");
 const CURSOR_RULES_FILENAME = ".cursorrules";
+const CHAPTERS_DIR = "chapters";
+const CHAPTER_LIMIT_THRESHOLD = 20;
+const FIRST_CHAPTER_COUNT = 3;
+const RECENT_CHAPTER_COUNT = 10;
 
 function toPosixPath(input) {
   return input.split(path.sep).join("/");
@@ -108,6 +112,60 @@ function shouldIncludeFile(relativePath, config) {
   return config.includeExtensions.includes(extensionFor(relativePath));
 }
 
+function chapterSortKey(relativePath) {
+  const basename = path.posix.basename(relativePath);
+  const match = basename.match(/^ch(\d+)(?:[-_](\d+))?\.(?:md|txt)$/i);
+  if (!match) return null;
+
+  return {
+    chapter: Number.parseInt(match[1], 10),
+    part: match[2] ? Number.parseInt(match[2], 10) : 0,
+    relativePath,
+  };
+}
+
+function isChapterContentFile(file) {
+  return file.relativePath.startsWith(`${CHAPTERS_DIR}/`) && chapterSortKey(file.relativePath) !== null;
+}
+
+function compareChapterFiles(left, right) {
+  const leftKey = chapterSortKey(left.relativePath);
+  const rightKey = chapterSortKey(right.relativePath);
+  if (!leftKey || !rightKey) return left.relativePath.localeCompare(right.relativePath, "en");
+  if (leftKey.chapter !== rightKey.chapter) return leftKey.chapter - rightKey.chapter;
+  if (leftKey.part !== rightKey.part) return leftKey.part - rightKey.part;
+  return leftKey.relativePath.localeCompare(rightKey.relativePath, "en");
+}
+
+function applyChapterWindow(files) {
+  const chapterFiles = files.filter(isChapterContentFile).sort(compareChapterFiles);
+  if (chapterFiles.length <= CHAPTER_LIMIT_THRESHOLD) {
+    return {
+      files,
+      chapterWindow: null,
+    };
+  }
+
+  const selectedChapterPaths = new Set(
+    [
+      ...chapterFiles.slice(0, FIRST_CHAPTER_COUNT),
+      ...chapterFiles.slice(-RECENT_CHAPTER_COUNT),
+    ].map((file) => file.relativePath),
+  );
+
+  const windowedFiles = files.filter((file) => !isChapterContentFile(file) || selectedChapterPaths.has(file.relativePath));
+  return {
+    files: windowedFiles,
+    chapterWindow: {
+      total: chapterFiles.length,
+      included: selectedChapterPaths.size,
+      omitted: chapterFiles.length - selectedChapterPaths.size,
+      firstCount: FIRST_CHAPTER_COUNT,
+      recentCount: RECENT_CHAPTER_COUNT,
+    },
+  };
+}
+
 async function collectFiles(targetRoot, config) {
   const files = [];
   const excludedDirs = new Set(config.exclude.dirs);
@@ -140,7 +198,7 @@ async function collectFiles(targetRoot, config) {
   return files.sort((left, right) => compareFiles(left, right, config.sectionOrder));
 }
 
-function buildHeader({ target, targetProjectPath, config, files }) {
+function buildHeader({ target, targetProjectPath, config, files, chapterWindow }) {
   const excludedDirs = config.exclude.dirs.length ? config.exclude.dirs.join(", ") : "(none)";
   const excludedFilenames = config.exclude.filenames.length ? config.exclude.filenames.join(", ") : "(none)";
   const extensions = config.includeExtensions.join(", ");
@@ -160,6 +218,16 @@ function buildHeader({ target, targetProjectPath, config, files }) {
 
   if (config.secretHandling.includeSecretsLockbox && config.secretHandling.notice) {
     lines.push("## Secret Handling", config.secretHandling.notice, "");
+  }
+
+  if (chapterWindow) {
+    lines.push(
+      "## Chapter Window",
+      `This project has ${chapterWindow.total} chapter files, so only the first ${chapterWindow.firstCount} and latest ${chapterWindow.recentCount} chapters are included to keep the flattened context small.`,
+      `- Chapter files included: ${chapterWindow.included}`,
+      `- Chapter files omitted: ${chapterWindow.omitted}`,
+      "",
+    );
   }
 
   lines.push("## Table of Contents");
@@ -202,9 +270,10 @@ async function renderTarget(target, config, sourceRoot, outputDir) {
     throw new Error(`Target must stay within sourceRoot: ${target}`);
   }
 
-  const files = await collectFiles(targetRoot, config);
+  const collectedFiles = await collectFiles(targetRoot, config);
+  const { files, chapterWindow } = applyChapterWindow(collectedFiles);
   const targetProjectPath = projectPath(targetRoot);
-  const header = buildHeader({ target, targetProjectPath, config, files });
+  const header = buildHeader({ target, targetProjectPath, config, files, chapterWindow });
   const bodyParts = [];
 
   for (const file of files) {
