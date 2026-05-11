@@ -102,8 +102,8 @@ export function canTroopAttack(state: BattleState, attackerSide: Side, attacker:
   const enemySide = getSide(state, otherSide(attackerSide));
   const enemyTroops = aliveTroops(enemySide);
 
-  // 兵力優先：有敵方兵力時不能打臉
-  if (target === "hero" && enemyTroops.length > 0) {
+  // 兵力優先：有敵方兵力時不能打臉（攻城關鍵字無視此限制）
+  if (target === "hero" && enemyTroops.length > 0 && !attacker.keywords.has("siege")) {
     return { ok: false, reason: "troop priority: enemy troops alive" };
   }
 

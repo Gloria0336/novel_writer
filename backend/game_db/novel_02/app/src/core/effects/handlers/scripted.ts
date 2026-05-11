@@ -27,14 +27,6 @@ export function resetTurnFlags(state: object): void {
 }
 
 export function registerCoreScripted(): void {
-  // 揭示意圖（無操作 — 意圖一律可見於 MVP）
-  registerScripted("REVEAL_INTENT", (_p, ec) => {
-    ec.state.log.push({ turn: ec.state.turn, side: ec.sourceSide, kind: "REVEAL_INTENT", text: "揭示敵方意圖" });
-  });
-  registerScripted("REVEAL_INTENT_ALL", (_p, ec) => {
-    ec.state.log.push({ turn: ec.state.turn, side: ec.sourceSide, kind: "REVEAL_INTENT_ALL", text: "揭示敵方全部意圖" });
-  });
-
   // T05 回合結束治療相鄰兵力
   registerScripted("HEAL_ADJACENT", (payload, ec) => {
     const amount = (payload as { amount?: number })?.amount ?? 3;
@@ -98,14 +90,6 @@ export function registerCoreScripted(): void {
     const enemyHero = getSide(ec.state, otherSide(ec.sourceSide)).hero;
     applyHeroDamage(enemyHero, amount, { ignoreDef: true });
     ec.state.log.push({ turn: ec.state.turn, side: ec.sourceSide, kind: "STARFALL", text: `星落之劍對敵方英雄造 ${amount} 傷害`, payload: { amount } });
-  });
-
-  // S10 戰場掃描：若敵方有紅意圖，獲得 8 護甲
-  registerScripted("ARMOR_IF_RED_INTENT", (payload, ec) => {
-    if (ec.state.enemyIntent === "attack") {
-      const amount = (payload as { amount?: number })?.amount ?? 8;
-      getSide(ec.state, ec.sourceSide).hero.armor += amount;
-    }
   });
 
   // S11 時間裂隙：本回合可額外使用 2 張行動卡（MVP：標記 flag，不嚴格限制行動次數）

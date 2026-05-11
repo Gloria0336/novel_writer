@@ -97,6 +97,8 @@ export interface ActiveBuff {
   remainingTurns: number;
 }
 
+export type FeyForm = "human" | "fey";
+
 export interface HeroInstance {
   defId: string;
   hp: number;
@@ -109,5 +111,16 @@ export interface HeroInstance {
   armor: number;
   buffs: ActiveBuff[];
   equipment: { weapon?: string; armor?: string; trinket?: string };
-  flags: { ultimateUsed: boolean; immortalUsed: boolean };
+  flags: {
+    ultimateUsed: boolean;
+    immortalUsed: boolean;
+    /** 妖族形態：人形 / 妖形 */
+    feyForm?: FeyForm;
+    /** 半神族「透支」累積層數 */
+    overdraft?: number;
+    /** 末日倒數剩餘回合（N06） */
+    doomsdayCountdown?: number;
+    /** 額外標記 */
+    [key: string]: unknown;
+  };
 }

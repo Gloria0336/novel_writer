@@ -31,8 +31,6 @@ export interface SideState {
   spellsCastThisGame: number;
 }
 
-export type EnemyIntent = "attack" | "deploy" | "spell" | "dimension" | "special" | "unknown";
-
 export interface FieldState {
   cardId: string;
   ownerSide: Side;
@@ -60,7 +58,6 @@ export interface BattleState {
   field: FieldState | null;
   stability: number;
   corruptionStage: 0 | 1 | 2 | 3 | 4;
-  enemyIntent: EnemyIntent;
   log: LogEntry[];
   result: BattleResult;
   endgameReason?: string;

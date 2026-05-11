@@ -4,7 +4,6 @@ export const SPELLS: SpellCard[] = [
   {
     id: "S01", type: "spell", name: "偵查術", cost: 0, rarity: "common",
     effects: [
-      { kind: "scripted", tag: "REVEAL_INTENT_ALL" },
       { kind: "draw", count: 1 },
     ],
   },
@@ -43,9 +42,8 @@ export const SPELLS: SpellCard[] = [
   {
     id: "S10", type: "spell", name: "戰場掃描", cost: 2, rarity: "uncommon",
     effects: [
-      { kind: "scripted", tag: "REVEAL_INTENT_ALL" },
       { kind: "draw", count: 1 },
-      { kind: "scripted", tag: "ARMOR_IF_RED_INTENT", payload: { amount: 8 } },
+      { kind: "armor", amount: 8 },
     ],
   },
   {

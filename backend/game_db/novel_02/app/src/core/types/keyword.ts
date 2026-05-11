@@ -6,6 +6,7 @@ export type Keyword =
   | "lifesteal"  // 汲取
   | "menace"     // 威壓
   | "pierce"     // 穿透
+  | "siege"      // 攻城（無視兵力優先制；可直接攻擊英雄/巢穴）
   | "frozen";    // 凍結（狀態，非卡牌固有）
 
 export type ClassKeyword =
@@ -24,6 +25,7 @@ export const KEYWORD_LABEL: Record<Keyword, string> = {
   lifesteal: "汲取",
   menace: "威壓",
   pierce: "穿透",
+  siege: "攻城",
   frozen: "凍結",
 };
 

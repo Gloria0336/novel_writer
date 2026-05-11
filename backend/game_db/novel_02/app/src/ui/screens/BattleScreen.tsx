@@ -209,9 +209,6 @@ function BattleView({ onExit }: { onExit: () => void }): JSX.Element {
             <h4>{enemyDef.name}</h4>
             <div className={styles.stats}>HP {enemyHero.hp}/{enemyHero.maxHp} · DEF {enemyHero.def}</div>
           </div>
-          <div className={`${styles.heroIntent} ${state.enemyIntent === "deploy" ? styles.intentDeploy : ""}`}>
-            意圖: {state.enemyIntent === "attack" ? "攻擊" : state.enemyIntent === "deploy" ? "部署" : "?"}
-          </div>
         </div>
         <div className={styles.troopRow}>
           {state.enemy.troopSlots.map((t, i) => (

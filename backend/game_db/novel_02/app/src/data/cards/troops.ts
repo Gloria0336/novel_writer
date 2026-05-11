@@ -6,7 +6,7 @@ export const TROOPS: TroopCard[] = [
   { id: "T03", type: "troop", name: "持盾衛兵", cost: 2, rarity: "common", hp: 10, atk: 2, def: 5, keywords: ["guard"] },
   {
     id: "T04", type: "troop", name: "偵察兵", cost: 1, rarity: "common", hp: 6, atk: 4, def: 0, keywords: ["rush"],
-    onPlay: [{ kind: "scripted", tag: "REVEAL_INTENT" }],
+    onPlay: [{ kind: "draw", count: 1 }],
   },
   {
     id: "T05", type: "troop", name: "野戰醫護兵", cost: 2, rarity: "common", hp: 6, atk: 1, def: 2, keywords: [],

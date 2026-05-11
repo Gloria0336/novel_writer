@@ -9,13 +9,14 @@ import { getCard } from "../data/cards";
 import { getRace } from "../data/races";
 import { getClass } from "../data/classes";
 import { HEROES } from "../data/heroes";
-import { runLairAITurn, previewLairIntent } from "../core/ai/lairAI";
+import { runLairAITurn } from "../core/ai/lairAI";
 import { applyAction, type ApplyResult } from "../core/turn/reducer";
 import type { GameAction } from "../core/turn/actions";
 import { advanceToNextSide, endTurnFor, startTurnFor } from "../core/turn/phases";
 import { registerCoreScripted } from "../core/effects/handlers/scripted";
 import { registerHeroScripted } from "../core/effects/handlers/heroes";
 import { resetTurnFlags } from "../core/effects/handlers/scripted";
+import { registerRaceCardScripted } from "../core/effects/handlers/raceCards";
 
 let SCRIPTED_REGISTERED = false;
 
@@ -23,6 +24,7 @@ export function ensureScriptedRegistered(): void {
   if (SCRIPTED_REGISTERED) return;
   registerCoreScripted();
   registerHeroScripted();
+  registerRaceCardScripted();
   SCRIPTED_REGISTERED = true;
 }
 
@@ -103,7 +105,6 @@ export function createBattle(opts: CreateBattleOpts): BattleState {
     field: null,
     stability: 100,
     corruptionStage: 0,
-    enemyIntent: "deploy",
     log: [],
     result: "ongoing",
   };
@@ -117,7 +118,6 @@ export function createBattle(opts: CreateBattleOpts): BattleState {
 
   // 啟動玩家第一回合（refill mana 到 1，等等）
   startTurnFor(state, "player", ctx);
-  state.enemyIntent = previewLairIntent(state);
 
   return state;
 }
@@ -165,6 +165,5 @@ export function endPlayerTurnAndRunAI(state: BattleState, ctx: BattleContext): A
   if (state.result !== "ongoing") return { ok: true };
 
   startTurnFor(state, "player", ctx);
-  state.enemyIntent = previewLairIntent(state);
   return { ok: true };
 }

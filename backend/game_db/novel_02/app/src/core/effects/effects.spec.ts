@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it } from "vitest";
 import type { BattleState, TroopInstance } from "../types/battle";
 import type { BattleContext } from "../types/context";
 import { executeEffects, registerScripted } from "./registry";
-import { ALL_CARDS, getCard } from "../../data/cards";
+import { ALL_CARDS, GENERIC_CARDS, getCard } from "../../data/cards";
 import { getRace } from "../../data/races";
 import { getClass } from "../../data/classes";
 import { HEROES } from "../../data/heroes";
@@ -45,16 +45,16 @@ function mkState(playerHeroId = "commander_legion", enemyHeroId = "commander_leg
       manaCurrent: 0, manaCap: 0, manaCapAbsolute: 10, tempMana: 0, deck: [], hand: [], graveyard: [],
       troopSlots: [null, null, null, null, null], spellsCastThisTurn: 0, spellsCastThisGame: 0,
     },
-    field: null, stability: 100, corruptionStage: 0, enemyIntent: "unknown", log: [], result: "ongoing",
+    field: null, stability: 100, corruptionStage: 0, log: [], result: "ongoing",
   };
 }
 
 describe("通用卡資料完整性", () => {
-  it("總計 54 張通用卡", () => {
-    expect(ALL_CARDS).toHaveLength(54);
+  it("通用卡共 54 張", () => {
+    expect(GENERIC_CARDS).toHaveLength(54);
   });
-  it("分類正確：14 兵力 + 10 行動 + 14 法術 + 8 裝備 + 8 場地", () => {
-    const byType = ALL_CARDS.reduce<Record<string, number>>((acc, c) => {
+  it("通用卡分類正確：14 兵力 + 10 行動 + 14 法術 + 8 裝備 + 8 場地", () => {
+    const byType = GENERIC_CARDS.reduce<Record<string, number>>((acc, c) => {
       acc[c.type] = (acc[c.type] ?? 0) + 1;
       return acc;
     }, {});
@@ -63,6 +63,9 @@ describe("通用卡資料完整性", () => {
     expect(byType.spell).toBe(14);
     expect(byType.equipment).toBe(8);
     expect(byType.field).toBe(8);
+  });
+  it("總卡池 = 通用 54 + 6 種族×10 + 中立傳說 6 = 120 張", () => {
+    expect(ALL_CARDS).toHaveLength(120);
   });
   it("每張卡 id 唯一", () => {
     const ids = ALL_CARDS.map((c) => c.id);

@@ -45,7 +45,7 @@ function mkBattleState(playerTroops: (TroopInstance | null)[], enemyTroops: (Tro
       manaCurrent: 0, manaCap: 0, manaCapAbsolute: 10, tempMana: 0,
       deck: [], hand: [], graveyard: [], troopSlots: enemyTroops, spellsCastThisTurn: 0, spellsCastThisGame: 0,
     },
-    field: null, stability: 100, corruptionStage: 0, enemyIntent: "unknown", log: [], result: "ongoing",
+    field: null, stability: 100, corruptionStage: 0, log: [], result: "ongoing",
   };
 }
 

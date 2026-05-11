@@ -75,16 +75,6 @@
   font-size: 12px;
   color: #ccc;
 }
-.heroIntent {
-  background: #c33;
-  color: white;
-  padding: 4px 8px;
-  border-radius: 3px;
-  font-size: 12px;
-}
-.intentDeploy { background: #38c; }
-.intentSpell { background: #93c; }
-
 .troopRow {
   display: flex;
   gap: 8px;

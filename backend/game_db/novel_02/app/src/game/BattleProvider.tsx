@@ -3,7 +3,6 @@ import type { BattleState } from "../core/types/battle";
 import type { GameAction } from "../core/turn/actions";
 import { applyAction } from "../core/turn/reducer";
 import { createBattle, createBattleContext, endPlayerTurnAndRunAI } from "./seed";
-import { previewLairIntent } from "../core/ai/lairAI";
 import { getStarterDeckIds } from "../data/decks";
 
 interface BattleStore {
@@ -33,7 +32,6 @@ function reducer(internal: InternalState, ra: ReducerAction): InternalState {
   } else {
     applyAction(next, ra.action, ctx);
   }
-  next.enemyIntent = previewLairIntent(next);
   return { state: next };
 }
 

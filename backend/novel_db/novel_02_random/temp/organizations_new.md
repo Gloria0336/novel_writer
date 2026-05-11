@@ -1,151 +1,13 @@
-organizations:
-  - id: adventurers-guild
-    name: 冒險者公會
-    aliases:
-      - 統一冒險者公會
-      - 公會
-    category: autonomous_transregional_organization
-    first_appearance: world-bible
-    source_sections:
-      - temp/adventurers_guild.md#起源與性質
-      - temp/adventurers_guild.md#組織架構
-      - temp/adventurers_guild.md#政治立場
-      - temp/adventurers_guild.md#成員制度
-      - temp/adventurers_guild.md#任務制度
-      - temp/adventurers_guild.md#服務範圍
-      - temp/adventurers_guild.md#糾紛處理機制
-      - temp/adventurers_guild.md#與騎士制度的關係
-    summary: >
-      冒險者公會是由早期探險家群體自然演進而來的自治組織，
-      並非由任何單一政治實體創立或主導。隨著懸賞需求與冒險者數量增加，
-      各地形成固定集散據點，最終發展為由地區總會與分會構成的公會體系。
-      公會由主要政治實體共同承認，是懸賞流通、情報交換與騎士團雛形形成的重要節點。
-    origin:
-      founded_by: 早期探險家群體自然演進
-      founding_nature: 非國家主導、非單一創辦人制度
-      development: >
-        從鬆散的探險者與懸賞集散地，逐步演變為跨地區的自治公會網絡。
-    governance:
-      central_authority: 無固定總會，無凌駕各地的最高機構
-      regional_headquarters: >
-        各國或各地區設有一個地區總會，作為當地公會體系最高層級。
-      branches: >
-        地區總會下設數量不等的分會，分布於各城市與重要據點。
-      standardization: >
-        各地區總會在任務標準、等級認定與內部規則上不盡相同，
-        但透過協議維持最低共識，使跨地區活動仍可運作。
-    political_position:
-      stance: 中立
-      recognized_by:
-        - 各主要政治實體
-      limitations:
-        - 公會整體不代表任何政治勢力。
-        - 各地會長可與當地政治勢力往來，但私下立場不代表公會整體。
-      importance: >
-        中立慣例是公會能跨政治實體運作的基礎，也是各勢力願意共同承認其地位的前提。
-    membership:
-      eligibility:
-        - 自由報名
-        - 不限種族
-        - 不限出身
-        - 不限背景
-      assessment: >
-        較大的分會或地區總會設有考核場地，新成員依體能、戰鬥能力或專業技能測試分配初始等級。
-      adventurer_ranks:
-        - F
-        - E
-        - D
-        - C
-        - B
-        - A
-        - S
-      promotion_basis:
-        - 任務完成品質
-        - 能力表現
-        - 同儕評價
-        - 會長或審核委員會評定
-      notes:
-        - 升級並非純粹依任務數量自動計算。
-        - S 級會員在各地皆極為稀少。
-      internal_staff: >
-        公會會吸納冒險者成為正式員工，負責管理、後勤、審核或執行職務；
-        此類人員仍保有冒險者身分，但主要以公會雇員身分運作。
-    credentials:
-      guild_card_scope: 不跨地區通用
-      exchange_mechanism: >
-        各地公會之間設有同等證明或換證機制，供跨地區活動的冒險者使用；
-        換證程序與標準依各地協議而定。
-    mission_system:
-      mission_ranks:
-        - F
-        - E
-        - D
-        - C
-        - B
-        - A
-        - AA
-        - S
-      reward_policy: >
-        各等級對應固定賞金範圍，由各地公會依當地物價與風險基準設定。
-      commission_policy: >
-        公會依任務等級抽取固定比例手續費，比例各地略有差異但大致統一。
-      posting_rules:
-        - 任何個人、組織或政治實體均可向公會發布委託。
-        - 公會負責審核任務內容的合法性與等級合理性。
-        - AA 級以上高等級任務通常需要更嚴格的審核程序。
-      settlement: >
-        任務完成後由公會確認完成狀況並結算，賞金扣除抽成後撥付給執行成員。
-        公會在此流程中作為第三方擔保方。
-    services:
-      - 任務發布與結算
-      - 冒險者休憩、情報交換與集會場地
-      - 組隊與委託方配對媒合
-      - 裝備買賣與後勤補給
-      - 大型分會修繕工坊
-      - 賞金存儲、跨地區匯兌與基本借貸
-      - 地形、敵情、目標資訊與地區動態等情報服務
-    intelligence_policy:
-      access_model: 分級銷售
-      restrictions:
-        - 高等情報僅對特定等級以上會員開放，或需另行計費。
-    dispute_resolution:
-      minor_disputes:
-        examples:
-          - 任務完成認定爭議
-          - 賞金計算分歧
-          - 輕微契約違反
-        handling: >
-          由公會內部仲裁機制處理，公會員工或指定仲裁人居中協調，
-          裁定結果對雙方具約束力。
-      major_disputes:
-        examples:
-          - 重大財產損失
-          - 人身傷亡責任
-          - 刑事行為
-          - 跨政治實體爭議
-        handling: >
-          移交外部相應的政治或法律機構處理，公會提供相關紀錄與協助，
-          但不承擔最終裁決責任。
-    related_systems:
-      - id: knighthood-system
-        relationship: >
-          S 級懸賞任務的獨立執行能力是騎士團認定條件之一，
-          因此公會等級認定體系與騎士制度存在實質連動。
-        boundary: 公會不直接授予或撤銷騎士資格。
-    related_entities:
-      - first-continent-aethlan-empire
-      - second-continent-great-league
-    narrative_functions:
-      - 提供跨政治實體通用的懸賞、情報與冒險者流動基礎。
-      - 作為普通冒險者、國家機構與騎士制度之間的制度橋梁。
-      - 可承接地方災害、討伐、護送、調查與跨境委託劇情。
-      - 中立原則與地方會長私下立場可形成政治衝突或灰色地帶。
-    continuity_notes:
-      - 公會沒有全世界統一的最高總會；後續描寫應以各地區總會獨立運作為前提。
-      - 公會證不跨地區通用，跨區冒險者需走換證或同等證明機制。
-      - 公會可承接政治實體發布的委託，但不因此成為該政治實體的下屬組織。
-      - S 級冒險者稀少，且 S 級任務能力可與騎士團認定產生關聯。
+# novel_02 組織新增條目
 
+> 新增來源：`bible/organizations.yaml`
+> 新增項目：空騎團、帝國第一聖殿騎士團、特別調查組（子單位）
+
+---
+
+## organizations
+
+```yaml
   - id: sky-rider-corps
     name: 空騎團
     aliases:
@@ -306,32 +168,13 @@ organizations:
       - 外界描寫騎士團時應維持「全員人類」的認知基準，與實際情況的落差可作為後續揭露伏線。
       - 人神離去後的神學詮釋問題不應輕易解決，此張力應在騎士團相關劇情中持續存在。
       - 騎士團與帝國的關係是相互利用而非單純從屬，描寫時應體現雙方各自的盤算。
+```
 
-organization_units:
-  - id: adventurers-guild-regional-headquarters
-    name: 地區總會
-    parent_organization: adventurers-guild
-    category: regional_governing_unit
-    summary: >
-      各國或各地區公會體系的最高層級，負責當地任務標準、等級認定、
-      分會管理、跨地區協議與重大委託審核。
-    authority_scope: 依所在地區或政治實體範圍而定
-    notes:
-      - 地區總會彼此獨立，沒有固定總會統轄。
-      - 地區總會間透過協議維持最低制度共識。
+---
 
-  - id: adventurers-guild-branch
-    name: 分會
-    parent_organization: adventurers-guild
-    category: local_operational_unit
-    summary: >
-      分布於城市與重要據點的公會基層據點，直接處理任務公告、結算、
-      冒險者交流、後勤服務與在地情報。
-    authority_scope: 所在城市或據點周邊
-    notes:
-      - 大型分會可設考核場地與修繕工坊。
-      - 分會規模與服務完整度依所在地需求而異。
+## organization_units
 
+```yaml
   - id: sky-rider-special-investigation-unit
     name: 特別調查組
     parent_organization: sky-rider-corps
@@ -350,4 +193,4 @@ organization_units:
       - 特別調查組隊長身分未公開。
       - 成員確切人數不對外公開。
       - 任務性質通常不對外公告，完成情況亦不進入一般委託結算流程。
-
+```

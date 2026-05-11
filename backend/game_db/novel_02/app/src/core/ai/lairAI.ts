@@ -55,10 +55,3 @@ export function runLairAITurn(state: BattleState, ctx: BattleContext): void {
   }
 }
 
-/**
- * 預測 AI 下一回合意圖（顯示給玩家）。
- * 簡化：永遠是「攻擊」（紅色）。
- */
-export function previewLairIntent(state: BattleState): "attack" | "deploy" | "spell" | "dimension" | "special" | "unknown" {
-  return aliveTroops(state.enemy).length > 0 ? "attack" : "deploy";
-}
