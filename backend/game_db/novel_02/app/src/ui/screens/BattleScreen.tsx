@@ -11,6 +11,7 @@ import type { TroopInstance } from "../../core/types/battle";
 import type { Card, TroopCard } from "../../core/types/card";
 import styles from "../styles/battle.module.css";
 import { cardTypeColor, cardTypeLabel } from "../../game/useCardInfo";
+import { GameIndexOverlay } from "./GameIndexOverlay";
 
 interface Props {
   heroId: string;
@@ -35,6 +36,7 @@ type SelectMode =
 function BattleView({ onExit }: { onExit: () => void }): JSX.Element {
   const { state, dispatch, reset } = useBattle();
   const [select, setSelect] = useState<SelectMode>({ kind: "none" });
+  const [indexOpen, setIndexOpen] = useState(false);
 
   const playerHero = state.player.hero;
   const enemyHero = state.enemy.hero;
@@ -196,8 +198,11 @@ function BattleView({ onExit }: { onExit: () => void }): JSX.Element {
           {state.corruptionStage > 0 && <span style={{ marginLeft: 8, color: "#fa3" }}>腐化階段 {state.corruptionStage}</span>}
         </div>
         <div>回合 {state.turn} · {isPlayerTurn ? "玩家" : "敵方"}</div>
+        <button onClick={() => setIndexOpen(true)}>索引</button>
         <button onClick={onExit}>退出</button>
       </div>
+
+      {indexOpen && <GameIndexOverlay onClose={() => setIndexOpen(false)} />}
 
       {/* Enemy zone */}
       <div className={styles.enemy}>
