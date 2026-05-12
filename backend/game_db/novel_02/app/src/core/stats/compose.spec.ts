@@ -1,29 +1,29 @@
 import { describe, expect, it } from "vitest";
 import { BASE_STATS, composeHeroStats, manaCapFor } from "./compose";
-import { HERO_AELLA_FLAIR, HERO_ARCHMAGE, HERO_BLOOD_CHIEF, HERO_COMMANDER } from "../../data/heroes";
+import { HERO_ELNO_HONORARY_MAGE, HERO_LULU, HERO_MOUNTAIN_HUNTER, HERO_REKA } from "../../data/heroes";
 import { CLASSES, getClass } from "../../data/classes";
 import { RACES, getRace } from "../../data/races";
 import type { HeroDefinition } from "../types/hero";
 
-describe("composeHeroStats — 三位 Demo 英雄符合設計文件 §C.5", () => {
-  it("軍團統帥 (人類·指揮官·SR, 個體 0/0/0/0) → HP 80 / ATK 6 / DEF 5 / CMD 9", () => {
-    const stats = composeHeroStats(HERO_COMMANDER, getRace("human"), getClass("commander"));
-    expect(stats).toEqual({ hp: 80, atk: 6, def: 5, cmd: 9 });
+describe("composeHeroStats — 小說角色英雄數值", () => {
+  it("露露 (人類·指揮官·SR) → HP 80 / ATK 8 / DEF 6 / CMD 8", () => {
+    const stats = composeHeroStats(HERO_LULU, getRace("human"), getClass("commander"));
+    expect(stats).toEqual({ hp: 80, atk: 8, def: 6, cmd: 8 });
   });
 
-  it("大賢者 (精靈·法師·SR, 個體 0/0/0/0) → HP 60 / ATK 7 / DEF 3 / CMD 4", () => {
-    const stats = composeHeroStats(HERO_ARCHMAGE, getRace("elf"), getClass("mage"));
-    expect(stats).toEqual({ hp: 60, atk: 7, def: 3, cmd: 4 });
+  it("山獵人 (人類·冒險家·SR) → HP 82 / ATK 12 / DEF 5 / CMD 5", () => {
+    const stats = composeHeroStats(HERO_MOUNTAIN_HUNTER, getRace("human"), getClass("adventurer"));
+    expect(stats).toEqual({ hp: 82, atk: 12, def: 5, cmd: 5 });
   });
 
-  it("蠻血酋長 (獸族·狂戰士·SR, 個體 0/0/0/0) → HP 110 / ATK 19 / DEF 1 / CMD 5", () => {
-    const stats = composeHeroStats(HERO_BLOOD_CHIEF, getRace("beast"), getClass("berserker"));
-    expect(stats).toEqual({ hp: 110, atk: 19, def: 1, cmd: 5 });
+  it("芮卡 (獸族·狂戰士·SR) → HP 105 / ATK 20 / DEF 2 / CMD 4", () => {
+    const stats = composeHeroStats(HERO_REKA, getRace("beast"), getClass("berserker"));
+    expect(stats).toEqual({ hp: 105, atk: 20, def: 2, cmd: 4 });
   });
 
-  it("艾拉·芙萊爾 (人類·冒險家·SR, 個體 0/0/0/0) → HP 82 / ATK 9 / DEF 4 / CMD 7", () => {
-    const stats = composeHeroStats(HERO_AELLA_FLAIR, getRace("human"), getClass("adventurer"));
-    expect(stats).toEqual({ hp: 82, atk: 9, def: 4, cmd: 7 });
+  it("艾爾諾老師 (精靈·法師·SSR) → HP 65 / ATK 8 / DEF 3 / CMD 7", () => {
+    const stats = composeHeroStats(HERO_ELNO_HONORARY_MAGE, getRace("elf"), getClass("mage"));
+    expect(stats).toEqual({ hp: 65, atk: 8, def: 3, cmd: 7 });
   });
 });
 
@@ -34,7 +34,7 @@ describe("composeHeroStats — 數值合成基礎規則", () => {
 
   it("DEF 不會低於 1（受最低界限保護）", () => {
     const synthetic = {
-      ...HERO_BLOOD_CHIEF,
+      ...HERO_REKA,
       statTuning: { def: -10 },
     };
     const stats = composeHeroStats(synthetic, getRace("beast"), getClass("berserker"));
@@ -42,15 +42,15 @@ describe("composeHeroStats — 數值合成基礎規則", () => {
   });
 
   it("種族與英雄不匹配時應拋錯", () => {
-    expect(() => composeHeroStats(HERO_COMMANDER, getRace("elf"), getClass("commander"))).toThrow();
+    expect(() => composeHeroStats(HERO_LULU, getRace("elf"), getClass("commander"))).toThrow();
   });
 
   it("職業與英雄不匹配時應拋錯", () => {
-    expect(() => composeHeroStats(HERO_COMMANDER, getRace("human"), getClass("mage"))).toThrow();
+    expect(() => composeHeroStats(HERO_LULU, getRace("human"), getClass("mage"))).toThrow();
   });
 
   it("個體微調可加可減", () => {
-    const synthetic = { ...HERO_COMMANDER, statTuning: { hp: 5, atk: -1, def: 2, cmd: -1 } };
+    const synthetic = { ...HERO_LULU, statTuning: { hp: 5, atk: -1, def: 2, cmd: -1 } };
     const stats = composeHeroStats(synthetic, getRace("human"), getClass("commander"));
     expect(stats.hp).toBe(85);
     expect(stats.atk).toBe(5);

@@ -11,7 +11,9 @@
       "Bash(tar -xf file -C extracted)",
       "Bash(npx eslint *)",
       "Bash(npx electron-vite *)",
-      "Bash(npx vite *)"
+      "Bash(npx vite *)",
+      "Bash(echo \"exit=$?\")",
+      "Bash(npx vitest *)"
     ]
   }
 }

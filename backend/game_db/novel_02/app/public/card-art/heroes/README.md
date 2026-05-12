@@ -5,15 +5,15 @@
 ## 預設命名
 
 - 檔案路徑：`public/card-art/heroes/{heroId}.webp`
-- 範例：`public/card-art/heroes/commander_legion.webp`
-- 執行時 URL：`/card-art/heroes/commander_legion.webp`
+- 範例：`public/card-art/heroes/lulu.webp`
+- 執行時 URL：`/card-art/heroes/lulu.webp`
 
 ## 目前英雄 ID
 
-- `commander_legion`
-- `archmage_grand`
-- `bloodchief_savage`
-- `aella_flair`
+- `lulu`
+- `mountain-hunter`
+- `reka`
+- `elno-honorary-mage`
 
 ## 建議素材規格
 

@@ -1,10 +1,10 @@
-import { AELLA_FLAIR_DECK_IDS, ARCHMAGE_DECK_IDS, BLOOD_CHIEF_DECK_IDS, COMMANDER_DECK_IDS, buildDeck } from "./starter";
+import { ELNO_HONORARY_MAGE_DECK_IDS, LULU_DECK_IDS, MOUNTAIN_HUNTER_DECK_IDS, REKA_DECK_IDS, buildDeck } from "./starter";
 
 export const STARTER_DECKS: Record<string, string[]> = {
-  commander_legion: COMMANDER_DECK_IDS,
-  archmage_grand: ARCHMAGE_DECK_IDS,
-  bloodchief_savage: BLOOD_CHIEF_DECK_IDS,
-  aella_flair: AELLA_FLAIR_DECK_IDS,
+  lulu: LULU_DECK_IDS,
+  "mountain-hunter": MOUNTAIN_HUNTER_DECK_IDS,
+  reka: REKA_DECK_IDS,
+  "elno-honorary-mage": ELNO_HONORARY_MAGE_DECK_IDS,
 };
 
 export function getStarterDeckIds(heroId: string): string[] {

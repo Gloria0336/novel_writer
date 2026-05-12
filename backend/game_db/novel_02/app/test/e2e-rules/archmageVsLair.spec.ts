@@ -1,6 +1,6 @@
 import { beforeAll, describe, expect, it } from "vitest";
 import { applyPlayerAction, createBattle, createBattleContext, ensureScriptedRegistered } from "../../src/game/seed";
-import { ARCHMAGE_DECK_IDS } from "../../src/data/decks/starter";
+import { ELNO_HONORARY_MAGE_DECK_IDS } from "../../src/data/decks/starter";
 import { getCard } from "../../src/data/cards";
 import { createTroopInstance } from "../../src/core/turn/factories";
 import type { TroopCard } from "../../src/core/types/card";
@@ -8,17 +8,17 @@ import type { TroopCard } from "../../src/core/types/card";
 beforeAll(() => ensureScriptedRegistered());
 
 /**
- * 大賢者 vs 腐植巢穴 — 端到端規則戰鬥
+ * 艾爾諾老師 vs 腐植巢穴 — 端到端規則戰鬥
  *
  * 驗證項：
  * 1. 共鳴量表：每施放 1 張法術 +1
  * 2. 共鳴 ≥ 4 時下一張法術 0 費（詠唱完成）
  * 3. 法術連鎖（超載職業關鍵字）
- * 4. 終極技傷害 = 已施放法術數 ×3
+ * 4. 終極技傷害 = 已施放法術數 ×4
  */
-describe("E2E：大賢者 vs 腐植巢穴", () => {
+describe("E2E：艾爾諾老師 vs 腐植巢穴", () => {
   it("施放 1 張法術後共鳴 +1", () => {
-    const s = createBattle({ seed: 7, playerHeroId: "archmage_grand", playerDeckIds: ARCHMAGE_DECK_IDS });
+    const s = createBattle({ seed: 7, playerHeroId: "elno-honorary-mage", playerDeckIds: ELNO_HONORARY_MAGE_DECK_IDS });
     const ctx = createBattleContext();
 
     // 找一張低費法術（S01 偵查術 0 費）
@@ -37,7 +37,7 @@ describe("E2E：大賢者 vs 腐植巢穴", () => {
   });
 
   it("共鳴 4 時下張法術 0 費（詠唱完成）", () => {
-    const s = createBattle({ seed: 7, playerHeroId: "archmage_grand", playerDeckIds: ARCHMAGE_DECK_IDS });
+    const s = createBattle({ seed: 7, playerHeroId: "elno-honorary-mage", playerDeckIds: ELNO_HONORARY_MAGE_DECK_IDS });
     const ctx = createBattleContext();
     s.player.hero.gaugeValue = 4;
     const manaBefore = s.player.manaCurrent;
@@ -49,7 +49,7 @@ describe("E2E：大賢者 vs 腐植巢穴", () => {
   });
 
   it("超載：第 3 張起每張法術 +1 臨時魔力", () => {
-    const s = createBattle({ seed: 7, playerHeroId: "archmage_grand", playerDeckIds: ARCHMAGE_DECK_IDS });
+    const s = createBattle({ seed: 7, playerHeroId: "elno-honorary-mage", playerDeckIds: ELNO_HONORARY_MAGE_DECK_IDS });
     const ctx = createBattleContext();
     s.player.manaCurrent = 20; // 充足魔力
     s.player.hand = [
@@ -65,8 +65,8 @@ describe("E2E：大賢者 vs 腐植巢穴", () => {
     expect(s.player.tempMana - tempBefore).toBeGreaterThanOrEqual(1);
   });
 
-  it("古語終章：傷害 = 已施放法術數 ×3，敵方英雄受傷", () => {
-    const s = createBattle({ seed: 9, playerHeroId: "archmage_grand", playerDeckIds: ARCHMAGE_DECK_IDS });
+  it("星光迴路淨除：傷害 = 已施放法術數 ×4，敵方英雄受傷", () => {
+    const s = createBattle({ seed: 9, playerHeroId: "elno-honorary-mage", playerDeckIds: ELNO_HONORARY_MAGE_DECK_IDS });
     const ctx = createBattleContext();
     s.player.hero.morale = 100;
     s.player.spellsCastThisGame = 7; // 假設已施放 7 張
@@ -74,12 +74,12 @@ describe("E2E：大賢者 vs 腐植巢穴", () => {
     const r = applyPlayerAction(s, { type: "USE_ULTIMATE" }, ctx);
     expect(r.ok).toBe(true);
     expect(s.player.hero.flags.ultimateUsed).toBe(true);
-    // 7 ×3 = 21；敵方英雄 DEF 0；應 -21（無視守護）
-    expect(s.enemy.hero.hp).toBe(Math.max(0, enemyHpBefore - 21));
+    // 7 ×4 = 28；敵方英雄 DEF 0；應 -28（無視守護）
+    expect(s.enemy.hero.hp).toBe(Math.max(0, enemyHpBefore - 28));
   });
 
   it("共鳴 3 層時 S07 烈焰風暴傷害 ×1.6（含本次施放 onSpellCast +1）", () => {
-    const s = createBattle({ seed: 11, playerHeroId: "archmage_grand", playerDeckIds: ARCHMAGE_DECK_IDS });
+    const s = createBattle({ seed: 11, playerHeroId: "elno-honorary-mage", playerDeckIds: ELNO_HONORARY_MAGE_DECK_IDS });
     const ctx = createBattleContext();
     // 起始 gauge = 2，本次施放 +1 → 結算時為 3 層
     s.player.hero.gaugeValue = 2;

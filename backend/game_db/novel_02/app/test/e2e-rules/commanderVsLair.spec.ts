@@ -1,6 +1,6 @@
 import { beforeAll, describe, expect, it } from "vitest";
 import { applyPlayerAction, createBattle, createBattleContext, ensureScriptedRegistered } from "../../src/game/seed";
-import { COMMANDER_DECK_IDS } from "../../src/data/decks/starter";
+import { LULU_DECK_IDS } from "../../src/data/decks/starter";
 import { aliveTroops, freeSlotIndex } from "../../src/core/selectors/battle";
 import { getCard } from "../../src/data/cards";
 import { checkVictory } from "../../src/core/turn/phases";
@@ -10,7 +10,7 @@ import { executeEffects } from "../../src/core/effects/registry";
 beforeAll(() => ensureScriptedRegistered());
 
 /**
- * 軍團統帥 vs 腐植巢穴 — 端到端規則戰鬥
+ * 露露 vs 腐植巢穴 — 端到端規則戰鬥
  *
  * 驗證項：
  * 1. 戰鬥能正確初始化
@@ -18,12 +18,12 @@ beforeAll(() => ensureScriptedRegistered());
  * 3. 軍令量表能因部署兵力而累積
  * 4. 勝負系統能在巢穴 HP 0 時觸發 playerWin
  */
-describe("E2E：軍團統帥 vs 腐植巢穴", () => {
+describe("E2E：露露 vs 腐植巢穴", () => {
   it("能完成多回合戰鬥（部署兵力 → AI 接續 → 軍令量表累積）", () => {
-    const s = createBattle({ seed: 42, playerHeroId: "commander_legion", playerDeckIds: COMMANDER_DECK_IDS });
+    const s = createBattle({ seed: 42, playerHeroId: "lulu", playerDeckIds: LULU_DECK_IDS });
     const ctx = createBattleContext();
 
-    expect(s.player.hero.defId).toBe("commander_legion");
+    expect(s.player.hero.defId).toBe("lulu");
     expect(s.enemy.hero.defId).toBe("putrefactive_lair");
     expect(s.player.hand.length).toBeGreaterThan(0);
 
@@ -56,7 +56,7 @@ describe("E2E：軍團統帥 vs 腐植巢穴", () => {
   });
 
   it("巢穴 HP 0 時 playerWin（強制設定後驗證 checkVictory）", () => {
-    const s = createBattle({ seed: 1, playerHeroId: "commander_legion", playerDeckIds: COMMANDER_DECK_IDS });
+    const s = createBattle({ seed: 1, playerHeroId: "lulu", playerDeckIds: LULU_DECK_IDS });
     s.enemy.hero.hp = 5;
     s.player.hero.atk = 100;
     // 直接造傷
@@ -66,7 +66,7 @@ describe("E2E：軍團統帥 vs 腐植巢穴", () => {
   });
 
   it("號令加成：場上 4 兵力時行動傷害 ×1.2", () => {
-    const s = createBattle({ seed: 99, playerHeroId: "commander_legion", playerDeckIds: COMMANDER_DECK_IDS });
+    const s = createBattle({ seed: 99, playerHeroId: "lulu", playerDeckIds: LULU_DECK_IDS });
     // 直接放置 4 隻兵力到場上
     const t01 = getCard("T01");
     if (t01.type !== "troop") throw new Error("T01 not troop");

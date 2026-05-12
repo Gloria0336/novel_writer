@@ -1,16 +1,16 @@
 import type { HeroDefinition } from "../../core/types/hero";
-import { HERO_COMMANDER } from "./commander";
-import { HERO_ARCHMAGE } from "./archmage";
-import { HERO_BLOOD_CHIEF } from "./bloodChief";
-import { HERO_AELLA_FLAIR } from "./aellaFlair";
+import { HERO_LULU } from "./lulu";
+import { HERO_MOUNTAIN_HUNTER } from "./mountainHunter";
+import { HERO_REKA } from "./reka";
+import { HERO_ELNO_HONORARY_MAGE } from "./elnoHonoraryMage";
 
 export const HEROES: Record<string, HeroDefinition> = {
-  [HERO_COMMANDER.id]: HERO_COMMANDER,
-  [HERO_ARCHMAGE.id]: HERO_ARCHMAGE,
-  [HERO_BLOOD_CHIEF.id]: HERO_BLOOD_CHIEF,
-  [HERO_AELLA_FLAIR.id]: HERO_AELLA_FLAIR,
+  [HERO_LULU.id]: HERO_LULU,
+  [HERO_MOUNTAIN_HUNTER.id]: HERO_MOUNTAIN_HUNTER,
+  [HERO_REKA.id]: HERO_REKA,
+  [HERO_ELNO_HONORARY_MAGE.id]: HERO_ELNO_HONORARY_MAGE,
 };
 
-export const HERO_LIST: HeroDefinition[] = [HERO_COMMANDER, HERO_ARCHMAGE, HERO_BLOOD_CHIEF, HERO_AELLA_FLAIR];
+export const HERO_LIST: HeroDefinition[] = [HERO_LULU, HERO_MOUNTAIN_HUNTER, HERO_REKA, HERO_ELNO_HONORARY_MAGE];
 
-export { HERO_COMMANDER, HERO_ARCHMAGE, HERO_BLOOD_CHIEF, HERO_AELLA_FLAIR };
+export { HERO_LULU, HERO_MOUNTAIN_HUNTER, HERO_REKA, HERO_ELNO_HONORARY_MAGE };

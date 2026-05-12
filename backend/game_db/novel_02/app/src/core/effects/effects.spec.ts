@@ -30,7 +30,7 @@ function mkTroop(cardId: string, instanceId = `t_${Math.random()}`): TroopInstan
   };
 }
 
-function mkState(playerHeroId = "commander_legion", enemyHeroId = "commander_legion"): BattleState {
+function mkState(playerHeroId = "lulu", enemyHeroId = "lulu"): BattleState {
   const ph = HEROES[playerHeroId]!;
   const eh = HEROES[enemyHeroId]!;
   return {
@@ -118,8 +118,8 @@ describe("T11 戰地牧師 入場曲：恢復英雄 8 HP", () => {
 
 describe("S03 治癒之風 — 神官祝福 +50%", () => {
   it("一般法師恢復 10 HP", () => {
-    const s = mkState("archmage_grand", "commander_legion");
-    s.player.hero.defId = "archmage_grand";
+    const s = mkState("elno-honorary-mage", "lulu");
+    s.player.hero.defId = "elno-honorary-mage";
     s.player.hero.hp = 50;
     s.player.hero.maxHp = 100;
     const c = getCard("S03");
