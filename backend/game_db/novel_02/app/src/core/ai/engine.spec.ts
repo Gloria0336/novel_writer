@@ -28,12 +28,13 @@ function makeBossState(seed: number, opts?: { gauge?: number; morale?: number; p
 }
 
 describe("Utility AI engine — lair 行為", () => {
-  it("巢穴每回合至少召喚 1 隻兵力（保留舊 lairAI 等價語意）", () => {
+  it("巢穴每回合召喚至少 1 隻，且不超過 profile 上限", () => {
     const s = makeLairState(11);
     const ctx = createBattleContext();
     const before = aliveTroops(s.enemy).length;
     runEnemyAITurn(s, ctx, PUTREFACTIVE_LAIR_PROFILE);
-    expect(aliveTroops(s.enemy).length).toBeGreaterThan(before);
+    expect(aliveTroops(s.enemy).length).toBe(before + 1);
+    expect(s.log.filter((l) => l.kind === "AI_DEPLOY")).toHaveLength(1);
   });
 
   it("引擎在 SAFETY_LIMIT 內結束（無死循環）", () => {

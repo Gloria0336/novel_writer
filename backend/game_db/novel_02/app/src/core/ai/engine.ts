@@ -24,10 +24,11 @@ export function runEnemyAITurn(state: BattleState, ctx: BattleContext, profile: 
 
   const weights = applyRaceBias(computeWeights(profile.personality), profile.raceBias);
   const difficulty = opts?.difficulty;
+  let poolSummonsThisTurn = 0;
 
   for (let step = 0; step < SAFETY_LIMIT; step++) {
     if (state.result !== "ongoing") return;
-    const candidates = enumerateActions(state, ctx, profile);
+    const candidates = applyLairSummonBounds(enumerateActions(state, ctx, profile), profile, poolSummonsThisTurn);
     if (candidates.length === 0) return;
 
     const scored: ScoredAction[] = candidates.map((a) => evaluate(state, ctx, profile, weights, a, difficulty, () => {
@@ -52,7 +53,25 @@ export function runEnemyAITurn(state: BattleState, ctx: BattleContext, profile: 
       state.log.push({ turn: state.turn, side: "enemy", kind: "AI_ACTION_FAIL", text: `AI 動作失敗：${result.reason ?? "unknown"}`, payload: { action: sel.chosen.action } });
       return;
     }
+    if (sel.chosen.action.kind === "deployFromPool") poolSummonsThisTurn++;
   }
+}
+
+function applyLairSummonBounds(candidates: CandidateAction[], profile: EnemyProfile, summonsThisTurn: number): CandidateAction[] {
+  if (profile.kind !== "lair") return candidates;
+
+  const bounds = profile.summonsPerTurn ?? { min: 1, max: 1 };
+  const min = Math.max(0, bounds.min);
+  const max = Math.max(min, bounds.max);
+  let out = summonsThisTurn >= max
+    ? candidates.filter((a) => a.kind !== "deployFromPool")
+    : candidates;
+
+  const canStillSummon = out.some((a) => a.kind === "deployFromPool");
+  if (summonsThisTurn < min && canStillSummon) {
+    out = out.filter((a) => a.kind !== "endTurn");
+  }
+  return out;
 }
 
 function evaluate(

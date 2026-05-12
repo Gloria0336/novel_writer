@@ -52,6 +52,8 @@ export interface EnemyProfile {
   gaugePolicy?: GaugePolicy;
   /** 巢穴模式專用：直接召喚的卡池（不消耗手牌/魔力）。 */
   summonPool?: string[];
+  /** 巢穴模式專用：每個 AI 回合的池召喚上下限；有空格時至少 min，最多 max。 */
+  summonsPerTurn?: { min: number; max: number };
 }
 
 /** 候選動作。enumerate 階段輸出，apply 階段消費。 */

@@ -29,7 +29,8 @@ describe("AI 行為", () => {
     const enemyTroopsBefore = aliveTroops(s.enemy).length;
     endPlayerTurnAndRunAI(s, ctx);
     const enemyTroopsAfter = aliveTroops(s.enemy).length;
-    expect(enemyTroopsAfter).toBeGreaterThan(enemyTroopsBefore);
+    expect(enemyTroopsAfter).toBe(enemyTroopsBefore + 1);
+    expect(s.log.filter((l) => l.kind === "AI_DEPLOY")).toHaveLength(1);
   });
 
   it("AI 兵力被殺後穩定度 -2", async () => {
