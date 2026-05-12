@@ -599,6 +599,7 @@ interface MiniHeroCardProps {
 }
 
 function MiniHeroCard({ side, def, hero, targetable, onClick }: MiniHeroCardProps): JSX.Element {
+  const [heroArtFailed, setHeroArtFailed] = useState(false);
   const isEnemy = side === "enemy";
   const skills = [
     def.passives[0] ? { kind: "被動", name: def.passives[0].name, desc: def.passives[0].description, ult: false } : null,
@@ -613,6 +614,11 @@ function MiniHeroCard({ side, def, hero, targetable, onClick }: MiniHeroCardProp
   const rarityRingId = `mhRR-${side}`;
   const bgId = `mhBg-${side}`;
   const fgId = `mhFg-${side}`;
+  const heroArtSrc = `/card-art/heroes/${def.id}.webp`;
+
+  useEffect(() => {
+    setHeroArtFailed(false);
+  }, [def.id]);
 
   return (
     <div
@@ -687,40 +693,51 @@ function MiniHeroCard({ side, def, hero, targetable, onClick }: MiniHeroCardProp
       </div>
 
       <div className={styles.mhArt}>
-        <svg className={styles.silhouette} viewBox="0 0 200 210" preserveAspectRatio="xMidYMid slice">
-          <defs>
-            <radialGradient id={bgId} cx=".5" cy=".4" r=".7">
-              <stop offset="0" stopColor={isEnemy ? "#3a0d10" : "var(--hero-a)"} stopOpacity=".55" />
-              <stop offset="1" stopColor="var(--bg-deep)" />
-            </radialGradient>
-            <linearGradient id={fgId} x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0" stopColor={isEnemy ? "#6a1a1f" : "var(--hero-a)"} />
-              <stop offset="1" stopColor="#0a0a12" />
-            </linearGradient>
-          </defs>
-          <rect width="200" height="210" fill={`url(#${bgId})`} />
-          <ellipse cx="100" cy="180" rx="80" ry="14" fill="#000" opacity=".55" />
-          <g fill={`url(#${fgId})`} stroke="#000" strokeWidth=".4">
-            <path d="M40 200 Q 60 130 100 95 Q 140 130 160 200 Z" />
-            <path d="M60 130 Q 80 110 100 108 Q 120 110 140 130 L 140 145 Q 100 130 60 145 Z" fill="#0a0a12" />
-            <ellipse cx="100" cy="85" rx="18" ry="22" />
-            <path d="M82 82 Q 100 70 118 82 L 118 92 Q 100 86 82 92 Z" fill="#000" opacity=".6" />
-            <path d="M100 70 L 100 110" stroke="#000" strokeWidth="1" opacity=".5" />
-          </g>
-          {isEnemy ? (
-            <g fill="#5a0c10" stroke="#000" strokeWidth=".5">
-              <rect x="155" y="60" width="3" height="120" />
-              <path d="M158 60 L 178 65 L 175 90 L 158 85 Z" />
+        {!heroArtFailed && (
+          <img
+            className={styles.mhArtImage}
+            src={heroArtSrc}
+            alt={def.name}
+            draggable={false}
+            onError={() => setHeroArtFailed(true)}
+          />
+        )}
+        {heroArtFailed && (
+          <svg className={styles.silhouette} viewBox="0 0 200 210" preserveAspectRatio="xMidYMid slice">
+            <defs>
+              <radialGradient id={bgId} cx=".5" cy=".4" r=".7">
+                <stop offset="0" stopColor={isEnemy ? "#3a0d10" : "var(--hero-a)"} stopOpacity=".55" />
+                <stop offset="1" stopColor="var(--bg-deep)" />
+              </radialGradient>
+              <linearGradient id={fgId} x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0" stopColor={isEnemy ? "#6a1a1f" : "var(--hero-a)"} />
+                <stop offset="1" stopColor="#0a0a12" />
+              </linearGradient>
+            </defs>
+            <rect width="200" height="210" fill={`url(#${bgId})`} />
+            <ellipse cx="100" cy="180" rx="80" ry="14" fill="#000" opacity=".55" />
+            <g fill={`url(#${fgId})`} stroke="#000" strokeWidth=".4">
+              <path d="M40 200 Q 60 130 100 95 Q 140 130 160 200 Z" />
+              <path d="M60 130 Q 80 110 100 108 Q 120 110 140 130 L 140 145 Q 100 130 60 145 Z" fill="#0a0a12" />
+              <ellipse cx="100" cy="85" rx="18" ry="22" />
+              <path d="M82 82 Q 100 70 118 82 L 118 92 Q 100 86 82 92 Z" fill="#000" opacity=".6" />
+              <path d="M100 70 L 100 110" stroke="#000" strokeWidth="1" opacity=".5" />
             </g>
-          ) : (
-            <g fill="var(--hero-b)" stroke="#000" strokeWidth=".5">
-              <rect x="40" y="60" width="3" height="120" />
-              <path d="M40 60 L 20 65 L 23 90 L 40 85 Z" />
-              <circle cx="41" cy="58" r="4" fill="var(--metal-c)" />
-            </g>
-          )}
-          <g opacity=".18"><path d="M100 0 L 80 105 L 120 105 Z" fill="#fff" /></g>
-        </svg>
+            {isEnemy ? (
+              <g fill="#5a0c10" stroke="#000" strokeWidth=".5">
+                <rect x="155" y="60" width="3" height="120" />
+                <path d="M158 60 L 178 65 L 175 90 L 158 85 Z" />
+              </g>
+            ) : (
+              <g fill="var(--hero-b)" stroke="#000" strokeWidth=".5">
+                <rect x="40" y="60" width="3" height="120" />
+                <path d="M40 60 L 20 65 L 23 90 L 40 85 Z" />
+                <circle cx="41" cy="58" r="4" fill="var(--metal-c)" />
+              </g>
+            )}
+            <g opacity=".18"><path d="M100 0 L 80 105 L 120 105 Z" fill="#fff" /></g>
+          </svg>
+        )}
         <div className={styles.vignette} />
       </div>
 

@@ -46,3 +46,28 @@ open_threads:
     stakes: >
       他的力量來源、與公會或騎士體系是否有關，會影響讀者對第一章事件尺度的理解。
     likely_payoff_window: 短期到中期
+
+  - id: elno-starlight-magic
+    hook: 艾爾諾老師能以無咒語、無魔杖的星光魔法抹除受黑暗能量驅動的魔狼，該魔法不屬於少年熟悉的標準屬性體系。
+    introduced_in: ch004-1
+    status: open
+    stakes: >
+      若星光魔法與黑暗次元、眾神遺產或宮廷法師體系隱秘知識有關，
+      艾爾諾老師的身分與北上目的可能牽動主線危機。
+    likely_payoff_window: 短期到中期
+
+  - id: apprentice-magic-engineering-talent
+    hook: 少年能在缺少完整零件與工坊的情況下，將報廢礦業切割刀改造成更小、更省魔法石的可用原型。
+    introduced_in: ch004-1
+    status: open
+    stakes: >
+      這項才能可能讓少年走向不同於純戰鬥法師的道路，也可能成為對抗腐植類魔物與黑暗侵蝕事件的新工具線。
+    likely_payoff_window: 短期
+
+  - id: northern-road-corruption-escalation
+    hook: 帝國北上道路沿線出現腐獸、魔化植物與黑暗能量侵蝕魔狼，村鎮與商隊行動已受到影響。
+    introduced_in: ch004-1
+    status: open
+    stakes: >
+      黑暗侵蝕若持續擴大，北方交通、礦業城市補給與帝國對北境的掌控都會受到壓力。
+    likely_payoff_window: 短期到中期

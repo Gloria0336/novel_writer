@@ -76,3 +76,44 @@ relationships:
       - 五百年前魔族全面入侵的歷史被多數人視為傳說。
       - 各勢力選擇沉默，導致危機延誤。
     last_updated_in: world-bible
+
+  - pair:
+      - elno-honorary-mage
+      - unnamed-mage-apprentice
+    dynamic: >
+      嚴師與天賦學生的師徒關係。艾爾諾老師用實戰、毒舌與冷靜判斷訓練少年，
+      少年既敬畏又崇拜她，並希望得到她對魔法與魔導工程才能的認可。
+    trust_level: 中到高
+    tension: 中
+    conflict_points:
+      - 少年對魔導機械的興趣常偏離老師安排的魔法課業。
+      - 少年黑魔法緒論基礎不足，實戰中曾誤判腐化魔狼的行動機制。
+      - 老師並未否定少年的工程才能，但要求他能解釋與承擔改造後果。
+    last_updated_in: ch004-1
+
+  - pair:
+      - unnamed-mage-apprentice
+      - blackstone-dwarf-shopkeeper
+    dynamic: >
+      短暫的店主與客人關係。少年在礦業工會商店沉迷研究魔導工具，
+      矮人老闆在關店前提醒他離開，並將無維修價值的報廢切割刀送給他。
+    trust_level: 低
+    tension: 低
+    conflict_points:
+      - 少年長時間觀看展示品但沒有購買正式商品。
+      - 老闆務實地把切割刀視為報廢品，少年則看見可改造價值。
+    last_updated_in: ch004-1
+
+  - pair:
+      - elno-honorary-mage
+      - dark-dimension
+    dynamic: >
+      艾爾諾老師已具備處理黑暗能量侵蝕事件的知識與實戰能力。
+      她能辨識腐化生物脫離神經系統後仍可由黑暗能量驅動，並以未知星光魔法將污染抹除。
+    trust_level: 無
+    tension: 高
+    conflict_points:
+      - 黑暗能量已使北上道路附近出現腐化野獸、魔狼與魔化植物。
+      - 艾爾諾老師似乎知道比一般魔法師更多的黑暗侵蝕機制。
+      - 她的星光魔法對黑暗能量具有特殊壓制或抹除效果，來源未公開。
+    last_updated_in: ch004-1

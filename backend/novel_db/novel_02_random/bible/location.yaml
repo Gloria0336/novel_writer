@@ -312,3 +312,84 @@ locations:
       - 學者與研究機構
     continuity_notes:
       - 大圖書館部分館藏可追溯至眾神之戰前。魔導科技以最低調的方式整合進古老建築，導管與金屬構件盡量隱藏於牆體之內。非精靈學者不得進入最核心典藏區一事，至今仍是帝國內部政治爭議點。
+
+  - id: northern-aethlan-road
+    name: 帝國北上道路
+    type: 道路 / 北方交通線
+    region: 艾瑟蘭帝國中北部至北境方向
+    first_appearance: ch004-1
+    summary: >
+      由帝都向北延伸的道路系統。越往北，魔物與黑暗能量侵蝕事件越頻繁，
+      商隊減少，驛站燈火轉暗，許多村鎮下午即急著關門。
+    atmosphere:
+      - 乾冷北風
+      - 被燒成灰黑色的腐植林
+      - 村民與受傷親人聚集在路邊，帶著劫後餘生的緊繃
+      - 夜晚像某種會從地平線爬來的威脅
+    narrative_functions:
+      - 展示黑暗次元滲透已影響帝國內部交通與民生
+      - 作為艾爾諾老師教導少年實戰判斷的移動舞台
+      - 串接帝都、北方村鎮與黑石城
+    access_constraints:
+      - 道路附近可能出現腐獸、魔化植物與受黑暗能量侵蝕的魔狼。
+      - 普通村鎮與商隊對日落後行動高度保守。
+    linked_people_or_factions:
+      - elno-honorary-mage
+      - unnamed-mage-apprentice
+      - adventurers-guild
+      - dark-dimension
+    continuity_notes:
+      - ch004-1 中艾爾諾老師沿途處理的委託顯示，黑暗侵蝕已不是孤立事件。
+
+  - id: blackstone-city
+    name: 黑石城
+    type: 礦業城市
+    region: 艾瑟蘭帝國北上道路沿線
+    first_appearance: ch004-1
+    summary: >
+      熱鬧的礦業城市，城牆不高但厚重，以深灰色石材與銀色金屬骨架構成。
+      城外道路被運礦車壓得結實平整，遠處山坡有礦井升降塔與魔導輪盤。
+    atmosphere:
+      - 煤煙、金屬粉塵、麥酒與熱湯味混在一起
+      - 矮人、工人、商隊、冒險者與厚外套居民往來頻繁
+      - 魔導輪盤與礦井升降塔像城市呼吸般緩慢運轉
+    narrative_functions:
+      - 展示矮人與帝國礦業魔導技術的日常化應用
+      - 讓少年魔導工程天賦首次明確浮出水面
+      - 作為北上旅途中可補給、住宿與採購的城市節點
+    access_constraints:
+      - 礦業設施與工會商店以礦工、採購員及相關從業者為主要服務對象。
+      - 夜間商店會關門，旅店則可接待通行者。
+    linked_people_or_factions:
+      - unnamed-mage-apprentice
+      - elno-honorary-mage
+      - blackstone-dwarf-shopkeeper
+      - mining-guild
+    continuity_notes:
+      - ch004-1 中少年從黑石城礦業工會商店取得報廢手持切割刀，並在旅店房間完成改造。
+
+  - id: blackstone-mining-guild-shop
+    name: 黑石城礦業工會商店
+    type: 商店 / 礦業工具供應點
+    region: 黑石城
+    first_appearance: ch004-1
+    summary: >
+      兩層高石造建築，門口掛有交叉礦鎬與齒輪標誌。店內展示照明魔晶燈、
+      探測儀、大型礦車替換零件、手持切割刀與履帶式魔導運輸機等礦業工具。
+    atmosphere:
+      - 金屬與魔法氣息濃厚
+      - 工業魔晶燈在關店時逐盞調暗
+      - 展示牆與玻璃櫃帶有務實、密集的工坊感
+    narrative_functions:
+      - 觸發少年對魔導工程的深度分析與改造衝動
+      - 展示魔法作為生活與產業工具的另一種語言
+      - 提供報廢切割刀作為少年第一個可攜式改造原型
+    access_constraints:
+      - 非礦工或工會採購員可入內觀看，但長時間不購買會被店主提醒離開。
+      - 報廢品通常不具商業維修價值，可能被低價處理或直接送出。
+    linked_people_or_factions:
+      - blackstone-dwarf-shopkeeper
+      - unnamed-mage-apprentice
+      - mining-guild
+    continuity_notes:
+      - 少年取得的報廢切割刀原本外殼裂開、噴嘴歪斜，風壓陣列有兩片符文片燒黑，水系魔晶已被拆走。

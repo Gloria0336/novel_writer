@@ -307,6 +307,46 @@ organizations:
       - 人神離去後的神學詮釋問題不應輕易解決，此張力應在騎士團相關劇情中持續存在。
       - 騎士團與帝國的關係是相互利用而非單純從屬，描寫時應體現雙方各自的盤算。
 
+  - id: mining-guild
+    name: 礦業工會
+    aliases:
+      - 礦業工會商店
+    category: industrial_trade_guild
+    first_appearance: ch004-1
+    summary: >
+      黑石城等礦業城市中負責礦業工具、採購、報廢設備與相關物資流通的行業組織。
+      ch004-1 中其商店展示大量魔導礦業工具，包含手持切割刀、履帶式魔導運輸機與探測儀。
+    origin:
+      founding_nature: 未公開，推定隨礦業城市與矮人工業體系發展而形成。
+      development: >
+        目前僅在黑石城以商店形式登場，更多制度、分會與跨城協作尚未公開。
+    governance:
+      central_authority: 未公開
+      branches: >
+        黑石城至少存在一處對礦工、工會採購員與相關客戶開放的商店據點。
+    political_position:
+      stance: 偏產業中立
+      recognized_by:
+        - 黑石城礦業體系
+      limitations:
+        - 目前未見其介入政治或軍事衝突。
+    services:
+      - 礦井工具展示與買賣
+      - 魔導礦業設備零件供應
+      - 報廢工具處理
+      - 探測、照明、運輸與切割類工具流通
+    related_entities:
+      - blackstone-city
+      - blackstone-mining-guild-shop
+      - dwarves
+    narrative_functions:
+      - 展示矮人與帝國工業魔導技術如何落地到礦業生產。
+      - 作為少年魔導工程才能的觸發點。
+      - 可提供後續魔導工具、材料、零件與工坊劇情入口。
+    continuity_notes:
+      - ch004-1 的手持切割刀設計以水系魔晶生成水流，風系陣列壓縮穩定方向，形成高壓水柱切割。
+      - 履帶式魔導運輸機使用四角浮力陣列抵消部分重量，而非真正飛行。
+
 organization_units:
   - id: adventurers-guild-regional-headquarters
     name: 地區總會
@@ -350,4 +390,3 @@ organization_units:
       - 特別調查組隊長身分未公開。
       - 成員確切人數不對外公開。
       - 任務性質通常不對外公告，完成情況亦不進入一般委託結算流程。
-
