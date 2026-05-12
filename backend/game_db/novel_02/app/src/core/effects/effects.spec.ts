@@ -50,10 +50,10 @@ function mkState(playerHeroId = "commander_legion", enemyHeroId = "commander_leg
 }
 
 describe("通用卡資料完整性", () => {
-  it("通用卡共 54 張", () => {
-    expect(GENERIC_CARDS).toHaveLength(54);
+  it("通用卡共 94 張", () => {
+    expect(GENERIC_CARDS).toHaveLength(94);
   });
-  it("通用卡分類正確：14 兵力 + 10 行動 + 14 法術 + 8 裝備 + 8 場地", () => {
+  it("通用卡分類正確：14 兵力 + 10 行動 + 14 法術 + 48 裝備 + 8 場地", () => {
     const byType = GENERIC_CARDS.reduce<Record<string, number>>((acc, c) => {
       acc[c.type] = (acc[c.type] ?? 0) + 1;
       return acc;
@@ -61,11 +61,11 @@ describe("通用卡資料完整性", () => {
     expect(byType.troop).toBe(14);
     expect(byType.action).toBe(10);
     expect(byType.spell).toBe(14);
-    expect(byType.equipment).toBe(8);
+    expect(byType.equipment).toBe(48);
     expect(byType.field).toBe(8);
   });
-  it("總卡池 = 通用 54 + 6 種族×10 + 中立傳說 6 = 120 張", () => {
-    expect(ALL_CARDS).toHaveLength(120);
+  it("總卡池 = 通用 94 + 6 種族×10 + 中立傳說 6 = 160 張", () => {
+    expect(ALL_CARDS).toHaveLength(160);
   });
   it("每張卡 id 唯一", () => {
     const ids = ALL_CARDS.map((c) => c.id);

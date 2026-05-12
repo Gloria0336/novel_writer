@@ -1,7 +1,9 @@
 import { registerScripted } from "../registry";
+import { drawCards } from "../../deck/draw";
 import { aliveTroops, getSide, otherSide } from "../../selectors/battle";
 import { applyHeroDamage } from "../../combat/damage";
 import { createTroopInstance } from "../../turn/factories";
+import type { TroopInstance } from "../../types/battle";
 import type { TroopCard } from "../../types/card";
 
 export function registerHeroScripted(): void {
@@ -57,4 +59,54 @@ export function registerHeroScripted(): void {
     }
     ec.state.log.push({ turn: ec.state.turn, side: ec.sourceSide, kind: "PRIMAL_AWAKENING", text: `祖獸覺醒！對敵方英雄造 ${damage} 傷害`, payload: { damage } });
   });
+
+  // 艾拉·芙萊爾終極技：精準支援導引
+  // 敵方所有兵力 DEF 歸零，失去守護與正向增益效果。抽 2 張牌。
+  registerScripted("PRECISION_SUPPORT_GUIDANCE", (_p, ec) => {
+    const side = getSide(ec.state, ec.sourceSide);
+    const enemy = getSide(ec.state, otherSide(ec.sourceSide));
+    let affected = 0;
+
+    for (const troop of enemy.troopSlots) {
+      if (!troop) continue;
+      removePositiveStatBuffs(troop);
+      troop.def = 0;
+      troop.keywords.delete("guard");
+      affected++;
+    }
+
+    const draw = drawCards(side, 2, ec.state.rngState);
+    ec.state.rngState = draw.newRngState;
+    ec.state.log.push({
+      turn: ec.state.turn,
+      side: ec.sourceSide,
+      kind: "PRECISION_SUPPORT_GUIDANCE",
+      text: `精準支援導引！破除 ${affected} 名敵兵防線，抽 ${draw.drawn} 張牌`,
+      payload: { affected, drawn: draw.drawn },
+    });
+  });
+}
+
+function removePositiveStatBuffs(troop: TroopInstance): void {
+  const kept = [];
+  for (const buff of troop.buffs) {
+    let hasPositive = false;
+    const { atk, def, hp, cmd } = buff.mod;
+    if (atk && atk > 0) {
+      troop.atk = Math.max(0, troop.atk - atk);
+      hasPositive = true;
+    }
+    if (def && def > 0) {
+      troop.def = Math.max(0, troop.def - def);
+      hasPositive = true;
+    }
+    if (hp && hp > 0) {
+      troop.maxHp = Math.max(1, troop.maxHp - hp);
+      troop.hp = Math.min(troop.hp, troop.maxHp);
+      hasPositive = true;
+    }
+    if (cmd && cmd > 0) hasPositive = true;
+    if (!hasPositive) kept.push(buff);
+  }
+  troop.buffs = kept;
 }

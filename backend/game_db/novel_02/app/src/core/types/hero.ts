@@ -2,7 +2,7 @@ import type { Effect, StatModifier } from "./effect";
 import type { ClassKeyword } from "./keyword";
 
 export type RaceId = "human" | "elf" | "dwarf" | "fey" | "beast" | "demigod";
-export type ClassId = "commander" | "mage" | "smith" | "illusionist" | "berserker" | "priest";
+export type ClassId = "commander" | "mage" | "smith" | "illusionist" | "berserker" | "priest" | "adventurer";
 export type HeroRarity = "R" | "SR" | "SSR";
 
 export interface Stats {

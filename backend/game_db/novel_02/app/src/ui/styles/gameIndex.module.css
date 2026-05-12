@@ -241,6 +241,17 @@
   padding: 14px;
 }
 
+.indexCard {
+  padding: 0;
+  background: transparent;
+  border: none;
+  border-radius: 0;
+}
+
+.indexCard > :not(:first-child) {
+  display: none;
+}
+
 .cardHeader {
   display: flex;
   justify-content: space-between;

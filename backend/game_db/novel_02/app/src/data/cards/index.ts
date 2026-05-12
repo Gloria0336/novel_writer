@@ -15,7 +15,7 @@ import { DEMON_CARDS, DEMON_TOKENS } from "./races/demon";
 import { INTERNAL_TROOPS } from "./internals";
 import { LAIR_TROOPS } from "../enemies/putrefactiveLair";
 
-// 通用 54 張（玩家可組）
+// 通用 94 張（玩家可組）
 export const GENERIC_CARDS: Card[] = [...TROOPS, ...ACTIONS, ...SPELLS, ...EQUIPMENTS, ...FIELDS];
 
 // 中立傳說卡 6 張
@@ -29,10 +29,9 @@ export const RACE_CARDS: Record<string, Card[]> = {
   fey: FEY_CARDS,
   beast: BEAST_CARDS,
   demigod: DEMIGOD_CARDS,
-  demon: DEMON_CARDS,
 };
 
-// 全部玩家可用卡（54 + 60 + 6 = 120 張）
+// 全部玩家可用卡（94 + 60 + 6 = 160 張）
 export const ALL_CARDS: Card[] = [
   ...GENERIC_CARDS,
   ...HUMAN_CARDS,

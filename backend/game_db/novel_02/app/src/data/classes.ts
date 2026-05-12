@@ -48,6 +48,14 @@ const PRIEST: ClassFrame = {
   description: "恢復類效果（法術/技能）恢復量 +50%。",
 };
 
+const ADVENTURER: ClassFrame = {
+  id: "adventurer",
+  name: "冒險家",
+  statMods: { hp: 2, atk: 1, def: -1, cmd: 0 },
+  keyword: "command",
+  description: "擅長偵查、救援與臨場支援，透過機動行動累積戰術優勢。",
+};
+
 export const CLASSES: Record<ClassId, ClassFrame> = {
   commander: COMMANDER,
   mage: MAGE,
@@ -55,6 +63,7 @@ export const CLASSES: Record<ClassId, ClassFrame> = {
   illusionist: ILLUSIONIST,
   berserker: BERSERKER,
   priest: PRIEST,
+  adventurer: ADVENTURER,
 };
 
 export function getClass(id: ClassId): ClassFrame {

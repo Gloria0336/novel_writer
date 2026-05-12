@@ -2,7 +2,16 @@
   "permissions": {
     "allow": [
       "Bash(npm run *)",
-      "Bash(node_modules/.bin/tsc --noEmit)"
+      "Bash(node_modules/.bin/tsc --noEmit)",
+      "WebFetch(domain:api.anthropic.com)",
+      "Bash(mkdir -p /tmp/design_extract)",
+      "Bash(cp \"C:\\\\Users\\\\user\\\\.claude\\\\projects\\\\D--Users-user-Desktop-T-novel-writer-backend-game-db-novel-02\\\\d360d107-9db6-46cc-818c-e94ed2342e78\\\\tool-results\\\\webfetch-1778556966220-hzfln8.bin\" /tmp/design_extract/file.gz)",
+      "Bash(gunzip -kf file.gz)",
+      "Bash(mkdir -p extracted)",
+      "Bash(tar -xf file -C extracted)",
+      "Bash(npx eslint *)",
+      "Bash(npx electron-vite *)",
+      "Bash(npx vite *)"
     ]
   }
 }

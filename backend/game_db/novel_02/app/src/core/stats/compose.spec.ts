@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { BASE_STATS, composeHeroStats, manaCapFor } from "./compose";
-import { HERO_ARCHMAGE, HERO_BLOOD_CHIEF, HERO_COMMANDER } from "../../data/heroes";
+import { HERO_AELLA_FLAIR, HERO_ARCHMAGE, HERO_BLOOD_CHIEF, HERO_COMMANDER } from "../../data/heroes";
 import { CLASSES, getClass } from "../../data/classes";
 import { RACES, getRace } from "../../data/races";
 import type { HeroDefinition } from "../types/hero";
@@ -19,6 +19,11 @@ describe("composeHeroStats — 三位 Demo 英雄符合設計文件 §C.5", () =
   it("蠻血酋長 (獸族·狂戰士·SR, 個體 0/0/0/0) → HP 110 / ATK 19 / DEF 1 / CMD 5", () => {
     const stats = composeHeroStats(HERO_BLOOD_CHIEF, getRace("beast"), getClass("berserker"));
     expect(stats).toEqual({ hp: 110, atk: 19, def: 1, cmd: 5 });
+  });
+
+  it("艾拉·芙萊爾 (人類·冒險家·SR, 個體 0/0/0/0) → HP 82 / ATK 9 / DEF 4 / CMD 7", () => {
+    const stats = composeHeroStats(HERO_AELLA_FLAIR, getRace("human"), getClass("adventurer"));
+    expect(stats).toEqual({ hp: 82, atk: 9, def: 4, cmd: 7 });
   });
 });
 
@@ -112,7 +117,11 @@ describe("資料完整性", () => {
   it("6 個種族框架都已定義", () => {
     expect(Object.keys(RACES)).toHaveLength(6);
   });
-  it("6 個職業框架都已定義", () => {
-    expect(Object.keys(CLASSES)).toHaveLength(6);
+  it("7 個職業框架都已定義", () => {
+    expect(Object.keys(CLASSES)).toHaveLength(7);
+  });
+  it("冒險家職業修正值符合設定", () => {
+    expect(CLASSES.adventurer.statMods).toEqual({ hp: 2, atk: 1, def: -1, cmd: 0 });
+    expect(CLASSES.adventurer.name).toBe("冒險家");
   });
 });

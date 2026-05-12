@@ -4,7 +4,7 @@ This file is generated from a novel directory so AI tools can read the project a
 
 ## Scope
 - Source: `backend/novel_db/novel_01`
-- Files included: 30
+- Files included: 31
 - Included extensions: .md, .yaml, .yml, .json, .txt, plus .cursorrules
 - Excluded directories: private, temp, _exports
 - Excluded filenames: (none)
@@ -19,6 +19,7 @@ This project has 31 chapter files, so only the first 3 and latest 10 chapters ar
 
 ## Table of Contents
 - [.cursorrules](#cursorrules)
+- [README.md](#readme-md)
 - [context/CONTEXT.md](#context-context-md)
 - [context/last-chapter-summary.md](#context-last-chapter-summary-md)
 - [context/secrets-lockbox.md](#context-secrets-lockbox-md)
@@ -144,6 +145,87 @@ This project has 31 chapter files, so only the first 3 and latest 10 chapters ar
 1. 若大綱未指定本章為情慾章，默認優先推進懸疑、都市壓力與角色關係。
 2. 若大綱指定本章為補給或關係突破章，情慾場景要與契約機制和後續風險綁定。
 3. 若 canon 存在時間、名詞或細節衝突，先依 `bible` 與 `outline` 工作版本對齊，再提出修正建議，不要自行偷改已定設定。
+```
+
+---
+
+## README.md
+
+<!-- file_path: backend/novel_db/novel_01/README.md -->
+
+```markdown
+# Novel 01
+
+- `Novel ID`: `novel_01`
+- `Status`: active / drafting
+- `Current Chapters`: `ch001` 至 `ch031`
+- `Project Folder`: `novel_01`
+- `Setting`: 阿爾迪爾，現代都市奇幻
+
+## 核心定位
+
+平凡上班族林遠在雨夜車禍中瀕死，與魅魔燼締結不可逆的陰陽契約後存活，卻被重塑成女性肉身。故事從身分崩塌、日常偽裝與同居契約開始，逐步擴張到阿爾迪爾暗處的妖魔、淵念、獵魔殿與淵聲研究所。
+
+本作的主軸不是單純變身奇幻，而是「超自然代價如何滲入現代生活」：證件、公司、租屋、職場、便利商店、外勤調查與普通人際，都會被契約與妖魔拖出裂縫。
+
+## 目錄結構
+
+- `chapters/`: 正文章節，現有 `ch001.md` 至 `ch031.md`。
+- `bible/`: 公開 canon 設定庫。
+  - `characters.yaml`: 林遠、燼、阿強、蘇臨、獵魔殿成員等角色狀態。
+  - `worldbuilding.md`: 阿爾迪爾、妖魔、淵念、陰陽契約、研究所與獵魔殿規則。
+  - `location.yaml`: 城市行政區、場景與地理歸屬。
+  - `timeline.yaml`: 章節時間線。
+  - `relationships.yaml`: 角色關係狀態。
+  - `plot-threads.yaml`: 主線、伏筆與懸而未決事項。
+  - `dictionary/`: 妖魔與英雄等專名補充資料。
+- `outline/`: 章節大綱與分幕規劃，`master-outline.yaml` 是目前主線工作檔。
+- `context/`: 續寫用上下文。
+  - `CONTEXT.md`: 寫作前需要載入的工作摘要。
+  - `last-chapter-summary.md`: 最新章節摘要。
+  - `secrets-lockbox.md`: 未公開秘密與長線真相，不應直接寫入公開 canon。
+- `private/`: 私有設定，目前包含 `inner_setting.yaml`。
+- `temp/`: 早期或臨時資料，例如主線劇情大綱、完整世界觀建構、結局設定與章節草稿。
+- `scripts/`: bible 更新與一致性檢查流程說明。
+
+## 風格
+
+- 類型：現代都市奇幻、成人向角色關係、懸疑驚悚。
+- 基調：城市夜行、舊城區祕密、身分危機、超自然滲入日常。
+- 視角：近距離第三人稱，主要貼近林遠的體感、羞恥、恐懼、煩躁與自我吐槽。
+- 節奏：日常壓力與異象危機並行；情慾與契約張力應服務於人物關係、力量代價與生存風險。
+- 描寫重點：交通、商圈、老公寓、便利商店、辦公樓、資料建檔、外勤與監視器等現代物件要具體落地。
+
+## 大綱
+
+林遠原本只是 ADC 廣告公司的普通員工。雨夜車禍讓他在瀕死瞬間與燼簽下陰陽契約，醒來後發現身體、聲音、身分與社會關係全部被迫改寫。他必須一邊處理新肉身與契約失衡，一邊避免熟人與公司制度拆穿自己。
+
+阿強成為最早知情的人類協力者，協助林遠以外派技術人員身分轉入淵聲研究所。研究所表面處理民俗與異常資料，實際牽涉阿爾迪爾近年越來越集中的異常聲源。林遠在紙本檔案、外勤調查與便利商店妖魔事件中逐漸確認：自己不是偶發受害者，而是對妖魔與獵魔殿都高度醒目的特殊存在。
+
+截至目前，林遠已接觸淵聲研究所、獵魔殿痕跡、水棲妖魔、隱匿訓練與阿爾迪爾異常擴散地圖。`ch028` 把東蘇雜貨與天蘇區事件推到前台，`ch029` 至 `ch031` 則接續契約、代償與危機後的身體／關係後果。部分 bible 工作摘要仍停在 `ch028`，接續 `ch032` 前應優先回查最新章節正文並同步設定。
+
+## 主要角色
+
+- 林遠：契約者與主角，原男性上班族，現被重塑為女性肉身；理性、嘴硬、抗拒失控，卻持續被迫成長。
+- 燼：魅魔與契約對象，慵懶、刻薄、危險，既是救命者也是加害性重塑者。
+- 阿強：林遠原公司同事，最早知情的人類支援者，負責現實社會層面的遮掩。
+- 蘇臨：淵聲研究所資料組組長兼行政，林遠在研究所的主要對接窗口。
+- 獵魔殿：超自然事故處理勢力，對妖魔與契約者都可能構成威脅。
+
+## 寫作前檢查
+
+1. 先讀 `bible/` 下所有正式設定。
+2. 讀 `context/CONTEXT.md` 與 `context/last-chapter-summary.md`。
+3. 讀 `outline/master-outline.yaml`，必要時讀分幕檔。
+4. 檢查 `context/secrets-lockbox.md`，避免提前揭露未公開真相。
+5. 寫完新章後，同步更新章節摘要、角色狀態、時間線、地點與劇情線。
+
+## 注意事項
+
+- 林遠的力量、契約、身體變化與情慾張力都必須有代價。
+- 燼不可被寫成單純溫柔保護者；他的照顧常帶有控制、佔有與進食需求。
+- 獵魔殿、淵聲研究所與妖魔規則要分階段揭露，不要用旁白一次講穿。
+- `temp/` 內資料可參考，但正式 canon 以 `chapters/`、`bible/`、`outline/`、`context/` 為準。
 ```
 
 ---

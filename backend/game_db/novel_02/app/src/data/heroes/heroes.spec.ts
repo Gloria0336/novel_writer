@@ -4,11 +4,15 @@ import { getRace } from "../races";
 import { getClass } from "../classes";
 import { composeHeroStats } from "../../core/stats/compose";
 import { getCard } from "../cards";
-import { ARCHMAGE_DECK_IDS, BLOOD_CHIEF_DECK_IDS, COMMANDER_DECK_IDS } from "../decks/starter";
+import { AELLA_FLAIR_DECK_IDS, ARCHMAGE_DECK_IDS, BLOOD_CHIEF_DECK_IDS, COMMANDER_DECK_IDS } from "../decks/starter";
 import { addGauge, gaugeOnHeroDamaged } from "../../core/resource/gauge";
 import { applyResonanceMultiplier, applyBerserkMultiplier, applyCommandMultiplier } from "../../core/effects/amount";
 import { registerCoreScripted } from "../../core/effects/handlers/scripted";
 import { registerHeroScripted } from "../../core/effects/handlers/heroes";
+import { createBattle, createBattleContext } from "../../game/seed";
+import { applyAction } from "../../core/turn/reducer";
+import { createTroopInstance } from "../../core/turn/factories";
+import type { TroopCard } from "../../core/types/card";
 
 beforeAll(() => {
   registerCoreScripted();
@@ -16,9 +20,9 @@ beforeAll(() => {
 });
 
 describe("英雄資料完整性", () => {
-  it("3 位 Demo 英雄已登記", () => {
-    expect(HERO_LIST).toHaveLength(3);
-    expect(Object.keys(HEROES)).toEqual(expect.arrayContaining(["commander_legion", "archmage_grand", "bloodchief_savage"]));
+  it("4 位 Demo 英雄已登記", () => {
+    expect(HERO_LIST).toHaveLength(4);
+    expect(Object.keys(HEROES)).toEqual(expect.arrayContaining(["commander_legion", "archmage_grand", "bloodchief_savage", "aella_flair"]));
   });
 
   it("每位英雄都有 1+ 個被動、3 個主動、1 個終極", () => {
@@ -55,6 +59,7 @@ describe("預組牌完整性 — 每位英雄 30 張 + 符合種族 deckLimits",
   it("軍團統帥牌組合法", () => check("commander_legion", COMMANDER_DECK_IDS));
   it("大賢者牌組合法", () => check("archmage_grand", ARCHMAGE_DECK_IDS));
   it("蠻血酋長牌組合法", () => check("bloodchief_savage", BLOOD_CHIEF_DECK_IDS));
+  it("艾拉·芙萊爾牌組合法", () => check("aella_flair", AELLA_FLAIR_DECK_IDS));
 });
 
 describe("軍令量表（指揮官）", () => {
@@ -121,6 +126,23 @@ describe("英雄技能 — 主動效果定義", () => {
     expect(skill.cost.morale).toBe(50);
     expect(skill.effects).toHaveLength(3);
   });
+
+  it("艾拉 act_rescue_marker：抽牌並召喚持盾衛兵", () => {
+    const skill = HEROES.aella_flair!.actives.find((s) => s.id === "act_rescue_marker")!;
+    expect(skill.cost.morale).toBe(35);
+    expect(skill.effects[0]).toEqual({ kind: "draw", count: 1 });
+    expect(skill.effects[1]).toEqual({ kind: "summon", cardId: "T03", count: 1, side: "self" });
+  });
+
+  it("艾拉 act_rapid_recon：抽牌、護甲、軍令", () => {
+    const skill = HEROES.aella_flair!.actives.find((s) => s.id === "act_rapid_recon")!;
+    expect(skill.cost.morale).toBe(20);
+    expect(skill.effects).toEqual([
+      { kind: "draw", count: 1 },
+      { kind: "armor", amount: 6 },
+      { kind: "gauge", delta: 10, side: "self" },
+    ]);
+  });
 });
 
 describe("終極技施放規則", () => {
@@ -137,5 +159,38 @@ describe("終極技施放規則", () => {
       expect(e.amount.kind).toBe("spellsCastThisGame");
       if (e.amount.kind === "spellsCastThisGame") expect(e.amount.mult).toBe(3);
     }
+  });
+
+  it("艾拉「精準支援導引」清除敵方兵力防線並抽 2 張", () => {
+    const ctx = createBattleContext();
+    const state = createBattle({ seed: 7, playerHeroId: "aella_flair", playerDeckIds: AELLA_FLAIR_DECK_IDS, initialHandSize: 0 });
+    state.player.hero.morale = 100;
+    state.player.hand = [];
+    state.player.deck = [
+      { instanceId: "draw_1", cardId: "S01" },
+      { instanceId: "draw_2", cardId: "S04" },
+    ];
+
+    const guard = createTroopInstance(state, getCard("T03") as TroopCard);
+    guard.atk += 3;
+    guard.def += 2;
+    guard.maxHp += 4;
+    guard.hp += 4;
+    guard.buffs.push({ id: "positive", source: "test", mod: { atk: 3, def: 2, hp: 4 }, remainingTurns: 2 });
+    guard.buffs.push({ id: "negative", source: "test", mod: { atk: -1 }, remainingTurns: 2 });
+    state.enemy.troopSlots[0] = guard;
+
+    const result = applyAction(state, { type: "USE_ULTIMATE" }, ctx);
+
+    expect(result.ok).toBe(true);
+    expect(guard.def).toBe(0);
+    expect(guard.keywords.has("guard")).toBe(false);
+    expect(guard.atk).toBe(2);
+    expect(guard.maxHp).toBe(10);
+    expect(guard.hp).toBe(10);
+    expect(guard.buffs).toHaveLength(1);
+    expect(guard.buffs[0]?.id).toBe("negative");
+    expect(state.player.hand.map((c) => c.cardId)).toEqual(["S01", "S04"]);
+    expect(state.player.hero.flags.ultimateUsed).toBe(true);
   });
 });

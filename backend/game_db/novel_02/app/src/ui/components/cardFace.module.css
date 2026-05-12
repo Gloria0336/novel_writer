@@ -1,0 +1,377 @@
+.face {
+  --card-type-color: #86b6a3;
+  --card-rarity-color: #a8b0ba;
+  --card-art-position: 50% 40%;
+  position: relative;
+  isolation: isolate;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto auto;
+  aspect-ratio: 5 / 7;
+  min-width: 0;
+  overflow: hidden;
+  color: #f2f1e8;
+  background:
+    linear-gradient(160deg, rgba(255, 255, 255, 0.08), transparent 28%),
+    linear-gradient(180deg, #262932 0%, #17191f 54%, #101217 100%);
+  border: 2px solid color-mix(in srgb, var(--card-rarity-color) 58%, #20242c);
+  border-radius: 8px;
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.32);
+  user-select: none;
+}
+
+.frameGlow {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background:
+    linear-gradient(90deg, color-mix(in srgb, var(--card-type-color) 28%, transparent), transparent 38%),
+    linear-gradient(0deg, color-mix(in srgb, var(--card-rarity-color) 18%, transparent), transparent 35%);
+  opacity: 0.76;
+}
+
+.hand {
+  width: 100%;
+  height: 100%;
+}
+
+.gallery {
+  width: 100%;
+  min-height: 360px;
+}
+
+.mini {
+  width: 100%;
+  border-radius: 7px;
+  box-shadow: none;
+}
+
+.interactive {
+  cursor: pointer;
+}
+
+.interactive.playable:hover {
+  transform: translateY(-4px);
+  border-color: #8ce3aa;
+  box-shadow: 0 14px 30px rgba(0, 0, 0, 0.42), 0 0 0 1px rgba(140, 227, 170, 0.32);
+}
+
+.selected {
+  border-color: #ffd15f;
+  box-shadow: 0 0 0 2px rgba(255, 209, 95, 0.44), 0 12px 28px rgba(0, 0, 0, 0.42);
+}
+
+.targetable {
+  border-color: #ffad58;
+  box-shadow: 0 0 0 2px rgba(255, 173, 88, 0.32);
+}
+
+.disabled {
+  opacity: 0.46;
+  cursor: not-allowed;
+  filter: saturate(0.62);
+}
+
+.header {
+  position: relative;
+  z-index: 2;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 28px;
+  gap: 6px;
+  align-items: start;
+  min-height: 38px;
+  padding: 7px 7px 5px;
+  background: linear-gradient(180deg, rgba(13, 15, 20, 0.92), rgba(13, 15, 20, 0.62));
+}
+
+.titleBlock {
+  min-width: 0;
+}
+
+.name {
+  display: block;
+  overflow: hidden;
+  font-size: 12px;
+  line-height: 1.2;
+  color: #fff7df;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.meta {
+  display: block;
+  overflow: hidden;
+  margin-top: 2px;
+  color: #aeb6c4;
+  font-size: 10px;
+  line-height: 1.2;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cost {
+  width: 26px;
+  height: 26px;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  border-radius: 50%;
+  color: #ffffff;
+  background:
+    radial-gradient(circle at 34% 28%, rgba(255, 255, 255, 0.38), transparent 28%),
+    #2f5fa8;
+  font-family: Consolas, monospace;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.artBox {
+  position: relative;
+  min-height: 0;
+  margin: 0 7px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 5px;
+  background: #11141a;
+}
+
+.art {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
+  object-position: var(--card-art-position);
+}
+
+.artFallback {
+  width: 100%;
+  height: 100%;
+  min-height: 86px;
+  display: grid;
+  place-items: center;
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.1), transparent 32%),
+    linear-gradient(180deg, color-mix(in srgb, var(--card-type-color) 44%, #252b34), #11141a);
+}
+
+.artFallback span {
+  max-width: 80%;
+  color: rgba(255, 255, 255, 0.78);
+  font-family: Consolas, monospace;
+  font-size: 18px;
+  font-weight: 700;
+  overflow-wrap: anywhere;
+  text-align: center;
+}
+
+.warm {
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.1), transparent 32%),
+    linear-gradient(180deg, #594636, #171313);
+}
+
+.cool {
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.1), transparent 32%),
+    linear-gradient(180deg, #344755, #11141a);
+}
+
+.bright {
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.16), transparent 32%),
+    linear-gradient(180deg, #515a42, #151711);
+}
+
+.shadow {
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.08), transparent 32%),
+    linear-gradient(180deg, #2e2936, #0f1014);
+}
+
+.typeRibbon {
+  position: absolute;
+  left: 6px;
+  bottom: 6px;
+  max-width: calc(100% - 12px);
+  padding: 2px 6px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  border-radius: 999px;
+  color: #f8fbff;
+  background: color-mix(in srgb, var(--card-type-color) 72%, #11141a);
+  font-size: 10px;
+  line-height: 1.2;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.body {
+  min-height: 0;
+  padding: 6px 8px 4px;
+}
+
+.badgeRow {
+  display: flex;
+  gap: 5px;
+  align-items: center;
+  margin-bottom: 5px;
+}
+
+.rarity,
+.cardId {
+  min-width: 0;
+  padding: 2px 5px;
+  overflow: hidden;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.08);
+  font-size: 9px;
+  line-height: 1.2;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rarity {
+  color: var(--card-rarity-color);
+}
+
+.cardId {
+  margin-left: auto;
+  color: #aeb6c4;
+  font-family: Consolas, monospace;
+}
+
+.effectList {
+  display: flex;
+  min-height: 0;
+  flex-direction: column;
+  gap: 3px;
+  list-style: none;
+}
+
+.effectList li {
+  display: -webkit-box;
+  overflow: hidden;
+  color: #d5d9df;
+  font-size: 10px;
+  line-height: 1.28;
+  overflow-wrap: anywhere;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.stats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1px;
+  padding: 4px 6px 6px;
+  color: #f1e4bc;
+  font-family: Consolas, monospace;
+  font-size: 10px;
+  font-weight: 700;
+  text-align: center;
+}
+
+.stats span {
+  min-width: 0;
+  padding: 3px 2px;
+  overflow: hidden;
+  border-radius: 3px;
+  background: rgba(0, 0, 0, 0.24);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.mini .header {
+  grid-template-columns: minmax(0, 1fr) 22px;
+  min-height: 28px;
+  padding: 4px 5px 3px;
+}
+
+.mini .name {
+  font-size: 10px;
+}
+
+.mini .meta,
+.mini .badgeRow {
+  display: none;
+}
+
+.mini .cost {
+  width: 21px;
+  height: 21px;
+  font-size: 11px;
+}
+
+.mini .artBox {
+  margin: 0 5px;
+}
+
+.mini .artFallback {
+  min-height: 58px;
+}
+
+.mini .artFallback span {
+  font-size: 13px;
+}
+
+.mini .typeRibbon {
+  left: 4px;
+  bottom: 4px;
+  padding: 1px 4px;
+  font-size: 8px;
+}
+
+.mini .body {
+  display: none;
+}
+
+.mini .stats {
+  padding: 4px 5px 5px;
+  font-size: 8px;
+}
+
+.gallery .header {
+  min-height: 48px;
+  padding: 10px 10px 7px;
+  grid-template-columns: minmax(0, 1fr) 34px;
+}
+
+.gallery .name {
+  font-size: 15px;
+}
+
+.gallery .meta {
+  font-size: 11px;
+}
+
+.gallery .cost {
+  width: 32px;
+  height: 32px;
+  font-size: 15px;
+}
+
+.gallery .artBox {
+  margin: 0 10px;
+}
+
+.gallery .artFallback {
+  min-height: 150px;
+}
+
+.gallery .body {
+  padding: 9px 11px 5px;
+}
+
+.gallery .rarity,
+.gallery .cardId {
+  font-size: 11px;
+}
+
+.gallery .effectList li {
+  font-size: 12px;
+  line-height: 1.34;
+}
+
+.gallery .stats {
+  padding: 6px 10px 9px;
+  font-size: 12px;
+}

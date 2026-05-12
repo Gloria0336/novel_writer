@@ -9,6 +9,8 @@ import {
   type CardType,
   type Rarity,
 } from "../../game/gameIndexData";
+import { buildCardFaceModel } from "../../game/cardPresentation";
+import { CardFace } from "../components/CardFace";
 import styles from "../styles/gameIndex.module.css";
 
 type TabId = "overview" | "rules" | "heroes" | "cards";
@@ -244,6 +246,13 @@ function CardTile({ entry }: { entry: IndexedCard }): JSX.Element {
 
   return (
     <article className={styles.indexCard}>
+      <CardFace
+        model={buildCardFaceModel(entry.card, {
+          metaLine: `${entry.card.id} · ${entry.poolLabel}`,
+          effectLines: entry.effectSummary,
+        })}
+        variant="gallery"
+      />
       <div className={styles.cardHeader}>
         <div>
           <h4>{entry.card.name}</h4>
