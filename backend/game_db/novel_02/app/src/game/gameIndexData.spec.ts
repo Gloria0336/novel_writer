@@ -45,7 +45,7 @@ describe("gameIndexData", () => {
     const data = buildGameIndexData();
     const ids = new Set(data.ruleSections.map((section) => section.id));
 
-    expect(ids).toEqual(new Set(["turn", "combat", "resources", "corruption", "ai", "victory"]));
+    expect(ids).toEqual(new Set(["turn", "combat", "resources", "corruption", "ai", "lairs", "bosses", "tower", "victory"]));
     for (const section of data.ruleSections) {
       expect(section.title.trim().length).toBeGreaterThan(0);
       expect(section.items.length).toBeGreaterThan(0);

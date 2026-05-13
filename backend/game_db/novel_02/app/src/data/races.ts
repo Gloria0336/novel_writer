@@ -55,6 +55,15 @@ const DEMIGOD: RaceFrame = {
   description: "天神之後。一身敵千軍，但代價深遠。",
 };
 
+const DEMON: RaceFrame = {
+  id: "demon",
+  name: "惡魔",
+  statMods: { hp: 30, atk: 4, def: 2, cmd: -2 },
+  gauge: { id: "darkErosion", name: "黑暗蝕", max: 100, description: "從次元裂縫汲取黑暗能量；兵力被摧毀與攻擊命中皆會累積。滿值時穩定度 -10 並反噬玩家。" },
+  deckLimits: { troop: [6, 10], action: [4, 8], spell: [4, 8], equipment: [1, 2], field: [1, 2] },
+  description: "次元裂縫的造物。腐化既是武器、也是宿命。",
+};
+
 export const RACES: Record<RaceId, RaceFrame> = {
   human: HUMAN,
   elf: ELF,
@@ -62,6 +71,7 @@ export const RACES: Record<RaceId, RaceFrame> = {
   fey: FEY,
   beast: BEAST,
   demigod: DEMIGOD,
+  demon: DEMON,
 };
 
 export function getRace(id: RaceId): RaceFrame {

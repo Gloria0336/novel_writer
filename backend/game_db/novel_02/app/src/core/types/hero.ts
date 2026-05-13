@@ -1,7 +1,7 @@
 import type { Effect, StatModifier } from "./effect";
 import type { ClassKeyword } from "./keyword";
 
-export type RaceId = "human" | "elf" | "dwarf" | "fey" | "beast" | "demigod";
+export type RaceId = "human" | "elf" | "dwarf" | "fey" | "beast" | "demigod" | "demon";
 export type ClassId = "commander" | "mage" | "smith" | "illusionist" | "berserker" | "priest" | "adventurer";
 export type HeroRarity = "R" | "SR" | "SSR";
 
@@ -12,7 +12,7 @@ export interface Stats {
   cmd: number;
 }
 
-export type GaugeId = "command" | "resonance" | "forge" | "essence" | "rage" | "divineEcho";
+export type GaugeId = "command" | "resonance" | "forge" | "essence" | "rage" | "divineEcho" | "darkErosion";
 
 export interface GaugeFrame {
   id: GaugeId;

@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
+import { useEffect, useRef, useState, type CSSProperties, type MouseEvent, type ReactNode } from "react";
 import { BattleProvider, useBattle } from "../../game/BattleProvider";
 import { getCard } from "../../data/cards";
 import { canTroopAttack, canActionTarget } from "../../core/combat/attack";
@@ -6,10 +6,14 @@ import { aliveTroops } from "../../core/selectors/battle";
 import { canAffordMana, totalAvailableMana } from "../../core/resource/mana";
 import { canAffordMorale } from "../../core/resource/morale";
 import { HEROES } from "../../data/heroes";
-import { LAIR_HERO_DEF, LAIR_HERO_ID } from "../../data/enemies/putrefactiveLair";
-import type { TroopInstance, BattleState } from "../../core/types/battle";
+import { ENEMIES } from "../../data/enemies";
+import type { TroopInstance, BattleState, BattleResult, LogEntry } from "../../core/types/battle";
+import type { Side } from "../../core/types/effect";
+import type { HeroInstance } from "../../core/types/hero";
+import type { EnemyScale } from "../../game/seed";
 import type { Card } from "../../core/types/card";
-import type { HeroDefinition, HeroInstance } from "../../core/types/hero";
+import type { HeroDefinition } from "../../core/types/hero";
+import type { OathChoice } from "../../core/turn/actions";
 import styles from "../styles/battle.module.css";
 import { GameIndexOverlay } from "./GameIndexOverlay";
 import { buildCardFaceModel } from "../../game/cardPresentation";
@@ -17,12 +21,24 @@ import { CardFace } from "../components/CardFace";
 
 interface Props {
   heroId: string;
+  enemyId?: string;
+  initialPlayerHero?: HeroInstance;
+  initialDeckIds?: string[];
+  enemyScale?: EnemyScale;
   onExit: () => void;
+  onBattleEnd?: (result: Exclude<BattleResult, "ongoing">, finalState: BattleState) => void;
 }
 
-export function BattleScreen({ heroId, onExit }: Props): JSX.Element {
+export function BattleScreen({ heroId, enemyId, initialPlayerHero, initialDeckIds, enemyScale, onExit, onBattleEnd }: Props): JSX.Element {
   return (
-    <BattleProvider heroId={heroId}>
+    <BattleProvider
+      heroId={heroId}
+      enemyId={enemyId}
+      initialPlayerHero={initialPlayerHero}
+      initialDeckIds={initialDeckIds}
+      enemyScale={enemyScale}
+      onBattleEnd={onBattleEnd}
+    >
       <BattleView onExit={onExit} />
     </BattleProvider>
   );
@@ -50,13 +66,38 @@ const RACE_TO_THEME: Record<string, string> = {
 
 const FRAME_THEME = "midnight";
 const GAUGE_MAX_DEFAULT = 100;
+const ATTACK_FX_MS = 760;
+
+interface Point {
+  x: number;
+  y: number;
+}
+
+interface AttackFx {
+  id: number;
+  attackerSide: Side;
+  attackerCardId: string;
+  targetSide: Side;
+  targetKind: "troop" | "hero";
+  from: Point;
+  mid: Point;
+  to: Point;
+  strike: Point;
+  tilt: string;
+  slashAngle: string;
+}
 
 function BattleView({ onExit }: { onExit: () => void }): JSX.Element {
   const { state, dispatch, reset } = useBattle();
   const [select, setSelect] = useState<SelectMode>({ kind: "none" });
   const [indexOpen, setIndexOpen] = useState(false);
+  const [previewCard, setPreviewCard] = useState<Card | null>(null);
+  const [oathPrompt, setOathPrompt] = useState<{ handIndex: number } | null>(null);
   const [placementPulse, setPlacementPulse] = useState<{ slotIndex: number; nonce: number } | null>(null);
+  const [attackFx, setAttackFx] = useState<AttackFx | null>(null);
+  const [attackFxQueue, setAttackFxQueue] = useState<AttackFx[]>([]);
   const scaleRef = useRef<HTMLDivElement | null>(null);
+  const seenLogCountRef = useRef(state.log.length);
 
   useEffect(() => {
     function fit(): void {
@@ -86,7 +127,11 @@ function BattleView({ onExit }: { onExit: () => void }): JSX.Element {
 
   useEffect(() => {
     function onKey(e: KeyboardEvent): void {
-      if (e.key === "Escape") setSelect({ kind: "none" });
+      if (e.key === "Escape") {
+        setSelect({ kind: "none" });
+        setPreviewCard(null);
+        setOathPrompt(null);
+      }
     }
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
@@ -98,10 +143,37 @@ function BattleView({ onExit }: { onExit: () => void }): JSX.Element {
     return () => window.clearTimeout(timeout);
   }, [placementPulse]);
 
+  useEffect(() => {
+    if (state.log.length < seenLogCountRef.current) {
+      seenLogCountRef.current = state.log.length;
+      return;
+    }
+    const newLogs = state.log.slice(seenLogCountRef.current);
+    seenLogCountRef.current = state.log.length;
+    const nextFx = newLogs
+      .map((entry, index) => buildAttackFx(entry, Date.now() + index))
+      .filter((fx): fx is AttackFx => fx !== null);
+    if (nextFx.length > 0) setAttackFxQueue((queue) => [...queue, ...nextFx]);
+  }, [state.log]);
+
+  useEffect(() => {
+    if (attackFx || attackFxQueue.length === 0) return;
+    const [nextFx] = attackFxQueue;
+    if (!nextFx) return;
+    setAttackFx(nextFx);
+    setAttackFxQueue((queue) => queue.slice(1));
+  }, [attackFx, attackFxQueue]);
+
+  useEffect(() => {
+    if (!attackFx) return;
+    const timeout = window.setTimeout(() => setAttackFx(null), ATTACK_FX_MS);
+    return () => window.clearTimeout(timeout);
+  }, [attackFx]);
+
   const playerHero = state.player.hero;
   const enemyHero = state.enemy.hero;
-  const heroDef = playerHero.defId === LAIR_HERO_ID ? LAIR_HERO_DEF : HEROES[playerHero.defId]!;
-  const enemyDef = enemyHero.defId === LAIR_HERO_ID ? LAIR_HERO_DEF : HEROES[enemyHero.defId]!;
+  const heroDef = ENEMIES[playerHero.defId]?.heroDef ?? HEROES[playerHero.defId]!;
+  const enemyDef = ENEMIES[enemyHero.defId]?.heroDef ?? HEROES[enemyHero.defId]!;
   const heroTheme = RACE_TO_THEME[heroDef.raceId] ?? "azure";
 
   const isPlayerTurn = state.activeSide === "player" && state.result === "ongoing";
@@ -117,6 +189,11 @@ function BattleView({ onExit }: { onExit: () => void }): JSX.Element {
     if (card.type === "troop") {
       setSelect({ kind: "playCard", handIndex: idx, needsTarget: false, needsSlot: true });
     } else if (card.type === "spell" || card.type === "action") {
+      if (card.id === "S14" && card.type === "spell") {
+        setOathPrompt({ handIndex: idx });
+        setSelect({ kind: "none" });
+        return;
+      }
       const needsTarget = (card.effects ?? []).some((e) => "target" in e && (e.target as { kind?: string }).kind === "single");
       if (!needsTarget) {
         dispatch({ type: card.type === "spell" ? "PLAY_SPELL" : "PLAY_ACTION", handIndex: idx });
@@ -246,10 +323,19 @@ function BattleView({ onExit }: { onExit: () => void }): JSX.Element {
   function endTurn(): void {
     dispatch({ type: "END_TURN" });
     setSelect({ kind: "none" });
+    setOathPrompt(null);
+  }
+
+  function chooseOath(choice: OathChoice): void {
+    if (!oathPrompt) return;
+    dispatch({ type: "PLAY_SPELL", handIndex: oathPrompt.handIndex, oathChoice: choice });
+    setOathPrompt(null);
+    setSelect({ kind: "none" });
   }
 
   const stability = state.stability;
-  const stabTone: "warn" | "crit" | undefined = stability < 30 ? "crit" : stability < 60 ? "warn" : undefined;
+  const stabilityTone: "gold" | "green" | "red" = stability >= 75 ? "gold" : stability >= 50 ? "green" : "red";
+  const stabilityScale = Math.max(0, Math.min(100, stability)) / 100;
   const phase = isPlayerTurn ? "主要" : "結束";
 
   const enemyTargetable =
@@ -263,6 +349,10 @@ function BattleView({ onExit }: { onExit: () => void }): JSX.Element {
   const ultReady = playerHero.morale >= 100 && !playerHero.flags.ultimateUsed;
   const lastLog = state.log.slice(-1)[0];
   const recentLogs = state.log.slice(-3).reverse();
+
+  function toggleCardPreview(cardId: string): void {
+    setPreviewCard((current) => (current?.id === cardId ? null : getCard(cardId)));
+  }
 
   return (
     <div className={styles.stage}>
@@ -285,18 +375,15 @@ function BattleView({ onExit }: { onExit: () => void }): JSX.Element {
 
             <div className={styles.divider} />
 
-            <div className={styles.stability}>
-              <div className={styles.stabLbl}>次元壁穩定度</div>
-              <div className={styles.stabTrack}>
-                <div className={styles.stabFill} data-tone={stabTone} style={{ width: `${stability}%` }} />
-                <div className={styles.stabTicks}>
-                  {[25, 50, 75].map((t) => <div key={t} className={styles.stabTick} style={{ left: `${t}%` }} />)}
+            {state.field && (
+              <>
+                <div className={styles.fieldStatus}>
+                  <div className={styles.fieldStatusCard}>場地：{getCard(state.field.cardId).name}</div>
                 </div>
-              </div>
-              <div className={styles.stabNum}>{stability}</div>
-            </div>
 
-            <div className={styles.divider} />
+                <div className={styles.divider} />
+              </>
+            )}
 
             <div className={styles.phase}>
               {["抽牌", "主要", "結束"].map((p) => (
@@ -313,6 +400,13 @@ function BattleView({ onExit }: { onExit: () => void }): JSX.Element {
           </div>
 
           {indexOpen && <GameIndexOverlay onClose={() => setIndexOpen(false)} />}
+          {previewCard && <CardPreviewOverlay card={previewCard} onClose={() => setPreviewCard(null)} />}
+          {oathPrompt && (
+            <OathChoiceOverlay
+              onChoose={chooseOath}
+              onClose={() => setOathPrompt(null)}
+            />
+          )}
 
           {/* Action log */}
           <div className={styles.log}>
@@ -437,10 +531,17 @@ function BattleView({ onExit }: { onExit: () => void }): JSX.Element {
                         }
                         canAttack={false}
                         onClick={() => clickSlot("enemy", i)}
+                        onPreview={t ? () => toggleCardPreview(t.cardId) : undefined}
                       />
                     ))}
                   </div>
-                  <div className={styles.laneDivider} />
+                  <div className={styles.laneDivider} data-tone={stabilityTone}>
+                    <div className={styles.laneStabilityNum}>{stability}</div>
+                    <div
+                      className={styles.laneStabilityFill}
+                      style={{ transform: `scaleX(${stabilityScale})` }}
+                    />
+                  </div>
                   <div className={styles.lane} data-side="player">
                     {state.player.troopSlots.map((t, i) => {
                       const canAttack =
@@ -460,6 +561,7 @@ function BattleView({ onExit }: { onExit: () => void }): JSX.Element {
                           isSelected={isSelected}
                           placementPulse={placementPulse?.slotIndex === i ? placementPulse.nonce : undefined}
                           onClick={() => clickSlot("player", i)}
+                          onPreview={t ? () => toggleCardPreview(t.cardId) : undefined}
                         />
                       );
                     })}
@@ -467,10 +569,9 @@ function BattleView({ onExit }: { onExit: () => void }): JSX.Element {
                 </div>
               </div>
             </div>
-            {state.field && (
-              <div className={styles.fieldCard}>場地：{getCard(state.field.cardId).name}</div>
-            )}
           </div>
+
+          {attackFx && <AttackEffectOverlay fx={attackFx} />}
 
           {/* Race gauge strip (mirrors right-panel gauge along bottom) */}
           <div className={styles.cmdStrip}>
@@ -525,6 +626,7 @@ function BattleView({ onExit }: { onExit: () => void }): JSX.Element {
                       playable={playable}
                       selected={selected}
                       disabled={!playable}
+                      onPreview={() => toggleCardPreview(inst.cardId)}
                     />
                   </div>
                 );
@@ -588,6 +690,171 @@ function findTroopAnywhere(state: BattleState, instanceId: string): TroopInstanc
     for (const t of slots) if (t && t.instanceId === instanceId) return t;
   }
   return null;
+}
+
+function buildAttackFx(entry: LogEntry, id: number): AttackFx | null {
+  if (entry.kind !== "TROOP_VS_TROOP" && entry.kind !== "TROOP_VS_HERO") return null;
+  const payload = entry.payload ?? {};
+  const attackerSide = readSide(payload.attackerSide);
+  const targetSide = readSide(payload.targetSide);
+  const attackerCardId = typeof payload.attackerCardId === "string" ? payload.attackerCardId : undefined;
+  if (!attackerSide || !targetSide || !attackerCardId) return null;
+
+  const attackerSlotIndex = readNumber(payload.attackerSlotIndex, -1);
+  if (attackerSlotIndex < 0) return null;
+
+  const attackerSlotCount = readNumber(payload.attackerSlotCount, 5);
+  const targetKind = payload.targetKind === "hero" ? "hero" : "troop";
+  const from = troopSlotCenter(attackerSide, attackerSlotIndex, attackerSlotCount);
+  const to = targetKind === "hero"
+    ? heroCenter(targetSide)
+    : troopSlotCenter(targetSide, readNumber(payload.targetSlotIndex, 0), readNumber(payload.targetSlotCount, 5));
+  const dx = to.x - from.x;
+  const dy = to.y - from.y;
+  const mid = {
+    x: from.x + dx * 0.48,
+    y: from.y + dy * 0.48 - 92,
+  };
+  const angle = Math.atan2(dy, dx) * (180 / Math.PI);
+
+  return {
+    id,
+    attackerSide,
+    attackerCardId,
+    targetSide,
+    targetKind,
+    from,
+    mid,
+    to,
+    strike: {
+      x: to.x - Math.sign(dx || 1) * 24,
+      y: to.y - Math.sign(dy || 1) * 10,
+    },
+    tilt: dx >= 0 ? "7deg" : "-7deg",
+    slashAngle: `${angle + 38}deg`,
+  };
+}
+
+function readSide(value: unknown): Side | null {
+  return value === "player" || value === "enemy" ? value : null;
+}
+
+function readNumber(value: unknown, fallback: number): number {
+  return typeof value === "number" && Number.isFinite(value) ? value : fallback;
+}
+
+function troopSlotCenter(side: Side, slotIndex: number, slotCount: number): Point {
+  const fieldLeft = 290;
+  const fieldTop = 84;
+  const fieldWidth = 1340;
+  const fieldHeight = 716;
+  const slotWidth = 132;
+  const slotHeight = 174;
+  const slotGap = 14;
+  const count = Math.max(1, slotCount);
+  const totalWidth = count * slotWidth + Math.max(0, count - 1) * slotGap;
+  const firstCenterX = fieldLeft + (fieldWidth - totalWidth) / 2 + slotWidth / 2;
+
+  return {
+    x: firstCenterX + Math.max(0, Math.min(slotIndex, count - 1)) * (slotWidth + slotGap),
+    y: side === "enemy"
+      ? fieldTop + fieldHeight / 2 - 18 - slotHeight / 2
+      : fieldTop + fieldHeight / 2 + 18 + slotHeight / 2,
+  };
+}
+
+function heroCenter(side: Side): Point {
+  return side === "enemy" ? { x: 146, y: 274 } : { x: 146, y: 806 };
+}
+
+function AttackEffectOverlay({ fx }: { fx: AttackFx }): JSX.Element {
+  let card: Card | null = null;
+  try {
+    card = getCard(fx.attackerCardId);
+  } catch {
+    card = null;
+  }
+  const style = {
+    "--fx-from-x": `${fx.from.x}px`,
+    "--fx-from-y": `${fx.from.y}px`,
+    "--fx-mid-x": `${fx.mid.x}px`,
+    "--fx-mid-y": `${fx.mid.y}px`,
+    "--fx-to-x": `${fx.to.x}px`,
+    "--fx-to-y": `${fx.to.y}px`,
+    "--fx-strike-x": `${fx.strike.x}px`,
+    "--fx-strike-y": `${fx.strike.y}px`,
+    "--fx-tilt": fx.tilt,
+    "--fx-slash-angle": fx.slashAngle,
+  } as CSSProperties;
+
+  return (
+    <div key={fx.id} className={styles.attackFxLayer} style={style} aria-hidden="true">
+      <div className={styles.attackGhostCard} data-side={fx.attackerSide}>
+        <div className={styles.attackGhostCost}>{card?.cost ?? ""}</div>
+        <div className={styles.attackGhostArt}>
+          <div className={styles.attackGhostGlow} />
+          <svg viewBox="0 0 24 24" fill="currentColor" stroke="#000" strokeWidth=".35">
+            <path d="M12 3l2.6 6 6.4.6-4.8 4.3 1.4 6.5L12 17l-5.6 3.4 1.4-6.5L3 9.6 9.4 9z" />
+          </svg>
+        </div>
+        <div className={styles.attackGhostName}>{card?.name ?? fx.attackerCardId}</div>
+      </div>
+
+      <div className={styles.slashImpact} data-side={fx.attackerSide} data-target={fx.targetKind}>
+        <span className={styles.slashRing} />
+        <span className={styles.slashSpark} />
+      </div>
+    </div>
+  );
+}
+
+function CardPreviewOverlay({ card, onClose }: { card: Card; onClose: () => void }): JSX.Element {
+  function closeOnContextMenu(event: MouseEvent<HTMLDivElement>): void {
+    event.preventDefault();
+    onClose();
+  }
+
+  return (
+    <div
+      className={styles.cardPreviewBackdrop}
+      role="dialog"
+      aria-modal="true"
+      aria-label={`${card.name} full preview`}
+      onContextMenu={closeOnContextMenu}
+    >
+      <div className={styles.cardPreviewFrame}>
+        <CardFace model={buildCardFaceModel(card)} variant="preview" />
+      </div>
+    </div>
+  );
+}
+
+const OATH_CHOICES: Array<{ id: OathChoice; name: string; text: string }> = [
+  { id: "restore", name: "全面恢復", text: "英雄 +30 HP，全兵力 +10 HP" },
+  { id: "strengthen", name: "全面強化", text: "全兵力 +5 ATK，持續 3 回合" },
+  { id: "purify", name: "全面淨化", text: "移除所有負面狀態，免疫 1 回合" },
+];
+
+function OathChoiceOverlay({ onChoose, onClose }: { onChoose: (choice: OathChoice) => void; onClose: () => void }): JSX.Element {
+  return (
+    <div className={styles.oathBackdrop} role="dialog" aria-modal="true" aria-label="盟約之誓選擇">
+      <div className={styles.oathPanel}>
+        <div className={styles.oathHeader}>
+          <div className={styles.oathKicker}>S14 · 傳奇法術</div>
+          <h2>盟約之誓</h2>
+        </div>
+        <div className={styles.oathOptions}>
+          {OATH_CHOICES.map((choice) => (
+            <button key={choice.id} className={styles.oathOption} onClick={() => onChoose(choice.id)}>
+              <span className={styles.oathOptionName}>{choice.name}</span>
+              <span className={styles.oathOptionText}>{choice.text}</span>
+            </button>
+          ))}
+        </div>
+        <button className={styles.oathCancel} onClick={onClose}>取消</button>
+      </div>
+    </div>
+  );
 }
 
 interface MiniHeroCardProps {
@@ -833,9 +1100,10 @@ interface TroopSlotProps {
   isSelected?: boolean;
   placementPulse?: number;
   onClick: () => void;
+  onPreview?: () => void;
 }
 
-function TroopSlotView({ slot, side, isTargetable, canAttack, isSelected, placementPulse, onClick }: TroopSlotProps): ReactNode {
+function TroopSlotView({ slot, side, isTargetable, canAttack, isSelected, placementPulse, onClick, onPreview }: TroopSlotProps): ReactNode {
   if (!slot) {
     return (
       <div
@@ -851,6 +1119,13 @@ function TroopSlotView({ slot, side, isTargetable, canAttack, isSelected, placem
     slot.hp < slot.maxHp / 2 ? "crit" : slot.hp < slot.maxHp ? "hurt" : undefined;
   const kws = Array.from(slot.keywords);
   const guard = kws.includes("guard");
+
+  function handlePreview(event: MouseEvent<HTMLDivElement>): void {
+    if (!onPreview) return;
+    event.preventDefault();
+    onPreview();
+  }
+
   return (
     <div
       className={styles.unitSlot}
@@ -859,6 +1134,7 @@ function TroopSlotView({ slot, side, isTargetable, canAttack, isSelected, placem
       data-selected={isSelected ? "true" : undefined}
       data-placement={placementPulse !== undefined ? "true" : undefined}
       onClick={onClick}
+      onContextMenu={onPreview ? handlePreview : undefined}
     >
       <div
         className={`${styles.unit} ${slot.frozenTurns > 0 ? styles.unitStunned : ""} ${guard ? styles.unitGuard : ""}`}

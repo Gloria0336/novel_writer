@@ -1,4 +1,4 @@
-import { ALL_CARDS, ENEMY_INTERNAL_CARDS } from "../data/cards";
+import { ALL_CARDS, DEMON_CARDS, ENEMY_INTERNAL_CARDS, getCard } from "../data/cards";
 import { defaultCardArtSrc, resolveCardArt } from "./cardArt";
 import { buildCardFaceModel } from "./cardPresentation";
 
@@ -55,6 +55,28 @@ describe("card face presentation", () => {
       expect(model.effectLines.join(" ").trim().length).toBeGreaterThan(0);
       if (type === "troop") expect(model.stats).toBeDefined();
       else expect(model.stats).toBeUndefined();
+    }
+  });
+
+  it("shows readable choice text for 盟約之誓 instead of raw script tag", () => {
+    const model = buildCardFaceModel(getCard("S14"));
+    const text = model.effectLines.join(" ");
+
+    expect(text).toContain("三選一");
+    expect(text).toContain("全面恢復");
+    expect(text).toContain("全面強化");
+    expect(text).toContain("全面淨化");
+    expect(text).not.toContain("OATH_CHOICE");
+  });
+
+  it("does not expose raw scripted tags or payloads on any card face", () => {
+    const rawScriptPattern = /腳本效果|[A-Z]{2,}_[A-Z0-9_]+|\{"[a-zA-Z0-9_]+":/;
+
+    for (const card of [...ALL_CARDS, ...ENEMY_INTERNAL_CARDS, ...DEMON_CARDS]) {
+      const model = buildCardFaceModel(card);
+      const text = model.effectLines.join(" ");
+
+      expect(text, `${card.id} ${card.name}`).not.toMatch(rawScriptPattern);
     }
   });
 });

@@ -1,6 +1,8 @@
+export type OathChoice = "restore" | "strengthen" | "purify";
+
 export type GameAction =
   | { type: "PLAY_TROOP"; handIndex: number; slotIndex: number }
-  | { type: "PLAY_SPELL"; handIndex: number; targetInstanceId?: string }
+  | { type: "PLAY_SPELL"; handIndex: number; targetInstanceId?: string; oathChoice?: OathChoice }
   | { type: "PLAY_ACTION"; handIndex: number; targetInstanceId?: string }
   | { type: "PLAY_EQUIPMENT"; handIndex: number }
   | { type: "PLAY_FIELD"; handIndex: number }

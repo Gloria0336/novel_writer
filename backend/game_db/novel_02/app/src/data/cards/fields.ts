@@ -35,3 +35,12 @@ export const FIELDS: FieldCard[] = [
     effects: [{ kind: "scripted", tag: "FIELD_DIMENSIONAL_RIFT" }],
   },
 ];
+
+/** Boss / 巢穴專用的場地卡（不在玩家牌組中）。 */
+export const ENEMY_FIELDS: FieldCard[] = [
+  {
+    id: "F_BURN_INFERNO", type: "field", name: "獄火", cost: 0, rarity: "legendary",
+    effects: [{ kind: "scripted", tag: "FIELD_BURN" }],
+    flavor: "炎魔降臨之地，每回合結束時雙方兵力受 2 傷害。",
+  },
+];

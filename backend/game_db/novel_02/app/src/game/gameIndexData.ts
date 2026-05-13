@@ -1,4 +1,4 @@
-import { ALL_CARDS, ENEMY_INTERNAL_CARDS, GENERIC_CARDS, NEUTRAL_CARDS, RACE_CARDS } from "../data/cards";
+import { ALL_CARDS, DEMON_CARDS, ENEMY_INTERNAL_CARDS, GENERIC_CARDS, NEUTRAL_CARDS, RACE_CARDS } from "../data/cards";
 import { CLASSES } from "../data/classes";
 import { HERO_LIST } from "../data/heroes";
 import { RACES } from "../data/races";
@@ -30,7 +30,7 @@ export interface IndexedCard {
 }
 
 export interface ImplementedRuleSection {
-  id: "turn" | "combat" | "resources" | "corruption" | "ai" | "victory";
+  id: "turn" | "combat" | "resources" | "corruption" | "ai" | "victory" | "bosses" | "lairs" | "tower";
   title: string;
   items: string[];
 }
@@ -184,39 +184,39 @@ export function describeCardEffects(card: Card): string[] {
   if (card.type === "troop") {
     lines.push(`體質 ${card.hp}/${card.atk}/${card.def}`);
     if (card.keywords.length > 0) lines.push(`關鍵字：${card.keywords.map((keyword) => KEYWORD_LABEL[keyword]).join("、")}`);
-    appendEffects(lines, "入場", card.onPlay);
-    appendEffects(lines, "謝幕", card.onDestroy);
-    appendEffects(lines, "回合結束", card.onTurnEnd);
-    appendEffects(lines, "被動", card.passive);
+    appendEffects(lines, "入場", card.onPlay, card);
+    appendEffects(lines, "謝幕", card.onDestroy, card);
+    appendEffects(lines, "回合結束", card.onTurnEnd, card);
+    appendEffects(lines, "被動", card.passive, card);
   }
 
   if (card.type === "action") {
-    appendEffects(lines, "效果", card.effects);
-    appendEffects(lines, "後續", card.postEffects);
+    appendEffects(lines, "效果", card.effects, card);
+    appendEffects(lines, "後續", card.postEffects, card);
   }
 
   if (card.type === "spell" || card.type === "field") {
-    appendEffects(lines, "效果", card.effects);
+    appendEffects(lines, "效果", card.effects, card);
   }
 
   if (card.type === "equipment") {
     lines.push(`槽位：${equipmentSlotLabel(card.slot)}`);
     const modifiers = describeModifiers(card.modifiers);
     if (modifiers) lines.push(`修正：${modifiers}`);
-    appendEffects(lines, "入場", card.onPlay);
-    appendEffects(lines, "被動", card.passive);
+    appendEffects(lines, "入場", card.onPlay, card);
+    appendEffects(lines, "被動", card.passive, card);
   }
 
   if (card.flavor) lines.push(card.flavor);
   return lines.length > 0 ? lines : ["無額外效果"];
 }
 
-function appendEffects(lines: string[], label: string, effects: readonly Effect[] | undefined): void {
+function appendEffects(lines: string[], label: string, effects: readonly Effect[] | undefined, card: Card): void {
   if (!effects || effects.length === 0) return;
-  lines.push(`${label}：${effects.map(describeEffect).join("；")}`);
+  lines.push(`${label}：${effects.map((effect) => describeEffect(effect, card)).join("；")}`);
 }
 
-export function describeEffect(effect: Effect): string {
+export function describeEffect(effect: Effect, card?: Card): string {
   switch (effect.kind) {
     case "damage":
       return `${describeTarget(effect.target)} ${describeAmount(effect.amount)}傷害${flagText([
@@ -231,7 +231,7 @@ export function describeEffect(effect: Effect): string {
     case "discard":
       return `棄 ${effect.count} 張`;
     case "summon":
-      return `召喚 ${effect.cardId} ×${effect.count} 到${sideLabel(effect.side)}`;
+      return `召喚 ${cardDisplayName(effect.cardId)} ×${effect.count} 到${sideLabel(effect.side)}`;
     case "gauge":
       return `${sideLabel(effect.side)}量表 ${signed(effect.delta)}`;
     case "morale":
@@ -253,10 +253,144 @@ export function describeEffect(effect: Effect): string {
     case "destroyField":
       return "摧毀場地";
     case "scripted":
-      return `腳本效果：${effect.tag}${effect.payload ? ` ${JSON.stringify(effect.payload)}` : ""}`;
+      return describeScriptedEffect(effect.tag, effect.payload, card);
     default:
       return `效果：${(effect as { kind: string }).kind}`;
   }
+}
+
+type ScriptedEffectFormatter = string | ((payload: unknown, card?: Card) => string);
+
+const SCRIPTED_EFFECT_TEXT: Record<string, ScriptedEffectFormatter> = {
+  HEAL_ADJACENT: (payload) => `恢復相鄰兵力 ${payloadNumber(payload, "amount", 3)} HP`,
+  FIRST_ATTACK_DOUBLE: "入場後首次攻擊傷害 ×2",
+  GIVE_ANOTHER_RUSH: "使另一個己方兵力獲得突進",
+  ABSORB_HALF_HERO_ACTION_DAMAGE: "英雄受到行動卡傷害時，此兵力代替承受一半",
+  MORALE_IF_KILLED: (payload) => `若本次傷害擊殺目標，鬥志 +${payloadNumber(payload, "amount", 20)}`,
+  SELF_DAMAGE_FIXED: (payload) => `英雄受到 ${payloadNumber(payload, "amount", 10)} 點不可減免自傷`,
+  DISABLE_ACTION_THIS_TURN: "本回合無法再使用行動卡",
+  STARFALL_BLADE: "對敵方英雄造成 ATK×2+20 傷害，無視 DEF 與守護；穩定度 ≤50 時額外 +15",
+  EXTRA_ACTIONS: (payload) => `本回合可額外使用 ${payloadNumber(payload, "count", 2)} 張行動卡`,
+  OATH_CHOICE: "三選一：全面恢復（英雄 +30 HP，全兵力 +10 HP）/ 全面強化（全兵力 +5 ATK，持續 3 回合）/ 全面淨化（移除所有負面狀態，免疫 1 回合）",
+
+  LUCKY_DRAW_CHANCE: (payload) => `每回合抽牌時 ${payloadNumber(payload, "pct", 30)}% 機率額外抽 1 張`,
+  MANA_ON_KILL: "英雄擊殺兵力時，本回合魔力 +1",
+  DEF_THRESHOLD_IMMUNE: "小於英雄 DEF 的傷害完全免疫",
+  MORALE_ON_DEPLOY: (payload) => `部署兵力時鬥志 +${payloadNumber(payload, "amount", 5)}`,
+  HERO_LIFESTEAL: (payload) => `英雄攻擊造成傷害時，恢復傷害量 ${payloadNumber(payload, "pct", 20)}% 的 HP`,
+  DRAGONSCALE: "免疫燃燒與冰凍；每回合恢復 3 HP",
+
+  FIELD_MANA_NODE: "場地：每回合雙方額外獲得 1 魔力；法術效果 +10%",
+  FIELD_BURN: (_payload, card) =>
+    card?.id === "F_BURN_INFERNO"
+      ? "場地：每回合結束時，雙方兵力受到 2 傷害"
+      : "場地：每回合所有兵力受到 3 傷害；治療效果 -50%",
+  FIELD_RESURRECT: "場地：兵力被摧毀時，30% 機率以 30% HP 原地復活",
+  FIELD_STORM: "場地：每回合開始時，隨機 1 個敵方兵力受到 6 傷害；所有兵力不可被治癒",
+  FIELD_DIMENSIONAL_RIFT: "場地：穩定度每回合 -5；所有法術與行動卡傷害 +50%",
+  FIELD_BURN_APPLY: "戰鬥開始時設置獄火場地",
+
+  UNTARGETABLE_BY_SPELL: "無法被法術選為目標",
+  DESTROY_HIGHEST_ATK_BOTH: "雙方各摧毀 ATK 最高的 1 個兵力",
+  ENEMY_DRAW: (payload) => `敵方抽 ${payloadNumber(payload, "count", 1)} 張牌`,
+  GRANT_IGNORE_GUARD_THIS_TURN: "本回合英雄攻擊與技能無視守護",
+  MOON_RELIC: "每回合開始時，種族量表 +10；致命傷時可消耗 50 量表以 1 HP 存活（每場限 1 次）",
+  DIMENSION_SHARD: "穩定度 +25，抽 1 張；若穩定度已滿，改為對敵方全體造成 15 傷害",
+  DOOMSDAY_START: (payload) =>
+    `設置末日倒數 ${payloadNumber(payload, "turns", 3)} 回合；結束時對敵方全體造成 ${payloadNumber(payload, "damage", 50)} 傷害`,
+
+  ATK_PER_ALLY: "場上每有 1 個其他己方兵力，此兵力 ATK +1",
+  LEGION_RALLY: "所有己方兵力 +3 ATK / +3 DEF 持續 2 回合；場上兵力 ≥4 時效果翻倍",
+  DRAW_TROOPS: (payload) => `從牌庫抽 ${payloadNumber(payload, "count", 3)} 張兵力牌`,
+  DEPLOY_DISCOUNT_THIS_TURN: (payload) => `本回合兵力部署費用 -${payloadNumber(payload, "amount", 2)}`,
+  OATH_BLADE: "每次英雄行動卡攻擊後，隨機 1 個己方兵力永久 +2 ATK；場上兵力 ≥3 時行動卡傷害 +10",
+
+  MOONLIGHT_ARROW: "造成 8 傷害；共鳴 ≥2 時改為 12",
+  ATK_PER_SPELL_CAST: "己方每施放 1 張法術，此兵力永久 +1 ATK",
+  DOUBLE_NEXT_SPELL: "本回合下一張法術效果翻倍",
+  FIELD_ELVEN_WARD: "場地：所有法術效果 +25%；兵力部署費用 +1",
+  HP_PER_SPELL_CAST: "己方每施放 1 張法術，此兵力 +3 HP",
+  RESONANCE_NO_RESET: "本回合共鳴不會重置，累積至下回合",
+  AENO_FORBIDDEN: "造成 50 魔法傷害；共鳴 ≥4 時改為對敵方全體造成 80 傷害",
+
+  RAPID_FORGE: "將 1 張手牌轉化為隨機裝備卡",
+  ALLOY_RECYCLE: "拆除 1 件裝備或 1 個器具，獲得其費用 ×2 的魔力",
+  HERO_DEF_PLUS_2_WHILE_ALIVE: "存活期間英雄 DEF +2",
+  AUTO_TURRET_FIRE: "回合結束時，自動攻擊 ATK 最高的敵方兵力",
+  IMMUNE_SPELL_DAMAGE: "免疫法術傷害",
+  MINEVEIN_BLAST: "造成（已裝備裝備數 + 場上器具數）×8 傷害",
+  DWARF_ALE: "恢復英雄 12 HP；裝備 ≥2 件時額外 +8",
+  ANCESTRAL_BLUEPRINT: "永久：所有裝備與器具費用 -1（最低 1）",
+  DAMAGE_ENEMY_HERO_FIXED: (payload) => `對敵方英雄造成 ${payloadNumber(payload, "amount", 10)} 固定傷害`,
+  CLAN_WARHAMMER: "裝備 3 件時額外 +10 固定傷害；場上每有 1 個器具，英雄 ATK +2",
+
+  Y_FOXFIRE: "人形：造成 15 魔法傷害；妖形：造成 10 傷害並灼傷 2 回合",
+  Y_SERPENT_GUARD: "人形：此兵力受到的法術傷害減半；妖形：此兵力 ATK +4",
+  Y_ESSENCE_CORE: "靈蘊上限 +50；切換形態時恢復英雄 5 HP",
+  Y_FORM_TOGGLE: "立即切換人形 / 妖形",
+  Y_DAMAGE_REDUCE_THIS_TURN: (payload) => `英雄本回合受到的傷害 -${payloadNumber(payload, "pct", 50)}%`,
+  Y_HUNDRED_GHOSTS: "人形：召喚 2 個幻影；妖形：召喚 1 個妖獸",
+  Y_ILLUSION_MAZE: "人形：敵方所有兵力 ATK -4 持續 2 回合；妖形：控制敵方 1 個兵力 2 回合",
+  Y_NINETAILS_KEYWORDS: "人形：此兵力獲得威壓；妖形：此兵力獲得疾走與汲取",
+  Y_PRIMORDIAL_BLOOD: "進入始祖妖形 2 回合；己方所有兵力 +3 ATK / +3 DEF",
+
+  B_BLOOD_RITE: "對 1 個己方兵力血祭：HP 減半、ATK 翻倍 2 回合；額外 ATK +3，血怒 +1",
+  B_SAVAGEFANG_BLOODRITE_X3: "被血祭時 ATK ×3（取代 ATK ×2）",
+  B_THORNS_TO_KILLER: (payload) => `對擊殺者造成 ${payloadNumber(payload, "amount", 5)} 傷害`,
+  B_PACK_TACTICS_MARK: "本回合英雄攻擊命中時血怒 +1",
+  B_BRUTE_CHARGE: "英雄造成 ATK 傷害，無視護甲與守護；血怒 ≥5 時額外 +10",
+  B_BATTLE_SCAR_MEDAL: "英雄每跨過 10% HP 門檻時，永久 +1 ATK",
+  B_PRIMAL_HOWL: "所有己方兵力進入血祭狀態：HP 減半，ATK 翻倍 2 回合；血怒 +3",
+  B_PRIMORDIAL_BEAST_SOUL: "血怒立即疊至 10；3 回合內不因治療降低；己方兵力血祭但不損 HP",
+
+  G_ECHO_RESONANCE: "移除 2 層透支；若沒有透支，改為恢復英雄 10 HP",
+  G_FOLLOWER_PROXY: "英雄受傷時，此兵力代替承受 5 傷害",
+  G_DIVINE_BARRIER: (payload) => `${payloadNumber(payload, "turns", 2)} 回合內英雄受到的傷害 -${payloadNumber(payload, "pct", 30)}%`,
+  G_TRANSCEND: "消耗英雄 10% 當前 HP",
+  G_OVERDRAFT_ADD: (payload) => `透支 +${payloadNumber(payload, "amount", 1)}`,
+  G_DIVINE_HIDE: "本回合英雄受到的下 1 次傷害完全無效",
+  G_DIVINE_WORD_COLLAPSE: "消耗 40 神力殘響；對敵方全體造成 25 固定傷害；己方兵力受 10 傷害；透支 +3",
+  G_OVERDRAFT_REMOVE: (payload) => `移除 ${payloadNumber(payload, "amount", 1)} 層透支`,
+  G_GENESIS_FRAGMENT: "消耗所有神力殘響（至少 50）；對敵方英雄造成消耗量 ×1.5 傷害，清除透支並摧毀己方兵力",
+
+  DM_FLAME_IMMUNE: "免疫燃燒與火焰場地傷害",
+  DM_FREEZE_RANDOM_ENEMY: (payload) => `入場時隨機凍結 1 個敵方兵力 ${payloadNumber(payload, "turns", 2)} 回合`,
+  DM_CORRUPTION_SPREAD: "腐化蔓延：削弱敵方陣線並推進黑暗蝕",
+  DM_ENERGY_CORE_PASSIVE: "英雄造成傷害時黑暗蝕 +5",
+  DM_RIFT_FIELD: "場地：每回合穩定度 -3，黑暗蝕 +5",
+  DM_SCORCHED_FIELD: "場地：每回合灼燒敵方兵力，並降低敵方治療效果",
+  DM_CURSE_GENERAL_AURA: "光環：敵方兵力 ATK / DEF 下降",
+  DM_DARK_DESCENT: "召喚黑暗軍勢並大幅推進黑暗蝕",
+  DM_DOOM_GIANT_SPELL_IMMUNE: "免疫法術傷害",
+
+  ELDER_TOUCH: "攻擊命中時穩定度 -1",
+  FEY_FORM_SWITCH: "切換人形 / 妖形",
+  FEY_ANCESTOR_FORM: (payload) => `同享人形與妖形加成 ${payloadNumber(payload, "turns", 3)} 回合`,
+  TOTAL_MOBILIZATION: "立即部署手牌中所有兵力；本回合己方兵力依場上數量獲得 ATK 加成",
+  PRIMAL_AWAKENING: "對敵方英雄造成（ATK + 血怒×5）×2 傷害；血怒歸零，英雄 HP +30%",
+  PRECISION_SUPPORT_GUIDANCE: "敵方所有兵力 DEF 歸零，失去守護與正向增益；抽 2 張牌",
+};
+
+function describeScriptedEffect(tag: string, payload: unknown, card?: Card): string {
+  const formatter = SCRIPTED_EFFECT_TEXT[tag];
+  if (typeof formatter === "function") return formatter(payload, card);
+  if (formatter) return formatter;
+  return "特殊效果待補文字";
+}
+
+function payloadNumber(payload: unknown, key: string, fallback: number): number {
+  if (!payload || typeof payload !== "object") return fallback;
+  const value = (payload as Record<string, unknown>)[key];
+  return typeof value === "number" ? value : fallback;
+}
+
+let cardNameIndex: Map<string, string> | undefined;
+
+function cardDisplayName(cardId: string): string {
+  cardNameIndex ??= new Map(
+    [...ALL_CARDS, ...ENEMY_INTERNAL_CARDS, ...DEMON_CARDS].map((card) => [card.id, card.name]),
+  );
+  return cardNameIndex.get(cardId) ?? cardId;
 }
 
 function describeAmount(amount: AmountExpr): string {
@@ -427,11 +561,47 @@ const IMPLEMENTED_RULE_SECTIONS: ImplementedRuleSection[] = [
   },
   {
     id: "ai",
-    title: "AI 與巢穴戰",
+    title: "AI 與敵人系統",
     items: [
-      "目前敵方為腐植巢穴，HP 80 / DEF 0，不使用英雄技能或終極技。",
-      "AI 回合會依巢穴邏輯部署腐植兵力並推進回合，確保玩家可連續進行多回合戰鬥。",
-      "敵方內部卡池包含腐植芽、腐植觸手、腐植膿瘤與召喚用標記兵力。",
+      "Utility AI 引擎統一 6 種考量（damageDealt / lethal / boardControl / heroPressure / selfSurvival / resourceEfficiency / gaugeBuildup / stabilityPressure）。",
+      "巢穴 AI 使用召喚池 + 召喚節奏（summonCadenceTurns）；Boss AI 啟用手牌 + 召喚池雙軌部署。",
+      "難度旋鈕 DIFFICULTY_PRESETS 提供 easy / normal / hard，影響 noise / temperature / 考量丟棄率。",
+    ],
+  },
+  {
+    id: "lairs",
+    title: "§E.2 巢穴戰",
+    items: [
+      "腐植巢穴：HP 80 / DEF 0；每回合 1 召喚；兵力被摧毀穩定度 -2。",
+      "蟲族窩巢：HP 100 / DEF 2；每回合 2 召喚；5 蟲母幼體合併為蟲后。",
+      "魔獸洞穴：HP 120 / DEF 3；每 2 回合 1 召喚；半血爆發兵力 ATK ×2。",
+      "暗影門戶：HP 150 / DEF 5；每 2 回合 1–2 召喚；穩定度 -3/回合 + 兵力守護。",
+      "晶體礦脈：HP 100 / DEF 8；每 3 回合 1 召喚；3 晶體碎片合併為魔像。",
+      "腐化神殿：HP 200 / DEF 3；每 2 回合 1 召喚；祭司存活時巢穴 +5 HP/回合。",
+    ],
+  },
+  {
+    id: "bosses",
+    title: "§E.1 Boss 戰",
+    items: [
+      "惡魔將領（demon·commander）HP 130 / ATK 14 / DEF 7 / CMD 5：借用軍團統帥技能組。",
+      "夢魔宗主（demon·illusionist）HP 90 / ATK 10 / DEF 4 / CMD 4：召喚威壓夢幻體。",
+      "古魔（demon·mage）HP 180 / ATK 16 / DEF 5 / CMD 6：借用大賢者技能；兵力觸碰穩定度 -1。",
+      "炎魔（demon·berserker）HP 160 / ATK 18 / DEF 6 / CMD 3：開局自動掛獄火場地。",
+      "妖族叛王（fey·illusionist）HP 100 / ATK 13 / DEF 6 / CMD 5：完整妖族雙形態切換。",
+      "獸王（beast·berserker）HP 140 / ATK 20 / DEF 4 / CMD 4：完整血怒體系。",
+      "v1 不啟用多階段；HP 跨 1/3 / 2/3 門檻不切換能力。",
+    ],
+  },
+  {
+    id: "tower",
+    title: "§F.1 試煉塔",
+    items: [
+      "30 層 Roguelike：5 / 10 / 15 / 20 / 25 / 30 為 Boss，其餘 24 層為巢穴循環。",
+      "勝利後三選一獎勵：保底治療 + 加卡 + 強化體質/攻擊。",
+      "難度遞增：HP × (1 + 0.04·(層數-1))、ATK × (1 + 0.025·(層數-1))；Boss 層 HP 額外 ×1.1。",
+      "天象事件：Boss 層 100% 觸發，其他層 50%；雙月同圓 / 副月凌主月 / 碎片雨 / 日蝕 / 流星墜 / 靈潮湧動。",
+      "HP / 裝備 / 牌組變動跨層保留；鬥志、量表、buff 每場重置。試煉塔狀態為純記憶體（重新整理會重置）。",
     ],
   },
   {

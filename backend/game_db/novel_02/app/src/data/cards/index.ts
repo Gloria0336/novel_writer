@@ -3,7 +3,7 @@ import { TROOPS } from "./troops";
 import { ACTIONS } from "./actions";
 import { SPELLS } from "./spells";
 import { EQUIPMENTS } from "./equipments";
-import { FIELDS } from "./fields";
+import { FIELDS, ENEMY_FIELDS } from "./fields";
 import { NEUTRAL_LEGENDS } from "./neutrals";
 import { HUMAN_CARDS } from "./races/human";
 import { ELF_CARDS } from "./races/elf";
@@ -13,7 +13,7 @@ import { BEAST_CARDS } from "./races/beast";
 import { DEMIGOD_CARDS } from "./races/demigod";
 import { DEMON_CARDS, DEMON_TOKENS } from "./races/demon";
 import { INTERNAL_TROOPS } from "./internals";
-import { LAIR_TROOPS } from "../enemies/putrefactiveLair";
+import { ALL_ENEMY_INTERNAL_TROOPS } from "../enemies";
 
 // 通用 94 張（玩家可組）
 export const GENERIC_CARDS: Card[] = [...TROOPS, ...ACTIONS, ...SPELLS, ...EQUIPMENTS, ...FIELDS];
@@ -43,8 +43,8 @@ export const ALL_CARDS: Card[] = [
   ...NEUTRAL_CARDS,
 ];
 
-// 內部召喚卡（不在玩家牌組中）+ 巢穴專屬 + 魔族召喚 Token
-export const ENEMY_INTERNAL_CARDS: Card[] = [...LAIR_TROOPS, ...INTERNAL_TROOPS, ...DEMON_TOKENS];
+// 內部召喚卡（不在玩家牌組中）+ 所有敵人巢穴/Boss 兵力池 + 魔族召喚 Token + 敵人場地
+export const ENEMY_INTERNAL_CARDS: Card[] = [...ALL_ENEMY_INTERNAL_TROOPS, ...INTERNAL_TROOPS, ...DEMON_TOKENS, ...ENEMY_FIELDS];
 
 const CARD_INDEX: Record<string, Card> = Object.fromEntries(
   [...ALL_CARDS, ...ENEMY_INTERNAL_CARDS, ...DEMON_CARDS].map((c) => [c.id, c]),

@@ -13,7 +13,10 @@
       "Bash(npx electron-vite *)",
       "Bash(npx vite *)",
       "Bash(echo \"exit=$?\")",
-      "Bash(npx vitest *)"
+      "Bash(npx vitest *)",
+      "Bash(tee /tmp/tsc-out.txt)",
+      "Bash(npm test *)",
+      "Bash(echo \"tsc exit=$?\")"
     ]
   }
 }

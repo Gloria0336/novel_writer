@@ -168,6 +168,51 @@ describe("S08 次元修補 — 穩定度 +15", () => {
   });
 });
 
+describe("S14 盟約之誓 — 三選一", () => {
+  it("全面恢復：英雄 +30 HP，全兵力 +10 HP", () => {
+    const s = mkState();
+    s.player.hero.hp = 40;
+    s.player.troopSlots[0] = mkTroop("T02");
+    s.player.troopSlots[0]!.hp = 3;
+    executeEffects([{ kind: "scripted", tag: "OATH_CHOICE", payload: { choice: "restore" } }], {
+      state: s, ctx, sourceSide: "player", sourceKind: "spell", sourceCardId: "S14",
+    });
+    expect(s.player.hero.hp).toBe(70);
+    expect(s.player.troopSlots[0]?.hp).toBe(12);
+  });
+
+  it("全面強化：全兵力 +5 ATK 並記錄 3 回合 buff", () => {
+    const s = mkState();
+    s.player.troopSlots[0] = mkTroop("T01");
+    executeEffects([{ kind: "scripted", tag: "OATH_CHOICE", payload: { choice: "strengthen" } }], {
+      state: s, ctx, sourceSide: "player", sourceKind: "spell", sourceCardId: "S14",
+    });
+    expect(s.player.troopSlots[0]?.atk).toBe(8);
+    expect(s.player.troopSlots[0]?.buffs[0]).toMatchObject({ source: "S14", mod: { atk: 5 }, remainingTurns: 3 });
+  });
+
+  it("全面淨化：移除負面 buff 與凍結，並免疫本回合後續負面狀態", () => {
+    const s = mkState();
+    const troop = mkTroop("T02");
+    troop.atk -= 4;
+    troop.frozenTurns = 2;
+    troop.buffs.push({ id: "debuff", source: "test", mod: { atk: -4 }, remainingTurns: 2 });
+    s.player.troopSlots[0] = troop;
+
+    executeEffects([{ kind: "scripted", tag: "OATH_CHOICE", payload: { choice: "purify" } }], {
+      state: s, ctx, sourceSide: "player", sourceKind: "spell", sourceCardId: "S14",
+    });
+    expect(s.player.troopSlots[0]?.atk).toBe(5);
+    expect(s.player.troopSlots[0]?.frozenTurns).toBe(0);
+    expect(s.player.troopSlots[0]?.buffs).toHaveLength(0);
+
+    executeEffects([{ kind: "freeze", target: { kind: "single", filter: { side: "player", entity: "troop" }, pickedInstanceId: troop.instanceId }, turns: 2 }], {
+      state: s, ctx, sourceSide: "enemy", sourceKind: "spell", sourceCardId: "S06",
+    });
+    expect(s.player.troopSlots[0]?.frozenTurns).toBe(0);
+  });
+});
+
 describe("T14 傳奇傭兵團 — 入場召喚 2 個傭兵", () => {
   it("召喚 2 個 T02 到場上", () => {
     const s = mkState();

@@ -186,6 +186,10 @@ function executeEffect(e: Effect, ec: EffectContext): void {
       const targets = resolveTargets(state, e.target, sourceSide);
       const turns = e.duration.kind === "permanent" ? 9999 : e.duration.kind === "thisTurn" ? 1 : e.duration.count;
       for (const tg of targets) {
+        if (isNegativeMod(e.mod) && isDebuffImmune(state, tg.side)) {
+          state.log.push({ turn: state.turn, side: sourceSide, kind: "DEBUFF_IMMUNE", text: `${tg.side === "player" ? "玩家" : "敵方"}免疫負面狀態` });
+          continue;
+        }
         const buff = { id: `buff_${state.nextInstanceId++}`, source: ec.sourceCardId ?? "x", mod: e.mod, remainingTurns: turns };
         if (tg.kind === "troop" && tg.troop) {
           tg.troop.buffs.push(buff);
@@ -217,6 +221,10 @@ function executeEffect(e: Effect, ec: EffectContext): void {
     case "freeze": {
       const targets = resolveTargets(state, e.target, sourceSide);
       for (const tg of targets) {
+        if (isDebuffImmune(state, tg.side)) {
+          state.log.push({ turn: state.turn, side: sourceSide, kind: "DEBUFF_IMMUNE", text: `${tg.side === "player" ? "玩家" : "敵方"}免疫凍結` });
+          continue;
+        }
         if (tg.kind === "troop" && tg.troop) tg.troop.frozenTurns = Math.max(tg.troop.frozenTurns, e.turns);
       }
       break;
@@ -302,4 +310,13 @@ function executeScripted(tag: string, payload: unknown, ec: EffectContext): void
     return;
   }
   handler(payload, ec);
+}
+
+function isNegativeMod(mod: { hp?: number; atk?: number; def?: number; cmd?: number }): boolean {
+  return [mod.hp, mod.atk, mod.def, mod.cmd].some((value) => value !== undefined && value < 0);
+}
+
+function isDebuffImmune(state: BattleState, side: Side): boolean {
+  const untilTurn = getSide(state, side).hero.flags.oathDebuffImmuneUntilTurn;
+  return typeof untilTurn === "number" && state.turn <= untilTurn;
 }

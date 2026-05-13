@@ -2,7 +2,7 @@ import type { HeroDefinition } from "../../core/types/hero";
 
 export const HERO_ELNO_HONORARY_MAGE: HeroDefinition = {
   id: "elno-honorary-mage",
-  name: "艾爾諾老師",
+  name: "艾爾諾",
   raceId: "elf",
   classId: "mage",
   rarity: "SSR",

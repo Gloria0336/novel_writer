@@ -21,7 +21,7 @@ export function enumerateActions(state: BattleState, ctx: BattleContext, profile
         out.push({ kind: "deployFromPool", cardId, slotIdx: slot });
       }
     } else {
-      // Boss / 內戰：從手牌
+      // Boss / 內戰：手牌部署 + 可選召喚池
       const seenCards = new Set<string>();
       for (const inst of enemy.hand) {
         if (seenCards.has(inst.cardId)) continue; // 同 cardId 只 enumerate 一次
@@ -36,6 +36,10 @@ export function enumerateActions(state: BattleState, ctx: BattleContext, profile
           }
           seenCards.add(inst.cardId);
         }
+      }
+      // Boss 召喚池（如夢魔宗主的夢幻體、古魔的孳生體）— 不消耗 mana / 手牌
+      for (const cardId of profile.summonPool ?? []) {
+        out.push({ kind: "deployFromPool", cardId, slotIdx: slot });
       }
     }
   }

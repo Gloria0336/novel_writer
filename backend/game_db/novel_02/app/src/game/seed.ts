@@ -1,15 +1,17 @@
 import type { BattleState, SideState } from "../core/types/battle";
 import type { BattleContext } from "../core/types/context";
-import type { CardInstance } from "../core/types/card";
 import type { HeroDefinition, HeroInstance } from "../core/types/hero";
 import { rngShuffle } from "../core/deck/prng";
 import { composeHeroStats } from "../core/stats/compose";
-import { createLairHeroInstance, LAIR_HERO_DEF, LAIR_HERO_ID } from "../data/enemies/putrefactiveLair";
+import { ENEMIES, getEnemy } from "../data/enemies";
 import { getCard } from "../data/cards";
 import { getRace } from "../data/races";
 import { getClass } from "../data/classes";
 import { HEROES } from "../data/heroes";
-import { runLairAITurn } from "../core/ai/lairAI";
+import { runEnemyAITurn } from "../core/ai/engine";
+import { ENEMY_PROFILES } from "../core/ai/profiles";
+import { runLairAuras } from "../core/turn/lairAura";
+import { executeEffects } from "../core/effects/registry";
 import { applyAction, type ApplyResult } from "../core/turn/reducer";
 import type { GameAction } from "../core/turn/actions";
 import { advanceToNextSide, endTurnFor, startTurnFor } from "../core/turn/phases";
@@ -28,18 +30,34 @@ export function ensureScriptedRegistered(): void {
   SCRIPTED_REGISTERED = true;
 }
 
+export const DEFAULT_ENEMY_ID = "putrefactive_lair";
+
+export interface EnemyScale {
+  hpMult: number;
+  atkMult: number;
+}
+
 export interface CreateBattleOpts {
   seed: number;
   playerHeroId: string;
   playerDeckIds: string[];
-  initialHandSize?: number;
+  enemyId?: string;
+  initialHand?: number;
+  initialPlayerHero?: HeroInstance;
+  enemyScale?: EnemyScale;
 }
+
+const auraResolver = (defId: string): { onStart?: string[]; onEnd?: string[] } | undefined => {
+  const e = ENEMIES[defId];
+  return e?.auraTags;
+};
 
 export function createBattleContext(): BattleContext {
   return {
     getCard,
     getHero: (id) => {
-      if (id === LAIR_HERO_ID) return LAIR_HERO_DEF;
+      const enemy = ENEMIES[id];
+      if (enemy) return enemy.heroDef;
       const h = HEROES[id];
       if (!h) throw new Error(`Unknown hero: ${id}`);
       return h;
@@ -76,11 +94,23 @@ function buildSide(deckIds: readonly string[], hero: HeroInstance, manaCapAbsolu
   };
 }
 
+function applyEnemyScale(hero: HeroInstance, scale: EnemyScale | undefined): HeroInstance {
+  if (!scale) return hero;
+  const scaled = { ...hero };
+  scaled.maxHp = Math.max(1, Math.round(hero.maxHp * scale.hpMult));
+  scaled.hp = Math.max(1, Math.round(hero.hp * scale.hpMult));
+  scaled.atk = Math.max(0, Math.round(hero.atk * scale.atkMult));
+  return scaled;
+}
+
 export function createBattle(opts: CreateBattleOpts): BattleState {
   ensureScriptedRegistered();
   const ctx = createBattleContext();
+  const enemyId = opts.enemyId ?? DEFAULT_ENEMY_ID;
+  const enemyDef = getEnemy(enemyId);
+
   const playerHeroDef = ctx.getHero(opts.playerHeroId);
-  const playerHero = makePlayerHeroInstance(playerHeroDef);
+  const playerHero = opts.initialPlayerHero ?? makePlayerHeroInstance(playerHeroDef);
   const race = getRace(playerHeroDef.raceId);
 
   const playerSide = buildSide(opts.playerDeckIds, playerHero, race.manaCap ?? 10);
@@ -89,9 +119,9 @@ export function createBattle(opts: CreateBattleOpts): BattleState {
   const sh = rngShuffle(opts.seed, playerSide.deck);
   playerSide.deck = sh.value;
 
-  // 巢穴設置
-  const lairHero = createLairHeroInstance();
-  const enemySide = buildSide([], lairHero, 10);
+  // 敵方建構
+  const enemyHero = applyEnemyScale(enemyDef.createInstance(), opts.enemyScale);
+  const enemySide = buildSide([], enemyHero, 10);
 
   let state: BattleState = {
     seed: opts.seed,
@@ -109,14 +139,21 @@ export function createBattle(opts: CreateBattleOpts): BattleState {
     result: "ongoing",
   };
 
-  // 起手 3 張
-  const initialHandSize = opts.initialHandSize ?? 3;
+  // 起手 N 張（預設 3）
+  const initialHandSize = opts.initialHand ?? 3;
   for (let i = 0; i < initialHandSize; i++) {
     const c = state.player.deck.shift();
     if (c) state.player.hand.push(c);
   }
 
-  // 啟動玩家第一回合（refill mana 到 1，等等）
+  // §E.1 Boss onBattleStart（如炎魔獄火場地）
+  if (enemyDef.onBattleStart && enemyDef.onBattleStart.length > 0) {
+    executeEffects(enemyDef.onBattleStart, {
+      state, ctx, sourceSide: "enemy", sourceKind: "passive",
+    });
+  }
+
+  // 啟動玩家第一回合
   startTurnFor(state, "player", ctx);
 
   return state;
@@ -143,7 +180,7 @@ export function endPlayerTurnAndRunAI(state: BattleState, ctx: BattleContext): A
   advanceToNextSide(state);
   if (state.result !== "ongoing") return { ok: true };
 
-  // 敵方回合（直接由 AI 操作，不抽牌不計魔力）
+  // 敵方回合
   state.phase = "main";
   state.log.push({ turn: state.turn, side: "enemy", kind: "TURN_START", text: `回合 ${state.turn}：敵方` });
 
@@ -156,10 +193,26 @@ export function endPlayerTurnAndRunAI(state: BattleState, ctx: BattleContext): A
     }
   }
 
-  runLairAITurn(state, ctx);
+  // §E.2 巢穴 onStart 光環（例如魔獸洞穴半血爆發）
+  runLairAuras(state, ctx, "start", auraResolver);
   if (state.result !== "ongoing") return { ok: true };
 
-  // 結束敵方回合，切回玩家
+  // 取對應 AI profile
+  const enemyDef = ENEMIES[state.enemy.hero.defId];
+  const profileId = enemyDef?.profileId ?? "lair_putrefactive";
+  const profile = ENEMY_PROFILES[profileId];
+  if (!profile) {
+    state.log.push({ turn: state.turn, side: "enemy", kind: "AI_ERROR", text: `找不到 AI profile: ${profileId}` });
+  } else {
+    runEnemyAITurn(state, ctx, profile);
+  }
+  if (state.result !== "ongoing") return { ok: true };
+
+  // §E.2 巢穴 onEnd 光環（蟲族合併、晶體合併、神殿回血、暗影 tick）
+  runLairAuras(state, ctx, "end", auraResolver);
+  if (state.result !== "ongoing") return { ok: true };
+
+  // 結束敵方回合
   endTurnFor(state, "enemy");
   advanceToNextSide(state);
   if (state.result !== "ongoing") return { ok: true };

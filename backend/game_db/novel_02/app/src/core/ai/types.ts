@@ -50,10 +50,12 @@ export interface EnemyProfile {
   /** 額外的種族／個性 bias：對特定 consideration 加減權（典型 -1.0 ~ +1.5）。 */
   raceBias?: Partial<Record<ConsiderationId, number>>;
   gaugePolicy?: GaugePolicy;
-  /** 巢穴模式專用：直接召喚的卡池（不消耗手牌/魔力）。 */
+  /** 巢穴/Boss 召喚池：直接召喚的卡池（不消耗手牌/魔力）。 */
   summonPool?: string[];
-  /** 巢穴模式專用：每個 AI 回合的池召喚上下限；有空格時至少 min，最多 max。 */
+  /** 巢穴專用：每個 AI 回合的池召喚上下限；有空格時至少 min，最多 max。Boss 預設無強制下限。 */
   summonsPerTurn?: { min: number; max: number };
+  /** 巢穴專用：召喚節奏（1=每回合、2=每兩回合、3=每三回合）。預設 1。 */
+  summonCadenceTurns?: number;
 }
 
 /** 候選動作。enumerate 階段輸出，apply 階段消費。 */

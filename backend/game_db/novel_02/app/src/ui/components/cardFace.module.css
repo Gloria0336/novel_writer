@@ -39,6 +39,16 @@
   min-height: 360px;
 }
 
+.preview {
+  width: 100%;
+  min-height: 0;
+  height: 100%;
+  box-shadow:
+    0 28px 70px rgba(0, 0, 0, 0.64),
+    0 0 0 1px rgba(255, 255, 255, 0.12),
+    0 0 44px color-mix(in srgb, var(--card-rarity-color) 36%, transparent);
+}
+
 .mini {
   width: 100%;
   border-radius: 7px;
@@ -374,4 +384,67 @@
 .gallery .stats {
   padding: 6px 10px 9px;
   font-size: 12px;
+}
+
+.preview .header {
+  min-height: 54px;
+  padding: 12px 12px 8px;
+  grid-template-columns: minmax(0, 1fr) 38px;
+}
+
+.preview .name {
+  font-size: 17px;
+}
+
+.preview .meta {
+  font-size: 12px;
+}
+
+.preview .cost {
+  width: 36px;
+  height: 36px;
+  font-size: 16px;
+}
+
+.preview .artBox {
+  margin: 0 12px;
+}
+
+.preview .artFallback {
+  min-height: 190px;
+}
+
+.preview .body {
+  min-height: 0;
+  padding: 10px 12px 6px;
+}
+
+.preview .badgeRow {
+  margin-bottom: 7px;
+}
+
+.preview .rarity,
+.preview .cardId {
+  font-size: 12px;
+}
+
+.preview .effectList {
+  gap: 5px;
+  max-height: 150px;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+.preview .effectList li {
+  display: block;
+  overflow: visible;
+  color: #eef1f5;
+  font-size: 13px;
+  line-height: 1.38;
+  -webkit-line-clamp: unset;
+}
+
+.preview .stats {
+  padding: 7px 12px 11px;
+  font-size: 13px;
 }

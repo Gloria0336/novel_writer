@@ -28,7 +28,7 @@ export function runEnemyAITurn(state: BattleState, ctx: BattleContext, profile: 
 
   for (let step = 0; step < SAFETY_LIMIT; step++) {
     if (state.result !== "ongoing") return;
-    const candidates = applyLairSummonBounds(enumerateActions(state, ctx, profile), profile, poolSummonsThisTurn);
+    const candidates = applyLairSummonBounds(enumerateActions(state, ctx, profile), profile, poolSummonsThisTurn, state);
     if (candidates.length === 0) return;
 
     const scored: ScoredAction[] = candidates.map((a) => evaluate(state, ctx, profile, weights, a, difficulty, () => {
@@ -53,12 +53,29 @@ export function runEnemyAITurn(state: BattleState, ctx: BattleContext, profile: 
       state.log.push({ turn: state.turn, side: "enemy", kind: "AI_ACTION_FAIL", text: `AI 動作失敗：${result.reason ?? "unknown"}`, payload: { action: sel.chosen.action } });
       return;
     }
-    if (sel.chosen.action.kind === "deployFromPool") poolSummonsThisTurn++;
+    if (sel.chosen.action.kind === "deployFromPool") {
+      poolSummonsThisTurn++;
+      state.enemy.hero.flags.lastSummonTurn = state.turn;
+    }
   }
 }
 
-function applyLairSummonBounds(candidates: CandidateAction[], profile: EnemyProfile, summonsThisTurn: number): CandidateAction[] {
+function applyLairSummonBounds(
+  candidates: CandidateAction[],
+  profile: EnemyProfile,
+  summonsThisTurn: number,
+  state: BattleState,
+): CandidateAction[] {
   if (profile.kind !== "lair") return candidates;
+
+  // 召喚節奏（summonCadenceTurns）：未到下個允許窗口時禁止池召喚
+  const cadence = Math.max(1, profile.summonCadenceTurns ?? 1);
+  if (cadence > 1) {
+    const lastTurn = Number(state.enemy.hero.flags.lastSummonTurn ?? 0);
+    if (state.turn - lastTurn < cadence) {
+      return candidates.filter((a) => a.kind !== "deployFromPool");
+    }
+  }
 
   const bounds = profile.summonsPerTurn ?? { min: 1, max: 1 };
   const min = Math.max(0, bounds.min);

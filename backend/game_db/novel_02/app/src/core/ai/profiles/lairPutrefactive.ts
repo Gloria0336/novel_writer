@@ -21,4 +21,5 @@ export const PUTREFACTIVE_LAIR_PROFILE: EnemyProfile = {
   },
   summonPool: ["L01", "L02", "L03"],
   summonsPerTurn: { min: 1, max: 1 },
+  summonCadenceTurns: 1,
 };

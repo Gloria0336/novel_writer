@@ -1,8 +1,8 @@
-import { useEffect, useState, type CSSProperties, type KeyboardEvent } from "react";
+import { useEffect, useState, type CSSProperties, type KeyboardEvent, type MouseEvent } from "react";
 import type { CardFaceModel } from "../../game/cardPresentation";
 import styles from "./cardFace.module.css";
 
-export type CardFaceVariant = "hand" | "gallery" | "mini";
+export type CardFaceVariant = "hand" | "gallery" | "mini" | "preview";
 
 interface CardFaceProps {
   model: CardFaceModel;
@@ -13,6 +13,7 @@ interface CardFaceProps {
   targetable?: boolean;
   className?: string;
   onClick?: () => void;
+  onPreview?: () => void;
 }
 
 export function CardFace({
@@ -24,10 +25,16 @@ export function CardFace({
   targetable = false,
   className,
   onClick,
+  onPreview,
 }: CardFaceProps): JSX.Element {
   const [imageFailed, setImageFailed] = useState(false);
   const isInteractive = onClick !== undefined && !disabled;
-  const visibleLines = variant === "gallery" ? model.effectLines.slice(0, 5) : model.effectLines.slice(0, 3);
+  const visibleLines =
+    variant === "preview"
+      ? model.effectLines
+      : variant === "gallery"
+        ? model.effectLines.slice(0, 5)
+        : model.effectLines.slice(0, 3);
   const toneClass = styles[model.art.tone] ?? "";
 
   useEffect(() => {
@@ -45,6 +52,12 @@ export function CardFace({
       event.preventDefault();
       onClick();
     }
+  }
+
+  function handleContextMenu(event: MouseEvent<HTMLElement>): void {
+    if (!onPreview) return;
+    event.preventDefault();
+    onPreview();
   }
 
   const style = {
@@ -72,6 +85,7 @@ export function CardFace({
       style={style}
       onClick={activate}
       onKeyDown={handleKeyDown}
+      onContextMenu={onPreview ? handleContextMenu : undefined}
       role={isInteractive ? "button" : undefined}
       tabIndex={isInteractive ? 0 : undefined}
       aria-disabled={disabled || undefined}

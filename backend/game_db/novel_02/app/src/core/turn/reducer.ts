@@ -1,10 +1,10 @@
 import type { BattleState, TroopInstance } from "../types/battle";
 import type { Side } from "../types/effect";
 import type { BattleContext } from "../types/context";
-import type { GameAction } from "./actions";
+import type { GameAction, OathChoice } from "./actions";
 import type { Card } from "../types/card";
 import { executeEffects, reapDeadTroops, type EffectContext } from "../effects/registry";
-import { canActionTarget, canTroopAttack, troopVsHero, troopVsTroop } from "../combat/attack";
+import { canActionTarget, canTroopAttack, troopVsHero, troopVsTroop, type TroopAttackResult } from "../combat/attack";
 import { applyHeroDamage } from "../combat/damage";
 import { canAffordMana, spendMana } from "../resource/mana";
 import { addMorale, canAffordMorale, MORALE_ACTION_HIT, MORALE_KILL_TROOP, spendMorale } from "../resource/morale";
@@ -33,7 +33,7 @@ export function applyAction(state: BattleState, action: GameAction, ctx: BattleC
 
   switch (action.type) {
     case "PLAY_TROOP": return playTroop(state, sideKey, side, action.handIndex, action.slotIndex, ctx);
-    case "PLAY_SPELL": return playSpell(state, sideKey, side, action.handIndex, action.targetInstanceId, ctx);
+    case "PLAY_SPELL": return playSpell(state, sideKey, side, action.handIndex, action.targetInstanceId, ctx, action.oathChoice);
     case "PLAY_ACTION": return playActionCard(state, sideKey, side, action.handIndex, action.targetInstanceId, ctx);
     case "PLAY_EQUIPMENT": return playEquipment(state, sideKey, side, action.handIndex, ctx);
     case "PLAY_FIELD": return playField(state, sideKey, side, action.handIndex, ctx);
@@ -87,7 +87,7 @@ function playTroop(state: BattleState, sideKey: Side, side: BattleState["player"
   return { ok: true };
 }
 
-function playSpell(state: BattleState, sideKey: Side, side: BattleState["player"], handIndex: number, targetInstanceId: string | undefined, ctx: BattleContext): ApplyResult {
+function playSpell(state: BattleState, sideKey: Side, side: BattleState["player"], handIndex: number, targetInstanceId: string | undefined, ctx: BattleContext, oathChoice?: OathChoice): ApplyResult {
   const lookup = lookupCard(side, handIndex, ctx);
   if (!lookup) return { ok: false, reason: "invalid hand index" };
   if (lookup.card.type !== "spell") return { ok: false, reason: "not a spell card" };
@@ -121,12 +121,23 @@ function playSpell(state: BattleState, sideKey: Side, side: BattleState["player"
 
   const ec: EffectContext = { state, ctx, sourceSide: sideKey, sourceKind: "spell", sourceCardId: lookup.card.id };
   // 把 single 目標的 pickedInstanceId 注入
-  const effects = lookup.card.effects.map((e) => maybeInjectTarget(e, targetInstanceId));
+  const effects = lookup.card.effects
+    .map((e) => maybeInjectOathChoice(e, oathChoice))
+    .map((e) => maybeInjectTarget(e, targetInstanceId));
   executeEffects(effects, ec);
 
   reapDeadTroops(state, ctx, sideKey);
   checkVictory(state);
   return { ok: true };
+}
+
+function maybeInjectOathChoice<T>(e: T, choice: OathChoice | undefined): T {
+  if (!choice) return e;
+  const eff = e as unknown as { kind?: string; tag?: string; payload?: unknown };
+  if (eff.kind === "scripted" && eff.tag === "OATH_CHOICE") {
+    return { ...(e as object), payload: { choice } } as T;
+  }
+  return e;
 }
 
 function maybeInjectTarget<T>(e: T, instanceId: string | undefined): T {
@@ -237,24 +248,51 @@ function troopAttack(state: BattleState, sideKey: Side, attackerId: string, targ
   if (!attacker || attacker.side !== sideKey) return { ok: false, reason: "invalid attacker" };
 
   let targetEntity: TroopInstance | "hero";
+  let targetSide: Side;
+  let targetSlotIndex: number | undefined;
   if (targetId === "H_player" || targetId === "H_enemy") targetEntity = "hero";
   else {
     const t = findTroopBySide(state, targetId);
     if (!t || t.side === sideKey) return { ok: false, reason: "invalid target" };
     targetEntity = t.troop;
+    targetSide = t.side;
+    targetSlotIndex = t.slotIndex;
   }
+  targetSide = targetId === "H_player" ? "player" : targetId === "H_enemy" ? "enemy" : targetSide!;
 
   const check = canTroopAttack(state, sideKey, attacker.troop, targetEntity);
   if (!check.ok) return { ok: false, reason: check.reason };
 
+  const attackVisualPayload = {
+    attackerSide: attacker.side,
+    attackerSlotIndex: attacker.slotIndex,
+    attackerSlotCount: getSide(state, attacker.side).troopSlots.length,
+    attackerCardId: attacker.troop.cardId,
+    targetSide,
+    targetKind: targetEntity === "hero" ? "hero" : "troop",
+    targetSlotIndex,
+    targetSlotCount: getSide(state, targetSide).troopSlots.length,
+    targetCardId: targetEntity === "hero" ? undefined : targetEntity.cardId,
+    targetHeroId: targetEntity === "hero" ? targetId : undefined,
+  };
+  let attackResult: TroopAttackResult;
   if (targetEntity === "hero") {
-    troopVsHero(state, attacker.troop, sideKey);
+    attackResult = troopVsHero(state, attacker.troop, sideKey);
   } else {
-    troopVsTroop(attacker.troop, targetEntity);
+    attackResult = troopVsTroop(attacker.troop, targetEntity);
     // 汲取
     if (attacker.troop.keywords.has("lifesteal")) {
       // 兵力汲取由 troop 自身回血（這裡不實作 troop heal）
     }
+  }
+  for (const log of attackResult.log) {
+    state.log.push({
+      turn: state.turn,
+      side: sideKey,
+      kind: log.kind,
+      text: log.text,
+      payload: { ...log.payload, ...attackVisualPayload },
+    });
   }
 
   reapDeadTroops(state, ctx, sideKey);

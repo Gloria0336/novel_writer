@@ -112,7 +112,7 @@ function buildAIAnalytics(log: LogEntry[]): AIAnalytics {
   const considCount: Partial<Record<ConsiderationId, number>> = {};
 
   for (const e of decisions) {
-    const p = e.payload as AIDecisionPayload;
+    const p = e.payload as unknown as AIDecisionPayload;
     scoreSum += p.chosenScore;
     dist[p.chosen.kind] = (dist[p.chosen.kind] ?? 0) + 1;
 

@@ -114,8 +114,9 @@ describe("manaCapFor — 魔力上限規則", () => {
 });
 
 describe("資料完整性", () => {
-  it("6 個種族框架都已定義", () => {
-    expect(Object.keys(RACES)).toHaveLength(6);
+  it("7 個種族框架都已定義（含 §E.1 惡魔）", () => {
+    expect(Object.keys(RACES)).toHaveLength(7);
+    expect(RACES.demon?.name).toBe("惡魔");
   });
   it("7 個職業框架都已定義", () => {
     expect(Object.keys(CLASSES)).toHaveLength(7);
