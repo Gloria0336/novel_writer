@@ -2,9 +2,11 @@ import type { BattleState } from "../core/types/battle";
 import type { EnemyProfile } from "../core/ai/types";
 import type { GameLogDocument, RecordOpts } from "./types";
 import { summarizeGame } from "./analyze";
+import { makeGameLogFilename } from "./filename";
 
 export { summarizeGame } from "./analyze";
-export type { GameLogDocument, SessionMeta, GameSummary, TurnSummary, AIAnalytics, BugIndicators, BalanceMetrics, RecordOpts } from "./types";
+export { makeGameLogFilename } from "./filename";
+export type { GameLogDocument, SessionMeta, GameSummary, TurnSummary, AIAnalytics, BugIndicators, BalanceMetrics, RecordingMeta, RecordingStatus, RecordOpts } from "./types";
 
 function isNodeEnvironment(): boolean {
   return (
@@ -14,15 +16,10 @@ function isNodeEnvironment(): boolean {
   );
 }
 
-function makeFilename(meta: GameLogDocument["meta"]): string {
-  const ts = meta.timestamp.replace(/:/g, "-").replace(/\..+$/, "");
-  return `${ts}-seed${meta.seed}-${meta.profileId}.json`;
-}
-
 async function recordNode(doc: GameLogDocument, logDir: string): Promise<void> {
   const { mkdir, writeFile } = await import("node:fs/promises");
   await mkdir(logDir, { recursive: true });
-  const filename = makeFilename(doc.meta);
+  const filename = makeGameLogFilename(doc.meta);
   await writeFile(`${logDir}/${filename}`, JSON.stringify(doc, null, 2), "utf-8");
 }
 
@@ -71,7 +68,7 @@ export function downloadLog(doc: GameLogDocument): void {
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url;
-  a.download = makeFilename(doc.meta);
+  a.download = makeGameLogFilename(doc.meta);
   a.click();
   URL.revokeObjectURL(url);
 }

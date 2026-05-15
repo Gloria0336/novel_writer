@@ -2,7 +2,7 @@
  * Top-K softmax 抽樣 + jitter。隨機性走 state.rngState（可重現）。
  */
 import { nextRng } from "../deck/prng";
-import type { ScoredAction } from "./types";
+import type { CandidateAction, ScoredAction } from "./types";
 
 const TOP_K = 3;
 
@@ -15,9 +15,28 @@ export interface SelectionContext {
   noiseScale?: number;
 }
 
+export interface SelectionDebug {
+  /** softmax 溫度（已套用 recklessness + tempOffset） */
+  temperature: number;
+  /** 進入 pickAction 時的 rngState（快照） */
+  rngStateBefore: number;
+  /** Top-K（依 jittered 分數降序）；prob 為 softmax 機率 */
+  topK: Array<{
+    action: CandidateAction;
+    scoreJittered: number;
+    jitter: number;
+    prob: number;
+  }>;
+  /** softmax 抽樣抽到的 [0,1) 值 */
+  rngDraw: number;
+  /** 被命中的 topK 索引 */
+  chosenIndexInTopK: number;
+}
+
 export interface SelectionResult {
   rngState: number;
   chosen: ScoredAction;
+  debug: SelectionDebug;
 }
 
 /**
@@ -38,6 +57,7 @@ export function jitterScore(state: number, score: number, noiseScale = 1): { sta
  */
 export function pickAction(scored: ScoredAction[], ctxSel: SelectionContext): SelectionResult {
   if (scored.length === 0) throw new Error("pickAction: empty candidate list");
+  const rngStateBefore = ctxSel.rngState;
   let rng = ctxSel.rngState;
 
   // Apply jitter to each.
@@ -60,6 +80,13 @@ export function pickAction(scored: ScoredAction[], ctxSel: SelectionContext): Se
   const sum = expScores.reduce((a, b) => a + b, 0);
   const probs = expScores.map((e) => e / sum);
 
+  const topKDebug = top.map((s, i) => ({
+    action: s.action,
+    scoreJittered: s.score,
+    jitter: s.jitter,
+    prob: probs[i]!,
+  }));
+
   // Draw uniform [0,1) and pick.
   const draw = nextRng(rng);
   rng = draw.state;
@@ -67,8 +94,17 @@ export function pickAction(scored: ScoredAction[], ctxSel: SelectionContext): Se
   for (let i = 0; i < probs.length; i++) {
     acc += probs[i]!;
     if (draw.value < acc) {
-      return { rngState: rng, chosen: top[i]! };
+      return {
+        rngState: rng,
+        chosen: top[i]!,
+        debug: { temperature: T, rngStateBefore, topK: topKDebug, rngDraw: draw.value, chosenIndexInTopK: i },
+      };
     }
   }
-  return { rngState: rng, chosen: top[top.length - 1]! };
+  const fallbackIdx = top.length - 1;
+  return {
+    rngState: rng,
+    chosen: top[fallbackIdx]!,
+    debug: { temperature: T, rngStateBefore, topK: topKDebug, rngDraw: draw.value, chosenIndexInTopK: fallbackIdx },
+  };
 }

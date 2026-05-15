@@ -10,7 +10,7 @@ import { applyAIAction } from "./applyAction";
 import { predictAction } from "./predict";
 import { scoreAllConsiderations, scoreEndTurn, weightedSum } from "./considerations";
 import { applyRaceBias, computeWeights } from "./weights";
-import { pickAction } from "./selector";
+import { pickAction, type SelectionDebug } from "./selector";
 import { nextRng } from "../deck/prng";
 
 const SAFETY_LIMIT = 30;
@@ -45,7 +45,7 @@ export function runEnemyAITurn(state: BattleState, ctx: BattleContext, profile: 
     });
     state.rngState = sel.rngState;
 
-    logDecision(state, profile, sel.chosen, scored);
+    logDecision(state, profile, sel.chosen, scored, sel.debug);
 
     if (sel.chosen.action.kind === "endTurn") return;
     const result = applyAIAction(state, ctx, sel.chosen.action);
@@ -113,19 +113,22 @@ function evaluate(
   let considerations = scoreAllConsiderations(state, ctx, action, prediction);
 
   // easy 模式：隨機抹零一個 consideration
+  let droppedConsideration: ConsiderationId | undefined;
   if (difficulty && difficulty.considerationDropProb > 0) {
     if (drawRandom() < difficulty.considerationDropProb) {
       const ids = Object.keys(considerations) as ConsiderationId[];
       const idx = Math.floor(drawRandom() * ids.length);
       const dropId = ids[Math.min(idx, ids.length - 1)]!;
       considerations = { ...considerations, [dropId]: 0 };
+      droppedConsideration = dropId;
     }
   }
 
-  let score = weightedSum(considerations, weights);
-  score *= gaugeGate(state, ctx, profile, action, prediction);
+  const preGaugeScore = weightedSum(considerations, weights);
+  const gaugeMultiplier = gaugeGate(state, ctx, profile, action, prediction);
+  const score = preGaugeScore * gaugeMultiplier;
 
-  return { action, score, considerations, jitter: 0 };
+  return { action, score, considerations, jitter: 0, preGaugeScore, gaugeMultiplier, droppedConsideration };
 }
 
 /**
@@ -163,7 +166,13 @@ function gaugeGate(
   return 1;
 }
 
-function logDecision(state: BattleState, profile: EnemyProfile, chosen: ScoredAction, all: ScoredAction[]): void {
+function logDecision(
+  state: BattleState,
+  profile: EnemyProfile,
+  chosen: ScoredAction,
+  all: ScoredAction[],
+  selection: SelectionDebug,
+): void {
   const top3 = [...all].sort((a, b) => b.score - a.score).slice(0, 3);
   state.log.push({
     turn: state.turn,
@@ -175,6 +184,15 @@ function logDecision(state: BattleState, profile: EnemyProfile, chosen: ScoredAc
       chosen: chosen.action,
       chosenScore: chosen.score,
       top3: top3.map((s) => ({ action: s.action, score: s.score, considerations: s.considerations })),
+      candidates: all.map((s) => ({
+        action: s.action,
+        score: s.score,
+        preGaugeScore: s.preGaugeScore,
+        gaugeMultiplier: s.gaugeMultiplier,
+        droppedConsideration: s.droppedConsideration,
+        considerations: s.considerations,
+      })),
+      selection,
     },
   });
 }

@@ -65,9 +65,20 @@ export interface BalanceMetrics {
   stabilityLostTotal: number;
 }
 
+export type RecordingStatus = "ongoing" | "completed" | "abandoned";
+
+export interface RecordingMeta {
+  status: RecordingStatus;
+  startedAt: string;
+  lastSavedAt: string;
+  endedAt?: string;
+  endReason?: string;
+}
+
 export interface GameLogDocument {
   schemaVersion: 1;
   meta: SessionMeta;
+  recording: RecordingMeta;
   summary: GameSummary;
   perTurnSummary: TurnSummary[];
   aiAnalytics: AIAnalytics;
@@ -80,6 +91,11 @@ export interface GameLogDocument {
 export interface RecordOpts {
   sessionId?: string;
   startTime?: number;
+  recordingStatus?: RecordingStatus;
+  startedAt?: string;
+  lastSavedAt?: string;
+  endedAt?: string;
+  endReason?: string;
   /** Node.js 專用；預設 "logs"（相對於 process.cwd()） */
   logDir?: string;
 }

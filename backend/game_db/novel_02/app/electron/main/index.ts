@@ -1,5 +1,6 @@
 import { app, BrowserWindow, Menu, shell } from "electron";
 import { join } from "node:path";
+import { gameLogStore, registerGameLogIpc } from "./gameLogIpc";
 
 const isDev = !app.isPackaged;
 
@@ -13,7 +14,7 @@ function createMainWindow(): BrowserWindow {
     backgroundColor: "#1a1a1a",
     show: false,
     webPreferences: {
-      preload: join(__dirname, "../preload/index.js"),
+      preload: join(__dirname, "../preload/index.mjs"),
       nodeIntegration: false,
       contextIsolation: true,
       sandbox: true,
@@ -32,6 +33,13 @@ function createMainWindow(): BrowserWindow {
   } else {
     win.loadFile(join(__dirname, "../renderer/index.html"));
   }
+
+  win.on("close", () => {
+    gameLogStore.abandonAll("window closed");
+  });
+  win.webContents.on("render-process-gone", () => {
+    gameLogStore.abandonAll("renderer process gone");
+  });
 
   return win;
 }
@@ -62,12 +70,17 @@ function buildMenu(): void {
 }
 
 app.whenReady().then(() => {
+  registerGameLogIpc();
   buildMenu();
   createMainWindow();
 
   app.on("activate", () => {
     if (BrowserWindow.getAllWindows().length === 0) createMainWindow();
   });
+});
+
+app.on("before-quit", () => {
+  gameLogStore.abandonAll("app before-quit");
 });
 
 app.on("window-all-closed", () => {

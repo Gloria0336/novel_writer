@@ -16,7 +16,8 @@
       "Bash(npx vitest *)",
       "Bash(tee /tmp/tsc-out.txt)",
       "Bash(npm test *)",
-      "Bash(echo \"tsc exit=$?\")"
+      "Bash(echo \"tsc exit=$?\")",
+      "Bash(echo \"EXIT=$?\")"
     ]
   }
 }

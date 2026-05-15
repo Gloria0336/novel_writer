@@ -75,6 +75,12 @@ export interface ScoredAction {
   score: number;
   considerations: Partial<Record<ConsiderationId, number>>;
   jitter: number;
+  /** weightedSum 後、gaugeGate 前的分數。endTurn 不會帶。 */
+  preGaugeScore?: number;
+  /** gaugeGate 倍率，1 表示未介入。endTurn 不會帶。 */
+  gaugeMultiplier?: number;
+  /** easy 模式被抹零的 consideration id。 */
+  droppedConsideration?: ConsiderationId;
 }
 
 /** 難度旋鈕：不改人格，只改執行精度。 */

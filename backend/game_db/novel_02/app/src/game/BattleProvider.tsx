@@ -5,6 +5,7 @@ import type { GameAction } from "../core/turn/actions";
 import { applyAction } from "../core/turn/reducer";
 import { createBattle, createBattleContext, DEFAULT_ENEMY_ID, endPlayerTurnAndRunAI, type EnemyScale } from "./seed";
 import { getStarterDeckIds } from "../data/decks";
+import { useBattleAutoRecorder } from "../logger/useBattleAutoRecorder";
 
 interface BattleStore {
   state: BattleState;
@@ -71,6 +72,8 @@ export function BattleProvider({
     [heroId, enemyId, seed],
   );
   const [internal, dispatch] = useReducer(reducer, { state: initial });
+
+  useBattleAutoRecorder(internal.state);
 
   const endedRef = useRef(false);
   useEffect(() => {

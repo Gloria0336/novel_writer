@@ -2,7 +2,7 @@ import type { BattleState, LogEntry } from "../core/types/battle";
 import type { EnemyProfile, ConsiderationId } from "../core/ai/types";
 import type {
   SessionMeta, GameSummary, TurnSummary, AIAnalytics,
-  BugIndicators, BalanceMetrics, GameLogDocument, RecordOpts,
+  BugIndicators, BalanceMetrics, GameLogDocument, RecordOpts, RecordingMeta,
 } from "./types";
 
 const GAME_VERSION = "0.1.0";
@@ -18,14 +18,27 @@ function buildSessionMeta(
   opts: RecordOpts & { durationMs?: number } = {},
 ): SessionMeta {
   const sessionId = opts.sessionId ?? crypto.randomUUID();
+  const timestamp = opts.startedAt ?? new Date().toISOString();
   return {
     sessionId,
     seed: state.seed,
     profileId: profile.id,
     playerHeroId: state.player.hero.defId,
-    timestamp: new Date().toISOString(),
+    timestamp,
     durationMs: opts.durationMs ?? 0,
     gameVersion: GAME_VERSION,
+  };
+}
+
+function buildRecordingMeta(opts: RecordOpts = {}): RecordingMeta {
+  const now = new Date().toISOString();
+  const status = opts.recordingStatus ?? "ongoing";
+  return {
+    status,
+    startedAt: opts.startedAt ?? now,
+    lastSavedAt: opts.lastSavedAt ?? now,
+    endedAt: opts.endedAt,
+    endReason: opts.endReason,
   };
 }
 
@@ -91,6 +104,10 @@ interface AIDecisionPayload {
     score: number;
     considerations: Partial<Record<ConsiderationId, number>>;
   }>;
+  /** 新版完整候選清單（含 preGaugeScore / gaugeMultiplier / droppedConsideration）；目前分析器不使用。 */
+  candidates?: unknown[];
+  /** 新版 softmax 抽樣除錯資訊（temperature / topK probs / rngDraw 等）；目前分析器不使用。 */
+  selection?: unknown;
 }
 
 function buildAIAnalytics(log: LogEntry[]): AIAnalytics {
@@ -187,6 +204,7 @@ export function summarizeGame(
 ): GameLogDocument {
   const meta = buildSessionMeta(state, profile, opts);
   const summary = buildGameSummary(state);
+  const recording = buildRecordingMeta(opts);
   const perTurnSummary = buildPerTurnSummary(state.log);
   const aiAnalytics = buildAIAnalytics(state.log);
   const bugIndicators = buildBugIndicators(state.log);
@@ -195,6 +213,7 @@ export function summarizeGame(
   return {
     schemaVersion: 1,
     meta,
+    recording,
     summary,
     perTurnSummary,
     aiAnalytics,
