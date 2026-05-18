@@ -21,6 +21,11 @@ import { GameIndexOverlay } from "./GameIndexOverlay";
 import { buildCardFaceModel } from "../../game/cardPresentation";
 import { CardFace } from "../components/CardFace";
 import { isDeviceCard, isFullGaugeActive } from "../../core/resource/fullGaugeBuff";
+import {
+  buildHeroStatusIndicators,
+  buildTroopStatusIndicators,
+  type StatusIndicator,
+} from "../statusIndicators";
 
 interface Props {
   heroId: string;
@@ -94,7 +99,7 @@ function BattleView({ onExit }: { onExit: () => void }): JSX.Element {
   const { state, dispatch, reset } = useBattle();
   const [select, setSelect] = useState<SelectMode>({ kind: "none" });
   const [indexOpen, setIndexOpen] = useState(false);
-  const [previewCard, setPreviewCard] = useState<Card | null>(null);
+  const [previewCard, setPreviewCard] = useState<{ card: Card; gaugeName?: string } | null>(null);
   const [oathPrompt, setOathPrompt] = useState<{ handIndex: number } | null>(null);
   const [placementPulse, setPlacementPulse] = useState<{ slotIndex: number; nonce: number } | null>(null);
   const [attackFx, setAttackFx] = useState<AttackFx | null>(null);
@@ -178,6 +183,9 @@ function BattleView({ onExit }: { onExit: () => void }): JSX.Element {
   const heroDef = ENEMIES[playerHero.defId]?.heroDef ?? HEROES[playerHero.defId]!;
   const enemyDef = ENEMIES[enemyHero.defId]?.heroDef ?? HEROES[enemyHero.defId]!;
   const heroRace = getRace(heroDef.raceId);
+  const enemyRace = getRace(enemyDef.raceId);
+  const heroGaugeName = heroDef.gauge.name ?? heroRace.gauge.name;
+  const enemyGaugeName = enemyDef.gauge.name ?? enemyRace.gauge.name;
   const gaugeMax = heroRace.gauge.max;
   const fullGaugeReady = isFullGaugeActive(state.player, heroRace);
   const heroTheme = RACE_TO_THEME[heroDef.raceId] ?? "azure";
@@ -405,8 +413,8 @@ function BattleView({ onExit }: { onExit: () => void }): JSX.Element {
   const lastLog = state.log.slice(-1)[0];
   const recentLogs = state.log.slice(-3).reverse();
 
-  function toggleCardPreview(cardId: string): void {
-    setPreviewCard((current) => (current?.id === cardId ? null : getCard(cardId)));
+  function toggleCardPreview(cardId: string, gaugeName = heroGaugeName): void {
+    setPreviewCard((current) => (current?.card.id === cardId ? null : { card: getCard(cardId), gaugeName }));
   }
 
   return (
@@ -454,8 +462,8 @@ function BattleView({ onExit }: { onExit: () => void }): JSX.Element {
             </div>
           </div>
 
-          {indexOpen && <GameIndexOverlay onClose={() => setIndexOpen(false)} />}
-          {previewCard && <CardPreviewOverlay card={previewCard} onClose={() => setPreviewCard(null)} />}
+          {indexOpen && <GameIndexOverlay gaugeName={heroGaugeName} onClose={() => setIndexOpen(false)} />}
+          {previewCard && <CardPreviewOverlay card={previewCard.card} gaugeName={previewCard.gaugeName} onClose={() => setPreviewCard(null)} />}
           {oathPrompt && (
             <OathChoiceOverlay
               onChoose={chooseOath}
@@ -515,7 +523,7 @@ function BattleView({ onExit }: { onExit: () => void }): JSX.Element {
 
               <div className={styles.gauge}>
                 <div className={styles.row}>
-                  <div className={styles.lbl}>量表 · {heroDef.name}</div>
+                  <div className={styles.lbl}>{heroGaugeName} · {heroDef.name}</div>
                   <div className={styles.v}>{playerHero.gaugeValue} / {gaugeMax}</div>
                 </div>
                 <div className={styles.track}>
@@ -533,7 +541,7 @@ function BattleView({ onExit }: { onExit: () => void }): JSX.Element {
                   const disabled = !isPlayerTurn || !moraleOk || !gaugeOk || !manaOk;
                   const costs = [
                     skill.cost.morale ? `${skill.cost.morale} 鬥志` : null,
-                    skill.cost.gauge ? `${skill.cost.gauge} 量表` : null,
+                    skill.cost.gauge ? `${skill.cost.gauge} ${heroGaugeName}` : null,
                     skill.cost.mana ? `${skill.cost.mana} 魔力` : null,
                   ].filter(Boolean).join(" / ") || "0";
                   return (
@@ -594,7 +602,7 @@ function BattleView({ onExit }: { onExit: () => void }): JSX.Element {
                         }
                         canAttack={false}
                         onClick={() => clickSlot("enemy", i)}
-                        onPreview={t ? () => toggleCardPreview(t.cardId) : undefined}
+                        onPreview={t ? () => toggleCardPreview(t.cardId, enemyGaugeName) : undefined}
                       />
                     ))}
                   </div>
@@ -611,7 +619,7 @@ function BattleView({ onExit }: { onExit: () => void }): JSX.Element {
                       isTargetable={isPlayerTurn && state.rift.holder === "open" && select.kind === "playCard" && !!select.needsRiftSlot}
                       isAttackable={isPlayerTurn && state.rift.holder === "enemy" && select.kind === "attackWithTroop"}
                       onClick={clickRiftSlot}
-                      onPreview={state.rift.occupant ? () => toggleCardPreview(state.rift!.occupant!.cardId) : undefined}
+                      onPreview={state.rift.occupant ? () => toggleCardPreview(state.rift!.occupant!.cardId, state.rift!.holder === "enemy" ? enemyGaugeName : heroGaugeName) : undefined}
                     />
                   )}
                   <div className={styles.lane} data-side="player">
@@ -633,7 +641,7 @@ function BattleView({ onExit }: { onExit: () => void }): JSX.Element {
                           isSelected={isSelected}
                           placementPulse={placementPulse?.slotIndex === i ? placementPulse.nonce : undefined}
                           onClick={() => clickSlot("player", i)}
-                          onPreview={t ? () => toggleCardPreview(t.cardId) : undefined}
+                          onPreview={t ? () => toggleCardPreview(t.cardId, heroGaugeName) : undefined}
                         />
                       );
                     })}
@@ -647,7 +655,7 @@ function BattleView({ onExit }: { onExit: () => void }): JSX.Element {
 
           {/* Race gauge strip (mirrors right-panel gauge along bottom) */}
           <div className={styles.cmdStrip}>
-            <div className={styles.cmdLabel}>{heroDef.name}·量表</div>
+            <div className={styles.cmdLabel}>{heroDef.name}·{heroGaugeName}</div>
             <div className={styles.segTrack}>
               {Array.from({ length: 20 }).map((_, i) => {
                 const lit = i < Math.round((playerHero.gaugeValue / gaugeMax) * 20);
@@ -700,12 +708,12 @@ function BattleView({ onExit }: { onExit: () => void }): JSX.Element {
                     onClick={() => playable && clickHandCard(i)}
                   >
                     <CardFace
-                      model={buildCardFaceModel(card)}
+                      model={buildCardFaceModel(card, { gaugeName: heroGaugeName })}
                       variant="hand"
                       playable={playable}
                       selected={selected}
                       disabled={!playable}
-                      onPreview={() => toggleCardPreview(inst.cardId)}
+                      onPreview={() => toggleCardPreview(inst.cardId, heroGaugeName)}
                     />
                   </div>
                 );
@@ -921,7 +929,7 @@ function AttackEffectOverlay({ fx }: { fx: AttackFx }): JSX.Element {
   );
 }
 
-function CardPreviewOverlay({ card, onClose }: { card: Card; onClose: () => void }): JSX.Element {
+function CardPreviewOverlay({ card, gaugeName, onClose }: { card: Card; gaugeName?: string; onClose: () => void }): JSX.Element {
   function closeOnContextMenu(event: MouseEvent<HTMLDivElement>): void {
     event.preventDefault();
     onClose();
@@ -936,7 +944,7 @@ function CardPreviewOverlay({ card, onClose }: { card: Card; onClose: () => void
       onContextMenu={closeOnContextMenu}
     >
       <div className={styles.cardPreviewFrame}>
-        <CardFace model={buildCardFaceModel(card)} variant="preview" />
+        <CardFace model={buildCardFaceModel(card, { gaugeName })} variant="preview" />
       </div>
     </div>
   );
@@ -981,6 +989,7 @@ interface MiniHeroCardProps {
 function MiniHeroCard({ side, def, hero, targetable, onClick }: MiniHeroCardProps): JSX.Element {
   const [heroArtFailed, setHeroArtFailed] = useState(false);
   const isEnemy = side === "enemy";
+  const indicators = buildHeroStatusIndicators(hero, resolveIndicatorSourceName);
   const skills = [
     def.passives[0] ? { kind: "被動", name: def.passives[0].name, desc: def.passives[0].description, ult: false } : null,
     { kind: "終極", name: def.ultimate.name, desc: def.ultimate.description, ult: true },
@@ -1013,6 +1022,7 @@ function MiniHeroCard({ side, def, hero, targetable, onClick }: MiniHeroCardProp
       <CornerOrn pos="tr" />
       <CornerOrn pos="bl" />
       <CornerOrn pos="br" />
+      <StatusIndicatorRail indicators={indicators} owner="hero" side={side} />
 
       <div className={styles.mhHeader}>
         <div className={styles.mhCost}>
@@ -1228,6 +1238,7 @@ function TroopSlotView({ slot, side, isTargetable, canAttack, isSelected, placem
     );
   }
   const card = getCard(slot.cardId);
+  const indicators = buildTroopStatusIndicators(slot, resolveIndicatorSourceName);
   const hurtTone: "hurt" | "crit" | undefined =
     slot.hp < slot.maxHp / 2 ? "crit" : slot.hp < slot.maxHp ? "hurt" : undefined;
   const kws = Array.from(slot.keywords);
@@ -1274,8 +1285,58 @@ function TroopSlotView({ slot, side, isTargetable, canAttack, isSelected, placem
           </div>
         )}
       </div>
+      <StatusIndicatorRail indicators={indicators} owner="troop" side={side} />
     </div>
   );
+}
+
+interface StatusIndicatorRailProps {
+  indicators: StatusIndicator[];
+  owner: "hero" | "troop";
+  side: "player" | "enemy";
+}
+
+function StatusIndicatorRail({ indicators, owner, side }: StatusIndicatorRailProps): JSX.Element | null {
+  if (indicators.length === 0) return null;
+  return (
+    <div className={styles.statusRail} data-owner={owner} data-side={side}>
+      {indicators.map((indicator) => (
+        <StatusIndicatorBadge key={indicator.id} indicator={indicator} />
+      ))}
+    </div>
+  );
+}
+
+function StatusIndicatorBadge({ indicator }: { indicator: StatusIndicator }): JSX.Element {
+  function stopClick(event: MouseEvent<HTMLButtonElement>): void {
+    event.stopPropagation();
+  }
+
+  return (
+    <button
+      type="button"
+      className={styles.statusBadge}
+      data-tone={indicator.tone}
+      aria-label={`${indicator.title}，${indicator.details.join("，")}`}
+      onClick={stopClick}
+    >
+      <span className={styles.statusBadgeText}>{indicator.label}</span>
+      <span className={styles.statusTooltip} role="tooltip">
+        <span className={styles.statusTooltipTitle}>{indicator.title}</span>
+        {indicator.details.map((detail) => (
+          <span key={detail} className={styles.statusTooltipLine}>{detail}</span>
+        ))}
+      </span>
+    </button>
+  );
+}
+
+function resolveIndicatorSourceName(source: string): string | undefined {
+  try {
+    return getCard(source).name;
+  } catch {
+    return undefined;
+  }
 }
 
 function keywordTag(k: string): string {

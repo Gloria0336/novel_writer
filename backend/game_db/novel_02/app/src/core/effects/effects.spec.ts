@@ -75,6 +75,42 @@ describe("通用卡資料完整性", () => {
   });
 });
 
+describe("unit status effects", () => {
+  it("addStatus can apply and expire a troop status", () => {
+    const s = mkState();
+    s.player.troopSlots[0] = mkTroop("T01", "ally1");
+
+    executeEffects([{
+      kind: "addStatus",
+      target: { kind: "single", filter: { side: "player", entity: "troop" }, pickedInstanceId: "ally1" },
+      status: "taunt",
+      duration: { kind: "thisTurn" },
+    }], { state: s, ctx, sourceSide: "player", sourceKind: "skill", sourceCardId: "test" });
+
+    expect(s.player.troopSlots[0]?.statusBuffs?.[0]).toMatchObject({ status: "taunt", remainingTurns: 1 });
+
+    endTurnFor(s, "player", ctx);
+
+    expect(s.player.troopSlots[0]?.statusBuffs).toHaveLength(0);
+  });
+
+  it("untargetable blocks single-target enemy damage but not all-target damage", () => {
+    const s = mkState();
+    s.player.troopSlots[0] = mkTroop("T01", "ally1");
+    s.player.troopSlots[0]!.statusBuffs = [{ id: "s1", source: "test", status: "untargetable", remainingTurns: 1 }];
+
+    executeEffects([{ kind: "damage", target: { kind: "single", filter: { side: "player", entity: "troop" }, pickedInstanceId: "ally1" }, amount: { kind: "const", value: 5 } }], {
+      state: s, ctx, sourceSide: "enemy", sourceKind: "spell", sourceCardId: "test",
+    });
+    expect(s.player.troopSlots[0]?.hp).toBe(8);
+
+    executeEffects([{ kind: "damage", target: { kind: "all", filter: { side: "player", entity: "troop" } }, amount: { kind: "const", value: 5 } }], {
+      state: s, ctx, sourceSide: "enemy", sourceKind: "spell", sourceCardId: "test",
+    });
+    expect(s.player.troopSlots[0]?.hp).toBe(4);
+  });
+});
+
 describe("S07 烈焰風暴 — 對所有敵兵造 10 傷害", () => {
   it("3 個敵兵各受 10 傷", () => {
     const s = mkState();
@@ -118,18 +154,24 @@ describe("T11 戰地牧師 入場曲：恢復英雄 8 HP", () => {
   });
 });
 
-describe("S03 治癒之風 — 神官祝福 +50%", () => {
-  it("一般法師恢復 10 HP", () => {
-    const s = mkState("elno-honorary-mage", "lulu");
-    s.player.hero.defId = "elno-honorary-mage";
+describe("S03 治癒之風", () => {
+  it("治療我方場上全體兵力 5 HP，不治療英雄或敵方兵力", () => {
+    const s = mkState();
     s.player.hero.hp = 50;
     s.player.hero.maxHp = 100;
+    s.player.troopSlots[0] = mkTroop("T01", "ally1");
+    s.player.troopSlots[1] = mkTroop("T02", "ally2");
+    s.enemy.troopSlots[0] = mkTroop("T01", "enemy1");
+    s.player.troopSlots[0]!.hp = 2;
+    s.player.troopSlots[1]!.hp = 9;
+    s.enemy.troopSlots[0]!.hp = 2;
     const c = getCard("S03");
     if (c.type !== "spell") throw new Error("expect spell");
-    // 取代效果中的 single target 為英雄自身
-    const eff = c.effects.map((e) => ({ ...(e as object), target: { kind: "self" as const } }));
-    executeEffects(eff as import("../types/effect").Effect[], { state: s, ctx, sourceSide: "player", sourceKind: "spell", sourceCardId: "S03" });
-    expect(s.player.hero.hp).toBe(60);
+    executeEffects(c.effects, { state: s, ctx, sourceSide: "player", sourceKind: "spell", sourceCardId: "S03" });
+    expect(s.player.troopSlots[0]?.hp).toBe(7);
+    expect(s.player.troopSlots[1]?.hp).toBe(12);
+    expect(s.enemy.troopSlots[0]?.hp).toBe(2);
+    expect(s.player.hero.hp).toBe(50);
   });
 });
 
@@ -224,6 +266,20 @@ describe("T14 傳奇傭兵團 — 入場召喚 2 個傭兵", () => {
     const summoned = s.player.troopSlots.filter((t) => t !== null);
     expect(summoned).toHaveLength(2);
     expect(summoned.every((t) => t!.cardId === "T02")).toBe(true);
+  });
+
+  it("summon does not spill into the opposite side when source side is full", () => {
+    const s = mkState();
+    for (let i = 0; i < s.player.troopSlots.length; i++) {
+      s.player.troopSlots[i] = mkTroop("T01", `ally${i}`);
+    }
+
+    executeEffects([{ kind: "summon", cardId: "T02", count: 1, side: "self" }], {
+      state: s, ctx, sourceSide: "player", sourceKind: "spell", sourceCardId: "test",
+    });
+
+    expect(s.player.troopSlots.every((t) => t?.cardId === "T01")).toBe(true);
+    expect(s.enemy.troopSlots.every((t) => t === null)).toBe(true);
   });
 });
 

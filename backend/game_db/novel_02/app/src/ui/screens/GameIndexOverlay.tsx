@@ -4,6 +4,7 @@ import {
   CARD_TYPE_LABEL,
   RARITY_LABEL,
   cardStatsLine,
+  describeCardEffects,
   type GameIndexData,
   type IndexedCard,
   type CardType,
@@ -26,9 +27,10 @@ const TABS: Array<{ id: TabId; label: string }> = [
 
 interface Props {
   onClose: () => void;
+  gaugeName?: string;
 }
 
-export function GameIndexOverlay({ onClose }: Props): JSX.Element {
+export function GameIndexOverlay({ onClose, gaugeName }: Props): JSX.Element {
   const [activeTab, setActiveTab] = useState<TabId>("overview");
   const data = buildGameIndexData();
 
@@ -60,7 +62,7 @@ export function GameIndexOverlay({ onClose }: Props): JSX.Element {
           {activeTab === "overview" && <OverviewTab data={data} />}
           {activeTab === "rules" && <RulesTab data={data} />}
           {activeTab === "heroes" && <HeroesTab data={data} />}
-          {activeTab === "cards" && <CardsTab data={data} />}
+          {activeTab === "cards" && <CardsTab data={data} gaugeName={gaugeName} />}
         </div>
       </section>
     </div>
@@ -183,7 +185,7 @@ function HeroesTab({ data }: { data: GameIndexData }): JSX.Element {
   );
 }
 
-function CardsTab({ data }: { data: GameIndexData }): JSX.Element {
+function CardsTab({ data, gaugeName }: { data: GameIndexData; gaugeName?: string }): JSX.Element {
   const [query, setQuery] = useState("");
   const [typeFilter, setTypeFilter] = useState<TypeFilter>("all");
   const [rarityFilter, setRarityFilter] = useState<RarityFilter>("all");
@@ -235,21 +237,23 @@ function CardsTab({ data }: { data: GameIndexData }): JSX.Element {
       <div className={styles.resultLine}>顯示 {filteredCards.length} / {data.cards.length} 張</div>
 
       <div className={styles.cardGrid}>
-        {filteredCards.map((entry) => <CardTile key={`${entry.poolId}:${entry.card.id}`} entry={entry} />)}
+        {filteredCards.map((entry) => <CardTile key={`${entry.poolId}:${entry.card.id}`} entry={entry} gaugeName={gaugeName} />)}
       </div>
     </div>
   );
 }
 
-function CardTile({ entry }: { entry: IndexedCard }): JSX.Element {
+function CardTile({ entry, gaugeName }: { entry: IndexedCard; gaugeName?: string }): JSX.Element {
   const stats = cardStatsLine(entry.card);
+  const effectSummary = gaugeName ? describeCardEffects(entry.card, { gaugeName }) : entry.effectSummary;
 
   return (
     <article className={styles.indexCard}>
       <CardFace
         model={buildCardFaceModel(entry.card, {
           metaLine: `${entry.card.id} · ${entry.poolLabel}`,
-          effectLines: entry.effectSummary,
+          effectLines: effectSummary,
+          gaugeName,
         })}
         variant="gallery"
       />
@@ -266,7 +270,7 @@ function CardTile({ entry }: { entry: IndexedCard }): JSX.Element {
         {stats && <span>{stats}</span>}
       </div>
       <ul className={styles.effectList}>
-        {entry.effectSummary.map((line) => <li key={line}>{line}</li>)}
+        {effectSummary.map((line) => <li key={line}>{line}</li>)}
       </ul>
     </article>
   );

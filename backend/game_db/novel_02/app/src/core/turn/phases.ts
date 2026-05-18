@@ -3,6 +3,7 @@ import type { BattleState, SideState, TroopInstance } from "../types/battle";
 import type { Side, StatModifier } from "../types/effect";
 import type { BattleContext } from "../types/context";
 import type { Keyword } from "../types/keyword";
+import type { ActiveStatusBuff } from "../types/status";
 import { drawCards } from "../deck/draw";
 import { refillMana } from "../resource/mana";
 import { gaugeOnTroopSurvivePerTurn, gaugeOnTurnStart } from "../resource/gauge";
@@ -86,7 +87,10 @@ export function startTurnFor(state: BattleState, side: Side, ctx: BattleContext)
     if (!t) continue;
     t.summonedThisTurn = false;
     t.hasAttackedThisTurn = false;
-    if (t.frozenTurns > 0) t.frozenTurns--;
+    if (t.frozenTurns > 0) {
+      t.frozenTurns--;
+      if (t.frozenTurns <= 0) delete t.frozenDisplayName;
+    }
   }
 
   // 量表類型：精靈共鳴每回合重置
@@ -114,10 +118,12 @@ export function endTurnFor(state: BattleState, side: Side, ctx?: BattleContext):
     if (!t) continue;
     tickTroopBuffs(t);
     tickTroopKeywordBuffs(t, ctx);
+    tickStatusBuffs(t);
   }
 
   // 英雄 buff 衰減，過期時回復數值。
   tickHeroBuffs(sideState.hero);
+  tickStatusBuffs(sideState.hero);
   tickHeroAbilityFreezes(sideState.hero);
 
   state.log.push({ turn: state.turn, side, kind: "TURN_END", text: `回合 ${state.turn} 結束（${side === "player" ? "玩家" : "敵方"}）` });
@@ -166,6 +172,13 @@ function tickHeroBuffs(hero: HeroInstance): void {
     revertHeroMod(hero, buff.mod);
   }
   hero.buffs = kept;
+}
+
+function tickStatusBuffs(unit: { statusBuffs?: ActiveStatusBuff[] }): void {
+  if (!unit.statusBuffs || unit.statusBuffs.length === 0) return;
+  unit.statusBuffs = unit.statusBuffs
+    .map((buff) => ({ ...buff, remainingTurns: buff.remainingTurns - 1 }))
+    .filter((buff) => buff.remainingTurns > 0);
 }
 
 function tickTroopKeywordBuffs(troop: TroopInstance, ctx?: BattleContext): void {

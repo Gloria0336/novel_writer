@@ -1,5 +1,6 @@
-import type { Effect, HeroAbilityFreezeKind, StatModifier } from "./effect";
+import type { Effect, FreezeEffectName, HeroAbilityFreezeKind, StatModifier } from "./effect";
 import type { ClassKeyword } from "./keyword";
+import type { ActiveStatusBuff } from "./status";
 
 export type RaceId = "human" | "elf" | "dwarf" | "fey" | "beast" | "demigod" | "demon";
 export type ClassId = "commander" | "mage" | "smith" | "illusionist" | "berserker" | "priest" | "adventurer";
@@ -83,6 +84,7 @@ export interface Skill {
 }
 
 export interface GaugePersonalization {
+  name?: string;
   description: string;
   onTroopEnter?: number;
   onTroopSurvivePerTurn?: number;
@@ -130,6 +132,7 @@ export interface HeroInstance {
   gaugeValue: number;
   armor: number;
   buffs: ActiveBuff[];
+  statusBuffs?: ActiveStatusBuff[];
   equipment: { weapon?: string; armor?: string; trinket?: string };
   flags: {
     ultimateUsed: boolean;
@@ -142,6 +145,8 @@ export interface HeroInstance {
     doomsdayCountdown?: number;
     /** 英雄能力凍結：行動牌 / 法術牌 / 兵力牌 / 魔力回復剩餘回合。 */
     heroAbilityFreeze?: Partial<Record<HeroAbilityFreezeKind, number>>;
+    /** 英雄能力凍結的呈現子分類；判定仍依 heroAbilityFreeze。 */
+    heroAbilityFreezeDisplayNames?: Partial<Record<HeroAbilityFreezeKind, FreezeEffectName>>;
     /** 額外標記 */
     [key: string]: unknown;
   };

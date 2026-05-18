@@ -159,7 +159,7 @@ export function registerHeroScripted(): void {
   registerScripted("TAN_BLANK_BEFORE_PUPATION", (_p, ec) => {
     const targetSide = otherSide(ec.sourceSide);
     const hero = getSide(ec.state, targetSide).hero;
-    addHeroAbilityFreeze(hero, ["manaRegen", "troop"], 1);
+    addHeroAbilityFreeze(hero, ["manaRegen", "troop"], 1, "封鎖");
     ec.state.log.push({
       turn: ec.state.turn,
       side: ec.sourceSide,

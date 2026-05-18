@@ -1,8 +1,9 @@
 import type { CardInstance } from "./card";
 import type { ActiveBuff, HeroInstance } from "./hero";
 import type { Keyword } from "./keyword";
-import type { Side } from "./effect";
+import type { FreezeEffectName, Side } from "./effect";
 import type { RiftState } from "./rift";
+import type { ActiveStatusBuff } from "./status";
 
 export interface ActiveKeywordBuff {
   id: string;
@@ -22,8 +23,10 @@ export interface TroopInstance {
   hasAttackedThisTurn: boolean;
   summonedThisTurn: boolean;
   frozenTurns: number;
+  frozenDisplayName?: FreezeEffectName;
   buffs: ActiveBuff[];
   keywordBuffs?: ActiveKeywordBuff[];
+  statusBuffs?: ActiveStatusBuff[];
   /** v3.3 滲透體標記：true 時擊殺者獲 +10 鬥志（不是 +15 一般擊殺）。 */
   fromRift?: boolean;
 }

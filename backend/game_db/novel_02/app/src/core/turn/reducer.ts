@@ -1,5 +1,5 @@
 import type { BattleState, TroopInstance } from "../types/battle";
-import type { Side } from "../types/effect";
+import type { Effect, Side } from "../types/effect";
 import type { BattleContext } from "../types/context";
 import type { GameAction, OathChoice } from "./actions";
 import type { Card } from "../types/card";
@@ -174,6 +174,8 @@ function playSpell(state: BattleState, sideKey: Side, side: BattleState["player"
     syncFullGaugeBuffs(state, ctx);
   }
   if (!canAffordMana(side, cost)) return { ok: false, reason: "not enough mana" };
+  const targetCheck = validateSingleTargetEffects(state, sideKey, lookup.card.effects, targetInstanceId);
+  if (!targetCheck.ok) return targetCheck;
 
   spendMana(side, cost);
   discardFromHand(side, handIndex);
@@ -242,18 +244,8 @@ function playActionCard(state: BattleState, sideKey: Side, side: BattleState["pl
   if (!canAffordMana(side, cost)) return { ok: false, reason: "not enough mana" };
 
   // 守護優先檢查（若效果有 single 目標且未 ignoreGuard）
-  if (targetInstanceId) {
-    for (const e of lookup.card.effects) {
-      if ("target" in e && e.target && (e.target as { kind?: string }).kind === "single") {
-        const ignoreGuard = "ignoreGuard" in e && (e as { ignoreGuard?: boolean }).ignoreGuard === true;
-        const targetEntity = findTargetByInstanceId(state, targetInstanceId);
-        if (targetEntity) {
-          const check = canActionTarget(state, sideKey, targetEntity, ignoreGuard);
-          if (!check.ok) return { ok: false, reason: check.reason };
-        }
-      }
-    }
-  }
+  const targetCheck = validateSingleTargetEffects(state, sideKey, lookup.card.effects, targetInstanceId);
+  if (!targetCheck.ok) return targetCheck;
 
   spendMana(side, cost);
   discardFromHand(side, handIndex);
@@ -268,6 +260,20 @@ function playActionCard(state: BattleState, sideKey: Side, side: BattleState["pl
 
   reapDeadTroops(state, ctx, sideKey);
   checkVictory(state);
+  return { ok: true };
+}
+
+function validateSingleTargetEffects(state: BattleState, sideKey: Side, effects: readonly Effect[], targetInstanceId: string | undefined): ApplyResult {
+  if (!targetInstanceId) return { ok: true };
+  for (const e of effects) {
+    if (!("target" in e) || !e.target || e.target.kind !== "single") continue;
+    if ((targetInstanceId === "H_player" && sideKey === "player") || (targetInstanceId === "H_enemy" && sideKey === "enemy")) continue;
+    const ignoreGuard = "ignoreGuard" in e && (e as { ignoreGuard?: boolean }).ignoreGuard === true;
+    const targetEntity = findTargetByInstanceId(state, targetInstanceId);
+    if (!targetEntity) continue;
+    const check = canActionTarget(state, sideKey, targetEntity, ignoreGuard);
+    if (!check.ok) return { ok: false, reason: check.reason };
+  }
   return { ok: true };
 }
 
@@ -401,6 +407,8 @@ function useSkill(state: BattleState, sideKey: Side, side: BattleState["player"]
   if (skill.cost.morale && !canAffordMorale(side.hero, skill.cost.morale)) return { ok: false, reason: "not enough morale" };
   if (skill.cost.mana && !canAffordMana(side, skill.cost.mana)) return { ok: false, reason: "not enough mana" };
   if (skill.cost.gauge && side.hero.gaugeValue < skill.cost.gauge) return { ok: false, reason: "not enough gauge" };
+  const targetCheck = validateSingleTargetEffects(state, sideKey, skill.effects, targetInstanceId);
+  if (!targetCheck.ok) return targetCheck;
 
   if (skill.cost.morale) spendMorale(side.hero, skill.cost.morale);
   if (skill.cost.mana) spendMana(side, skill.cost.mana);
@@ -424,6 +432,8 @@ function useUltimate(state: BattleState, sideKey: Side, side: BattleState["playe
   const ult = heroDef.ultimate;
   if (side.hero.flags.ultimateUsed) return { ok: false, reason: "ultimate already used" };
   if (ult.cost.morale && !canAffordMorale(side.hero, ult.cost.morale)) return { ok: false, reason: "not enough morale" };
+  const targetCheck = validateSingleTargetEffects(state, sideKey, ult.effects, targetInstanceId);
+  if (!targetCheck.ok) return targetCheck;
 
   if (ult.cost.morale) spendMorale(side.hero, ult.cost.morale);
   side.hero.flags.ultimateUsed = true;

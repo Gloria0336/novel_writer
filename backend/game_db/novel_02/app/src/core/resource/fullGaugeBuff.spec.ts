@@ -135,7 +135,7 @@ describe("滿值種族 Buff", () => {
     state.player.hero.gaugeValue = 100;
 
     expect(getEffectiveCardCost(state, ctx, "player", getCard("D10"))).toBe(7);
-    expect(getEffectiveCardCost(state, ctx, "player", getCard("D04"))).toBe(2);
+    expect(getEffectiveCardCost(state, ctx, "player", getCard("K02"))).toBe(2);
     expect(getEffectiveCardCost(state, ctx, "player", getCard("D02"))).toBe(1);
   });
 

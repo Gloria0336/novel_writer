@@ -121,6 +121,24 @@ describe("§E.2 巢穴 scripted 機制", () => {
     expect(larvae).toHaveLength(0);
   });
 
+  it("蟲卵滿場被摧毀時，工蟲只孵化在巢穴方空出的格子", () => {
+    const s = mkState();
+    s.enemy.hero.defId = "insect_hive";
+    s.enemy.troopSlots[0] = freshTroop("I_INSECT_EGG", "egg1");
+    for (let i = 1; i < 5; i++) {
+      s.enemy.troopSlots[i] = freshTroop("I_QUEEN_LARVA", `l${i}`);
+    }
+
+    executeEffects(
+      [{ kind: "damage", target: { kind: "single", filter: {}, pickedInstanceId: "egg1" }, amount: { kind: "const", value: 100 } }],
+      { state: s, ctx, sourceSide: "player", sourceKind: "action", sourceCardId: "test" },
+    );
+
+    expect(s.enemy.troopSlots[0]?.cardId).toBe("I_WORKER_BUG");
+    expect(s.enemy.troopSlots).toHaveLength(5);
+    expect(s.player.troopSlots.some((t) => t?.cardId === "I_WORKER_BUG")).toBe(false);
+  });
+
   it("CRYSTAL_MERGE：3 隻晶體碎片合併為晶體魔像", () => {
     const s = mkState();
     for (let i = 0; i < 3; i++) {

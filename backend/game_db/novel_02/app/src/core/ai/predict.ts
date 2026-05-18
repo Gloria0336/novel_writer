@@ -7,9 +7,10 @@ import type { BattleContext } from "../types/context";
 import type { CandidateAction } from "./types";
 import type { Card, TroopCard } from "../types/card";
 import type { Effect, TargetSelector } from "../types/effect";
-import { aliveTroops, findTroopBySide, getSide } from "../selectors/battle";
+import { aliveTroops, findTroopBySide, getSide, heroHasStatus, troopHasStatus } from "../selectors/battle";
 import { evalAmount } from "../effects/amount";
 import { fullGaugeOpportunityCost, getEffectiveCardCost, getFullGaugeTroopDamageMultiplier } from "../resource/fullGaugeBuff";
+import { damageAfterDefense } from "../combat/damage";
 
 export interface Prediction {
   /** 玩家英雄受到的傷害（正值）。 */
@@ -82,7 +83,7 @@ function predictAttack(state: BattleState, ctx: BattleContext, attackerId: strin
   if (targetRef === "hero") {
     const player = state.player.hero;
     const raw = Math.round(attacker.atk * getFullGaugeTroopDamageMultiplier(state, ctx, "enemy"));
-    const dmg = aPierce ? raw : Math.max(0, raw - player.def);
+    const dmg = damageAfterDefense(raw, player.def, { ignoreDef: aPierce, allowZeroAfterDefense: heroHasStatus(player, "invincible") });
     const absorbed = Math.min(player.armor, dmg);
     const finalDmg = dmg - absorbed;
     return {
@@ -100,8 +101,8 @@ function predictAttack(state: BattleState, ctx: BattleContext, attackerId: strin
 
   const rawAttackerDamage = Math.round(attacker.atk * getFullGaugeTroopDamageMultiplier(state, ctx, "enemy"));
   const rawDefenderDamage = Math.round(defender.atk * getFullGaugeTroopDamageMultiplier(state, ctx, "player"));
-  const dmgToDef = aPierce ? rawAttackerDamage : Math.max(0, rawAttackerDamage - defender.def);
-  const dmgToAtt = dPierce ? rawDefenderDamage : Math.max(0, rawDefenderDamage - attacker.def);
+  const dmgToDef = damageAfterDefense(rawAttackerDamage, defender.def, { ignoreDef: aPierce, allowZeroAfterDefense: troopHasStatus(defender, "invincible") });
+  const dmgToAtt = damageAfterDefense(rawDefenderDamage, attacker.def, { ignoreDef: dPierce, allowZeroAfterDefense: troopHasStatus(attacker, "invincible") });
   const defKilled = dmgToDef >= defender.hp || (aLethal && dmgToDef > 0);
   const attKilled = dmgToAtt >= attacker.hp || (dLethal && dmgToAtt > 0);
 
@@ -156,13 +157,13 @@ function accumulateEffects(state: BattleState, effects: readonly Effect[], out: 
         const tgs = resolveTargetsForPredict(state, e.target, sourceSide);
         for (const t of tgs) {
           if (t.kind === "playerHero") {
-            const dmg = e.ignoreDef ? raw : Math.max(0, raw - state.player.hero.def);
+            const dmg = damageAfterDefense(raw, state.player.hero.def, { ignoreDef: e.ignoreDef, allowZeroAfterDefense: heroHasStatus(state.player.hero, "invincible") });
             const absorbed = Math.min(state.player.hero.armor, dmg);
             const finalDmg = dmg - absorbed;
             out.damageToPlayerHero += finalDmg;
             if (finalDmg >= state.player.hero.hp) out.killsPlayerHero = true;
           } else if (t.kind === "playerTroop" && t.troop) {
-            const dmg = e.ignoreDef ? raw : Math.max(0, raw - t.troop.def);
+            const dmg = damageAfterDefense(raw, t.troop.def, { ignoreDef: e.ignoreDef, allowZeroAfterDefense: troopHasStatus(t.troop, "invincible") });
             if (dmg >= t.troop.hp) {
               out.killedPlayerTroops.push({ instanceId: t.troop.instanceId, value: troopValue(t.troop) });
             } else {
@@ -170,7 +171,7 @@ function accumulateEffects(state: BattleState, effects: readonly Effect[], out: 
             }
           } else if (t.kind === "enemyHero") {
             // 對自己造傷（少見：戰嚎 SELF_DAMAGE_FIXED）
-            out.damageToSelfHero += e.ignoreDef ? raw : Math.max(0, raw - state.enemy.hero.def);
+            out.damageToSelfHero += damageAfterDefense(raw, state.enemy.hero.def, { ignoreDef: e.ignoreDef, allowZeroAfterDefense: heroHasStatus(state.enemy.hero, "invincible") });
           }
         }
         break;

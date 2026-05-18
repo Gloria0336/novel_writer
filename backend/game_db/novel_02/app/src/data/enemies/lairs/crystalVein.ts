@@ -4,7 +4,8 @@ import type { LairDefinition } from "./types";
 
 /**
  * 晶體礦脈 — §E.2
- * HP 100 / DEF 8 / 每 3 回合 1 / 衛兵守護；3 個晶體碎片合併為魔像。
+ * HP 100 / DEF 8 / 每 3 回合 1 / 衛兵守護；3 個晶體碎片合併為魔像
+ * 機制：反傷固守、碎而不滅、緩慢強化
  */
 export const LAIR_CRYSTAL_VEIN_ID = "crystal_vein";
 
@@ -35,25 +36,42 @@ function createInstance(): HeroInstance {
 
 export const LAIR_CRYSTAL_TROOPS: TroopCard[] = [
   {
-    id: "I_CRYSTAL_SHARD", type: "troop", name: "晶體碎片",
-    cost: 0, rarity: "common",
+    id: "I_CRYSTAL_SHARD", name: "晶體碎片",
+    type: "troop", rarity: "common", cost: 0,
     hp: 5, atk: 0, def: 4,
     keywords: ["guard"],
-    flavor: "三片合一即可組成魔像。",
+    // 碎裂反傷：死亡時對1隻隨機玩家兵力造成2傷害
+    onDestroy: [{
+      kind: "damage",
+      target: { kind: "random", filter: { side: "player", entity: "troop" }, count: 1 },
+      amount: { kind: "const", value: 2 },
+    }],
+    flavor: "三片合一即可組成魔像；被擊碎時迸射晶刃。",
   },
   {
-    id: "I_CRYSTAL_GUARD", type: "troop", name: "晶體衛兵",
-    cost: 0, rarity: "uncommon",
+    id: "I_CRYSTAL_GUARD", name: "晶體衛兵",
+    type: "troop", rarity: "uncommon", cost: 0,
     hp: 15, atk: 4, def: 5,
     keywords: ["guard"],
-    flavor: "守護礦脈的水晶巨人。",
+    // 每回合結束獲得+1 DEF（最多疊加3層，scripted追蹤）
+    onTurnEnd: [{ kind: "scripted", tag: "CRYSTAL_FORTIFY" }],
+    flavor: "守護礦脈的水晶巨人，越久越堅不可摧。",
   },
   {
-    id: "I_CRYSTAL_GOLEM", type: "troop", name: "晶體魔像",
-    cost: 0, rarity: "rare",
+    id: "I_CRYSTAL_GOLEM", name: "晶體魔像",
+    type: "troop", rarity: "rare", cost: 0,
     hp: 35, atk: 10, def: 6,
     keywords: ["guard"],
-    flavor: "由三片晶體碎片合成的活體雕像。",
+    // 出場自帶3點護甲
+    onPlay: [{ kind: "armor", amount: 3 }],
+    flavor: "由三片晶體碎片合成的活體雕像，誕生時已披覆晶甲。",
+  },
+  {
+    id: "I_CRYSTAL_SPIKE", name: "晶刃尖刺",
+    type: "troop", rarity: "uncommon", cost: 0,
+    hp: 6, atk: 8, def: 0,
+    keywords: ["pierce"],
+    flavor: "礦脈偶爾迸發的攻擊性結晶，穿透力極強但脆弱易碎。",
   },
 ];
 
@@ -64,6 +82,8 @@ export const LAIR_CRYSTAL_VEIN: LairDefinition = {
   createInstance,
   profileId: "lair_crystal_vein",
   internalTroops: LAIR_CRYSTAL_TROOPS,
-  auraTags: { onEnd: ["CRYSTAL_MERGE"] },
-  description: "HP 100 / DEF 8；每 3 回合召喚 1 隻晶體單位。3 個晶體碎片可合併為晶體魔像。",
+  auraTags: {
+    onEnd: ["CRYSTAL_MERGE", "CRYSTAL_REINFORCE"],
+  },
+  description: "HP 100 / DEF 8；每 3 回合召喚 1 隻晶體單位。3 個晶體碎片合併為晶體魔像。碎片死亡時對隨機玩家兵力反傷 2。衛兵每回合 DEF +1（最多+3）。魔像出場自帶 3 護甲。每 2 回合礦脈 DEF +1（CRYSTAL_REINFORCE）。",
 };

@@ -193,7 +193,10 @@ export function endPlayerTurnAndRunAI(state: BattleState, ctx: BattleContext): A
     if (t) {
       t.summonedThisTurn = false;
       t.hasAttackedThisTurn = false;
-      if (t.frozenTurns > 0) t.frozenTurns--;
+      if (t.frozenTurns > 0) {
+        t.frozenTurns--;
+        if (t.frozenTurns <= 0) delete t.frozenDisplayName;
+      }
     }
   }
 

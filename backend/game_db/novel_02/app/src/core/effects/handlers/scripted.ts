@@ -408,6 +408,239 @@ export function registerCoreScripted(): void {
   });
 }
 
+  // ── 腐植巢穴 ──────────────────────────────────────────────────────────────
+
+  // 腐植觸手：onTurnEnd 對玩家英雄造成 1 傷害，最多持續 3 回合後停止。
+  // 使用 troop.buffs 追蹤已觸發次數（buff id = "drain_count"）。
+  registerScripted("PUTREFACTIVE_DRAIN_3", (_p, ec) => {
+    const id = ec.sourceInstanceId;
+    if (!id) return;
+    const enemy = ec.state.enemy;
+    const troop = enemy.troopSlots.find((t) => t && t.instanceId === id);
+    if (!troop) return;
+    let counter = troop.buffs.find((b) => b.source === "DRAIN_COUNT");
+    if (!counter) {
+      counter = { id: `drain_${ec.state.nextInstanceId++}`, source: "DRAIN_COUNT", mod: { atk: 0 }, remainingTurns: 999 };
+      (counter as unknown as { count: number }).count = 0;
+      troop.buffs.push(counter);
+    }
+    const c = counter as unknown as { count: number };
+    if (c.count >= 3) return;
+    c.count += 1;
+    const playerHero = ec.state.player.hero;
+    applyHeroDamage(playerHero, 1, {});
+    ec.state.log.push({ turn: ec.state.turn, side: "enemy", kind: "PUTREFACTIVE_DRAIN", text: `腐植觸手侵蝕（第 ${c.count}/3 回合）：玩家英雄 -1 HP` });
+  });
+
+  // 腐植膿瘤：onDestroy 爆發腐液，對所有玩家兵力造成 2 傷害。
+  registerScripted("PUSS_BURST", (_p, ec) => {
+    const player = ec.state.player;
+    let hit = 0;
+    for (const t of aliveTroops(player)) {
+      applyTroopDamage(t, 2, {});
+      hit++;
+    }
+    ec.state.log.push({ turn: ec.state.turn, side: "enemy", kind: "PUSS_BURST", text: `腐植膿瘤爆裂：對 ${hit} 隻玩家兵力各造成 2 傷害` });
+  });
+
+  // 腐植巢穴 aura：每回合結束時擴散（目前為 log 佔位，Stage 3 可加強化邏輯）。
+  registerScripted("PUTREFACTIVE_SPREAD", (_p, ec) => {
+    ec.state.log.push({ turn: ec.state.turn, side: "enemy", kind: "PUTREFACTIVE_SPREAD", text: "腐植蔓延…" });
+  });
+
+  // ── 蟲族窩巢 ──────────────────────────────────────────────────────────────
+
+  // 蟲后光環 aura（onStart）：蟲后在場時，所有敵方兵力 ATK +1（一次性 flag 控制；蟲后死亡後撤銷）。
+  registerScripted("QUEEN_AURA", (_p, ec) => {
+    const enemy = ec.state.enemy;
+    const queenAlive = aliveTroops(enemy).some((t) => t.cardId === "I_INSECT_QUEEN");
+    const auraApplied = enemy.hero.flags.queenAuraApplied === true;
+    if (queenAlive && !auraApplied) {
+      for (const t of aliveTroops(enemy)) {
+        t.atk += 1;
+        t.buffs.push({ id: `queen_aura_${ec.state.nextInstanceId++}`, source: "QUEEN_AURA", mod: { atk: 1 }, remainingTurns: 999 });
+      }
+      enemy.hero.flags.queenAuraApplied = true;
+      ec.state.log.push({ turn: ec.state.turn, side: "enemy", kind: "QUEEN_AURA", text: "蟲后光環：所有蟲族兵力 ATK +1" });
+    } else if (!queenAlive && auraApplied) {
+      for (const t of aliveTroops(enemy)) {
+        const buffIdx = t.buffs.findIndex((b) => b.source === "QUEEN_AURA");
+        if (buffIdx >= 0) {
+          t.atk = Math.max(0, t.atk - 1);
+          t.buffs.splice(buffIdx, 1);
+        }
+      }
+      enemy.hero.flags.queenAuraApplied = false;
+      ec.state.log.push({ turn: ec.state.turn, side: "enemy", kind: "QUEEN_AURA_FADE", text: "蟲后已死，ATK 光環消退" });
+    }
+  });
+
+  // 甲蟲衛士光環 aura（onStart）：甲蟲衛士在場時，所有敵方兵力 DEF +1。
+  registerScripted("BEETLE_SHELL_AURA", (_p, ec) => {
+    const enemy = ec.state.enemy;
+    const beetleAlive = aliveTroops(enemy).some((t) => t.cardId === "I_BEETLE_GUARD");
+    const auraApplied = enemy.hero.flags.beetleShellApplied === true;
+    if (beetleAlive && !auraApplied) {
+      for (const t of aliveTroops(enemy)) {
+        t.def += 1;
+        t.buffs.push({ id: `beetle_shell_${ec.state.nextInstanceId++}`, source: "BEETLE_SHELL", mod: { def: 1 }, remainingTurns: 999 });
+      }
+      enemy.hero.flags.beetleShellApplied = true;
+      ec.state.log.push({ turn: ec.state.turn, side: "enemy", kind: "BEETLE_SHELL", text: "甲蟲衛士：所有蟲族兵力 DEF +1" });
+    } else if (!beetleAlive && auraApplied) {
+      for (const t of aliveTroops(enemy)) {
+        const buffIdx = t.buffs.findIndex((b) => b.source === "BEETLE_SHELL");
+        if (buffIdx >= 0) {
+          t.def = Math.max(0, t.def - 1);
+          t.buffs.splice(buffIdx, 1);
+        }
+      }
+      enemy.hero.flags.beetleShellApplied = false;
+      ec.state.log.push({ turn: ec.state.turn, side: "enemy", kind: "BEETLE_SHELL_FADE", text: "甲蟲衛士已死，DEF 光環消退" });
+    }
+  });
+
+  // 甲蟲衛士 passive 標記（passive 欄位用，實際邏輯由 BEETLE_SHELL_AURA 驅動）。
+  registerScripted("BEETLE_SHELL", () => { /* 由 BEETLE_SHELL_AURA 光環驅動 */ });
+
+  // 糧蟲 onTurnEnd：回復全場友方（英雄+兵力）1 HP。
+  registerScripted("FOOD_BUG_HEAL_TICK", (_p, ec) => {
+    const enemy = ec.state.enemy;
+    enemy.hero.hp = Math.min(enemy.hero.maxHp, enemy.hero.hp + 1);
+    for (const t of aliveTroops(enemy)) {
+      t.hp = Math.min(t.maxHp, t.hp + 1);
+    }
+    ec.state.log.push({ turn: ec.state.turn, side: "enemy", kind: "FOOD_BUG_TICK", text: "糧蟲滋養：全場友方 +1 HP" });
+  });
+
+  // 糧蟲 onDestroy：回復全場友方（英雄+兵力）2 HP。
+  registerScripted("FOOD_BUG_HEAL_BURST", (_p, ec) => {
+    const enemy = ec.state.enemy;
+    enemy.hero.hp = Math.min(enemy.hero.maxHp, enemy.hero.hp + 2);
+    for (const t of aliveTroops(enemy)) {
+      t.hp = Math.min(t.maxHp, t.hp + 2);
+    }
+    ec.state.log.push({ turn: ec.state.turn, side: "enemy", kind: "FOOD_BUG_BURST", text: "糧蟲死亡爆發：全場友方 +2 HP" });
+  });
+
+  // ── 魔獸洞穴 ──────────────────────────────────────────────────────────────
+
+  // 野性魔獸 onTurnEnd：積累憤怒，每回合 ATK +1，最多疊加 3 層。
+  registerScripted("BEAST_RAGE_TICK", (_p, ec) => {
+    const id = ec.sourceInstanceId;
+    if (!id) return;
+    const troop = ec.state.enemy.troopSlots.find((t) => t && t.instanceId === id);
+    if (!troop) return;
+    const stacks = troop.buffs.filter((b) => b.source === "BEAST_RAGE").length;
+    if (stacks >= 3) return;
+    troop.atk += 1;
+    troop.buffs.push({ id: `beast_rage_${ec.state.nextInstanceId++}`, source: "BEAST_RAGE", mod: { atk: 1 }, remainingTurns: 999 });
+    ec.state.log.push({ turn: ec.state.turn, side: "enemy", kind: "BEAST_RAGE", text: `野性魔獸憤怒積累（${stacks + 1}/3）：ATK +1` });
+  });
+
+  // 獸群之王光環 aura（onStart）：在場時所有獸族友方兵力 ATK +2。
+  registerScripted("ALPHA_AURA", (_p, ec) => {
+    const enemy = ec.state.enemy;
+    const alphaAlive = aliveTroops(enemy).some((t) => t.cardId === "I_ALPHA_BEAST");
+    const auraApplied = enemy.hero.flags.alphaAuraApplied === true;
+    if (alphaAlive && !auraApplied) {
+      for (const t of aliveTroops(enemy).filter((t) => t.cardId !== "I_ALPHA_BEAST")) {
+        t.atk += 2;
+        t.buffs.push({ id: `alpha_aura_${ec.state.nextInstanceId++}`, source: "ALPHA_AURA", mod: { atk: 2 }, remainingTurns: 999 });
+      }
+      enemy.hero.flags.alphaAuraApplied = true;
+      ec.state.log.push({ turn: ec.state.turn, side: "enemy", kind: "ALPHA_AURA", text: "獸群之王：所有友方獸族兵力 ATK +2" });
+    } else if (!alphaAlive && auraApplied) {
+      for (const t of aliveTroops(enemy)) {
+        const buffIdx = t.buffs.findIndex((b) => b.source === "ALPHA_AURA");
+        if (buffIdx >= 0) {
+          t.atk = Math.max(0, t.atk - 2);
+          t.buffs.splice(buffIdx, 1);
+        }
+      }
+      enemy.hero.flags.alphaAuraApplied = false;
+      ec.state.log.push({ turn: ec.state.turn, side: "enemy", kind: "ALPHA_AURA_FADE", text: "獸群之王已死，ATK 光環消退" });
+    }
+  });
+
+  // 魔獸洞穴 aura（onEnd）：每 3 回合所有獸族兵力 ATK +1（臨時加成）。
+  registerScripted("BEAST_HOWL", (_p, ec) => {
+    if (ec.state.turn % 3 !== 0) return;
+    const enemy = ec.state.enemy;
+    for (const t of aliveTroops(enemy)) {
+      t.atk += 1;
+      t.buffs.push({ id: `howl_${ec.state.nextInstanceId++}`, source: "BEAST_HOWL", mod: { atk: 1 }, remainingTurns: 1 });
+    }
+    ec.state.log.push({ turn: ec.state.turn, side: "enemy", kind: "BEAST_HOWL", text: "獸嚎響徹：所有獸族兵力本回合 ATK +1" });
+  });
+
+  // ── 暗影門戶 ──────────────────────────────────────────────────────────────
+
+  // 暗影帷幕 aura（onStart）：場上 3+ 暗影兵力時，玩家本回合施法費用 +1（freezeHeroAbility 替代：mana -1）。
+  registerScripted("SHADOW_VEIL", (_p, ec) => {
+    const enemy = ec.state.enemy;
+    const shadowCount = aliveTroops(enemy).filter((t) =>
+      ["I_SHADOW_GUARD", "I_SHADOW_ELITE", "I_SHADOW_LORD", "I_SHADOW_ASSASSIN"].includes(t.cardId),
+    ).length;
+    if (shadowCount >= 3) {
+      addTempMana(ec.state.player, -1);
+      ec.state.log.push({ turn: ec.state.turn, side: "enemy", kind: "SHADOW_VEIL", text: `暗影帷幕（${shadowCount} 暗影）：玩家本回合魔力 -1` });
+    }
+  });
+
+  // ── 晶體礦脈 ──────────────────────────────────────────────────────────────
+
+  // 晶體衛兵 onTurnEnd：每回合 DEF +1，最多疊加 3 層。
+  registerScripted("CRYSTAL_FORTIFY", (_p, ec) => {
+    const id = ec.sourceInstanceId;
+    if (!id) return;
+    const troop = ec.state.enemy.troopSlots.find((t) => t && t.instanceId === id);
+    if (!troop) return;
+    const stacks = troop.buffs.filter((b) => b.source === "CRYSTAL_FORTIFY").length;
+    if (stacks >= 3) return;
+    troop.def += 1;
+    troop.buffs.push({ id: `crystal_def_${ec.state.nextInstanceId++}`, source: "CRYSTAL_FORTIFY", mod: { def: 1 }, remainingTurns: 999 });
+    ec.state.log.push({ turn: ec.state.turn, side: "enemy", kind: "CRYSTAL_FORTIFY", text: `晶體衛兵強化（${stacks + 1}/3）：DEF +1` });
+  });
+
+  // 晶體礦脈 aura（onEnd）：每 2 回合，礦脈自身 DEF +1（最多 +5）。
+  registerScripted("CRYSTAL_REINFORCE", (_p, ec) => {
+    if (ec.state.turn % 2 !== 0) return;
+    const enemy = ec.state.enemy;
+    const bonusStacks = (enemy.hero.flags.crystalReinforceStacks as number | undefined) ?? 0;
+    if (bonusStacks >= 5) return;
+    enemy.hero.def += 1;
+    enemy.hero.flags.crystalReinforceStacks = bonusStacks + 1;
+    ec.state.log.push({ turn: ec.state.turn, side: "enemy", kind: "CRYSTAL_REINFORCE", text: `晶體礦脈強化（${bonusStacks + 1}/5）：巢穴 DEF +1` });
+  });
+
+  // ── 腐化神殿 ──────────────────────────────────────────────────────────────
+
+  // 腐化神殿 aura（onEnd）：每次有任意兵力死亡累積獻祭計數；滿 5 次召喚腐化魔神。
+  registerScripted("TEMPLE_SACRIFICE", (_p, ec) => {
+    const enemy = ec.state.enemy;
+    const count = (enemy.hero.flags.sacrificeCount as number | undefined) ?? 0;
+    if (count < 5) return;
+    // 重置計數
+    enemy.hero.flags.sacrificeCount = 0;
+    // 召喚腐化魔神（若有空格）
+    const emptySlot = enemy.troopSlots.findIndex((s) => s === null);
+    if (emptySlot < 0) return;
+    const demonCard = ec.ctx.getCard("I_CORRUPT_DEMON");
+    if (demonCard.type !== "troop") return;
+    ec.state.nextInstanceId++;
+    enemy.troopSlots[emptySlot] = {
+      instanceId: `t${ec.state.nextInstanceId}`,
+      cardId: "I_CORRUPT_DEMON",
+      hp: demonCard.hp, maxHp: demonCard.hp,
+      atk: demonCard.atk, def: demonCard.def,
+      keywords: new Set(demonCard.keywords),
+      hasAttackedThisTurn: true, summonedThisTurn: true, frozenTurns: 0,
+      buffs: [],
+    };
+    ec.state.log.push({ turn: ec.state.turn, side: "enemy", kind: "TEMPLE_SACRIFICE", text: "腐化神殿：五次獻祭完成，腐化魔神降臨！" });
+  });
+
 type OathChoice = "restore" | "strengthen" | "purify";
 
 function readOathChoice(payload: unknown): OathChoice {
@@ -420,6 +653,7 @@ function purifySide(side: ReturnType<typeof getSide>): number {
   for (const t of aliveTroops(side)) {
     if (t.frozenTurns > 0) {
       t.frozenTurns = 0;
+      delete t.frozenDisplayName;
       removed++;
     }
     removed += removeNegativeBuffsFromTroop(t);

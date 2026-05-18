@@ -215,6 +215,102 @@
   cursor: pointer;
   box-shadow: 0 20px 40px -10px rgba(0,0,0,.7), 0 0 22px rgba(255,170,60,.5);
 }
+.statusRail {
+  position: absolute;
+  z-index: 18;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  max-width: 86px;
+  pointer-events: none;
+}
+.statusRail[data-owner="hero"] { top: 58px; }
+.statusRail[data-owner="troop"] { top: 10px; }
+.statusRail[data-side="player"] { right: -10px; align-items: flex-end; }
+.statusRail[data-side="enemy"] { left: -10px; align-items: flex-start; }
+.statusBadge {
+  position: relative;
+  min-width: 34px;
+  max-width: 86px;
+  min-height: 23px;
+  padding: 3px 6px;
+  border: 1px solid var(--metal-b);
+  border-radius: 3px;
+  background: rgba(8, 10, 18, .86);
+  color: var(--metal-c);
+  box-shadow: 0 4px 10px rgba(0,0,0,.55), inset 0 0 0 1px rgba(255,255,255,.06);
+  font: 800 10px/1.15 'Cinzel','Noto Serif TC',serif;
+  text-shadow: 0 1px 0 #000;
+  pointer-events: auto;
+  cursor: help;
+}
+.statusBadgeText {
+  display: block;
+  overflow-wrap: anywhere;
+  white-space: normal;
+}
+.statusBadge[data-tone="buff"] {
+  color: #b8ffca;
+  border-color: #1f8b42;
+  background: linear-gradient(180deg, rgba(22,60,36,.94), rgba(8,18,12,.9));
+}
+.statusBadge[data-tone="debuff"] {
+  color: #ffb1a0;
+  border-color: #9d2e20;
+  background: linear-gradient(180deg, rgba(72,22,16,.94), rgba(22,8,8,.9));
+}
+.statusBadge[data-tone="mixed"] {
+  color: #ffd77a;
+  border-color: #9b7418;
+  background: linear-gradient(180deg, rgba(68,50,16,.94), rgba(20,14,6,.9));
+}
+.statusBadge[data-tone="control"] {
+  color: #b9d4ff;
+  border-color: #315f9a;
+  background: linear-gradient(180deg, rgba(18,38,70,.94), rgba(8,12,22,.9));
+}
+.statusBadge[data-tone="keyword"] {
+  color: #e5c4ff;
+  border-color: #7845a5;
+  background: linear-gradient(180deg, rgba(58,28,82,.94), rgba(18,10,28,.9));
+}
+.statusTooltip {
+  position: absolute;
+  top: 50%;
+  z-index: 60;
+  display: none;
+  width: 190px;
+  transform: translateY(-50%);
+  padding: 8px 10px;
+  border: 1px solid var(--metal-a);
+  border-radius: 3px;
+  background: linear-gradient(180deg, rgba(26,24,32,.98), rgba(8,8,14,.98));
+  box-shadow: 0 12px 26px rgba(0,0,0,.74), inset 0 0 0 1px rgba(255,255,255,.05);
+  color: var(--ink);
+  font-family: 'Noto Serif TC', serif;
+  text-align: left;
+  text-shadow: none;
+  pointer-events: none;
+}
+.statusRail[data-side="player"] .statusTooltip { right: calc(100% + 8px); }
+.statusRail[data-side="enemy"] .statusTooltip { left: calc(100% + 8px); }
+.statusBadge:hover .statusTooltip,
+.statusBadge:focus-visible .statusTooltip {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.statusTooltipTitle {
+  color: var(--metal-c);
+  font-size: 12px;
+  font-weight: 800;
+}
+.statusTooltipLine {
+  color: rgba(240,232,211,.86);
+  font-size: 11px;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
 .cornerOrn { position:absolute; width: 26px; height: 26px; pointer-events:none; z-index: 3; }
 .cornerOrn[data-pos="tl"] { top: 2px; left: 2px; }
 .cornerOrn[data-pos="tr"] { top: 2px; right: 2px; transform: scaleX(-1); }

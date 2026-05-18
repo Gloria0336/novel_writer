@@ -1,10 +1,12 @@
 import type { BattleState, TroopInstance } from "../types/battle";
-import type { Effect, Side, TargetSide } from "../types/effect";
+import type { Effect, Side, TargetSelector, TargetSide } from "../types/effect";
 import type { BattleContext } from "../types/context";
 import type { TroopCard } from "../types/card";
+import type { UnitStatus } from "../types/status";
 import { evalAmount, applyResonanceMultiplier, applyBerserkMultiplier, applyCommandMultiplier } from "./amount";
 import { resolveTargets, HERO_TARGET_ID } from "./target";
 import { applyHeroDamage, applyTroopDamage, applyLifesteal } from "../combat/damage";
+import { canActionTarget } from "../combat/attack";
 import { addMorale, MORALE_ACTION_HIT, MORALE_ALLY_TROOP_DESTROYED, MORALE_KILL_TROOP } from "../resource/morale";
 import { addGauge, gaugeOnHeroDamaged } from "../resource/gauge";
 import { applyCorruptionStageEffects, applyStabilityDelta, healingMultiplier } from "../resource/stability";
@@ -98,6 +100,7 @@ function executeEffect(e: Effect, ec: EffectContext): void {
       let totalDealt = 0;
 
       for (const tg of targets) {
+        if (isBlockedSingleTarget(e.target, tg, ec, e.ignoreGuard === true)) continue;
         let amount = applyDamageMultipliers(baseAmount, ec);
         if (tg.kind === "hero" && tg.hero) {
           const prevHp = tg.hero.hp;
@@ -211,6 +214,7 @@ function executeEffect(e: Effect, ec: EffectContext): void {
       const targets = resolveTargets(state, e.target, sourceSide);
       const turns = e.duration.kind === "permanent" ? 9999 : e.duration.kind === "thisTurn" ? 1 : e.duration.count;
       for (const tg of targets) {
+        if (isNegativeMod(e.mod) && isBlockedSingleTarget(e.target, tg, ec)) continue;
         if (isNegativeMod(e.mod) && isDebuffImmune(state, tg.side)) {
           state.log.push({ turn: state.turn, side: sourceSide, kind: "DEBUFF_IMMUNE", text: `${tg.side === "player" ? "玩家" : "敵方"}免疫負面狀態` });
           continue;
@@ -253,32 +257,69 @@ function executeEffect(e: Effect, ec: EffectContext): void {
       }
       break;
     }
-    case "freeze": {
+    case "addStatus": {
       const targets = resolveTargets(state, e.target, sourceSide);
+      const turns = e.duration.kind === "permanent" ? 9999 : e.duration.kind === "thisTurn" ? 1 : e.duration.count;
       for (const tg of targets) {
-        if (isDebuffImmune(state, tg.side)) {
-          state.log.push({ turn: state.turn, side: sourceSide, kind: "DEBUFF_IMMUNE", text: `${tg.side === "player" ? "玩家" : "敵方"}免疫凍結` });
+        const hostileStatus = isNegativeStatus(e.status) && tg.side !== sourceSide;
+        if (hostileStatus && isBlockedSingleTarget(e.target, tg, ec)) continue;
+        if (hostileStatus && isDebuffImmune(state, tg.side)) {
+          state.log.push({ turn: state.turn, side: sourceSide, kind: "DEBUFF_IMMUNE", text: `${tg.side === "player" ? "?拙振" : "?菜"}?${e.status}` });
           continue;
         }
-        if (tg.kind === "troop" && tg.troop) tg.troop.frozenTurns = Math.max(tg.troop.frozenTurns, e.turns);
+        const buff = {
+          id: `status_${state.nextInstanceId++}`,
+          source: ec.sourceCardId ?? "x",
+          status: e.status,
+          remainingTurns: turns,
+        };
+        if (tg.kind === "troop" && tg.troop) {
+          tg.troop.statusBuffs ??= [];
+          tg.troop.statusBuffs.push(buff);
+        } else if (tg.kind === "hero" && tg.hero) {
+          tg.hero.statusBuffs ??= [];
+          tg.hero.statusBuffs.push(buff);
+        }
+      }
+      break;
+    }
+    case "freeze": {
+      const targets = resolveTargets(state, e.target, sourceSide);
+      const displayName = e.displayName;
+      const displayText = effectDisplayText("凍結", displayName);
+      for (const tg of targets) {
+        if (isBlockedSingleTarget(e.target, tg, ec)) continue;
+        if (isDebuffImmune(state, tg.side)) {
+          state.log.push({ turn: state.turn, side: sourceSide, kind: "DEBUFF_IMMUNE", text: `${tg.side === "player" ? "玩家" : "敵方"}免疫${displayText}` });
+          continue;
+        }
+        if (tg.kind === "troop" && tg.troop) {
+          const prev = tg.troop.frozenTurns;
+          tg.troop.frozenTurns = Math.max(prev, e.turns);
+          if (e.turns >= prev) {
+            if (displayName) tg.troop.frozenDisplayName = displayName;
+            else delete tg.troop.frozenDisplayName;
+          }
+        }
       }
       break;
     }
     case "freezeHeroAbility": {
+      const displayName = e.displayName ?? "封鎖";
       const targetSides = resolveTargetSides(sourceSide, e.side ?? "enemy");
       for (const targetSide of targetSides) {
         if (isDebuffImmune(state, targetSide)) {
-          state.log.push({ turn: state.turn, side: sourceSide, kind: "DEBUFF_IMMUNE", text: `${targetSide === "player" ? "玩家" : "敵方"}免疫英雄能力凍結` });
+          state.log.push({ turn: state.turn, side: sourceSide, kind: "DEBUFF_IMMUNE", text: `${targetSide === "player" ? "玩家" : "敵方"}免疫英雄能力凍結-${displayName}` });
           continue;
         }
         const hero = getSide(state, targetSide).hero;
-        addHeroAbilityFreeze(hero, e.modes, e.turns);
+        addHeroAbilityFreeze(hero, e.modes, e.turns, displayName);
         state.log.push({
           turn: state.turn,
           side: sourceSide,
           kind: "HERO_ABILITY_FREEZE",
-          text: `${targetSide === "player" ? "玩家" : "敵方"}英雄能力凍結 ${e.turns} 回合：${e.modes.map((m) => HERO_ABILITY_FREEZE_LABEL[m]).join("、")}`,
-          payload: { targetSide, modes: e.modes, turns: e.turns },
+          text: `${targetSide === "player" ? "玩家" : "敵方"}英雄能力凍結-${displayName} ${e.turns} 回合：${e.modes.map((m) => HERO_ABILITY_FREEZE_LABEL[m]).join("、")}`,
+          payload: { targetSide, modes: e.modes, turns: e.turns, displayName },
         });
       }
       break;
@@ -381,6 +422,11 @@ function reapHandleDeath(state: BattleState, ctx: BattleContext, side: Side, sou
   if (heroDef.gauge.onTroopDestroyedSelf) addGauge(s.hero, race.gauge.max, heroDef.gauge.onTroopDestroyedSelf);
   syncFullGaugeBuffs(state, ctx);
   state.log.push({ turn: state.turn, side: sourceSide, kind: "TROOP_DESTROYED", text: `${card.name} 被摧毀`, payload: { instanceId: t.instanceId, cardId: t.cardId, side, fromRift: t.fromRift === true } });
+  // 腐化神殿：每個兵力死亡累積獻祭計數（不分陣營）
+  if (state.enemy.hero.defId === "corrupted_temple") {
+    const prev = (state.enemy.hero.flags.sacrificeCount as number | undefined) ?? 0;
+    state.enemy.hero.flags.sacrificeCount = prev + 1;
+  }
 }
 
 const SCRIPTED_HANDLERS: Record<string, (payload: unknown, ec: EffectContext) => void> = {};
@@ -402,7 +448,21 @@ function isNegativeMod(mod: { hp?: number; atk?: number; def?: number; cmd?: num
   return [mod.hp, mod.atk, mod.def, mod.cmd].some((value) => value !== undefined && value < 0);
 }
 
+function isNegativeStatus(status: UnitStatus): boolean {
+  return status === "marked" || status === "untargetable";
+}
+
+function isBlockedSingleTarget(target: TargetSelector, tg: { kind: "hero" | "troop"; side: Side; troop?: TroopInstance }, ec: EffectContext, ignoreGuard = false): boolean {
+  if (target.kind !== "single" || tg.side === ec.sourceSide) return false;
+  const check = canActionTarget(ec.state, ec.sourceSide, tg.kind === "hero" ? "hero" : tg.troop!, ignoreGuard);
+  return !check.ok;
+}
+
 function isDebuffImmune(state: BattleState, side: Side): boolean {
   const untilTurn = getSide(state, side).hero.flags.oathDebuffImmuneUntilTurn;
   return typeof untilTurn === "number" && state.turn <= untilTurn;
+}
+
+function effectDisplayText(family: string, displayName: string | undefined): string {
+  return displayName ? `${family}-${displayName}` : family;
 }

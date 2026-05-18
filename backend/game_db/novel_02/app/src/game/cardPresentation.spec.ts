@@ -69,6 +69,17 @@ describe("card face presentation", () => {
     expect(text).not.toContain("OATH_CHOICE");
   });
 
+  it("uses the active hero gauge name in card face text", () => {
+    const gaugeCard = buildCardFaceModel(getCard("H01"), { gaugeName: "軍令" });
+    expect(gaugeCard.effectLines.join(" ")).toContain("我方軍令 +5");
+
+    const neutralCard = buildCardFaceModel(getCard("N04"), { gaugeName: "靈蘊" });
+    const text = neutralCard.effectLines.join(" ");
+    expect(text).toContain("靈蘊 +10");
+    expect(text).toContain("50 靈蘊");
+    expect(text).not.toContain("種族量表");
+  });
+
   it("does not expose raw scripted tags or payloads on any card face", () => {
     const rawScriptPattern = /腳本效果|[A-Z]{2,}_[A-Z0-9_]+|\{"[a-zA-Z0-9_]+":/;
 

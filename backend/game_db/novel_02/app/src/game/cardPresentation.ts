@@ -28,6 +28,7 @@ export interface CardFaceModel {
 export interface BuildCardFaceModelOptions {
   metaLine?: string;
   effectLines?: string[];
+  gaugeName?: string;
   artManifest?: CardArtManifest;
 }
 
@@ -47,7 +48,7 @@ export const RARITY_COLOR: Record<Rarity, string> = {
 };
 
 export function buildCardFaceModel(card: Card, options: BuildCardFaceModelOptions = {}): CardFaceModel {
-  const effectLines = normalizeEffectLines(options.effectLines ?? describeCardEffects(card), card);
+  const effectLines = normalizeEffectLines(options.effectLines ?? describeCardEffects(card, { gaugeName: options.gaugeName }), card);
 
   return {
     id: card.id,

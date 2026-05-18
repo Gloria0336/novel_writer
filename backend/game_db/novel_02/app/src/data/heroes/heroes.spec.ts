@@ -110,6 +110,22 @@ describe("英雄技能 — 主動效果定義", () => {
     expect(skill.effects[0]).toMatchObject({ kind: "damage", ignoreGuard: true });
   });
 
+  it("lulu act_lowest_loss_command costs 10 gauge and no longer grants gauge", () => {
+    const skill = HEROES.lulu!.actives.find((s) => s.id === "act_lowest_loss_command")!;
+    expect(skill.cost).toMatchObject({ morale: 30, gauge: 10 });
+    expect(skill.effects).toEqual([
+      { kind: "draw", count: 1 },
+      { kind: "armor", amount: 8 },
+    ]);
+  });
+
+  it("lulu act_first_legion_line costs 25 gauge and lasts 2 turns", () => {
+    const skill = HEROES.lulu!.actives.find((s) => s.id === "act_first_legion_line")!;
+    expect(skill.cost).toMatchObject({ morale: 40, gauge: 25 });
+    expect(skill.effects[0]).toMatchObject({ kind: "buff", duration: { kind: "turns", count: 2 } });
+    expect(skill.effects[1]).toMatchObject({ kind: "addKeyword", keyword: "guard", duration: { kind: "turns", count: 2 } });
+  });
+
   it("山獵人 act_bone_arrow_blind：骨箭無視 DEF 與守護並凍結", () => {
     const skill = HEROES["mountain-hunter"]!.actives.find((s) => s.id === "act_bone_arrow_blind")!;
     expect(skill.cost.morale).toBe(30);

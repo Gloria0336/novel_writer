@@ -117,21 +117,21 @@ export const BUTTERFLY_YAO_DECK_IDS: string[] = [
 ];
 
 export const ELDR_THORIN_DECK_IDS: string[] = [
-  // 兵力 (6 張，配額 4-6)
-  "D01", "D01",
-  "D04", "D04",
-  "D05",
-  "D09",
+  // 兵力 (6 張，配額 4-6)：通用魔導器具 K01-K03 + 新矮人兵力
+  "K01", "K01",
+  "K02", "K02",
+  "K03",
+  "D11",
   // 行動 (6 張，配額 5-8)
   "D06", "D06",
   "A01", "A01",
   "A06",
   "A07",
-  // 法術 (5 張，配額 3-5)
+  // 法術 (5 張，配額 3-5)：D02 / D07 / D08 / D12 / D13
   "D02", "D02",
-  "D03",
   "D07",
-  "D08",
+  "D12",
+  "D13",
   // 裝備 (10 張，配額 7-10)
   "D10",
   "E01", "E01",
@@ -141,9 +141,9 @@ export const ELDR_THORIN_DECK_IDS: string[] = [
   "E30",
   "E31",
   "E37",
-  // 場地 (3 張，配額 2-3)
+  // 場地 (3 張，配額 2-3)：F01 + D14 深山礦坑
   "F01",
-  "F02", "F02",
+  "D14", "D14",
 ];
 
 export function buildDeck(ids: readonly string[]): CardInstance[] {

@@ -85,9 +85,23 @@ describe("damage 計算", () => {
     expect(t.hp).toBe(5);
   });
 
-  it("傷害 ≤ 0 不會回血", () => {
+  it("DEF 完全抵銷時仍造成 1 點傷害", () => {
     const t = mkTroop({ atk: 0, hp: 10, def: 99 });
     const r = applyTroopDamage(t, 5);
+    expect(r.finalAmount).toBe(1);
+    expect(t.hp).toBe(9);
+  });
+
+  it("英雄 DEF 完全抵銷時仍造成 1 點傷害", () => {
+    const hero = { defId: "x", hp: 80, maxHp: 80, atk: 0, def: 99, cmd: 5, morale: 0, gaugeValue: 0, armor: 0, buffs: [], equipment: {}, flags: { ultimateUsed: false, immortalUsed: false } };
+    const r = applyHeroDamage(hero, 5);
+    expect(r.finalAmount).toBe(1);
+    expect(hero.hp).toBe(79);
+  });
+
+  it("0 點原始傷害不會觸發最低傷害", () => {
+    const t = mkTroop({ atk: 0, hp: 10, def: 99 });
+    const r = applyTroopDamage(t, 0);
     expect(r.finalAmount).toBe(0);
     expect(t.hp).toBe(10);
   });
@@ -106,6 +120,62 @@ describe("damage 計算", () => {
     expect(r.finalAmount).toBe(20);
     expect(hero.armor).toBe(10);
     expect(hero.hp).toBe(60);
+  });
+});
+
+describe("status target priority", () => {
+  it("taunt has higher priority than guard and marked", () => {
+    const taunt = mkTroop({ atk: 2, hp: 10 });
+    const guard = mkTroop({ atk: 2, hp: 10, keywords: ["guard"] });
+    const marked = mkTroop({ atk: 2, hp: 10 });
+    taunt.statusBuffs = [{ id: "s1", source: "test", status: "taunt", remainingTurns: 1 }];
+    marked.statusBuffs = [{ id: "s2", source: "test", status: "marked", remainingTurns: 1 }];
+    const state = mkBattleState([], [taunt, guard, marked]);
+
+    expect(canActionTarget(state, "player", guard).ok).toBe(false);
+    expect(canActionTarget(state, "player", marked).ok).toBe(false);
+    expect(canActionTarget(state, "player", taunt).ok).toBe(true);
+  });
+
+  it("marked lets troops and actions bypass protection to hit the marked unit", () => {
+    const guard = mkTroop({ atk: 2, hp: 10, keywords: ["guard"] });
+    const marked = mkTroop({ atk: 2, hp: 10 });
+    marked.statusBuffs = [{ id: "s1", source: "test", status: "marked", remainingTurns: 1 }];
+    const attacker = mkTroop({ atk: 5, hp: 10 });
+    const state = mkBattleState([attacker], [guard, marked]);
+
+    expect(canTroopAttack(state, "player", attacker, marked).ok).toBe(true);
+    expect(canActionTarget(state, "player", marked).ok).toBe(true);
+    expect(canActionTarget(state, "player", "hero").ok).toBe(false);
+  });
+
+  it("marked on a hero lets troops attack that hero through troop priority", () => {
+    const blocker = mkTroop({ atk: 2, hp: 10 });
+    const attacker = mkTroop({ atk: 5, hp: 10 });
+    const state = mkBattleState([attacker], [blocker]);
+    state.enemy.hero.statusBuffs = [{ id: "s1", source: "test", status: "marked", remainingTurns: 1 }];
+
+    expect(canTroopAttack(state, "player", attacker, "hero").ok).toBe(true);
+  });
+
+  it("untargetable blocks enemy targeted actions and attacks", () => {
+    const hidden = mkTroop({ atk: 2, hp: 10 });
+    const attacker = mkTroop({ atk: 5, hp: 10 });
+    hidden.statusBuffs = [{ id: "s1", source: "test", status: "untargetable", remainingTurns: 1 }];
+    const state = mkBattleState([attacker], [hidden]);
+
+    expect(canTroopAttack(state, "player", attacker, hidden).ok).toBe(false);
+    expect(canActionTarget(state, "player", hidden).ok).toBe(false);
+  });
+
+  it("invincible allows DEF to reduce non-piercing damage to 0", () => {
+    const target = mkTroop({ atk: 0, hp: 10, def: 99 });
+    target.statusBuffs = [{ id: "s1", source: "test", status: "invincible", remainingTurns: 1 }];
+
+    const r = applyTroopDamage(target, 5);
+
+    expect(r.finalAmount).toBe(0);
+    expect(target.hp).toBe(10);
   });
 });
 

@@ -154,7 +154,7 @@ export function fullGaugeOpportunityCost(state: BattleState, ctx: BattleContext,
 }
 
 export function isDeviceCard(card: Card): boolean {
-  return card.type === "troop" && ["D01", "D04", "D05", "D09"].includes(card.id);
+  return card.type === "troop" && ["K01", "K02", "K03", "K04"].includes(card.id);
 }
 
 function syncTroopAuras(state: BattleState, side: Side, sideState: SideState, race: RaceFrame, active: boolean): void {
@@ -226,5 +226,5 @@ function collectSideTroops(state: BattleState, side: Side, sideState: SideState)
 }
 
 function isDeviceTroop(troop: TroopInstance): boolean {
-  return ["D01", "D04", "D05", "D09"].includes(troop.cardId);
+  return ["K01", "K02", "K03", "K04"].includes(troop.cardId);
 }

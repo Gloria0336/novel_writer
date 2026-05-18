@@ -198,10 +198,16 @@ function registerElf(): void {
 }
 
 // ============================================================
-// 矮人 D01-D10
+// 矮人 D02 / D06–D08 / D10–D15 + 通用器具/法術共享 tag
 // ============================================================
+// 通用器具卡（K01–K04）與通用法術 S17 拆解術也使用以下 scripted tag：
+//   K01 修復構裝體：無 scripted（純 onTurnEnd heal）
+//   K02 構裝哨兵：HERO_DEF_PLUS_2_WHILE_ALIVE
+//   K03 魔導砲台：AUTO_TURRET_FIRE / IMMUNE_SPELL_DAMAGE
+//   K04 攻城弩砲：無 scripted（純 siege 兵力）
+//   S17 拆解術：SALVAGE
 function registerDwarf(): void {
-  // D02 急速鍛造：將 1 張手牌轉化為隨機裝備（MVP 簡化：隨機抽 1 件 E01-E08 加入手牌）
+  // D02 急速鍛造：將 1 張手牌轉化為隨機裝備（MVP 簡化：隨機抽 1 件 E01-E06 加入手牌）
   registerScripted("RAPID_FORGE", (_p, ec) => {
     const me = getSide(ec.state, ec.sourceSide);
     if (me.hand.length === 0 || me.hand.length >= 9) return;
@@ -214,8 +220,8 @@ function registerDwarf(): void {
     me.hand.push({ instanceId: `forged_${ec.state.nextInstanceId++}`, cardId: pick });
   });
 
-  // D03 合金回收：拆 1 件裝備或 1 個器具，獲得其費用 ×2 的魔力
-  registerScripted("ALLOY_RECYCLE", (_p, ec) => {
+  // S17 拆解術（前 D03 合金回收下放為通用法術）：拆 1 件裝備或 1 個器具，獲得其費用 ×2 的魔力
+  registerScripted("SALVAGE", (_p, ec) => {
     const me = getSide(ec.state, ec.sourceSide);
     // 找一件已裝備的裝備
     const slots = me.hero.equipment;
@@ -228,9 +234,9 @@ function registerDwarf(): void {
       addTempMana(me, card.cost * 2);
       return;
     }
-    // 沒裝備就拆一個器具（MVP：拆 D01/D04/D05/D09 之類的）
+    // 沒裝備就拆一個器具（K01/K02/K03/K04 任一）
     const myTroops = aliveTroops(me);
-    const device = myTroops.find((t) => ["D01", "D04", "D05", "D09"].includes(t.cardId));
+    const device = myTroops.find((t) => ["K01", "K02", "K03", "K04"].includes(t.cardId));
     if (device) {
       const card = ec.ctx.getCard(device.cardId);
       device.hp = 0;
@@ -238,10 +244,10 @@ function registerDwarf(): void {
     }
   });
 
-  // D04 自動哨兵被動：英雄 DEF +2（MVP：onPlay 給 +2，onDestroy -2 — 簡化為靜態加成）
-  registerScripted("HERO_DEF_PLUS_2_WHILE_ALIVE", () => { /* MVP 略，已由 D04 onPlay 處理可省 */ });
+  // K02 構裝哨兵被動：英雄 DEF +2（MVP 略，由 isDeviceTroop 配合滿爐火 buff 處理）
+  registerScripted("HERO_DEF_PLUS_2_WHILE_ALIVE", () => { /* MVP 略 */ });
 
-  // D05 魔導砲台：每回合自動攻擊 ATK 最高的敵方兵力
+  // K03 魔導砲台：每回合自動攻擊 ATK 最高的敵方兵力
   registerScripted("AUTO_TURRET_FIRE", (_p, ec) => {
     const enemy = getSide(ec.state, otherSide(ec.sourceSide));
     const targets = aliveTroops(enemy);
@@ -250,14 +256,14 @@ function registerDwarf(): void {
     applyTroopDamage(top, 8);
   });
 
-  // D05 免疫法術傷害（MVP 略）
+  // K03 免疫法術傷害（MVP 略）
   registerScripted("IMMUNE_SPELL_DAMAGE", () => { /* MVP 略 */ });
 
   // D06 礦脈爆破：傷害 = (已裝備裝備數 + 場上器具數) × 8
   registerScripted("MINEVEIN_BLAST", (_p, ec) => {
     const me = getSide(ec.state, ec.sourceSide);
     const equipped = [me.hero.equipment.weapon, me.hero.equipment.armor, me.hero.equipment.trinket].filter(Boolean).length;
-    const devices = aliveTroops(me).filter((t) => ["D01", "D04", "D05", "D09"].includes(t.cardId)).length;
+    const devices = aliveTroops(me).filter((t) => ["K01", "K02", "K03", "K04"].includes(t.cardId)).length;
     const dmg = (equipped + devices) * 8;
     const enemy = getSide(ec.state, otherSide(ec.sourceSide));
     const target = aliveTroops(enemy)[0];
@@ -279,7 +285,7 @@ function registerDwarf(): void {
     (me.hero.flags as { equipDiscount?: number }).equipDiscount = ((me.hero.flags as { equipDiscount?: number }).equipDiscount ?? 0) + 1;
   });
 
-  // D09 攻城巨砲：對敵方英雄造 N 固定傷害
+  // 通用：固定傷害敵方英雄（保留給 boss / 內部使用）
   registerScripted("DAMAGE_ENEMY_HERO_FIXED", (payload, ec) => {
     const amount = (payload as { amount?: number })?.amount ?? 10;
     applyHeroDamage(getSide(ec.state, otherSide(ec.sourceSide)).hero, amount, { ignoreDef: true });
@@ -287,6 +293,51 @@ function registerDwarf(): void {
 
   // D10 氏族戰錘：被動，依裝備/器具數動態 +ATK
   registerScripted("CLAN_WARHAMMER", () => { /* MVP 略 */ });
+
+  // ---- v3.4 新增矮人專屬 ----
+
+  // D11 山王衛兵被動：場上每件己方裝備 +1 DEF（MVP 略，由 reducer 動態統計）
+  registerScripted("MOUNTAIN_KING_GUARD", () => { /* MVP 略 */ });
+
+  // D12 鍛爐祝禱：本回合下一張裝備卡 cost -2（最低 1）
+  registerScripted("FORGE_BENEDICTION", (_p, ec) => {
+    const flags = getTurnFlags(ec.state);
+    (flags as unknown as { nextEquipDiscount?: number }).nextEquipDiscount = 2;
+  });
+
+  // D13 氏族飲宴：我方英雄回 10 HP；所有己方兵力 +2 ATK 持續 2 回合
+  registerScripted("CLAN_FEAST", (_p, ec) => {
+    const me = getSide(ec.state, ec.sourceSide);
+    me.hero.hp = Math.min(me.hero.maxHp, me.hero.hp + 10);
+    for (const t of aliveTroops(me)) {
+      t.atk += 2;
+      t.buffs.push({ id: `feast_${ec.state.nextInstanceId++}`, source: "D13", mod: { atk: 2 }, remainingTurns: 2 });
+    }
+  });
+
+  // D14 深山礦坑場地：每回合開始 +10 爐火；裝備卡 cost -1（MVP：標旗，由 onTurnStart / cost reducer 讀取）
+  registerScripted("FIELD_DEEP_MINE", (_p, ec) => {
+    const flags = getTurnFlags(ec.state);
+    (flags as unknown as { deepMineActive?: boolean }).deepMineActive = true;
+  });
+
+  // D15 鋼鬚鍛師入場曲：從牌庫抽 1 張裝備卡
+  registerScripted("STEELBEARD_SEARCH", (_p, ec) => {
+    const me = getSide(ec.state, ec.sourceSide);
+    for (let i = 0; i < me.deck.length && me.hand.length < 9; i++) {
+      const c = me.deck[i];
+      if (!c) continue;
+      const card = ec.ctx.getCard(c.cardId);
+      if (card.type === "equipment") {
+        me.deck.splice(i, 1);
+        me.hand.push(c);
+        return;
+      }
+    }
+  });
+
+  // D15 鋼鬚鍛師被動：每打出 1 張裝備 +3 ATK（疊到回合結束）（MVP 略，由 reducer 標記）
+  registerScripted("STEELBEARD_FURY", () => { /* MVP 略 */ });
 }
 
 // ============================================================
@@ -359,7 +410,11 @@ function registerFey(): void {
     } else {
       // 妖形：控制敵方 1 個兵力 2 回合（MVP 簡化為凍結 2 回合）
       const target = aliveTroops(enemy)[0];
-      if (target) target.frozenTurns = Math.max(target.frozenTurns, 2);
+      if (target) {
+        const prev = target.frozenTurns;
+        target.frozenTurns = Math.max(prev, 2);
+        if (2 >= prev) target.frozenDisplayName = "控制";
+      }
     }
   });
 

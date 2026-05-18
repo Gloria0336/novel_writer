@@ -23,6 +23,7 @@ export function createTroopInstance(state: BattleState, card: TroopCard, opts?: 
     frozenTurns: 0,
     buffs: [],
     keywordBuffs: [],
+    statusBuffs: [],
   };
 }
 
@@ -41,6 +42,7 @@ export function createHeroInstance(def: HeroDefinition, ctx: BattleContext): Her
     gaugeValue: 0,
     armor: 0,
     buffs: [],
+    statusBuffs: [],
     equipment: {},
     flags: {
       ultimateUsed: false,

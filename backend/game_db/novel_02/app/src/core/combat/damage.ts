@@ -1,11 +1,13 @@
 import type { BattleState, TroopInstance } from "../types/battle";
 import type { Side } from "../types/effect";
 import type { HeroInstance } from "../types/hero";
+import { heroHasStatus, troopHasStatus } from "../selectors/battle";
 
 export interface DamageOptions {
   ignoreDef?: boolean;
   ignorePierce?: boolean;
   fixed?: boolean;
+  allowZeroAfterDefense?: boolean;
   finalMultiplier?: number;
   source?: { kind: "hero" | "troop"; side: Side; instanceId?: string };
 }
@@ -15,23 +17,31 @@ export interface DamageResult {
   killed: boolean;
 }
 
+export function damageAfterDefense(raw: number, def: number, opts: Pick<DamageOptions, "fixed" | "ignoreDef" | "allowZeroAfterDefense"> = {}): number {
+  const amount = Math.max(0, raw);
+  if (amount <= 0 || opts.fixed || opts.ignoreDef) return amount;
+  return opts.allowZeroAfterDefense ? Math.max(0, amount - def) : Math.max(1, amount - def);
+}
+
 /**
  * Calculate damage to a troop instance, mutating its hp and armor (caller must guard).
  * Returns the damage actually dealt (after DEF/armor) and whether it was killed.
  */
 export function applyTroopDamage(troop: TroopInstance, raw: number, opts: DamageOptions = {}): DamageResult {
-  let amount = raw;
-  if (!opts.fixed && !opts.ignoreDef) {
-    amount = Math.max(0, amount - troop.def);
-  }
+  const amount = damageAfterDefense(raw, troop.def, {
+    ...opts,
+    allowZeroAfterDefense: opts.allowZeroAfterDefense || troopHasStatus(troop, "invincible"),
+  });
   troop.hp = Math.max(0, troop.hp - amount);
   return { finalAmount: amount, killed: troop.hp <= 0 };
 }
 
 export function applyHeroDamage(hero: HeroInstance, raw: number, opts: DamageOptions = {}): DamageResult {
-  let amount = raw;
+  let amount = damageAfterDefense(raw, hero.def, {
+    ...opts,
+    allowZeroAfterDefense: opts.allowZeroAfterDefense || heroHasStatus(hero, "invincible"),
+  });
   if (!opts.fixed) {
-    if (!opts.ignoreDef) amount = Math.max(0, amount - hero.def);
     if (hero.armor > 0) {
       const absorbed = Math.min(hero.armor, amount);
       hero.armor -= absorbed;

@@ -1,7 +1,7 @@
 import type { BattleState, TroopInstance, LogEntry } from "../types/battle";
 import type { Side } from "../types/effect";
 import type { BattleContext } from "../types/context";
-import { aliveTroops, getSide, hasGuardTroop, otherSide } from "../selectors/battle";
+import { aliveTroops, findTroopBySide, getSide, hasGuardTroop, heroHasStatus, otherSide, sideHasStatusTarget, troopHasStatus } from "../selectors/battle";
 import { applyHeroDamage, applyTroopDamage } from "./damage";
 import { getFullGaugeHeroDamageTakenMultiplier, getFullGaugeTroopDamageMultiplier } from "../resource/fullGaugeBuff";
 
@@ -110,14 +110,27 @@ export function canTroopAttack(state: BattleState, attackerSide: Side, attacker:
 
   const enemySide = getSide(state, otherSide(attackerSide));
   const enemyTroops = aliveTroops(enemySide);
+  const targetSide = target === "hero" ? otherSide(attackerSide) : findTroopBySide(state, target.instanceId)?.side ?? otherSide(attackerSide);
+
+  if (targetSide !== attackerSide && targetHasStatus(state, targetSide, target, "untargetable")) {
+    return { ok: false, reason: "untargetable: cannot be selected" };
+  }
+
+  if (targetSide !== attackerSide && sideHasStatusTarget(getSide(state, targetSide), "taunt") && !targetHasStatus(state, targetSide, target, "taunt")) {
+    return { ok: false, reason: "taunt priority: must hit taunt target" };
+  }
+
+  const tauntTarget = targetSide !== attackerSide && targetHasStatus(state, targetSide, target, "taunt");
+  const markedTarget = targetSide !== attackerSide && targetHasStatus(state, targetSide, target, "marked");
+  const priorityTarget = tauntTarget || markedTarget;
 
   // 兵力優先：有敵方兵力時不能打臉（攻城關鍵字無視此限制）
-  if (target === "hero" && enemyTroops.length > 0 && !attacker.keywords.has("siege")) {
+  if (!priorityTarget && target === "hero" && enemyTroops.length > 0 && !attacker.keywords.has("siege")) {
     return { ok: false, reason: "troop priority: enemy troops alive" };
   }
 
   // 威壓：不可被敵方兵力選為目標
-  if (target !== "hero" && target.keywords.has("menace")) {
+  if (!priorityTarget && target !== "hero" && target.keywords.has("menace")) {
     return { ok: false, reason: "menace: cannot be targeted by troops" };
   }
 
@@ -129,10 +142,30 @@ export function canTroopAttack(state: BattleState, attackerSide: Side, attacker:
  * 守護優先：有守護兵力時，行動卡只能打守護。
  */
 export function canActionTarget(state: BattleState, attackerSide: Side, target: TroopInstance | "hero", ignoreGuard = false): { ok: true } | { ok: false; reason: string } {
-  const enemySide = getSide(state, otherSide(attackerSide));
+  const targetSide = target === "hero" ? otherSide(attackerSide) : findTroopBySide(state, target.instanceId)?.side ?? otherSide(attackerSide);
+  if (targetSide === attackerSide) return { ok: true };
+
+  const enemySide = getSide(state, targetSide);
+  if (targetHasStatus(state, targetSide, target, "untargetable")) {
+    return { ok: false, reason: "untargetable: cannot be selected" };
+  }
+  if (sideHasStatusTarget(enemySide, "taunt") && !targetHasStatus(state, targetSide, target, "taunt")) {
+    return { ok: false, reason: "taunt priority: must hit taunt target" };
+  }
+  if (targetHasStatus(state, targetSide, target, "taunt")) {
+    return { ok: true };
+  }
+  if (targetHasStatus(state, targetSide, target, "marked")) {
+    return { ok: true };
+  }
   if (!ignoreGuard && hasGuardTroop(enemySide)) {
     if (target === "hero") return { ok: false, reason: "guard priority: must hit guard troop" };
     if (!target.keywords.has("guard")) return { ok: false, reason: "guard priority: must hit guard troop" };
   }
   return { ok: true };
+}
+
+function targetHasStatus(state: BattleState, targetSide: Side, target: TroopInstance | "hero", status: "taunt" | "marked" | "untargetable"): boolean {
+  if (target === "hero") return heroHasStatus(getSide(state, targetSide).hero, status);
+  return troopHasStatus(target, status);
 }

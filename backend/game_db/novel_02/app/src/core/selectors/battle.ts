@@ -1,5 +1,7 @@
 import type { BattleState, SideState, TroopInstance } from "../types/battle";
 import type { Side } from "../types/effect";
+import type { HeroInstance } from "../types/hero";
+import type { UnitStatus } from "../types/status";
 
 export function otherSide(side: Side): Side {
   return side === "player" ? "enemy" : "player";
@@ -15,6 +17,18 @@ export function aliveTroops(side: SideState): TroopInstance[] {
 
 export function hasGuardTroop(side: SideState): boolean {
   return aliveTroops(side).some((t) => t.keywords.has("guard"));
+}
+
+export function troopHasStatus(troop: TroopInstance, status: UnitStatus): boolean {
+  return troop.statusBuffs?.some((buff) => buff.status === status && buff.remainingTurns > 0) ?? false;
+}
+
+export function heroHasStatus(hero: HeroInstance, status: UnitStatus): boolean {
+  return hero.statusBuffs?.some((buff) => buff.status === status && buff.remainingTurns > 0) ?? false;
+}
+
+export function sideHasStatusTarget(side: SideState, status: UnitStatus): boolean {
+  return heroHasStatus(side.hero, status) || aliveTroops(side).some((t) => troopHasStatus(t, status));
 }
 
 export function findTroopBySide(state: BattleState, instanceId: string): { side: Side; troop: TroopInstance; slotIndex: number } | null {

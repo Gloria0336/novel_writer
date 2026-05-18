@@ -13,7 +13,7 @@ export const SPELLS: SpellCard[] = [
   },
   {
     id: "S03", type: "spell", name: "治癒之風", cost: 2, rarity: "common",
-    effects: [{ kind: "heal", target: { kind: "single", filter: {} }, amount: { kind: "const", value: 10 } }],
+    effects: [{ kind: "heal", target: { kind: "all", filter: { side: "self", entity: "troop" } }, amount: { kind: "const", value: 5 } }],
   },
   {
     id: "S04", type: "spell", name: "急救術", cost: 1, rarity: "common",
@@ -25,7 +25,7 @@ export const SPELLS: SpellCard[] = [
   },
   {
     id: "S06", type: "spell", name: "冰封術", cost: 3, rarity: "uncommon",
-    effects: [{ kind: "freeze", target: { kind: "single", filter: { entity: "troop", side: "enemy" } }, turns: 2 }],
+    effects: [{ kind: "freeze", target: { kind: "single", filter: { entity: "troop", side: "enemy" } }, turns: 2, displayName: "冰凍" }],
   },
   {
     id: "S07", type: "spell", name: "烈焰風暴", cost: 4, rarity: "uncommon",
@@ -75,5 +75,11 @@ export const SPELLS: SpellCard[] = [
     id: "S16", type: "spell", name: "裂縫共鳴", cost: 3, rarity: "uncommon",
     effects: [{ kind: "scripted", tag: "RIFT_RESONANCE" }],
     flavor: "次元壁的破洞並非全然惡意——它也共振著某些更古老的東西。",
+  },
+  // v3.4 通用：原 D03 合金回收下放為跨種族法術
+  {
+    id: "S17", type: "spell", name: "拆解術", cost: 2, rarity: "common",
+    effects: [{ kind: "scripted", tag: "SALVAGE" }],
+    flavor: "把已穿在身上的東西拆回零件——只有真正信任工匠的英雄敢這麼做。",
   },
 ];

@@ -3,8 +3,8 @@
  */
 import type { BattleState } from "../types/battle";
 import type { BattleContext } from "../types/context";
-import { aliveTroops, freeSlotIndex, hasGuardTroop } from "../selectors/battle";
-import { canTroopAttack } from "../combat/attack";
+import { aliveTroops, freeSlotIndex } from "../selectors/battle";
+import { canActionTarget, canTroopAttack } from "../combat/attack";
 import type { CandidateAction, EnemyProfile } from "./types";
 import type { Effect, TargetSelector } from "../types/effect";
 import { isHeroAbilityFrozen } from "../effects/heroAbilityFreeze";
@@ -55,7 +55,6 @@ export function enumerateActions(state: BattleState, ctx: BattleContext, profile
   }
 
   // — 攻擊 —
-  const playerHasGuard = hasGuardTroop(state.player);
   for (const attacker of aliveTroops(enemy)) {
     // 對每個玩家方兵力嘗試
     for (const t of aliveTroops(state.player)) {
@@ -66,7 +65,7 @@ export function enumerateActions(state: BattleState, ctx: BattleContext, profile
     }
     // 對英雄（兵力優先制 + 守護由 canTroopAttack 處理）
     const checkHero = canTroopAttack(state, "enemy", attacker, "hero");
-    if (checkHero.ok && !playerHasGuard) {
+    if (checkHero.ok) {
       out.push({ kind: "attack", attackerInstanceId: attacker.instanceId, target: "hero" });
     }
   }
@@ -125,9 +124,11 @@ function collectSingleTargets(state: BattleState, sel: TargetSelector & { kind: 
   const wantPlayer = !sel.filter.side || sel.filter.side === "enemy" || sel.filter.side === "all";
   const wantEnemy = sel.filter.side === "self" || sel.filter.side === "all";
   const out: (string | undefined)[] = [];
-  if (wantHero && wantPlayer) out.push("H_player");
+  if (wantHero && wantPlayer && canActionTarget(state, "enemy", "hero").ok) out.push("H_player");
   if (wantHero && wantEnemy) out.push("H_enemy");
-  if (wantTroop && wantPlayer) for (const t of aliveTroops(state.player)) out.push(t.instanceId);
+  if (wantTroop && wantPlayer) for (const t of aliveTroops(state.player)) {
+    if (canActionTarget(state, "enemy", t).ok) out.push(t.instanceId);
+  }
   if (wantTroop && wantEnemy) for (const t of aliveTroops(state.enemy)) out.push(t.instanceId);
   if (out.length === 0) out.push(undefined);
   return out;

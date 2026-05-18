@@ -1,4 +1,5 @@
 import type { Keyword } from "./keyword";
+import type { UnitStatus } from "./status";
 
 export type Side = "player" | "enemy";
 
@@ -44,6 +45,7 @@ export interface StatModifier {
 }
 
 export type HeroAbilityFreezeKind = "action" | "spell" | "troop" | "manaRegen";
+export type FreezeEffectName = "冰凍" | "定身" | "束縛" | "暈眩" | "封鎖" | "控制";
 
 export type Effect =
   | { kind: "damage"; target: TargetSelector; amount: AmountExpr; ignoreDef?: boolean; ignoreGuard?: boolean; lifesteal?: number }
@@ -57,8 +59,9 @@ export type Effect =
   | { kind: "armor"; amount: number; target?: TargetSelector }
   | { kind: "buff"; target: TargetSelector; mod: StatModifier; duration: Duration }
   | { kind: "addKeyword"; target: TargetSelector; keyword: Keyword; duration: Duration }
-  | { kind: "freeze"; target: TargetSelector; turns: number }
-  | { kind: "freezeHeroAbility"; side?: TargetSide; modes: HeroAbilityFreezeKind[]; turns: number }
+  | { kind: "addStatus"; target: TargetSelector; status: UnitStatus; duration: Duration }
+  | { kind: "freeze"; target: TargetSelector; turns: number; displayName?: FreezeEffectName }
+  | { kind: "freezeHeroAbility"; side?: TargetSide; modes: HeroAbilityFreezeKind[]; turns: number; displayName?: FreezeEffectName }
   | { kind: "stability"; delta: number }
   | { kind: "search"; predicate: { type?: string }; toHand: boolean; costMod?: number }
   | { kind: "destroyField" }

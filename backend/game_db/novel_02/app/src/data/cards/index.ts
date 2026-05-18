@@ -4,6 +4,7 @@ import { ACTIONS } from "./actions";
 import { SPELLS } from "./spells";
 import { EQUIPMENTS } from "./equipments";
 import { FIELDS, ENEMY_FIELDS } from "./fields";
+import { DEVICES } from "./devices";
 import { NEUTRAL_LEGENDS } from "./neutrals";
 import { HUMAN_CARDS } from "./races/human";
 import { ELF_CARDS } from "./races/elf";
@@ -16,8 +17,8 @@ import { INTERNAL_TROOPS } from "./internals";
 import { RIFT_INFILTRATOR_CARDS } from "./rift-infiltrators";
 import { ALL_ENEMY_INTERNAL_TROOPS } from "../enemies";
 
-// 通用 94 張（玩家可組）
-export const GENERIC_CARDS: Card[] = [...TROOPS, ...ACTIONS, ...SPELLS, ...EQUIPMENTS, ...FIELDS];
+// 通用卡（玩家可組）：兵力 + 行動 + 法術 + 裝備 + 場地 + 魔導器具
+export const GENERIC_CARDS: Card[] = [...TROOPS, ...ACTIONS, ...SPELLS, ...EQUIPMENTS, ...FIELDS, ...DEVICES];
 
 // 中立傳說卡 6 張
 export const NEUTRAL_CARDS: Card[] = [...NEUTRAL_LEGENDS];
@@ -57,4 +58,4 @@ export function getCard(id: string): Card {
   return c;
 }
 
-export { TROOPS, ACTIONS, SPELLS, EQUIPMENTS, FIELDS, NEUTRAL_LEGENDS, HUMAN_CARDS, ELF_CARDS, DWARF_CARDS, FEY_CARDS, BEAST_CARDS, DEMIGOD_CARDS, DEMON_CARDS, DEMON_TOKENS, RIFT_INFILTRATOR_CARDS };
+export { TROOPS, ACTIONS, SPELLS, EQUIPMENTS, FIELDS, DEVICES, NEUTRAL_LEGENDS, HUMAN_CARDS, ELF_CARDS, DWARF_CARDS, FEY_CARDS, BEAST_CARDS, DEMIGOD_CARDS, DEMON_CARDS, DEMON_TOKENS, RIFT_INFILTRATOR_CARDS };

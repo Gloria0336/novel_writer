@@ -26,11 +26,11 @@ export const HERO_MOUNTAIN_HUNTER: HeroDefinition = {
     {
       id: "act_bone_arrow_blind",
       name: "骨箭盲射",
-      description: "對敵方 1 個兵力造成 12 傷害，無視 DEF 與守護，並凍結 1 回合。（消耗 30 鬥志）",
+      description: "對敵方 1 個兵力造成 12 傷害，無視 DEF 與守護，並凍結-定身 1 回合。（消耗 30 鬥志）",
       cost: { morale: 30 },
       effects: [
         { kind: "damage", target: { kind: "single", filter: { side: "enemy", entity: "troop" } }, amount: { kind: "const", value: 12 }, ignoreDef: true, ignoreGuard: true },
-        { kind: "freeze", target: { kind: "single", filter: { side: "enemy", entity: "troop" } }, turns: 1 },
+        { kind: "freeze", target: { kind: "single", filter: { side: "enemy", entity: "troop" } }, turns: 1, displayName: "定身" },
       ],
     },
     {
