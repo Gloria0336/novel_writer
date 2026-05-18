@@ -22,6 +22,7 @@ export function createTroopInstance(state: BattleState, card: TroopCard, opts?: 
     summonedThisTurn: !opts?.suppressSummonSickness,
     frozenTurns: 0,
     buffs: [],
+    keywordBuffs: [],
   };
 }
 
@@ -41,6 +42,10 @@ export function createHeroInstance(def: HeroDefinition, ctx: BattleContext): Her
     armor: 0,
     buffs: [],
     equipment: {},
-    flags: { ultimateUsed: false, immortalUsed: false },
+    flags: {
+      ultimateUsed: false,
+      immortalUsed: false,
+      ...(def.raceId === "fey" ? { feyForm: "human" as const } : {}),
+    },
   };
 }

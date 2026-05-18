@@ -77,7 +77,11 @@ function makePlayerHeroInstance(def: HeroDefinition): HeroInstance {
     atk: stats.atk, def: stats.def, cmd: stats.cmd,
     morale: 0, gaugeValue: 0, armor: 0,
     buffs: [], equipment: {},
-    flags: { ultimateUsed: false, immortalUsed: false },
+    flags: {
+      ultimateUsed: false,
+      immortalUsed: false,
+      ...(def.raceId === "fey" ? { feyForm: "human" as const } : {}),
+    },
   };
 }
 
@@ -173,7 +177,7 @@ export function endPlayerTurnAndRunAI(state: BattleState, ctx: BattleContext): A
   if (state.result !== "ongoing") return { ok: false, reason: "battle ended" };
 
   // 結束玩家回合
-  endTurnFor(state, "player");
+  endTurnFor(state, "player", ctx);
   resetTurnFlags(state);
 
   // 切換到敵方
@@ -213,7 +217,7 @@ export function endPlayerTurnAndRunAI(state: BattleState, ctx: BattleContext): A
   if (state.result !== "ongoing") return { ok: true };
 
   // 結束敵方回合
-  endTurnFor(state, "enemy");
+  endTurnFor(state, "enemy", ctx);
   advanceToNextSide(state);
   if (state.result !== "ongoing") return { ok: true };
 

@@ -9,6 +9,7 @@ import { createTroopInstance } from "../turn/factories";
 import { checkVictory } from "../turn/phases";
 import { reapDeadTroops } from "../effects/registry";
 import type { CandidateAction } from "./types";
+import { isHeroAbilityFrozen } from "../effects/heroAbilityFreeze";
 
 export interface AIApplyResult {
   ok: boolean;
@@ -24,6 +25,7 @@ export function applyAIAction(state: BattleState, ctx: BattleContext, action: Ca
 
     case "deployFromPool": {
       // 巢穴模式：從卡池直接召喚到指定 slot（不走手牌）
+      if (isHeroAbilityFrozen(state.enemy.hero, "troop")) return { ok: false, reason: "troop generation frozen" };
       const card = ctx.getCard(action.cardId);
       if (card.type !== "troop") return { ok: false, reason: "not a troop" };
       const slot = state.enemy.troopSlots;

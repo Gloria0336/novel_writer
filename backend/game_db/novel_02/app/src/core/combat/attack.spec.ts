@@ -1,8 +1,11 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import type { BattleState, TroopInstance } from "../types/battle";
+import type { BattleContext } from "../types/context";
 import type { Keyword } from "../types/keyword";
 import { canActionTarget, canTroopAttack, troopVsHero, troopVsTroop } from "./attack";
 import { applyHeroDamage, applyTroopDamage } from "./damage";
+import { getRace } from "../../data/races";
+import { getClass } from "../../data/classes";
 
 interface TroopOverrides {
   instanceId?: string;
@@ -48,6 +51,24 @@ function mkBattleState(playerTroops: (TroopInstance | null)[], enemyTroops: (Tro
     field: null, stability: 100, corruptionStage: 0, log: [], result: "ongoing",
   };
 }
+
+const ctx: BattleContext = {
+  getCard: () => { throw new Error("unused"); },
+  getHero: (id) => ({
+    id,
+    name: id,
+    raceId: "human",
+    classId: "commander",
+    rarity: "R",
+    statTuning: {},
+    gauge: { description: "" },
+    passives: [],
+    actives: [],
+    ultimate: { id: "u", name: "u", description: "", cost: {}, effects: [] },
+  }),
+  getRace: (id) => getRace(id as Parameters<typeof getRace>[0]),
+  getClass: (id) => getClass(id as Parameters<typeof getClass>[0]),
+};
 
 describe("damage 計算", () => {
   it("DEF 會吸收傷害", () => {
@@ -183,7 +204,8 @@ describe("關鍵字 — 暈眩、突進、疾走、必殺、威壓、凍結", ()
   it("必殺：兵力交戰必定摧毀對方", () => {
     const me = mkTroop({ atk: 1, hp: 10, keywords: ["lethal"] });
     const big = mkTroop({ atk: 1, hp: 100 });
-    const r = troopVsTroop(me, big);
+    const state = mkBattleState([me], [big]);
+    const r = troopVsTroop(state, ctx, me, "player", big, "enemy");
     expect(r.defenderKilled).toBe(true);
     expect(big.hp).toBe(0);
   });
@@ -191,7 +213,8 @@ describe("關鍵字 — 暈眩、突進、疾走、必殺、威壓、凍結", ()
   it("穿透：攻擊時無視 DEF", () => {
     const me = mkTroop({ atk: 5, hp: 10, keywords: ["pierce"] });
     const tank = mkTroop({ atk: 0, hp: 10, def: 99 });
-    const r = troopVsTroop(me, tank);
+    const state = mkBattleState([me], [tank]);
+    const r = troopVsTroop(state, ctx, me, "player", tank, "enemy");
     expect(r.defenderDamage).toBe(5);
     expect(tank.hp).toBe(5);
   });
@@ -202,7 +225,7 @@ describe("troopVsHero — 直接打臉", () => {
     const state = mkBattleState([], [null]);
     const me = mkTroop({ atk: 8, hp: 10 });
     state.player.troopSlots = [me];
-    troopVsHero(state, me, "player");
+    troopVsHero(state, ctx, me, "player");
     expect(state.enemy.hero.hp).toBe(80 - 8);
     expect(me.hasAttackedThisTurn).toBe(true);
   });
@@ -212,7 +235,8 @@ describe("troopVsTroop — 雙方互相造傷", () => {
   it("基本交戰雙方都掉血", () => {
     const a = mkTroop({ atk: 5, hp: 10 });
     const b = mkTroop({ atk: 3, hp: 10 });
-    troopVsTroop(a, b);
+    const state = mkBattleState([a], [b]);
+    troopVsTroop(state, ctx, a, "player", b, "enemy");
     expect(b.hp).toBe(5);
     expect(a.hp).toBe(7);
   });
@@ -220,7 +244,8 @@ describe("troopVsTroop — 雙方互相造傷", () => {
   it("攻擊者已攻擊過後不可再攻擊（由上層 canTroopAttack 把關）", () => {
     const a = mkTroop({ atk: 5, hp: 10 });
     const b = mkTroop({ atk: 3, hp: 10 });
-    troopVsTroop(a, b);
+    const state = mkBattleState([a], [b]);
+    troopVsTroop(state, ctx, a, "player", b, "enemy");
     expect(a.hasAttackedThisTurn).toBe(true);
   });
 });

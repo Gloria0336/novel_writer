@@ -86,6 +86,66 @@ export const ELNO_HONORARY_MAGE_DECK_IDS: string[] = [
   "F02", "F04", "F08", "EL06",
 ];
 
+export const BUTTERFLY_YAO_DECK_IDS: string[] = [
+  // 兵力 (8 張，配額 5-8)
+  "Y02", "Y02", "Y02",
+  "Y04", "Y04",
+  "Y09",
+  "T03",
+  "T06",
+  // 行動 (9 張，配額 7-10)
+  "A01", "A01",
+  "A02",
+  "A04", "A04",
+  "A05",
+  "A06",
+  "A07",
+  "A10",
+  // 法術 (8 張，配額 5-8)
+  "Y01", "Y01",
+  "Y03", "Y03",
+  "Y06", "Y06",
+  "Y07",
+  "Y08",
+  // 裝備 (3 張，配額 2-3)
+  "Y05",
+  "E17",
+  "E18",
+  // 場地 (2 張，配額 1-2)
+  "F02",
+  "F04",
+];
+
+export const ELDR_THORIN_DECK_IDS: string[] = [
+  // 兵力 (6 張，配額 4-6)
+  "D01", "D01",
+  "D04", "D04",
+  "D05",
+  "D09",
+  // 行動 (6 張，配額 5-8)
+  "D06", "D06",
+  "A01", "A01",
+  "A06",
+  "A07",
+  // 法術 (5 張，配額 3-5)
+  "D02", "D02",
+  "D03",
+  "D07",
+  "D08",
+  // 裝備 (10 張，配額 7-10)
+  "D10",
+  "E01", "E01",
+  "E02", "E02",
+  "E10",
+  "E28",
+  "E30",
+  "E31",
+  "E37",
+  // 場地 (3 張，配額 2-3)
+  "F01",
+  "F02", "F02",
+];
+
 export function buildDeck(ids: readonly string[]): CardInstance[] {
   return ids.map((cardId, i) => ({ instanceId: `D${i}_${cardId}`, cardId }));
 }

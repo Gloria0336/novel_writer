@@ -7,6 +7,7 @@ import { runEnemyAITurn } from "./engine";
 import { BOSS_BLOOD_CHIEF_PROFILE, PUTREFACTIVE_LAIR_PROFILE } from "./profiles";
 import { aliveTroops } from "../selectors/battle";
 import type { BattleState } from "../types/battle";
+import { executeEffects } from "../effects/registry";
 
 beforeAll(() => ensureScriptedRegistered());
 
@@ -57,6 +58,22 @@ describe("Utility AI engine — lair 行為", () => {
     const payload = firstDecision!.payload as { top3?: unknown[]; chosen?: unknown };
     expect(Array.isArray(payload.top3)).toBe(true);
     expect(payload.chosen).toBeDefined();
+  });
+
+  it("巢穴兵力生成被 troop 凍結時，本回合不召喚", () => {
+    const s = makeLairState(11);
+    const ctx = createBattleContext();
+    executeEffects([{
+      kind: "freezeHeroAbility",
+      side: "enemy",
+      modes: ["troop"],
+      turns: 1,
+    }], { state: s, ctx, sourceSide: "player", sourceKind: "skill", sourceCardId: "test" });
+
+    runEnemyAITurn(s, ctx, PUTREFACTIVE_LAIR_PROFILE);
+
+    expect(aliveTroops(s.enemy)).toHaveLength(0);
+    expect(s.log.some((l) => l.kind === "AI_DEPLOY")).toBe(false);
   });
 });
 

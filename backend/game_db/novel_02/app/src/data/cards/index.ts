@@ -13,6 +13,7 @@ import { BEAST_CARDS } from "./races/beast";
 import { DEMIGOD_CARDS } from "./races/demigod";
 import { DEMON_CARDS, DEMON_TOKENS } from "./races/demon";
 import { INTERNAL_TROOPS } from "./internals";
+import { RIFT_INFILTRATOR_CARDS } from "./rift-infiltrators";
 import { ALL_ENEMY_INTERNAL_TROOPS } from "../enemies";
 
 // 通用 94 張（玩家可組）
@@ -43,8 +44,8 @@ export const ALL_CARDS: Card[] = [
   ...NEUTRAL_CARDS,
 ];
 
-// 內部召喚卡（不在玩家牌組中）+ 所有敵人巢穴/Boss 兵力池 + 魔族召喚 Token + 敵人場地
-export const ENEMY_INTERNAL_CARDS: Card[] = [...ALL_ENEMY_INTERNAL_TROOPS, ...INTERNAL_TROOPS, ...DEMON_TOKENS, ...ENEMY_FIELDS];
+// 內部召喚卡（不在玩家牌組中）+ 所有敵人巢穴/Boss 兵力池 + 魔族召喚 Token + 敵人場地 + 次元滲透裂縫滲透體（v3.3）
+export const ENEMY_INTERNAL_CARDS: Card[] = [...ALL_ENEMY_INTERNAL_TROOPS, ...INTERNAL_TROOPS, ...DEMON_TOKENS, ...ENEMY_FIELDS, ...RIFT_INFILTRATOR_CARDS];
 
 const CARD_INDEX: Record<string, Card> = Object.fromEntries(
   [...ALL_CARDS, ...ENEMY_INTERNAL_CARDS, ...DEMON_CARDS].map((c) => [c.id, c]),
@@ -56,4 +57,4 @@ export function getCard(id: string): Card {
   return c;
 }
 
-export { TROOPS, ACTIONS, SPELLS, EQUIPMENTS, FIELDS, NEUTRAL_LEGENDS, HUMAN_CARDS, ELF_CARDS, DWARF_CARDS, FEY_CARDS, BEAST_CARDS, DEMIGOD_CARDS, DEMON_CARDS, DEMON_TOKENS };
+export { TROOPS, ACTIONS, SPELLS, EQUIPMENTS, FIELDS, NEUTRAL_LEGENDS, HUMAN_CARDS, ELF_CARDS, DWARF_CARDS, FEY_CARDS, BEAST_CARDS, DEMIGOD_CARDS, DEMON_CARDS, DEMON_TOKENS, RIFT_INFILTRATOR_CARDS };

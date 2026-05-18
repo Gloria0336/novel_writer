@@ -9,6 +9,7 @@ import type { Card, TroopCard } from "../types/card";
 import type { Effect, TargetSelector } from "../types/effect";
 import { aliveTroops, findTroopBySide, getSide } from "../selectors/battle";
 import { evalAmount } from "../effects/amount";
+import { fullGaugeOpportunityCost, getEffectiveCardCost, getFullGaugeTroopDamageMultiplier } from "../resource/fullGaugeBuff";
 
 export interface Prediction {
   /** 玩家英雄受到的傷害（正值）。 */
@@ -71,7 +72,7 @@ export function troopValue(t: TroopInstance): number {
 }
 
 /** 預測一次兵力攻擊的結果（不 mutate）。 */
-function predictAttack(state: BattleState, attackerId: string, targetRef: "hero" | string): Prediction {
+function predictAttack(state: BattleState, ctx: BattleContext, attackerId: string, targetRef: "hero" | string): Prediction {
   const att = findTroopBySide(state, attackerId);
   if (!att || att.side !== "enemy") return EMPTY;
   const attacker = att.troop;
@@ -80,7 +81,8 @@ function predictAttack(state: BattleState, attackerId: string, targetRef: "hero"
 
   if (targetRef === "hero") {
     const player = state.player.hero;
-    const dmg = aPierce ? attacker.atk : Math.max(0, attacker.atk - player.def);
+    const raw = Math.round(attacker.atk * getFullGaugeTroopDamageMultiplier(state, ctx, "enemy"));
+    const dmg = aPierce ? raw : Math.max(0, raw - player.def);
     const absorbed = Math.min(player.armor, dmg);
     const finalDmg = dmg - absorbed;
     return {
@@ -96,8 +98,10 @@ function predictAttack(state: BattleState, attackerId: string, targetRef: "hero"
   const dPierce = defender.keywords.has("pierce");
   const dLethal = defender.keywords.has("lethal");
 
-  const dmgToDef = aPierce ? attacker.atk : Math.max(0, attacker.atk - defender.def);
-  const dmgToAtt = dPierce ? defender.atk : Math.max(0, defender.atk - attacker.def);
+  const rawAttackerDamage = Math.round(attacker.atk * getFullGaugeTroopDamageMultiplier(state, ctx, "enemy"));
+  const rawDefenderDamage = Math.round(defender.atk * getFullGaugeTroopDamageMultiplier(state, ctx, "player"));
+  const dmgToDef = aPierce ? rawAttackerDamage : Math.max(0, rawAttackerDamage - defender.def);
+  const dmgToAtt = dPierce ? rawDefenderDamage : Math.max(0, rawDefenderDamage - attacker.def);
   const defKilled = dmgToDef >= defender.hp || (aLethal && dmgToDef > 0);
   const attKilled = dmgToAtt >= attacker.hp || (dLethal && dmgToAtt > 0);
 
@@ -287,13 +291,13 @@ function resolveTargetsForPredict(state: BattleState, sel: TargetSelector, sourc
 export function predictAction(state: BattleState, ctx: BattleContext, action: CandidateAction): Prediction {
   switch (action.kind) {
     case "attack":
-      return predictAttack(state, action.attackerInstanceId, action.target);
+      return predictAttack(state, ctx, action.attackerInstanceId, action.target);
 
     case "deployFromHand": {
       const inst = state.enemy.hand.find((c) => c.instanceId === action.cardInstanceId);
       if (!inst) return EMPTY;
       const card = ctx.getCard(inst.cardId);
-      const cost = (card as Card).cost ?? 0;
+      const cost = getEffectiveCardCost(state, ctx, "enemy", card as Card);
       return predictDeploy(state, ctx, inst.cardId, cost);
     }
     case "deployFromPool":
@@ -304,20 +308,20 @@ export function predictAction(state: BattleState, ctx: BattleContext, action: Ca
       if (!inst) return EMPTY;
       const card = ctx.getCard(inst.cardId);
       if (card.type !== "spell") return EMPTY;
-      return predictSkillLike(state, card.effects, { mana: card.cost });
+      return predictSkillLike(state, card.effects, { mana: getEffectiveCardCost(state, ctx, "enemy", card) });
     }
 
     case "skill": {
       const heroDef = ctx.getHero(state.enemy.hero.defId);
       const skill = heroDef.actives.find((s) => s.id === action.skillId);
       if (!skill) return EMPTY;
-      return predictSkillLike(state, skill.effects, skill.cost);
+      return predictSkillLike(state, skill.effects, { ...skill.cost, gauge: (skill.cost.gauge ?? 0) + fullGaugeOpportunityCost(state, ctx, "enemy", skill.cost.gauge) });
     }
 
     case "ultimate": {
       const heroDef = ctx.getHero(state.enemy.hero.defId);
       if (heroDef.ultimate.id !== action.skillId) return EMPTY;
-      return predictSkillLike(state, heroDef.ultimate.effects, heroDef.ultimate.cost);
+      return predictSkillLike(state, heroDef.ultimate.effects, { ...heroDef.ultimate.cost, gauge: (heroDef.ultimate.cost.gauge ?? 0) + fullGaugeOpportunityCost(state, ctx, "enemy", heroDef.ultimate.cost.gauge) });
     }
 
     case "endTurn":

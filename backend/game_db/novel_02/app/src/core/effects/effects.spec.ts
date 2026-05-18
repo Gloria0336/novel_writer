@@ -7,6 +7,8 @@ import { getRace } from "../../data/races";
 import { getClass } from "../../data/classes";
 import { HEROES } from "../../data/heroes";
 import { registerCoreScripted } from "./handlers/scripted";
+import { endTurnFor, startTurnFor } from "../turn/phases";
+import { applyAction } from "../turn/reducer";
 
 registerCoreScripted();
 
@@ -50,22 +52,22 @@ function mkState(playerHeroId = "lulu", enemyHeroId = "lulu"): BattleState {
 }
 
 describe("通用卡資料完整性", () => {
-  it("通用卡共 94 張", () => {
-    expect(GENERIC_CARDS).toHaveLength(94);
+  it("通用卡共 96 張（v3.3 加入 S15、S16）", () => {
+    expect(GENERIC_CARDS).toHaveLength(96);
   });
-  it("通用卡分類正確：14 兵力 + 10 行動 + 14 法術 + 48 裝備 + 8 場地", () => {
+  it("通用卡分類正確：14 兵力 + 10 行動 + 16 法術 + 48 裝備 + 8 場地（v3.3）", () => {
     const byType = GENERIC_CARDS.reduce<Record<string, number>>((acc, c) => {
       acc[c.type] = (acc[c.type] ?? 0) + 1;
       return acc;
     }, {});
     expect(byType.troop).toBe(14);
     expect(byType.action).toBe(10);
-    expect(byType.spell).toBe(14);
+    expect(byType.spell).toBe(16);
     expect(byType.equipment).toBe(48);
     expect(byType.field).toBe(8);
   });
-  it("總卡池 = 通用 94 + 6 種族×10 + 中立傳說 6 = 160 張", () => {
-    expect(ALL_CARDS).toHaveLength(160);
+  it("總卡池 = 通用 96 + 6 種族×10 + 中立傳說 6 = 162 張（v3.3）", () => {
+    expect(ALL_CARDS).toHaveLength(162);
   });
   it("每張卡 id 唯一", () => {
     const ids = ALL_CARDS.map((c) => c.id);
@@ -234,6 +236,118 @@ describe("S06 冰封術 — 凍結敵兵 2 回合", () => {
     const eff = c.effects.map((e) => ({ ...(e as object), target: { kind: "single" as const, filter: { entity: "troop", side: "enemy" }, pickedInstanceId: s.enemy.troopSlots[0]!.instanceId } })) as import("../types/effect").Effect[];
     executeEffects(eff, { state: s, ctx, sourceSide: "player", sourceKind: "spell", sourceCardId: "S06" });
     expect(s.enemy.troopSlots[0]?.frozenTurns).toBe(2);
+  });
+});
+
+describe("限時 buff / 關鍵字到期", () => {
+  it("thisTurn stat buff 到回合結束會回復數值", () => {
+    const s = mkState();
+    s.player.troopSlots[0] = mkTroop("T01"); // 8 HP / 3 ATK / 1 DEF
+
+    executeEffects([{
+      kind: "buff",
+      target: { kind: "single", filter: { side: "player", entity: "troop" }, pickedInstanceId: s.player.troopSlots[0]!.instanceId },
+      mod: { atk: 5, def: 2, hp: 4 },
+      duration: { kind: "thisTurn" },
+    }], { state: s, ctx, sourceSide: "player", sourceKind: "skill", sourceCardId: "test" });
+
+    expect(s.player.troopSlots[0]?.atk).toBe(8);
+    expect(s.player.troopSlots[0]?.def).toBe(3);
+    expect(s.player.troopSlots[0]?.hp).toBe(12);
+    expect(s.player.troopSlots[0]?.maxHp).toBe(12);
+
+    endTurnFor(s, "player", ctx);
+
+    expect(s.player.troopSlots[0]?.atk).toBe(3);
+    expect(s.player.troopSlots[0]?.def).toBe(1);
+    expect(s.player.troopSlots[0]?.hp).toBe(8);
+    expect(s.player.troopSlots[0]?.maxHp).toBe(8);
+    expect(s.player.troopSlots[0]?.buffs).toHaveLength(0);
+  });
+
+  it("thisTurn addKeyword 到回合結束會移除", () => {
+    const s = mkState();
+    s.player.troopSlots[0] = mkTroop("T01");
+
+    executeEffects([{
+      kind: "addKeyword",
+      target: { kind: "single", filter: { side: "player", entity: "troop" }, pickedInstanceId: s.player.troopSlots[0]!.instanceId },
+      keyword: "guard",
+      duration: { kind: "thisTurn" },
+    }], { state: s, ctx, sourceSide: "player", sourceKind: "skill", sourceCardId: "test" });
+
+    expect(s.player.troopSlots[0]?.keywords.has("guard")).toBe(true);
+
+    endTurnFor(s, "player", ctx);
+
+    expect(s.player.troopSlots[0]?.keywords.has("guard")).toBe(false);
+    expect(s.player.troopSlots[0]?.keywordBuffs).toHaveLength(0);
+  });
+
+  it("臨時 addKeyword 到期不會移除卡牌原生關鍵字", () => {
+    const s = mkState();
+    s.player.troopSlots[0] = mkTroop("T03"); // 原生 guard
+
+    executeEffects([{
+      kind: "addKeyword",
+      target: { kind: "single", filter: { side: "player", entity: "troop" }, pickedInstanceId: s.player.troopSlots[0]!.instanceId },
+      keyword: "guard",
+      duration: { kind: "thisTurn" },
+    }], { state: s, ctx, sourceSide: "player", sourceKind: "skill", sourceCardId: "test" });
+
+    endTurnFor(s, "player", ctx);
+
+    expect(s.player.troopSlots[0]?.keywords.has("guard")).toBe(true);
+    expect(s.player.troopSlots[0]?.keywordBuffs).toHaveLength(0);
+  });
+});
+
+describe("英雄能力凍結", () => {
+  it("freezeHeroAbility 可凍結行動牌、法術牌、兵力牌並在回合結束解除", () => {
+    const s = mkState();
+    s.player.hand = [
+      { instanceId: "a1", cardId: "A04" },
+      { instanceId: "s1", cardId: "S01" },
+      { instanceId: "t1", cardId: "T01" },
+    ];
+
+    executeEffects([{
+      kind: "freezeHeroAbility",
+      side: "self",
+      modes: ["action", "spell", "troop"],
+      turns: 1,
+    }], { state: s, ctx, sourceSide: "player", sourceKind: "skill", sourceCardId: "test" });
+
+    expect(applyAction(s, { type: "PLAY_ACTION", handIndex: 0 }, ctx)).toMatchObject({ ok: false, reason: "action cards frozen" });
+    expect(applyAction(s, { type: "PLAY_SPELL", handIndex: 1 }, ctx)).toMatchObject({ ok: false, reason: "spell cards frozen" });
+    expect(applyAction(s, { type: "PLAY_TROOP", handIndex: 2, slotIndex: 0 }, ctx)).toMatchObject({ ok: false, reason: "troop cards frozen" });
+
+    endTurnFor(s, "player", ctx);
+
+    expect(s.player.hero.flags.heroAbilityFreeze).toBeUndefined();
+    expect(applyAction(s, { type: "PLAY_SPELL", handIndex: 1 }, ctx)).toMatchObject({ ok: true });
+  });
+
+  it("凍結魔力回復時，回合開始不刷新魔力", () => {
+    const s = mkState();
+    s.turn = 5;
+    s.player.manaCap = 2;
+    s.player.manaCurrent = 1;
+    s.player.tempMana = 3;
+
+    executeEffects([{
+      kind: "freezeHeroAbility",
+      side: "self",
+      modes: ["manaRegen"],
+      turns: 1,
+    }], { state: s, ctx, sourceSide: "player", sourceKind: "skill", sourceCardId: "test" });
+
+    startTurnFor(s, "player", ctx);
+
+    expect(s.player.manaCap).toBe(2);
+    expect(s.player.manaCurrent).toBe(1);
+    expect(s.player.tempMana).toBe(0);
+    expect(s.log.some((l) => l.kind === "MANA_REGEN_FROZEN")).toBe(true);
   });
 });
 

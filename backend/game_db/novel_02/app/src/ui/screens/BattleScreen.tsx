@@ -7,7 +7,9 @@ import { canAffordMana, totalAvailableMana } from "../../core/resource/mana";
 import { canAffordMorale } from "../../core/resource/morale";
 import { HEROES } from "../../data/heroes";
 import { ENEMIES } from "../../data/enemies";
+import { getRace } from "../../data/races";
 import type { TroopInstance, BattleState, BattleResult, LogEntry } from "../../core/types/battle";
+import type { RiftState } from "../../core/types/rift";
 import type { Side } from "../../core/types/effect";
 import type { HeroInstance } from "../../core/types/hero";
 import type { EnemyScale } from "../../game/seed";
@@ -18,6 +20,7 @@ import styles from "../styles/battle.module.css";
 import { GameIndexOverlay } from "./GameIndexOverlay";
 import { buildCardFaceModel } from "../../game/cardPresentation";
 import { CardFace } from "../components/CardFace";
+import { isDeviceCard, isFullGaugeActive } from "../../core/resource/fullGaugeBuff";
 
 interface Props {
   heroId: string;
@@ -46,7 +49,8 @@ export function BattleScreen({ heroId, enemyId, initialPlayerHero, initialDeckId
 
 type SelectMode =
   | { kind: "none" }
-  | { kind: "playCard"; handIndex: number; needsTarget: boolean; needsSlot: boolean }
+  | { kind: "playCard"; handIndex: number; needsTarget: boolean; needsSlot: boolean; needsRiftSlot?: boolean }
+  | { kind: "playCardNeedsRiftHand"; handIndex: number } // v3.3 S15
   | { kind: "attackWithTroop"; instanceId: string }
   | { kind: "useSkill"; skillId: string; needsTarget: boolean }
   | { kind: "useUltimate"; needsTarget: boolean };
@@ -65,7 +69,6 @@ const RACE_TO_THEME: Record<string, string> = {
 };
 
 const FRAME_THEME = "midnight";
-const GAUGE_MAX_DEFAULT = 100;
 const ATTACK_FX_MS = 760;
 
 interface Point {
@@ -174,6 +177,9 @@ function BattleView({ onExit }: { onExit: () => void }): JSX.Element {
   const enemyHero = state.enemy.hero;
   const heroDef = ENEMIES[playerHero.defId]?.heroDef ?? HEROES[playerHero.defId]!;
   const enemyDef = ENEMIES[enemyHero.defId]?.heroDef ?? HEROES[enemyHero.defId]!;
+  const heroRace = getRace(heroDef.raceId);
+  const gaugeMax = heroRace.gauge.max;
+  const fullGaugeReady = isFullGaugeActive(state.player, heroRace);
   const heroTheme = RACE_TO_THEME[heroDef.raceId] ?? "azure";
 
   const isPlayerTurn = state.activeSide === "player" && state.result === "ongoing";
@@ -181,13 +187,34 @@ function BattleView({ onExit }: { onExit: () => void }): JSX.Element {
   const manaCap = state.player.manaCap;
 
   function clickHandCard(idx: number): void {
+    // v3.3 S15 needsRiftHand 模式：此次 click 是目標兵力卡
+    if (select.kind === "playCardNeedsRiftHand") {
+      if (idx === select.handIndex) return; // 不可選自己
+      const target = state.player.hand[idx];
+      if (!target) return;
+      const targetCard = getCard(target.cardId);
+      if (targetCard.type !== "troop") return;
+      dispatch({
+        type: "PLAY_SPELL",
+        handIndex: select.handIndex,
+        riftHandIndex: idx,
+      });
+      setSelect({ kind: "none" });
+      return;
+    }
+
     const inst = state.player.hand[idx];
     if (!inst) return;
     const card = getCard(inst.cardId);
     if (!canPlayCardCheck(state, card)) return;
 
     if (card.type === "troop") {
-      setSelect({ kind: "playCard", handIndex: idx, needsTarget: false, needsSlot: true });
+      // v3.3：rift 開啟且 Open 狀態時，同時可選裂縫位
+      const needsRiftSlot = state.rift?.holder === "open";
+      setSelect({ kind: "playCard", handIndex: idx, needsTarget: false, needsSlot: true, needsRiftSlot });
+    } else if (card.id === "S15" && card.type === "spell") {
+      // v3.3 S15 裂痕召喚：進入 needsRiftHand 模式，等待玩家點手牌中兵力
+      setSelect({ kind: "playCardNeedsRiftHand", handIndex: idx });
     } else if (card.type === "spell" || card.type === "action") {
       if (card.id === "S14" && card.type === "spell") {
         setOathPrompt({ handIndex: idx });
@@ -207,6 +234,34 @@ function BattleView({ onExit }: { onExit: () => void }): JSX.Element {
     } else if (card.type === "field") {
       dispatch({ type: "PLAY_FIELD", handIndex: idx });
       setSelect({ kind: "none" });
+    }
+  }
+
+  function clickRiftSlot(): void {
+    if (state.activeSide !== "player") return;
+    if (!state.rift) return;
+    // 玩家佔據裂縫（兵力卡 + needsRiftSlot + Open）
+    if (select.kind === "playCard" && select.needsRiftSlot && state.rift.holder === "open") {
+      dispatch({ type: "PLAY_TROOP_RIFT", handIndex: select.handIndex });
+      setSelect({ kind: "none" });
+      return;
+    }
+    // 攻擊裂縫中的滲透體（敵方佔據 + attackWithTroop）
+    if (select.kind === "attackWithTroop" && state.rift.holder === "enemy" && state.rift.occupant) {
+      const me = findTroopAnywhere(state, select.instanceId);
+      if (!me) {
+        setSelect({ kind: "none" });
+        return;
+      }
+      const check = canTroopAttack(state, "player", me, state.rift.occupant);
+      if (!check.ok) return;
+      dispatch({
+        type: "TROOP_ATTACK",
+        attackerInstanceId: select.instanceId,
+        targetInstanceId: state.rift.occupant.instanceId,
+      });
+      setSelect({ kind: "none" });
+      return;
     }
   }
 
@@ -461,18 +516,26 @@ function BattleView({ onExit }: { onExit: () => void }): JSX.Element {
               <div className={styles.gauge}>
                 <div className={styles.row}>
                   <div className={styles.lbl}>量表 · {heroDef.name}</div>
-                  <div className={styles.v}>{playerHero.gaugeValue}</div>
+                  <div className={styles.v}>{playerHero.gaugeValue} / {gaugeMax}</div>
                 </div>
                 <div className={styles.track}>
-                  <div className={styles.fill} style={{ width: `${Math.min(100, (playerHero.gaugeValue / GAUGE_MAX_DEFAULT) * 100)}%` }} />
+                  <div className={`${styles.fill} ${fullGaugeReady ? styles.fillReady : ""}`} style={{ width: `${Math.min(100, (playerHero.gaugeValue / gaugeMax) * 100)}%` }} />
                 </div>
                 <div className={styles.gaugeDesc}>{heroDef.gauge.description}</div>
+                {fullGaugeReady && <div className={styles.gaugeDesc}>{heroRace.fullGaugeBuff.name}：{heroRace.fullGaugeBuff.description}</div>}
               </div>
 
               <div className={styles.skillsList}>
                 {heroDef.actives.map((skill) => {
                   const moraleOk = !skill.cost.morale || canAffordMorale(playerHero, skill.cost.morale);
-                  const disabled = !isPlayerTurn || !moraleOk;
+                  const gaugeOk = !skill.cost.gauge || playerHero.gaugeValue >= skill.cost.gauge;
+                  const manaOk = !skill.cost.mana || mana >= skill.cost.mana;
+                  const disabled = !isPlayerTurn || !moraleOk || !gaugeOk || !manaOk;
+                  const costs = [
+                    skill.cost.morale ? `${skill.cost.morale} 鬥志` : null,
+                    skill.cost.gauge ? `${skill.cost.gauge} 量表` : null,
+                    skill.cost.mana ? `${skill.cost.mana} 魔力` : null,
+                  ].filter(Boolean).join(" / ") || "0";
                   return (
                     <button
                       key={skill.id}
@@ -482,7 +545,7 @@ function BattleView({ onExit }: { onExit: () => void }): JSX.Element {
                       title={skill.description}
                     >
                       <div>{skill.name}</div>
-                      <div className={styles.skillCost}>{skill.cost.morale ?? 0} 鬥志</div>
+                      <div className={styles.skillCost}>{costs}</div>
                     </button>
                   );
                 })}
@@ -542,6 +605,15 @@ function BattleView({ onExit }: { onExit: () => void }): JSX.Element {
                       style={{ transform: `scaleX(${stabilityScale})` }}
                     />
                   </div>
+                  {state.rift && (
+                    <RiftSlotView
+                      rift={state.rift}
+                      isTargetable={isPlayerTurn && state.rift.holder === "open" && select.kind === "playCard" && !!select.needsRiftSlot}
+                      isAttackable={isPlayerTurn && state.rift.holder === "enemy" && select.kind === "attackWithTroop"}
+                      onClick={clickRiftSlot}
+                      onPreview={state.rift.occupant ? () => toggleCardPreview(state.rift!.occupant!.cardId) : undefined}
+                    />
+                  )}
                   <div className={styles.lane} data-side="player">
                     {state.player.troopSlots.map((t, i) => {
                       const canAttack =
@@ -578,11 +650,11 @@ function BattleView({ onExit }: { onExit: () => void }): JSX.Element {
             <div className={styles.cmdLabel}>{heroDef.name}·量表</div>
             <div className={styles.segTrack}>
               {Array.from({ length: 20 }).map((_, i) => {
-                const lit = i < Math.round((playerHero.gaugeValue / GAUGE_MAX_DEFAULT) * 20);
+                const lit = i < Math.round((playerHero.gaugeValue / gaugeMax) * 20);
                 return <div key={i} className={`${styles.seg} ${lit ? styles.segLit : ""}`} />;
               })}
             </div>
-            <div className={styles.cmdNum}>{playerHero.gaugeValue} / {GAUGE_MAX_DEFAULT}</div>
+            <div className={styles.cmdNum}>{playerHero.gaugeValue} / {gaugeMax}</div>
           </div>
 
           {/* Deck pile (left) & discard (right) */}
@@ -594,8 +666,15 @@ function BattleView({ onExit }: { onExit: () => void }): JSX.Element {
             <div className={styles.handZone}>
               {state.player.hand.map((inst, i) => {
                 const card = getCard(inst.cardId);
-                const playable = isPlayerTurn && canPlayCardCheck(state, card);
-                const selected = select.kind === "playCard" && select.handIndex === i;
+                // v3.3 S15 needsRiftHand 模式：playable 改為「是否為合法 S15 召喚目標」
+                const inNeedsRiftHand = select.kind === "playCardNeedsRiftHand";
+                const isS15Self = inNeedsRiftHand && select.handIndex === i;
+                const playable = inNeedsRiftHand
+                  ? isPlayerTurn && !isS15Self && card.type === "troop"
+                  : isPlayerTurn && canPlayCardCheck(state, card);
+                const selected =
+                  (select.kind === "playCard" && select.handIndex === i) ||
+                  isS15Self;
                 const total = state.player.hand.length;
                 const spread = Math.min(60, total * 11);
                 const step = total > 1 ? spread / (total - 1) : 0;
@@ -660,7 +739,8 @@ function BattleView({ onExit }: { onExit: () => void }): JSX.Element {
 
 function describeSelect(s: SelectMode): string {
   switch (s.kind) {
-    case "playCard": return s.needsSlot ? "選擇空槽位" : "選擇目標";
+    case "playCard": return s.needsRiftSlot && s.needsSlot ? "選擇空槽位或裂縫位" : s.needsSlot ? "選擇空槽位" : "選擇目標";
+    case "playCardNeedsRiftHand": return "選擇手牌中要召喚的兵力（裂痕召喚）";
     case "attackWithTroop": return "選擇攻擊目標";
     case "useSkill": return "選擇技能目標";
     case "useUltimate": return "選擇終極技目標";
@@ -671,15 +751,48 @@ function describeSelect(s: SelectMode): string {
 function canPlayCardCheck(state: BattleState, card: Card): boolean {
   if (state.activeSide !== "player") return false;
   let cost = card.cost;
-  const heroDef = HEROES[state.player.hero.defId];
-  if (heroDef && card.type === "spell") {
-    const race = (heroDef as { raceId: string }).raceId;
-    if (race === "elf" && state.player.hero.gaugeValue >= 4) cost = 0;
+  const heroDef = ENEMIES[state.player.hero.defId]?.heroDef ?? HEROES[state.player.hero.defId];
+  if (heroDef) {
+    const race = getRace(heroDef.raceId);
+    if (isFullGaugeActive(state.player, race)) {
+      for (const rule of race.fullGaugeBuff.rules) {
+        if (rule.kind !== "cardCostReduction") continue;
+        const applies =
+          (card.type === "equipment" && rule.cardTypes.includes("equipment")) ||
+          (isDeviceCard(card) && rule.cardTypes.includes("device"));
+        if (applies) cost = Math.max(rule.minCost, cost - rule.amount);
+      }
+    }
+    if (card.type === "spell" && race.gauge.id === "resonance" && state.player.hero.gaugeValue >= 4) cost = 0;
   }
   if (!canAffordMana(state.player, cost)) return false;
   if (card.type === "troop") {
+    // v3.3：兵力卡可選兵力欄或裂縫位（後者僅 rift open 時）
     const free = state.player.troopSlots.some((s) => s === null);
-    if (!free) return false;
+    const riftOpen = state.rift?.holder === "open";
+    if (!free && !riftOpen) return false;
+  }
+  // v3.3 次元滲透裂縫條件
+  if (card.id === "S15") {
+    if (!state.rift || state.rift.holder !== "open") return false;
+    if (state.rift.s15UsesPlayer >= 3) return false;
+    // 必須有其他可作為目標的手牌兵力（不能單獨選 S15）
+    const hasOtherTroop = state.player.hand.some((h) => {
+      if (h.cardId === "S15") return false;
+      try {
+        return getCard(h.cardId).type === "troop";
+      } catch {
+        return false;
+      }
+    });
+    if (!hasOtherTroop) return false;
+  }
+  if (card.id === "S16") {
+    if (!state.rift) return false;
+    if (state.rift.s16UsedPlayer) return false;
+  }
+  if (card.id === "F08") {
+    if (!state.rift) return false;
   }
   return true;
 }
@@ -1168,6 +1281,84 @@ function TroopSlotView({ slot, side, isTargetable, canAttack, isSelected, placem
 function keywordTag(k: string): string {
   const map: Record<string, string> = { guard: "守護", rush: "突進", haste: "疾走", lethal: "必殺", lifesteal: "汲取", menace: "威壓", pierce: "穿透" };
   return map[k] ?? k;
+}
+
+// v3.3 次元滲透裂縫位元件
+interface RiftSlotProps {
+  rift: RiftState;
+  isTargetable: boolean;
+  isAttackable: boolean;
+  onClick: () => void;
+  onPreview?: () => void;
+}
+
+function RiftSlotView({ rift, isTargetable, isAttackable, onClick, onPreview }: RiftSlotProps): ReactNode {
+  function handlePreview(event: MouseEvent<HTMLDivElement>): void {
+    if (!onPreview) return;
+    event.preventDefault();
+    onPreview();
+  }
+
+  const occupant = rift.occupant;
+  const occCard = occupant ? getCard(occupant.cardId) : null;
+  const occHurtTone: "hurt" | "crit" | undefined = occupant
+    ? occupant.hp < occupant.maxHp / 2
+      ? "crit"
+      : occupant.hp < occupant.maxHp
+        ? "hurt"
+        : undefined
+    : undefined;
+  const occKws = occupant ? Array.from(occupant.keywords) : [];
+
+  const holderLabel =
+    rift.holder === "open"
+      ? rift.tremorCountdown <= 1
+        ? "震動中・即將滲透"
+        : "裂縫待機"
+      : rift.holder === "player"
+        ? "玩家佔據"
+        : "敵方滲透";
+
+  const countdownText =
+    rift.holder === "open" && rift.tremorCountdown > 0
+      ? `滲透倒數 ${rift.tremorCountdown}`
+      : null;
+
+  return (
+    <div
+      className={styles.riftSlot}
+      data-holder={rift.holder}
+      data-enhanced={rift.enhanced ? "true" : undefined}
+      data-targetable={isTargetable ? "true" : undefined}
+      data-attackable={isAttackable ? "true" : undefined}
+      onClick={onClick}
+      onContextMenu={onPreview ? handlePreview : undefined}
+    >
+      {countdownText && <div className={styles.riftCountdown}>{countdownText}</div>}
+      {!occupant && <div className={styles.riftEmpty}>◇</div>}
+      {occupant && occCard && (
+        <div className={styles.riftOccupant}>
+          <div className={styles.riftOccupantHead}>
+            <span className={styles.riftOccupantCost}>{occCard.cost} 費</span>
+            <div className={styles.riftOccupantName}>{occCard.name}</div>
+            {occKws.length > 0 && (
+              <div className={styles.riftOccupantKw}>
+                {occKws.map((k) => (
+                  <span key={k} className={styles.riftOccupantKwTag}>{keywordTag(k)}</span>
+                ))}
+              </div>
+            )}
+          </div>
+          <div className={styles.riftOccupantStats}>
+            <span data-kind="atk">⚔ {occupant.atk}</span>
+            {occupant.def > 0 && <span data-kind="def">🛡 {occupant.def}</span>}
+            <span data-kind="hp" data-tone={occHurtTone}>♥ {occupant.hp}{occupant.hp !== occupant.maxHp && `/${occupant.maxHp}`}</span>
+          </div>
+        </div>
+      )}
+      <div className={styles.riftHolder}>{rift.enhanced ? "★ 加強裂縫・" : ""}{holderLabel}</div>
+    </div>
+  );
 }
 
 function raceName(id: string): string {

@@ -65,4 +65,15 @@ export const SPELLS: SpellCard[] = [
     id: "S14", type: "spell", name: "盟約之誓", cost: 7, rarity: "legendary",
     effects: [{ kind: "scripted", tag: "OATH_CHOICE" }],
   },
+  // v3.3 次元滲透裂縫相關
+  {
+    id: "S15", type: "spell", name: "裂痕召喚", cost: 5, rarity: "legendary",
+    effects: [{ kind: "scripted", tag: "RIFT_CALL" }],
+    flavor: "她把手按在裂縫邊緣，那聲音不是召喚——是讓裂縫想起它本就屬於誰。",
+  },
+  {
+    id: "S16", type: "spell", name: "裂縫共鳴", cost: 3, rarity: "uncommon",
+    effects: [{ kind: "scripted", tag: "RIFT_RESONANCE" }],
+    flavor: "次元壁的破洞並非全然惡意——它也共振著某些更古老的東西。",
+  },
 ];

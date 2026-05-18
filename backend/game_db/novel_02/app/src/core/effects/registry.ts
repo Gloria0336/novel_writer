@@ -1,5 +1,5 @@
 import type { BattleState, TroopInstance } from "../types/battle";
-import type { Effect, Side } from "../types/effect";
+import type { Effect, Side, TargetSide } from "../types/effect";
 import type { BattleContext } from "../types/context";
 import type { TroopCard } from "../types/card";
 import { evalAmount, applyResonanceMultiplier, applyBerserkMultiplier, applyCommandMultiplier } from "./amount";
@@ -8,10 +8,19 @@ import { applyHeroDamage, applyTroopDamage, applyLifesteal } from "../combat/dam
 import { addMorale, MORALE_ACTION_HIT, MORALE_ALLY_TROOP_DESTROYED, MORALE_KILL_TROOP } from "../resource/morale";
 import { addGauge, gaugeOnHeroDamaged } from "../resource/gauge";
 import { applyCorruptionStageEffects, applyStabilityDelta, healingMultiplier } from "../resource/stability";
+import { openRiftIfNeeded, vacateRiftIfOccupantDead, MORALE_KILL_RIFT_INFILTRATOR } from "../resource/rift";
 import { drawCards } from "../deck/draw";
 import { addTempMana } from "../resource/mana";
 import { aliveTroops, getSide, otherSide } from "../selectors/battle";
 import { createTroopInstance } from "../turn/factories";
+import { addHeroAbilityFreeze, HERO_ABILITY_FREEZE_LABEL } from "./heroAbilityFreeze";
+import {
+  getFullGaugeActionDamageMultiplier,
+  getFullGaugeHeroDamageTakenMultiplier,
+  getFullGaugeSpellEffectMultiplier,
+  maybeHealHeroFromFullGaugeTroopKill,
+  syncFullGaugeBuffs,
+} from "../resource/fullGaugeBuff";
 
 export type EffectSourceKind = "troop_play" | "troop_destroy" | "spell" | "action" | "equipment" | "field" | "skill" | "ultimate" | "passive";
 
@@ -28,6 +37,7 @@ export function executeEffects(effects: readonly Effect[], ec: EffectContext): v
   for (const e of effects) {
     if (ec.state.result !== "ongoing") return;
     executeEffect(e, ec);
+    syncFullGaugeBuffs(ec.state, ec.ctx);
   }
 }
 
@@ -42,6 +52,14 @@ function applyDamageMultipliers(amount: number, ec: EffectContext): number {
   // 法師「共鳴」：法術傷害 × (1 + stacks*0.2)
   if (sourceKind === "spell" && side.hero.gaugeValue > 0 && ctx.getRace(heroDef.raceId).gauge.id === "resonance") {
     result = applyResonanceMultiplier(result, side.hero.gaugeValue);
+  }
+
+  if (sourceKind === "spell") {
+    result *= getFullGaugeSpellEffectMultiplier(state, ctx, sourceSide);
+  }
+
+  if (sourceKind === "action") {
+    result *= getFullGaugeActionDamageMultiplier(state, ctx, sourceSide);
   }
 
   // 狂戰士「狂暴」：行動卡傷害 × (1 + 8% × hp_loss_pct/10)
@@ -64,6 +82,7 @@ function applyHealMultipliers(amount: number, ec: EffectContext): number {
   const cls = ctx.getClass(heroDef.classId);
   let result = amount;
   if (cls.keyword === "blessing") result = Math.round(result * 1.5);
+  if (ec.sourceKind === "spell") result *= getFullGaugeSpellEffectMultiplier(state, ctx, sourceSide);
   result = result * healingMultiplier(state);
   return Math.max(0, Math.round(result));
 }
@@ -82,13 +101,17 @@ function executeEffect(e: Effect, ec: EffectContext): void {
         let amount = applyDamageMultipliers(baseAmount, ec);
         if (tg.kind === "hero" && tg.hero) {
           const prevHp = tg.hero.hp;
-          const r = applyHeroDamage(tg.hero, amount, { ignoreDef: e.ignoreDef });
+          const r = applyHeroDamage(tg.hero, amount, {
+            ignoreDef: e.ignoreDef,
+            finalMultiplier: getFullGaugeHeroDamageTakenMultiplier(state, ctx, tg.side),
+          });
           totalDealt += r.finalAmount;
           // 觸發英雄受傷量表（血怒）
           const tgHeroDef = ctx.getHero(tg.hero.defId);
           const tgRace = ctx.getRace(tgHeroDef.raceId);
           if (tgHeroDef.gauge.onHeroDamaged) {
             gaugeOnHeroDamaged(tg.hero, tgRace.gauge.max, tgHeroDef.gauge.onHeroDamaged, prevHp, tg.hero.hp);
+            syncFullGaugeBuffs(state, ctx);
           }
           state.log.push({ turn: state.turn, side: sourceSide, kind: "DAMAGE_HERO", text: `${tg.side === "player" ? "玩家" : "敵方"}英雄受到 ${r.finalAmount} 傷害`, payload: { side: tg.side, amount: r.finalAmount } });
         } else if (tg.kind === "troop" && tg.troop) {
@@ -153,6 +176,7 @@ function executeEffect(e: Effect, ec: EffectContext): void {
         const heroDef = ctx.getHero(target.hero.defId);
         const race = ctx.getRace(heroDef.raceId);
         if (heroDef.gauge.onTroopEnter) addGauge(target.hero, race.gauge.max, heroDef.gauge.onTroopEnter);
+        syncFullGaugeBuffs(state, ctx);
         state.log.push({ turn: state.turn, side: summonSide, kind: "SUMMON", text: `召喚 ${card.name}`, payload: { cardId: card.id, instanceId: inst.instanceId } });
         // onPlay 不在召喚時觸發（區分「部署」與「召喚」）
       }
@@ -164,6 +188,7 @@ function executeEffect(e: Effect, ec: EffectContext): void {
       const heroDef = ctx.getHero(ts.hero.defId);
       const race = ctx.getRace(heroDef.raceId);
       addGauge(ts.hero, race.gauge.max, e.delta);
+      syncFullGaugeBuffs(state, ctx);
       break;
     }
     case "morale": {
@@ -213,8 +238,18 @@ function executeEffect(e: Effect, ec: EffectContext): void {
     }
     case "addKeyword": {
       const targets = resolveTargets(state, e.target, sourceSide);
+      const turns = e.duration.kind === "permanent" ? 9999 : e.duration.kind === "thisTurn" ? 1 : e.duration.count;
       for (const tg of targets) {
-        if (tg.kind === "troop" && tg.troop) tg.troop.keywords.add(e.keyword);
+        if (tg.kind === "troop" && tg.troop) {
+          tg.troop.keywords.add(e.keyword);
+          tg.troop.keywordBuffs ??= [];
+          tg.troop.keywordBuffs.push({
+            id: `kw_${state.nextInstanceId++}`,
+            source: ec.sourceCardId ?? "x",
+            keyword: e.keyword,
+            remainingTurns: turns,
+          });
+        }
       }
       break;
     }
@@ -229,10 +264,31 @@ function executeEffect(e: Effect, ec: EffectContext): void {
       }
       break;
     }
+    case "freezeHeroAbility": {
+      const targetSides = resolveTargetSides(sourceSide, e.side ?? "enemy");
+      for (const targetSide of targetSides) {
+        if (isDebuffImmune(state, targetSide)) {
+          state.log.push({ turn: state.turn, side: sourceSide, kind: "DEBUFF_IMMUNE", text: `${targetSide === "player" ? "玩家" : "敵方"}免疫英雄能力凍結` });
+          continue;
+        }
+        const hero = getSide(state, targetSide).hero;
+        addHeroAbilityFreeze(hero, e.modes, e.turns);
+        state.log.push({
+          turn: state.turn,
+          side: sourceSide,
+          kind: "HERO_ABILITY_FREEZE",
+          text: `${targetSide === "player" ? "玩家" : "敵方"}英雄能力凍結 ${e.turns} 回合：${e.modes.map((m) => HERO_ABILITY_FREEZE_LABEL[m]).join("、")}`,
+          payload: { targetSide, modes: e.modes, turns: e.turns },
+        });
+      }
+      break;
+    }
     case "stability": {
       const r = applyStabilityDelta(state, e.delta);
       applyCorruptionStageEffects(state, r.stageJustReached);
       state.log.push({ turn: state.turn, side: sourceSide, kind: "STABILITY", text: `次元壁穩定度 ${e.delta > 0 ? "+" : ""}${e.delta} → ${r.newValue}`, payload: { delta: e.delta, newValue: r.newValue } });
+      // v3.3：穩定度跌破 50 時開啟次元滲透裂縫（不可逆，至多 1 個）
+      openRiftIfNeeded(state);
       break;
     }
     case "destroyField": {
@@ -259,6 +315,15 @@ function executeEffect(e: Effect, ec: EffectContext): void {
   }
 }
 
+function resolveTargetSides(sourceSide: Side, targetSide: TargetSide): Side[] {
+  switch (targetSide) {
+    case "player": return ["player"];
+    case "enemy": return [otherSide(sourceSide)];
+    case "self": return [sourceSide];
+    case "all": return ["player", "enemy"];
+  }
+}
+
 /**
  * 清掃死亡兵力，觸發 onDestroy 與相關量表/鬥志事件。
  * 反覆執行直到沒有死亡兵力為止（可能 onDestroy 又造傷）。
@@ -274,27 +339,48 @@ export function reapDeadTroops(state: BattleState, ctx: BattleContext, sourceSid
         s.troopSlots[i] = null;
         s.graveyard.push({ instanceId: t.instanceId, cardId: t.cardId });
         removed = true;
-        // 觸發謝幕曲
-        const card = ctx.getCard(t.cardId);
-        if (card.type === "troop" && card.onDestroy) {
-          executeEffects(card.onDestroy, { state, ctx, sourceSide: side, sourceKind: "troop_destroy", sourceInstanceId: t.instanceId, sourceCardId: t.cardId });
-        }
-        // 鬥志：擊殺者鬥志（若 sourceSide 是對立方）
-        if (side !== sourceSide) {
-          addMorale(getSide(state, sourceSide).hero, MORALE_KILL_TROOP);
-        } else {
-          // 我方兵力被殺：自己的鬥志 +5
-          addMorale(getSide(state, side).hero, MORALE_ALLY_TROOP_DESTROYED);
-        }
-        // 量表：自家被殺
-        const heroDef = ctx.getHero(s.hero.defId);
-        const race = ctx.getRace(heroDef.raceId);
-        if (heroDef.gauge.onTroopDestroyedSelf) addGauge(s.hero, race.gauge.max, heroDef.gauge.onTroopDestroyedSelf);
-        state.log.push({ turn: state.turn, side: sourceSide, kind: "TROOP_DESTROYED", text: `${card.name} 被摧毀`, payload: { instanceId: t.instanceId, cardId: t.cardId, side } });
+        reapHandleDeath(state, ctx, side, sourceSide, t);
       }
     }
   }
+  // v3.3：rift occupant 陣亡時觸發 onDestroy / 鬥志 / vacate（occupant 不在 troopSlots 內，需獨立處理）
+  if (state.rift && state.rift.occupant && state.rift.occupant.hp <= 0) {
+    const occupant = state.rift.occupant;
+    const occupantSide: Side = state.rift.holder === "player" ? "player" : "enemy";
+    reapHandleDeath(state, ctx, occupantSide, sourceSide, occupant);
+    vacateRiftIfOccupantDead(state);
+    removed = true;
+  }
   if (removed) reapDeadTroops(state, ctx, sourceSide, depth + 1);
+}
+
+/**
+ * 處理單一兵力陣亡的副作用：謝幕曲、鬥志、量表、日誌。
+ * 抽出來讓 troopSlots 陣亡與 rift occupant 陣亡共用。
+ */
+function reapHandleDeath(state: BattleState, ctx: BattleContext, side: Side, sourceSide: Side, t: TroopInstance): void {
+  const s = getSide(state, side);
+  // 觸發謝幕曲
+  const card = ctx.getCard(t.cardId);
+  if (card.type === "troop" && card.onDestroy) {
+    executeEffects(card.onDestroy, { state, ctx, sourceSide: side, sourceKind: "troop_destroy", sourceInstanceId: t.instanceId, sourceCardId: t.cardId });
+  }
+  // 鬥志：擊殺者鬥志（若 sourceSide 是對立方）
+  if (side !== sourceSide) {
+    // v3.3：擊殺敵方滲透體 → +10（與一般 +15 互斥）
+    const killReward = t.fromRift === true ? MORALE_KILL_RIFT_INFILTRATOR : MORALE_KILL_TROOP;
+    addMorale(getSide(state, sourceSide).hero, killReward);
+    maybeHealHeroFromFullGaugeTroopKill(state, ctx, sourceSide);
+  } else {
+    // 我方兵力被殺：自己的鬥志 +5
+    addMorale(getSide(state, side).hero, MORALE_ALLY_TROOP_DESTROYED);
+  }
+  // 量表：自家被殺
+  const heroDef = ctx.getHero(s.hero.defId);
+  const race = ctx.getRace(heroDef.raceId);
+  if (heroDef.gauge.onTroopDestroyedSelf) addGauge(s.hero, race.gauge.max, heroDef.gauge.onTroopDestroyedSelf);
+  syncFullGaugeBuffs(state, ctx);
+  state.log.push({ turn: state.turn, side: sourceSide, kind: "TROOP_DESTROYED", text: `${card.name} 被摧毀`, payload: { instanceId: t.instanceId, cardId: t.cardId, side, fromRift: t.fromRift === true } });
 }
 
 const SCRIPTED_HANDLERS: Record<string, (payload: unknown, ec: EffectContext) => void> = {};

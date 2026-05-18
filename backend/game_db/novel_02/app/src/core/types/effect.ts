@@ -43,6 +43,8 @@ export interface StatModifier {
   cmd?: number;
 }
 
+export type HeroAbilityFreezeKind = "action" | "spell" | "troop" | "manaRegen";
+
 export type Effect =
   | { kind: "damage"; target: TargetSelector; amount: AmountExpr; ignoreDef?: boolean; ignoreGuard?: boolean; lifesteal?: number }
   | { kind: "heal"; target: TargetSelector; amount: AmountExpr }
@@ -56,6 +58,7 @@ export type Effect =
   | { kind: "buff"; target: TargetSelector; mod: StatModifier; duration: Duration }
   | { kind: "addKeyword"; target: TargetSelector; keyword: Keyword; duration: Duration }
   | { kind: "freeze"; target: TargetSelector; turns: number }
+  | { kind: "freezeHeroAbility"; side?: TargetSide; modes: HeroAbilityFreezeKind[]; turns: number }
   | { kind: "stability"; delta: number }
   | { kind: "search"; predicate: { type?: string }; toHand: boolean; costMod?: number }
   | { kind: "destroyField" }

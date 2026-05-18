@@ -2,14 +2,14 @@ import { describe, expect, it } from "vitest";
 import { HEROES, HERO_LIST } from "./index";
 import { getRace } from "../races";
 import { getCard } from "../cards";
-import { ELNO_HONORARY_MAGE_DECK_IDS, LULU_DECK_IDS, MOUNTAIN_HUNTER_DECK_IDS, REKA_DECK_IDS } from "../decks/starter";
+import { BUTTERFLY_YAO_DECK_IDS, ELDR_THORIN_DECK_IDS, ELNO_HONORARY_MAGE_DECK_IDS, LULU_DECK_IDS, MOUNTAIN_HUNTER_DECK_IDS, REKA_DECK_IDS } from "../decks/starter";
 import { addGauge, gaugeOnHeroDamaged } from "../../core/resource/gauge";
 import { applyBerserkMultiplier, applyCommandMultiplier, applyResonanceMultiplier } from "../../core/effects/amount";
 
 describe("英雄資料完整性", () => {
-  it("4 位小說角色英雄已登記", () => {
-    expect(HERO_LIST).toHaveLength(4);
-    expect(Object.keys(HEROES)).toEqual(expect.arrayContaining(["lulu", "mountain-hunter", "reka", "elno-honorary-mage"]));
+  it("6 位小說角色英雄已登記", () => {
+    expect(HERO_LIST).toHaveLength(6);
+    expect(Object.keys(HEROES)).toEqual(expect.arrayContaining(["lulu", "mountain-hunter", "reka", "elno-honorary-mage", "butterfly-yao", "eldr-thorin"]));
     expect(Object.keys(HEROES)).not.toContain("commander_legion");
     expect(Object.keys(HEROES)).not.toContain("archmage_grand");
   });
@@ -50,6 +50,8 @@ describe("預組牌完整性 — 每位英雄 30 張 + 符合種族 deckLimits",
   it("山獵人牌組合法", () => check("mountain-hunter", MOUNTAIN_HUNTER_DECK_IDS));
   it("芮卡牌組合法", () => check("reka", REKA_DECK_IDS));
   it("艾爾諾老師牌組合法", () => check("elno-honorary-mage", ELNO_HONORARY_MAGE_DECK_IDS));
+  it("曇牌組合法", () => check("butterfly-yao", BUTTERFLY_YAO_DECK_IDS));
+  it("艾德圖林牌組合法", () => check("eldr-thorin", ELDR_THORIN_DECK_IDS));
 });
 
 describe("英雄量表規則", () => {
@@ -74,6 +76,30 @@ describe("英雄量表規則", () => {
     addGauge(hero, getRace("elf").gauge.max, def.gauge.onSpellCast ?? 0);
     expect(hero.gaugeValue).toBe(1);
     expect(applyResonanceMultiplier(10, 3)).toBe(16);
+  });
+
+  it("艾德圖林每打出 1 張裝備牌 +20 爐火，每回合開始 +5，封頂 100", () => {
+    const hero = { defId: "eldr-thorin", hp: 90, maxHp: 90, atk: 10, def: 10, cmd: 0, morale: 0, gaugeValue: 0, armor: 0, buffs: [], equipment: {}, flags: { ultimateUsed: false, immortalUsed: false } };
+    const def = HEROES["eldr-thorin"]!;
+    const max = getRace("dwarf").gauge.max;
+    addGauge(hero, max, def.gauge.onEquipmentPlay ?? 0);
+    expect(hero.gaugeValue).toBe(20);
+    addGauge(hero, max, def.gauge.onTurnStart ?? 0);
+    expect(hero.gaugeValue).toBe(25);
+    addGauge(hero, max, 90);
+    expect(hero.gaugeValue).toBe(100);
+  });
+
+  it("曇每回合開始、施法、兵力進場累積靈蘊，且封頂 100", () => {
+    const hero = { defId: "butterfly-yao", hp: 80, maxHp: 80, atk: 10, def: 5, cmd: 6, morale: 0, gaugeValue: 0, armor: 0, buffs: [], equipment: {}, flags: { ultimateUsed: false, immortalUsed: false, feyForm: "human" as const } };
+    const def = HEROES["butterfly-yao"]!;
+    const max = getRace("fey").gauge.max;
+    addGauge(hero, max, def.gauge.onTurnStart ?? 0);
+    addGauge(hero, max, def.gauge.onSpellCast ?? 0);
+    addGauge(hero, max, def.gauge.onTroopEnter ?? 0);
+    expect(hero.gaugeValue).toBe(18);
+    addGauge(hero, max, 90);
+    expect(hero.gaugeValue).toBe(100);
   });
 });
 
@@ -103,6 +129,22 @@ describe("英雄技能 — 主動效果定義", () => {
     expect(skill.cost.morale).toBe(45);
     expect(skill.effects[0]).toMatchObject({ kind: "damage", ignoreDef: true, ignoreGuard: true });
   });
+
+  it("曇 act_moonlit_fold 切換形態並觸發鱗粉記憶", () => {
+    const skill = HEROES["butterfly-yao"]!.actives.find((s) => s.id === "act_moonlit_fold")!;
+    expect(skill.cost.morale).toBe(20);
+    expect(skill.effects).toEqual(expect.arrayContaining([
+      { kind: "scripted", tag: "Y_FORM_TOGGLE" },
+      { kind: "scripted", tag: "TAN_FORM_MEMORY" },
+      { kind: "gauge", delta: 10, side: "self" },
+    ]));
+  });
+
+  it("曇 act_guest_of_night_mirror 消耗 30 靈蘊並召喚形態單位", () => {
+    const skill = HEROES["butterfly-yao"]!.actives.find((s) => s.id === "act_guest_of_night_mirror")!;
+    expect(skill.cost).toMatchObject({ morale: 35, gauge: 30 });
+    expect(skill.effects[0]).toEqual({ kind: "scripted", tag: "Y_HUNDRED_GHOSTS" });
+  });
 });
 
 describe("終極技施放規則", () => {
@@ -121,5 +163,16 @@ describe("終極技施放規則", () => {
       expect(damage.amount.mult).toBe(4);
     }
     expect(ult.effects[1]).toEqual({ kind: "destroyField" });
+  });
+
+  it("曇「破繭前的空白」會凍結敵方下回合魔力回復與兵力牌", () => {
+    const ult = HEROES["butterfly-yao"]!.ultimate;
+    expect(ult.cost.morale).toBe(100);
+    expect(ult.effects[0]).toEqual({ kind: "scripted", tag: "TAN_BLANK_BEFORE_PUPATION" });
+    expect(ult.effects).toEqual(expect.arrayContaining([
+      { kind: "summon", cardId: "I_PHANTOM", count: 2, side: "self" },
+      { kind: "heal", target: { kind: "self" }, amount: { kind: "const", value: 18 } },
+      { kind: "draw", count: 1 },
+    ]));
   });
 });

@@ -3,6 +3,7 @@ import { registerScripted } from "../registry";
 import { aliveTroops, getSide, otherSide, freeSlotIndex } from "../../selectors/battle";
 import { applyHeroDamage, applyTroopDamage } from "../../combat/damage";
 import { addGauge } from "../../resource/gauge";
+import { syncFullGaugeBuffs } from "../../resource/fullGaugeBuff";
 import { addTempMana } from "../../resource/mana";
 import { drawCards } from "../../deck/draw";
 import { createTroopInstance } from "../../turn/factories";
@@ -524,6 +525,7 @@ function registerDemigod(): void {
     const me = getSide(ec.state, ec.sourceSide);
     if (me.hero.gaugeValue < 40) return;
     me.hero.gaugeValue -= 40;
+    syncFullGaugeBuffs(ec.state, ec.ctx);
     const enemy = getSide(ec.state, otherSide(ec.sourceSide));
     applyHeroDamage(enemy.hero, 25, { ignoreDef: true });
     for (const t of enemy.troopSlots) {
@@ -541,6 +543,7 @@ function registerDemigod(): void {
     if (me.hero.gaugeValue < 50) return;
     const consumed = me.hero.gaugeValue;
     me.hero.gaugeValue = 0;
+    syncFullGaugeBuffs(ec.state, ec.ctx);
     const enemy = getSide(ec.state, otherSide(ec.sourceSide));
     const dmg = Math.floor(consumed * 1.5);
     applyHeroDamage(enemy.hero, dmg, { ignoreDef: true });

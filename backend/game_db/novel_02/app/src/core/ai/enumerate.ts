@@ -7,18 +7,24 @@ import { aliveTroops, freeSlotIndex, hasGuardTroop } from "../selectors/battle";
 import { canTroopAttack } from "../combat/attack";
 import type { CandidateAction, EnemyProfile } from "./types";
 import type { Effect, TargetSelector } from "../types/effect";
+import { isHeroAbilityFrozen } from "../effects/heroAbilityFreeze";
+import { getEffectiveCardCost } from "../resource/fullGaugeBuff";
 
 export function enumerateActions(state: BattleState, ctx: BattleContext, profile: EnemyProfile): CandidateAction[] {
   const out: CandidateAction[] = [];
   const enemy = state.enemy;
+  const troopFrozen = isHeroAbilityFrozen(enemy.hero, "troop");
+  const spellFrozen = isHeroAbilityFrozen(enemy.hero, "spell");
 
   // — 部署 —
   const slot = freeSlotIndex(enemy);
   if (slot >= 0) {
     if (profile.kind === "lair") {
       // 巢穴：直接從 summonPool（不消耗 mana / 不出手牌）
-      for (const cardId of profile.summonPool ?? []) {
-        out.push({ kind: "deployFromPool", cardId, slotIdx: slot });
+      if (!troopFrozen) {
+        for (const cardId of profile.summonPool ?? []) {
+          out.push({ kind: "deployFromPool", cardId, slotIdx: slot });
+        }
       }
     } else {
       // Boss / 內戰：手牌部署 + 可選召喚池
@@ -26,11 +32,13 @@ export function enumerateActions(state: BattleState, ctx: BattleContext, profile
       for (const inst of enemy.hand) {
         if (seenCards.has(inst.cardId)) continue; // 同 cardId 只 enumerate 一次
         const card = ctx.getCard(inst.cardId);
-        if (card.cost > enemy.manaCurrent + enemy.tempMana) continue;
+        if (getEffectiveCardCost(state, ctx, "enemy", card) > enemy.manaCurrent + enemy.tempMana) continue;
         if (card.type === "troop") {
+          if (troopFrozen) continue;
           out.push({ kind: "deployFromHand", cardInstanceId: inst.instanceId, slotIdx: slot });
           seenCards.add(inst.cardId);
         } else if (card.type === "spell") {
+          if (spellFrozen) continue;
           for (const targetRef of enumerateEffectTargets(state, card.effects)) {
             out.push({ kind: "spell", cardInstanceId: inst.instanceId, targetRef });
           }
@@ -38,8 +46,10 @@ export function enumerateActions(state: BattleState, ctx: BattleContext, profile
         }
       }
       // Boss 召喚池（如夢魔宗主的夢幻體、古魔的孳生體）— 不消耗 mana / 手牌
-      for (const cardId of profile.summonPool ?? []) {
-        out.push({ kind: "deployFromPool", cardId, slotIdx: slot });
+      if (!troopFrozen) {
+        for (const cardId of profile.summonPool ?? []) {
+          out.push({ kind: "deployFromPool", cardId, slotIdx: slot });
+        }
       }
     }
   }

@@ -6,6 +6,7 @@ export interface DamageOptions {
   ignoreDef?: boolean;
   ignorePierce?: boolean;
   fixed?: boolean;
+  finalMultiplier?: number;
   source?: { kind: "hero" | "troop"; side: Side; instanceId?: string };
 }
 
@@ -37,6 +38,7 @@ export function applyHeroDamage(hero: HeroInstance, raw: number, opts: DamageOpt
       amount -= absorbed;
     }
   }
+  if (opts.finalMultiplier !== undefined) amount = Math.round(amount * opts.finalMultiplier);
   hero.hp = Math.max(0, hero.hp - amount);
   return { finalAmount: amount, killed: hero.hp <= 0 };
 }

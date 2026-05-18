@@ -1,4 +1,4 @@
-import type { Effect, StatModifier } from "./effect";
+import type { Effect, HeroAbilityFreezeKind, StatModifier } from "./effect";
 import type { ClassKeyword } from "./keyword";
 
 export type RaceId = "human" | "elf" | "dwarf" | "fey" | "beast" | "demigod" | "demon";
@@ -21,6 +21,25 @@ export interface GaugeFrame {
   description: string;
 }
 
+export type FullGaugeBuffRule =
+  | { kind: "troopAura"; atk?: number; def?: number }
+  | { kind: "turnStartTempMana"; amount: number }
+  | { kind: "cardCostReduction"; cardTypes: Array<"equipment" | "device">; amount: number; minCost: number }
+  | { kind: "deviceAura"; def?: number }
+  | { kind: "feyForm"; humanSpellEffectPct: number; feyActionDamagePct: number; feyAttackDamagePct: number; feyDef: number }
+  | { kind: "actionDamagePct"; pct: number }
+  | { kind: "healHeroOnKillTroop"; amount: number }
+  | { kind: "heroDamageTakenPct"; pct: number }
+  | { kind: "troopDamagePct"; pct: number }
+  | { kind: "turnStartTroopHeal"; amount: number };
+
+export interface FullGaugeBuffFrame {
+  id: string;
+  name: string;
+  description: string;
+  rules: FullGaugeBuffRule[];
+}
+
 export interface DeckLimits {
   troop: [number, number];
   action: [number, number];
@@ -34,6 +53,7 @@ export interface RaceFrame {
   name: string;
   statMods: Stats;
   gauge: GaugeFrame;
+  fullGaugeBuff: FullGaugeBuffFrame;
   deckLimits: DeckLimits;
   manaCap?: number;
   description: string;
@@ -120,6 +140,8 @@ export interface HeroInstance {
     overdraft?: number;
     /** 末日倒數剩餘回合（N06） */
     doomsdayCountdown?: number;
+    /** 英雄能力凍結：行動牌 / 法術牌 / 兵力牌 / 魔力回復剩餘回合。 */
+    heroAbilityFreeze?: Partial<Record<HeroAbilityFreezeKind, number>>;
     /** 額外標記 */
     [key: string]: unknown;
   };

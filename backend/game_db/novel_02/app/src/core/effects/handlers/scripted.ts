@@ -1,12 +1,18 @@
 import type { EffectContext } from "../registry";
 import { registerScripted } from "../registry";
 import { aliveTroops, getSide, otherSide } from "../../selectors/battle";
-import { applyHeroDamage } from "../../combat/damage";
+import { applyHeroDamage, applyTroopDamage } from "../../combat/damage";
 import { addMorale } from "../../resource/morale";
 import { addTempMana } from "../../resource/mana";
+import { applyStabilityDelta, applyCorruptionStageEffects } from "../../resource/stability";
+import { openRiftIfNeeded, applyRiftBuff } from "../../resource/rift";
+import { drawCards } from "../../deck/draw";
+import { createTroopInstance } from "../../turn/factories";
 import type { TroopInstance } from "../../types/battle";
 import type { StatModifier } from "../../types/effect";
 import type { ActiveBuff, HeroInstance } from "../../types/hero";
+import type { TroopCard } from "../../types/card";
+import { syncFullGaugeBuffs } from "../../resource/fullGaugeBuff";
 
 interface FlagsState {
   extraActionsThisTurn: number;
@@ -143,7 +149,111 @@ export function registerCoreScripted(): void {
   registerScripted("FIELD_BURN", () => {});
   registerScripted("FIELD_RESURRECT", () => {});
   registerScripted("FIELD_STORM", () => {});
-  registerScripted("FIELD_DIMENSIONAL_RIFT", () => {});
+
+  // v3.3 F08 次元裂縫【重作】：升級已開啟裂縫為「加強裂縫」狀態
+  // ① 玩家佔據者獲〔穿透〕 ② 敵方滲透體抽取池往上一階（由 selectInfiltratorPool 處理）
+  // ③ 法術行動傷害 +50%（場地系統整合留 Stage 3；本 Stage 只設 enhanced flag）
+  registerScripted("FIELD_DIMENSIONAL_RIFT", (_p, ec) => {
+    const rift = ec.state.rift;
+    if (!rift) {
+      ec.state.log.push({ turn: ec.state.turn, side: ec.sourceSide, kind: "FIELD_RIFT_NOOP", text: "F08 次元裂縫：無裂縫可加強，效果無作用。" });
+      return;
+    }
+    rift.enhanced = true;
+    // 對玩家當前佔據者加〔穿透〕關鍵字
+    if (rift.holder === "player" && rift.occupant) {
+      rift.occupant.keywords.add("pierce");
+    }
+    ec.state.log.push({ turn: ec.state.turn, side: ec.sourceSide, kind: "FIELD_RIFT_ENHANCE", text: "次元裂縫升級為加強裂縫！滲透池升階，佔據者獲〔穿透〕。" });
+  });
+
+  // v3.3 N05 次元壁碎片：滿穩定度時改為全體 15 傷害；否則 +25 穩定度 + 抽 1
+  registerScripted("DIMENSION_SHARD", (_p, ec) => {
+    const state = ec.state;
+    if (state.stability >= 100) {
+      // 對敵方全體（英雄 + 兵力）造成 15 傷害
+      const enemySide = getSide(state, otherSide(ec.sourceSide));
+      applyHeroDamage(enemySide.hero, 15, {});
+      for (const t of aliveTroops(enemySide)) {
+        applyTroopDamage(t, 15, {});
+      }
+      state.log.push({ turn: state.turn, side: ec.sourceSide, kind: "DIMENSION_SHARD_BURST", text: "次元壁碎片：穩定度滿值轉化為對敵方全體 15 傷害" });
+      return;
+    }
+    // 否則：穩定度 +25 + 抽 1
+    const r = applyStabilityDelta(state, 25);
+    applyCorruptionStageEffects(state, r.stageJustReached);
+    // +25 不會觸發開裂縫（只有跌破才會），仍呼叫 openRiftIfNeeded 為防禦性 no-op
+    openRiftIfNeeded(state);
+    const draw = drawCards(getSide(state, ec.sourceSide), 1, state.rngState);
+    state.rngState = draw.newRngState;
+    state.log.push({ turn: state.turn, side: ec.sourceSide, kind: "DIMENSION_SHARD", text: `次元壁碎片：穩定度 +25 → ${r.newValue}，抽 1 張` });
+  });
+
+  // v3.3 S15 裂痕召喚：免費把指定手牌兵力部署到裂縫位
+  // payload: { handCardInstanceId: string } — 由 reducer playSpell 注入
+  registerScripted("RIFT_CALL", (payload, ec) => {
+    const state = ec.state;
+    const rift = state.rift;
+    if (!rift || rift.holder !== "open") {
+      state.log.push({ turn: state.turn, side: ec.sourceSide, kind: "RIFT_CALL_NOOP", text: "S15 裂痕召喚：裂縫不可佔據" });
+      return;
+    }
+    const instId = (payload as { handCardInstanceId?: string } | undefined)?.handCardInstanceId;
+    if (!instId) return;
+    const side = getSide(state, ec.sourceSide);
+    const handIdx = side.hand.findIndex((c) => c.instanceId === instId);
+    if (handIdx < 0) {
+      state.log.push({ turn: state.turn, side: ec.sourceSide, kind: "RIFT_CALL_NOOP", text: "S15 裂痕召喚：手牌目標已不存在" });
+      return;
+    }
+    const handCard = side.hand[handIdx]!;
+    const card = ec.ctx.getCard(handCard.cardId);
+    if (card.type !== "troop") return;
+    // 移除手牌、放入棄牌堆
+    side.hand.splice(handIdx, 1);
+    side.graveyard.push(handCard);
+    // 建立 instance 並佔據裂縫
+    const inst = createTroopInstance(state, card as TroopCard);
+    applyRiftBuff(inst);
+    rift.occupant = inst;
+    rift.holder = "player";
+    rift.s15UsesPlayer += 1;
+    state.log.push({ turn: state.turn, side: ec.sourceSide, kind: "RIFT_CALL", text: `S15 裂痕召喚：${card.name} 免費部署到次元裂縫`, payload: { cardId: card.id, instanceId: inst.instanceId, atk: inst.atk, def: inst.def } });
+    // 觸發入場曲
+    if (card.onPlay) {
+      for (const eff of card.onPlay) {
+        if (eff.kind === "scripted") {
+          // 套用入場曲（scripted 經由 registry）— 簡化：直接呼叫 registerCoreScripted handler？
+          // MVP：先記日誌，複雜入場曲在 Stage 3 完整處理
+        }
+      }
+    }
+  });
+
+  // v3.3 S16 裂縫共鳴：抽 2 + 鬥志 +20；玩家佔據時佔據者疾走（清 hasAttackedThisTurn）
+  registerScripted("RIFT_RESONANCE", (_p, ec) => {
+    const state = ec.state;
+    const rift = state.rift;
+    if (!rift) {
+      state.log.push({ turn: state.turn, side: ec.sourceSide, kind: "RIFT_RESONANCE_NOOP", text: "S16 裂縫共鳴：場上無裂縫" });
+      return;
+    }
+    const side = getSide(state, ec.sourceSide);
+    // 抽 2 張
+    const draw = drawCards(side, 2, state.rngState);
+    state.rngState = draw.newRngState;
+    // 鬥志 +20
+    addMorale(side.hero, 20);
+    rift.s16UsedPlayer = true;
+    state.log.push({ turn: state.turn, side: ec.sourceSide, kind: "RIFT_RESONANCE", text: `S16 裂縫共鳴：抽 ${draw.drawn} 張、鬥志 +20` });
+    // 玩家佔據時佔據者疾走（清 hasAttackedThisTurn 並 suppress summoningSickness）
+    if (rift.holder === "player" && rift.occupant) {
+      rift.occupant.hasAttackedThisTurn = false;
+      rift.occupant.summonedThisTurn = false;
+      state.log.push({ turn: state.turn, side: ec.sourceSide, kind: "RIFT_RESONANCE_HASTE", text: `S16 追加：佔據者 ${rift.occupant.cardId} 立即可再行動` });
+    }
+  });
 
   // §E.1/§E.2 — Boss / 巢穴專屬機制
   registerScripted("FIELD_BURN_APPLY", (_p, ec) => {
@@ -292,6 +402,7 @@ export function registerCoreScripted(): void {
     const enemyHero = getSide(ec.state, otherSide(ec.sourceSide)).hero;
     applyHeroDamage(enemyHero, amount, { ignoreDef: false });
     hero.gaugeValue = 0;
+    syncFullGaugeBuffs(ec.state, ec.ctx);
     hero.hp = Math.min(hero.maxHp, hero.hp + Math.round(hero.maxHp * 0.3));
     ec.state.log.push({ turn: ec.state.turn, side: ec.sourceSide, kind: "PRIMAL", text: `祖獸覺醒：對敵方英雄造 ${amount} 傷害，HP +30%。`, payload: { amount } });
   });
