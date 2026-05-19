@@ -7,10 +7,12 @@ import { getRace } from "../../data/races";
 import { getClass } from "../../data/classes";
 import { HEROES } from "../../data/heroes";
 import { registerCoreScripted } from "./handlers/scripted";
+import { registerRaceCardScripted } from "./handlers/raceCards";
 import { endTurnFor, startTurnFor } from "../turn/phases";
 import { applyAction } from "../turn/reducer";
 
 registerCoreScripted();
+registerRaceCardScripted();
 
 const ctx: BattleContext = {
   getCard,
@@ -109,6 +111,21 @@ describe("unit status effects", () => {
       state: s, ctx, sourceSide: "enemy", sourceKind: "spell", sourceCardId: "test",
     });
     expect(s.player.troopSlots[0]?.hp).toBe(4);
+  });
+});
+
+describe("elf spell-cast troop passives", () => {
+  it("T_e_02 gains HP and max HP when its side casts a spell", () => {
+    const s = mkState();
+    s.player.hand = [{ instanceId: "spell1", cardId: "S_c_01" }];
+    s.player.troopSlots[0] = mkTroop("T_e_02", "stellar_guard");
+    s.player.troopSlots[1] = mkTroop("T_e_01", "spell_blade");
+
+    expect(applyAction(s, { type: "PLAY_SPELL", handIndex: 0 }, ctx)).toMatchObject({ ok: true });
+
+    expect(s.player.troopSlots[0]?.hp).toBe(17);
+    expect(s.player.troopSlots[0]?.maxHp).toBe(17);
+    expect(s.player.troopSlots[1]?.atk).toBe(7);
   });
 });
 
@@ -429,5 +446,98 @@ describe("鬥志累積規則", () => {
     });
     // 法術不算「行動」，但擊殺仍給 +15
     expect(s.player.hero.morale).toBeGreaterThanOrEqual(15);
+  });
+});
+
+describe("scripted passive integrations", () => {
+  it("DOUBLE_NEXT_SPELL doubles the next spell effect", () => {
+    const s = mkState();
+    s.player.hand = [
+      { instanceId: "mark", cardId: "S_e_03" },
+      { instanceId: "ray", cardId: "S_c_12" },
+    ];
+
+    expect(applyAction(s, { type: "PLAY_SPELL", handIndex: 0 }, ctx)).toMatchObject({ ok: true });
+    expect(applyAction(s, { type: "PLAY_SPELL", handIndex: 0, targetInstanceId: "H_enemy" }, ctx)).toMatchObject({ ok: true });
+
+    expect(s.enemy.hero.hp).toBe(20);
+  });
+
+  it("FIRST_ATTACK_DOUBLE is consumed by the first attack", () => {
+    const s = mkState();
+    s.player.hand = [{ instanceId: "cav", cardId: "T_c_09" }];
+
+    expect(applyAction(s, { type: "PLAY_TROOP", handIndex: 0, slotIndex: 0 }, ctx)).toMatchObject({ ok: true });
+    expect(applyAction(s, { type: "TROOP_ATTACK", attackerInstanceId: s.player.troopSlots[0]!.instanceId, targetInstanceId: "H_enemy" }, ctx)).toMatchObject({ ok: true });
+
+    expect(s.enemy.hero.hp).toBe(66);
+  });
+
+  it("ABSORB_HALF_HERO_ACTION_DAMAGE redirects half of action hero damage", () => {
+    const s = mkState();
+    s.player.troopSlots[0] = mkTroop("T_c_13", "elite_guard");
+
+    executeEffects([{ kind: "damage", target: { kind: "playerHero" }, amount: { kind: "const", value: 20 }, ignoreDef: true }], {
+      state: s, ctx, sourceSide: "enemy", sourceKind: "action", sourceCardId: "test",
+    });
+
+    expect(s.player.hero.hp).toBe(70);
+    expect(s.player.troopSlots[0]?.hp).toBe(12);
+  });
+
+  it("equipment passives trigger on deploy and damage threshold", () => {
+    const s = mkState();
+    s.player.hero.equipment.trinket = "E_c_06";
+    s.player.hero.equipment.armor = "E_c_05";
+    s.player.hero.def = 10;
+    s.player.hand = [{ instanceId: "soldier", cardId: "T_c_01" }];
+
+    expect(applyAction(s, { type: "PLAY_TROOP", handIndex: 0, slotIndex: 0 }, ctx)).toMatchObject({ ok: true });
+    expect(s.player.hero.morale).toBe(5);
+
+    executeEffects([{ kind: "damage", target: { kind: "enemyHero" }, amount: { kind: "const", value: 9 }, ignoreDef: true }], {
+      state: s, ctx, sourceSide: "enemy", sourceKind: "spell", sourceCardId: "test",
+    });
+    expect(s.player.hero.hp).toBe(80);
+  });
+
+  it("field burn skips flame-immune demons and damages other troops", () => {
+    const s = mkState();
+    s.field = { cardId: "F_c_05", ownerSide: "player" };
+    s.player.troopSlots[0] = mkTroop("T_de_05", "flame_guard");
+    s.enemy.troopSlots[0] = mkTroop("T_c_01", "enemy_soldier");
+
+    startTurnFor(s, "player", ctx);
+
+    expect(s.player.troopSlots[0]?.hp).toBe(22);
+    expect(s.enemy.troopSlots[0]?.hp).toBe(6);
+  });
+
+  it("dynamic troop aura updates when allies enter", () => {
+    const s = mkState();
+    s.player.hand = [
+      { instanceId: "commander", cardId: "T_h_04" },
+      { instanceId: "soldier", cardId: "T_c_01" },
+    ];
+
+    expect(applyAction(s, { type: "PLAY_TROOP", handIndex: 0, slotIndex: 0 }, ctx)).toMatchObject({ ok: true });
+    expect(s.player.troopSlots[0]?.atk).toBe(7);
+    expect(applyAction(s, { type: "PLAY_TROOP", handIndex: 0, slotIndex: 1 }, ctx)).toMatchObject({ ok: true });
+
+    expect(s.player.troopSlots[0]?.atk).toBe(8);
+  });
+
+  it("demon scripted effects are registered and apply corruption spread", () => {
+    const s = mkState();
+    s.enemy.troopSlots[0] = mkTroop("T_c_02", "enemy_big");
+    const card = getCard("S_de_05");
+    if (card.type !== "spell") throw new Error("expect spell");
+
+    executeEffects(card.effects, { state: s, ctx, sourceSide: "player", sourceKind: "spell", sourceCardId: "S_de_05" });
+
+    expect(s.log.some((entry) => entry.kind === "SCRIPTED_MISSING")).toBe(false);
+    expect(s.enemy.troopSlots[0]?.atk).toBe(3);
+    expect(s.enemy.troopSlots[0]?.def).toBe(0);
+    expect(s.player.hero.gaugeValue).toBe(15);
   });
 });

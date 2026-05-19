@@ -21,5 +21,5 @@ export const BOSS_NIGHTMARE_LORD_PROFILE: EnemyProfile = {
     spendOnUltimateAt: 0.7,
   },
   summonPool: ["T_s_28"],
-  summonsPerTurn: { min: 0, max: 1 },
+  summonsPerTurn: { min: 1, max: 1 },
 };

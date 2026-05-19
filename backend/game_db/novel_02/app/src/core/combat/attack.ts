@@ -4,6 +4,8 @@ import type { BattleContext } from "../types/context";
 import { aliveTroops, findTroopBySide, getSide, hasGuardTroop, heroHasStatus, otherSide, sideHasStatusTarget, troopHasStatus } from "../selectors/battle";
 import { applyHeroDamage, applyTroopDamage } from "./damage";
 import { getFullGaugeHeroDamageTakenMultiplier, getFullGaugeTroopDamageMultiplier } from "../resource/fullGaugeBuff";
+import { getTurnFlags } from "../turn/turnFlags";
+import { applyHeroDamageWithPassives } from "../effects/battlePassives";
 
 export interface TroopAttackResult {
   attackerKilled: boolean;
@@ -24,7 +26,7 @@ export function troopVsTroop(state: BattleState, ctx: BattleContext, attacker: T
   const aPierce = attacker.keywords.has("pierce");
   const dPierce = defender.keywords.has("pierce");
 
-  const attackerDamage = Math.round(attacker.atk * getFullGaugeTroopDamageMultiplier(state, ctx, attackerSide));
+  const attackerDamage = Math.round(attacker.atk * consumeFirstAttackMultiplier(state, attacker) * getFullGaugeTroopDamageMultiplier(state, ctx, attackerSide));
   const defenderDamage = Math.round(defender.atk * getFullGaugeTroopDamageMultiplier(state, ctx, defenderSide));
   const dmgToDefender = applyTroopDamage(defender, attackerDamage, { ignoreDef: aPierce });
   const dmgToAttacker = applyTroopDamage(attacker, defenderDamage, { ignoreDef: dPierce });
@@ -68,11 +70,11 @@ export function troopVsTroop(state: BattleState, ctx: BattleContext, attacker: T
 export function troopVsHero(state: BattleState, ctx: BattleContext, attacker: TroopInstance, attackingSide: Side): TroopAttackResult {
   const log: Pick<LogEntry, "kind" | "text" | "payload">[] = [];
   const defendingSide = otherSide(attackingSide);
-  const enemyHero = getSide(state, defendingSide).hero;
-  const amount = Math.round(attacker.atk * getFullGaugeTroopDamageMultiplier(state, ctx, attackingSide));
-  const dmg = applyHeroDamage(enemyHero, amount, {
+  const amount = Math.round(attacker.atk * consumeFirstAttackMultiplier(state, attacker) * getFullGaugeTroopDamageMultiplier(state, ctx, attackingSide));
+  const dmg = applyHeroDamageWithPassives(state, ctx, attackingSide, defendingSide, amount, {
     ignoreDef: attacker.keywords.has("pierce"),
     finalMultiplier: getFullGaugeHeroDamageTakenMultiplier(state, ctx, defendingSide),
+    sourceKind: "troop",
   });
 
   log.push({
@@ -87,6 +89,13 @@ export function troopVsHero(state: BattleState, ctx: BattleContext, attacker: Tr
 
   attacker.hasAttackedThisTurn = true;
   return { attackerKilled: false, defenderKilled: dmg.killed, attackerDamage: 0, defenderDamage: dmg.finalAmount, log };
+}
+
+function consumeFirstAttackMultiplier(state: BattleState, attacker: TroopInstance): number {
+  const flags = getTurnFlags(state);
+  if (!flags.firstAttackDoubleInstanceIds.has(attacker.instanceId)) return 1;
+  flags.firstAttackDoubleInstanceIds.delete(attacker.instanceId);
+  return 2;
 }
 
 /**

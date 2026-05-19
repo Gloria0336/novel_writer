@@ -21,4 +21,6 @@ export const BOSS_BEAST_KING_PROFILE: EnemyProfile = {
     saveUntilThreshold: 0.5,
     spendOnUltimateAt: 0.8,
   },
+  summonPool: ["T_b_01", "T_b_02"],
+  summonsPerTurn: { min: 1, max: 1 },
 };

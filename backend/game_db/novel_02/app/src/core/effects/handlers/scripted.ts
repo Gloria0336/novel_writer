@@ -13,27 +13,9 @@ import type { StatModifier } from "../../types/effect";
 import type { ActiveBuff, HeroInstance } from "../../types/hero";
 import type { TroopCard } from "../../types/card";
 import { syncFullGaugeBuffs } from "../../resource/fullGaugeBuff";
+import { getTurnFlags } from "../../turn/turnFlags";
 
-interface FlagsState {
-  extraActionsThisTurn: number;
-  actionDisabledThisTurn: boolean;
-  firstAttackDoubleInstanceIds: Set<string>;
-}
-
-const TURN_FLAGS = new WeakMap<object, FlagsState>();
-
-export function getTurnFlags(state: object): FlagsState {
-  let f = TURN_FLAGS.get(state);
-  if (!f) {
-    f = { extraActionsThisTurn: 0, actionDisabledThisTurn: false, firstAttackDoubleInstanceIds: new Set() };
-    TURN_FLAGS.set(state, f);
-  }
-  return f;
-}
-
-export function resetTurnFlags(state: object): void {
-  TURN_FLAGS.set(state, { extraActionsThisTurn: 0, actionDisabledThisTurn: false, firstAttackDoubleInstanceIds: new Set() });
-}
+export { getTurnFlags, resetTurnFlags } from "../../turn/turnFlags";
 
 export function registerCoreScripted(): void {
   // T_c_05 回合結束治療相鄰兵力

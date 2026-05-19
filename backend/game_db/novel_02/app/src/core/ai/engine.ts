@@ -28,7 +28,7 @@ export function runEnemyAITurn(state: BattleState, ctx: BattleContext, profile: 
 
   for (let step = 0; step < SAFETY_LIMIT; step++) {
     if (state.result !== "ongoing") return;
-    const candidates = applyLairSummonBounds(enumerateActions(state, ctx, profile), profile, poolSummonsThisTurn, state);
+    const candidates = applySummonBounds(enumerateActions(state, ctx, profile), profile, poolSummonsThisTurn, state);
     if (candidates.length === 0) return;
 
     const scored: ScoredAction[] = candidates.map((a) => evaluate(state, ctx, profile, weights, a, difficulty, () => {
@@ -60,13 +60,13 @@ export function runEnemyAITurn(state: BattleState, ctx: BattleContext, profile: 
   }
 }
 
-function applyLairSummonBounds(
+function applySummonBounds(
   candidates: CandidateAction[],
   profile: EnemyProfile,
   summonsThisTurn: number,
   state: BattleState,
 ): CandidateAction[] {
-  if (profile.kind !== "lair") return candidates;
+  if (profile.kind !== "lair" && !profile.summonsPerTurn) return candidates;
 
   // 召喚節奏（summonCadenceTurns）：未到下個允許窗口時禁止池召喚
   const cadence = Math.max(1, profile.summonCadenceTurns ?? 1);

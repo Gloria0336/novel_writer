@@ -22,5 +22,5 @@ export const BOSS_ELDER_DEMON_PROFILE: EnemyProfile = {
     spendOnUltimateAt: 0.8,
   },
   summonPool: ["T_s_29", "T_s_30"],
-  summonsPerTurn: { min: 0, max: 1 },
+  summonsPerTurn: { min: 1, max: 1 },
 };

@@ -188,20 +188,10 @@ export function endPlayerTurnAndRunAI(state: BattleState, ctx: BattleContext): A
   if (state.result !== "ongoing") return { ok: true };
 
   // 敵方回合
-  state.phase = "main";
-  state.log.push({ turn: state.turn, side: "enemy", kind: "TURN_START", text: `回合 ${state.turn}：敵方` });
-
-  // 重置敵方兵力暈眩
-  for (const t of state.enemy.troopSlots) {
-    if (t) {
-      t.summonedThisTurn = false;
-      t.hasAttackedThisTurn = false;
-      if (t.frozenTurns > 0) {
-        t.frozenTurns--;
-        if (t.frozenTurns <= 0) delete t.frozenDisplayName;
-      }
-    }
-  }
+  // Enemy turn start: use the shared turn-start path so Bosses draw, refill mana,
+  // gain turn-start gauge, and reset troop attack state just like players.
+  startTurnFor(state, "enemy", ctx);
+  if (state.result !== "ongoing") return { ok: true };
 
   // §E.2 巢穴 onStart 光環（例如魔獸洞穴半血爆發）
   runLairAuras(state, ctx, "start", auraResolver);

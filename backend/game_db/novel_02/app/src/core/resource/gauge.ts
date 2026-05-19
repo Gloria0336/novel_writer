@@ -1,7 +1,9 @@
 import type { GaugePersonalization, HeroInstance } from "../types/hero";
 
 export function addGauge(hero: HeroInstance, max: number, delta: number): void {
-  hero.gaugeValue = Math.max(0, Math.min(max, hero.gaugeValue + delta));
+  const bonus = hero.flags.essenceMaxBonus as number | undefined;
+  const effectiveMax = max + (typeof bonus === "number" ? bonus : 0);
+  hero.gaugeValue = Math.max(0, Math.min(effectiveMax, hero.gaugeValue + delta));
 }
 
 export function spendGauge(hero: HeroInstance, cost: number): boolean {

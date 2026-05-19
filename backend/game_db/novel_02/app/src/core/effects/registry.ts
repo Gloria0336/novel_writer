@@ -5,13 +5,14 @@ import type { TroopCard } from "../types/card";
 import type { UnitStatus } from "../types/status";
 import { evalAmount, applyResonanceMultiplier, applyBerserkMultiplier, applyCommandMultiplier } from "./amount";
 import { resolveTargets, HERO_TARGET_ID } from "./target";
-import { applyHeroDamage, applyTroopDamage, applyLifesteal } from "../combat/damage";
+import { applyLifesteal } from "../combat/damage";
 import { canActionTarget } from "../combat/attack";
 import { addMorale, MORALE_ACTION_HIT, MORALE_ALLY_TROOP_DESTROYED, MORALE_KILL_TROOP } from "../resource/morale";
 import { addGauge, gaugeOnHeroDamaged } from "../resource/gauge";
 import { applyCorruptionStageEffects, applyStabilityDelta, healingMultiplier } from "../resource/stability";
 import { openRiftIfNeeded, vacateRiftIfOccupantDead, MORALE_KILL_RIFT_INFILTRATOR } from "../resource/rift";
 import { drawCards } from "../deck/draw";
+import { nextRng } from "../deck/prng";
 import { addTempMana } from "../resource/mana";
 import { aliveTroops, getSide, otherSide } from "../selectors/battle";
 import { createTroopInstance } from "../turn/factories";
@@ -24,6 +25,10 @@ import {
   syncFullGaugeBuffs,
 } from "../resource/fullGaugeBuff";
 import { triggerReactionsBySide } from "./reactions";
+import { getTurnFlags } from "../turn/turnFlags";
+import { applyHeroDamageWithPassives, applyTroopDamageWithPassives, type PassiveDamageSource } from "./battlePassives";
+import { getFirstEquipmentPassivePayload, sideHasEquipmentPassive, troopHasPassiveTag } from "./passiveTags";
+import { syncDynamicPassiveAuras } from "./dynamicPassives";
 
 export type EffectSourceKind = "troop_play" | "troop_destroy" | "spell" | "action" | "equipment" | "field" | "skill" | "ultimate" | "passive";
 
@@ -41,6 +46,7 @@ export function executeEffects(effects: readonly Effect[], ec: EffectContext): v
     if (ec.state.result !== "ongoing") return;
     executeEffect(e, ec);
     syncFullGaugeBuffs(ec.state, ec.ctx);
+    syncDynamicPassiveAuras(ec.state, ec.ctx);
   }
 }
 
@@ -61,8 +67,28 @@ function applyDamageMultipliers(amount: number, ec: EffectContext): number {
     result *= getFullGaugeSpellEffectMultiplier(state, ctx, sourceSide);
   }
 
+  if (sourceKind === "spell" && getTurnFlags(state).currentSpellDouble === true) {
+    result *= 2;
+  }
+
   if (sourceKind === "action") {
     result *= getFullGaugeActionDamageMultiplier(state, ctx, sourceSide);
+  }
+
+  if (sourceKind === "action" && sideHasEquipmentPassive(ctx, side, "OATH_BLADE")) {
+    result *= 1.1;
+  }
+
+  if ((sourceKind === "spell" || sourceKind === "action") && state.field?.cardId === "F_c_08") {
+    result *= 1.5;
+  }
+
+  if (sourceKind === "spell" && state.field?.cardId === "F_c_04") {
+    result *= 1.1;
+  }
+
+  if (sourceKind === "spell" && state.field?.cardId === "F_e_01" && state.field.ownerSide === sourceSide) {
+    result *= 1.25;
   }
 
   // 狂戰士「狂暴」：行動卡傷害 × (1 + 8% × hp_loss_pct/10)
@@ -86,6 +112,9 @@ function applyHealMultipliers(amount: number, ec: EffectContext): number {
   let result = amount;
   if (cls.keyword === "blessing") result = Math.round(result * 1.5);
   if (ec.sourceKind === "spell") result *= getFullGaugeSpellEffectMultiplier(state, ctx, sourceSide);
+  if (ec.sourceKind === "spell" && getTurnFlags(state).currentSpellDouble === true) result *= 2;
+  if (ec.sourceKind === "spell" && state.field?.cardId === "F_c_04") result *= 1.1;
+  if (ec.sourceKind === "spell" && state.field?.cardId === "F_e_01" && state.field.ownerSide === sourceSide) result *= 1.25;
   result = result * healingMultiplier(state);
   return Math.max(0, Math.round(result));
 }
@@ -105,9 +134,10 @@ function executeEffect(e: Effect, ec: EffectContext): void {
         let amount = applyDamageMultipliers(baseAmount, ec);
         if (tg.kind === "hero" && tg.hero) {
           const prevHp = tg.hero.hp;
-          const r = applyHeroDamage(tg.hero, amount, {
+          const r = applyHeroDamageWithPassives(state, ctx, sourceSide, tg.side, amount, {
             ignoreDef: e.ignoreDef,
             finalMultiplier: getFullGaugeHeroDamageTakenMultiplier(state, ctx, tg.side),
+            sourceKind: toPassiveDamageSource(ec.sourceKind),
           });
           totalDealt += r.finalAmount;
           // 觸發英雄受傷量表（血怒）
@@ -119,7 +149,7 @@ function executeEffect(e: Effect, ec: EffectContext): void {
           }
           state.log.push({ turn: state.turn, side: sourceSide, kind: "DAMAGE_HERO", text: `${tg.side === "player" ? "玩家" : "敵方"}英雄受到 ${r.finalAmount} 傷害`, payload: { side: tg.side, amount: r.finalAmount } });
         } else if (tg.kind === "troop" && tg.troop) {
-          const r = applyTroopDamage(tg.troop, amount, { ignoreDef: e.ignoreDef });
+          const r = applyTroopDamageWithPassives(state, ctx, tg.side, tg.troop, amount, { ignoreDef: e.ignoreDef, sourceKind: toPassiveDamageSource(ec.sourceKind) });
           totalDealt += r.finalAmount;
           state.log.push({ turn: state.turn, side: sourceSide, kind: "DAMAGE_TROOP", text: `${tg.troop.cardId} 受到 ${r.finalAmount} 傷害`, payload: { instanceId: tg.troop.instanceId, amount: r.finalAmount } });
         }
@@ -130,6 +160,32 @@ function executeEffect(e: Effect, ec: EffectContext): void {
       }
 
       // 鬥志：行動命中
+      if (ec.sourceKind === "action" && totalDealt > 0) {
+        const lifesteal = getFirstEquipmentPassivePayload<{ pct?: number }>(ctx, sourceState, "HERO_LIFESTEAL");
+        if (sideHasEquipmentPassive(ctx, sourceState, "HERO_LIFESTEAL")) {
+          applyLifesteal(state, sourceSide, totalDealt, lifesteal?.pct ?? 20);
+        }
+        if (sideHasEquipmentPassive(ctx, sourceState, "OATH_BLADE")) {
+          const target = aliveTroops(sourceState)[0];
+          if (target) {
+            target.atk += 2;
+            target.buffs.push({ id: `oath_blade_${state.nextInstanceId++}`, source: "OATH_BLADE", mod: { atk: 2 }, remainingTurns: 9999 });
+          }
+        }
+      }
+
+      if (totalDealt > 0 && sideHasEquipmentPassive(ctx, sourceState, "DM_ENERGY_CORE_PASSIVE")) {
+        const heroDef = ctx.getHero(sourceState.hero.defId);
+        const race = ctx.getRace(heroDef.raceId);
+        addGauge(sourceState.hero, race.gauge.max, 5);
+      }
+
+      if (ec.sourceKind === "action" && totalDealt > 0 && getTurnFlags(state).packTacticsActive === true) {
+        const heroDef = ctx.getHero(sourceState.hero.defId);
+        const race = ctx.getRace(heroDef.raceId);
+        addGauge(sourceState.hero, race.gauge.max, 1);
+      }
+
       if (ec.sourceKind === "action" && totalDealt > 0) {
         addMorale(sourceState.hero, MORALE_ACTION_HIT);
       }
@@ -142,11 +198,13 @@ function executeEffect(e: Effect, ec: EffectContext): void {
       const amount = applyHealMultipliers(evalAmount(e.amount, sourceState, state), ec);
       const targets = resolveTargets(state, e.target, sourceSide);
       for (const tg of targets) {
+        const targetAmount = adjustHealForTarget(state, amount, tg.side, tg.kind);
+        if (targetAmount <= 0) continue;
         if (tg.kind === "hero" && tg.hero) {
-          tg.hero.hp = Math.min(tg.hero.maxHp, tg.hero.hp + amount);
+          tg.hero.hp = Math.min(tg.hero.maxHp, tg.hero.hp + targetAmount);
           state.log.push({ turn: state.turn, side: sourceSide, kind: "HEAL_HERO", text: `${tg.side === "player" ? "玩家" : "敵方"}英雄回復 ${amount} HP`, payload: { side: tg.side, amount } });
         } else if (tg.kind === "troop" && tg.troop) {
-          tg.troop.hp = Math.min(tg.troop.maxHp, tg.troop.hp + amount);
+          tg.troop.hp = Math.min(tg.troop.maxHp, tg.troop.hp + targetAmount);
         }
       }
       break;
@@ -378,6 +436,7 @@ export function reapDeadTroops(state: BattleState, ctx: BattleContext, sourceSid
     for (let i = 0; i < s.troopSlots.length; i++) {
       const t = s.troopSlots[i];
       if (t && t.hp <= 0) {
+        if (tryFieldResurrect(state, t)) continue;
         s.troopSlots[i] = null;
         s.graveyard.push({ instanceId: t.instanceId, cardId: t.cardId });
         if (t.isDevice === true) {
@@ -397,7 +456,10 @@ export function reapDeadTroops(state: BattleState, ctx: BattleContext, sourceSid
     vacateRiftIfOccupantDead(state);
     removed = true;
   }
-  if (removed) reapDeadTroops(state, ctx, sourceSide, depth + 1);
+  if (removed) {
+    syncDynamicPassiveAuras(state, ctx);
+    reapDeadTroops(state, ctx, sourceSide, depth + 1);
+  }
 }
 
 /**
@@ -415,7 +477,9 @@ function reapHandleDeath(state: BattleState, ctx: BattleContext, side: Side, sou
   if (side !== sourceSide) {
     // v3.3：擊殺敵方滲透體 → +10（與一般 +15 互斥）
     const killReward = t.fromRift === true ? MORALE_KILL_RIFT_INFILTRATOR : MORALE_KILL_TROOP;
-    addMorale(getSide(state, sourceSide).hero, killReward);
+    const killerSide = getSide(state, sourceSide);
+    addMorale(killerSide.hero, killReward);
+    if (sideHasEquipmentPassive(ctx, killerSide, "MANA_ON_KILL")) addTempMana(killerSide, 1);
     maybeHealHeroFromFullGaugeTroopKill(state, ctx, sourceSide);
   } else {
     // 我方兵力被殺：自己的鬥志 +5
@@ -434,6 +498,28 @@ function reapHandleDeath(state: BattleState, ctx: BattleContext, side: Side, sou
   }
   // 自動反應：陣亡兵力的同陣營器具對「我方兵力陣亡」反應
   triggerReactionsBySide(state, ctx, "allyTroopDestroyed", side);
+}
+
+function tryFieldResurrect(state: BattleState, troop: TroopInstance): boolean {
+  if (state.field?.cardId !== "F_c_06") return false;
+  const roll = nextRng(state.rngState);
+  state.rngState = roll.state;
+  if (roll.value >= 0.3) return false;
+  troop.hp = Math.max(1, Math.ceil(troop.maxHp * 0.3));
+  return true;
+}
+
+function adjustHealForTarget(state: BattleState, amount: number, targetSide: Side, targetKind: "hero" | "troop"): number {
+  let result = amount;
+  if (targetKind === "troop" && state.field?.cardId === "F_c_07") return 0;
+  if (targetKind === "troop" && state.field?.cardId === "F_c_05") result *= 0.5;
+  if (state.field?.cardId === "F_de_02" && state.field.ownerSide !== targetSide) result *= 0.5;
+  return Math.max(0, Math.round(result));
+}
+
+function toPassiveDamageSource(sourceKind: EffectSourceKind): PassiveDamageSource {
+  if (sourceKind === "troop_play" || sourceKind === "troop_destroy") return "passive";
+  return sourceKind;
 }
 
 const SCRIPTED_HANDLERS: Record<string, (payload: unknown, ec: EffectContext) => void> = {};
@@ -461,7 +547,9 @@ function isNegativeStatus(status: UnitStatus): boolean {
 
 function isBlockedSingleTarget(target: TargetSelector, tg: { kind: "hero" | "troop"; side: Side; troop?: TroopInstance }, ec: EffectContext, ignoreGuard = false): boolean {
   if (target.kind !== "single" || tg.side === ec.sourceSide) return false;
-  const check = canActionTarget(ec.state, ec.sourceSide, tg.kind === "hero" ? "hero" : tg.troop!, ignoreGuard);
+  if (ec.sourceKind === "spell" && tg.kind === "troop" && tg.troop && troopHasPassiveTag(ec.ctx, tg.troop, "UNTARGETABLE_BY_SPELL")) return true;
+  const effectiveIgnoreGuard = ignoreGuard || getTurnFlags(ec.state).ignoreGuardThisTurn === true;
+  const check = canActionTarget(ec.state, ec.sourceSide, tg.kind === "hero" ? "hero" : tg.troop!, effectiveIgnoreGuard);
   return !check.ok;
 }
 

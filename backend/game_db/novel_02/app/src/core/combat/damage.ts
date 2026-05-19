@@ -49,6 +49,21 @@ export function applyHeroDamage(hero: HeroInstance, raw: number, opts: DamageOpt
     }
   }
   if (opts.finalMultiplier !== undefined) amount = Math.round(amount * opts.finalMultiplier);
+  if (!opts.fixed && amount > 0) {
+    if (hero.flags.divineHideOnce === true) {
+      hero.flags.divineHideOnce = false;
+      amount = 0;
+    }
+    const barrierTurns = hero.flags.divineBarrierTurns as number | undefined;
+    const barrierPct = hero.flags.divineBarrierPct as number | undefined;
+    if (amount > 0 && barrierTurns !== undefined && barrierTurns > 0 && barrierPct !== undefined && barrierPct > 0) {
+      amount = Math.max(0, Math.round(amount * (1 - barrierPct / 100)));
+    }
+    const reducePct = hero.flags.damageReducePctThisTurn as number | undefined;
+    if (amount > 0 && reducePct !== undefined && reducePct > 0) {
+      amount = Math.max(0, Math.round(amount * (1 - reducePct / 100)));
+    }
+  }
   hero.hp = Math.max(0, hero.hp - amount);
   return { finalAmount: amount, killed: hero.hp <= 0 };
 }

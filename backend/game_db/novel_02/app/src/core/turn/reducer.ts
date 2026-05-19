@@ -5,9 +5,8 @@ import type { ForgeMode, GameAction, OathChoice } from "./actions";
 import type { Card } from "../types/card";
 import { executeEffects, reapDeadTroops, type EffectContext } from "../effects/registry";
 import { canActionTarget, canTroopAttack, troopVsHero, troopVsTroop, type TroopAttackResult } from "../combat/attack";
-import { applyHeroDamage } from "../combat/damage";
 import { canAffordMana, spendMana } from "../resource/mana";
-import { addMorale, canAffordMorale, MORALE_ACTION_HIT, MORALE_KILL_TROOP, spendMorale } from "../resource/morale";
+import { addMorale, canAffordMorale, spendMorale } from "../resource/morale";
 import { addGauge, gaugeOnEquipmentPlay, gaugeOnForge, gaugeOnSpellCast } from "../resource/gauge";
 import { DEVICE_POOL } from "../../data/cards/devices";
 import { triggerReactionsBySide } from "../effects/reactions";
@@ -21,6 +20,9 @@ import { findTroopBySide } from "../selectors/battle";
 import { isHeroAbilityFrozen } from "../effects/heroAbilityFreeze";
 import { getEffectiveCardCost, syncFullGaugeBuffs } from "../resource/fullGaugeBuff";
 import { spendGauge } from "../resource/gauge";
+import { getTurnFlags } from "./turnFlags";
+import { effectHasScriptedTag, getFirstEquipmentPassivePayload, sideHasEquipmentPassive, troopHasPassiveTag } from "../effects/passiveTags";
+import { syncDynamicPassiveAuras } from "../effects/dynamicPassives";
 
 export interface ApplyResult {
   ok: boolean;
@@ -51,7 +53,10 @@ export function applyAction(state: BattleState, action: GameAction, ctx: BattleC
     case "FORGE_ACTION": result = forgeAction(state, sideKey, side, action.mode, action.handIndex, ctx); break;
     case "END_TURN": result = endTurn(state, sideKey, ctx); break;
   }
-  if (result.ok) syncFullGaugeBuffs(state, ctx);
+  if (result.ok) {
+    syncFullGaugeBuffs(state, ctx);
+    syncDynamicPassiveAuras(state, ctx);
+  }
   return result;
 }
 
@@ -78,6 +83,7 @@ function playTroop(state: BattleState, sideKey: Side, side: BattleState["player"
 
   spendMana(side, cost);
   discardFromHand(side, handIndex);
+  getTurnFlags(state).nextEquipDiscount = undefined;
 
   const inst = createTroopInstance(state, lookup.card);
   side.troopSlots[slotIndex] = inst;
@@ -93,7 +99,9 @@ function playTroop(state: BattleState, sideKey: Side, side: BattleState["player"
   if (lookup.card.type === "device" && heroDef.gauge.onDevicePlay) {
     addGauge(side.hero, race.gauge.max, heroDef.gauge.onDevicePlay);
   }
+  applyDeployEquipmentPassives(ctx, side);
   syncFullGaugeBuffs(state, ctx);
+  syncDynamicPassiveAuras(state, ctx);
 
   // 入場曲
   if (lookup.card.onPlay) {
@@ -135,7 +143,9 @@ function playTroopRift(state: BattleState, sideKey: Side, side: BattleState["pla
   const heroDef = ctx.getHero(side.hero.defId);
   const race = ctx.getRace(heroDef.raceId);
   if (heroDef.gauge.onTroopEnter) addGauge(side.hero, race.gauge.max, heroDef.gauge.onTroopEnter);
+  applyDeployEquipmentPassives(ctx, side);
   syncFullGaugeBuffs(state, ctx);
+  syncDynamicPassiveAuras(state, ctx);
 
   // 入場曲
   if (lookup.card.onPlay) {
@@ -183,7 +193,7 @@ function playSpell(state: BattleState, sideKey: Side, side: BattleState["player"
     syncFullGaugeBuffs(state, ctx);
   }
   if (!canAffordMana(side, cost)) return { ok: false, reason: "not enough mana" };
-  const targetCheck = validateSingleTargetEffects(state, sideKey, lookup.card.effects, targetInstanceId);
+  const targetCheck = validateSingleTargetEffects(state, sideKey, lookup.card.effects, targetInstanceId, ctx, "spell");
   if (!targetCheck.ok) return targetCheck;
 
   spendMana(side, cost);
@@ -199,10 +209,16 @@ function playSpell(state: BattleState, sideKey: Side, side: BattleState["player"
   }
 
   // 共鳴量表 onSpellCast
+  triggerAllySpellCastPassives(state, ctx, sideKey);
   if (heroDef.gauge.onSpellCast) gaugeOnSpellCast(side.hero, race.gauge.max, heroDef.gauge);
   syncFullGaugeBuffs(state, ctx);
 
   state.log.push({ turn: state.turn, side: sideKey, kind: "PLAY_SPELL", text: `施放 ${lookup.card.name}`, payload: { cardId: lookup.card.id } });
+
+  const flags = getTurnFlags(state);
+  const doubleThisSpell = flags.nextSpellDouble === true;
+  if (doubleThisSpell) flags.nextSpellDouble = false;
+  flags.currentSpellDouble = doubleThisSpell;
 
   const ec: EffectContext = { state, ctx, sourceSide: sideKey, sourceKind: "spell", sourceCardId: lookup.card.id };
   // 把 single 目標的 pickedInstanceId 注入；以及 S_c_15 RIFT_CALL 的 handCardInstanceId
@@ -211,6 +227,7 @@ function playSpell(state: BattleState, sideKey: Side, side: BattleState["player"
     .map((e) => maybeInjectTarget(e, targetInstanceId))
     .map((e) => maybeInjectRiftHand(e, riftCardInstanceId));
   executeEffects(effects, ec);
+  flags.currentSpellDouble = false;
 
   reapDeadTroops(state, ctx, sideKey);
   // 自動反應：對立面器具對「敵方施法」反應
@@ -218,6 +235,21 @@ function playSpell(state: BattleState, sideKey: Side, side: BattleState["player"
   reapDeadTroops(state, ctx, sideKey);
   checkVictory(state);
   return { ok: true };
+}
+
+function triggerAllySpellCastPassives(state: BattleState, ctx: BattleContext, sideKey: Side): void {
+  const side = getSide(state, sideKey);
+  for (const troop of aliveTroops(side)) {
+    const card = ctx.getCard(troop.cardId);
+    if (card.type !== "troop" && card.type !== "device") continue;
+    if (effectHasScriptedTag(card.passive, "ATK_PER_SPELL_CAST")) {
+      troop.atk += 1;
+    }
+    if (effectHasScriptedTag(card.passive, "HP_PER_SPELL_CAST")) {
+      troop.hp += 3;
+      troop.maxHp += 3;
+    }
+  }
 }
 
 function maybeInjectRiftHand<T>(e: T, riftCardInstanceId: string | undefined): T {
@@ -252,11 +284,14 @@ function playActionCard(state: BattleState, sideKey: Side, side: BattleState["pl
   if (!lookup) return { ok: false, reason: "invalid hand index" };
   if (lookup.card.type !== "action") return { ok: false, reason: "not an action card" };
   if (isHeroAbilityFrozen(side.hero, "action")) return { ok: false, reason: "action cards frozen" };
+  const flags = getTurnFlags(state);
+  if (flags.actionDisabledThisTurn) return { ok: false, reason: "action cards disabled this turn" };
+  if (flags.actionCardsPlayedThisTurn >= 1 + flags.extraActionsThisTurn) return { ok: false, reason: "no action plays remaining this turn" };
   const cost = getEffectiveCardCost(state, ctx, sideKey, lookup.card);
   if (!canAffordMana(side, cost)) return { ok: false, reason: "not enough mana" };
 
   // 守護優先檢查（若效果有 single 目標且未 ignoreGuard）
-  const targetCheck = validateSingleTargetEffects(state, sideKey, lookup.card.effects, targetInstanceId);
+  const targetCheck = validateSingleTargetEffects(state, sideKey, lookup.card.effects, targetInstanceId, ctx, "action");
   if (!targetCheck.ok) return targetCheck;
 
   spendMana(side, cost);
@@ -269,20 +304,24 @@ function playActionCard(state: BattleState, sideKey: Side, side: BattleState["pl
   if (lookup.card.postEffects) {
     executeEffects(lookup.card.postEffects, { state, ctx, sourceSide: sideKey, sourceKind: "action", sourceCardId: lookup.card.id });
   }
+  flags.actionCardsPlayedThisTurn += 1;
 
   reapDeadTroops(state, ctx, sideKey);
   checkVictory(state);
   return { ok: true };
 }
 
-function validateSingleTargetEffects(state: BattleState, sideKey: Side, effects: readonly Effect[], targetInstanceId: string | undefined): ApplyResult {
+function validateSingleTargetEffects(state: BattleState, sideKey: Side, effects: readonly Effect[], targetInstanceId: string | undefined, ctx: BattleContext, sourceKind: "spell" | "action" | "skill" | "ultimate"): ApplyResult {
   if (!targetInstanceId) return { ok: true };
   for (const e of effects) {
     if (!("target" in e) || !e.target || e.target.kind !== "single") continue;
     if ((targetInstanceId === "H_player" && sideKey === "player") || (targetInstanceId === "H_enemy" && sideKey === "enemy")) continue;
-    const ignoreGuard = "ignoreGuard" in e && (e as { ignoreGuard?: boolean }).ignoreGuard === true;
+    const ignoreGuard = ("ignoreGuard" in e && (e as { ignoreGuard?: boolean }).ignoreGuard === true) || getTurnFlags(state).ignoreGuardThisTurn === true;
     const targetEntity = findTargetByInstanceId(state, targetInstanceId);
     if (!targetEntity) continue;
+    if (sourceKind === "spell" && targetEntity !== "hero" && troopHasPassiveTag(ctx, targetEntity, "UNTARGETABLE_BY_SPELL")) {
+      return { ok: false, reason: "untargetable by spell" };
+    }
     const check = canActionTarget(state, sideKey, targetEntity, ignoreGuard);
     if (!check.ok) return { ok: false, reason: check.reason };
   }
@@ -293,6 +332,25 @@ function findTargetByInstanceId(state: BattleState, instanceId: string): TroopIn
   if (instanceId === "H_player" || instanceId === "H_enemy") return "hero";
   const f = findTroopBySide(state, instanceId);
   return f ? f.troop : null;
+}
+
+function applyDeployEquipmentPassives(ctx: BattleContext, side: BattleState["player"]): void {
+  if (!sideHasEquipmentPassive(ctx, side, "MORALE_ON_DEPLOY")) return;
+  const payload = getFirstEquipmentPassivePayload<{ amount?: number }>(ctx, side, "MORALE_ON_DEPLOY");
+  addMorale(side.hero, payload?.amount ?? 5);
+}
+
+function syncSpecialEquipmentFlags(ctx: BattleContext, side: BattleState["player"]): void {
+  if (sideHasEquipmentPassive(ctx, side, "Y_ESSENCE_CORE")) side.hero.flags.essenceMaxBonus = 50;
+  else delete side.hero.flags.essenceMaxBonus;
+}
+
+function triggerEquipmentPlayedTroopPassives(state: BattleState, ctx: BattleContext, side: BattleState["player"]): void {
+  for (const troop of aliveTroops(side)) {
+    if (!troopHasPassiveTag(ctx, troop, "STEELBEARD_FURY")) continue;
+    troop.atk += 3;
+    troop.buffs.push({ id: `steelbeard_${state.nextInstanceId++}`, source: "STEELBEARD_FURY", mod: { atk: 3 }, remainingTurns: 1 });
+  }
 }
 
 function playEquipment(state: BattleState, sideKey: Side, side: BattleState["player"], handIndex: number, ctx: BattleContext): ApplyResult {
@@ -308,6 +366,7 @@ function playEquipment(state: BattleState, sideKey: Side, side: BattleState["pla
   // 替換舊裝備（移除舊修正）— MVP：只追蹤 cardId，不還原修正（簡化）
   const slot = lookup.card.slot;
   side.hero.equipment[slot] = lookup.card.id;
+  syncSpecialEquipmentFlags(ctx, side);
   // 套用修正
   if (lookup.card.modifiers.atk) side.hero.atk += lookup.card.modifiers.atk;
   if (lookup.card.modifiers.def) side.hero.def += lookup.card.modifiers.def;
@@ -328,6 +387,7 @@ function playEquipment(state: BattleState, sideKey: Side, side: BattleState["pla
   if (lookup.card.onPlay) {
     executeEffects(lookup.card.onPlay, { state, ctx, sourceSide: sideKey, sourceKind: "equipment", sourceCardId: lookup.card.id });
   }
+  triggerEquipmentPlayedTroopPassives(state, ctx, side);
   // 自動反應：對立面器具對「敵方裝備上場」反應
   triggerReactionsBySide(state, ctx, "enemyEquipmentPlayed", sideKey);
   reapDeadTroops(state, ctx, sideKey);
@@ -410,6 +470,10 @@ function troopAttack(state: BattleState, sideKey: Side, attackerId: string, targ
       payload: { ...log.payload, ...attackVisualPayload },
     });
   }
+  if (attackResult.defenderDamage > 0 && troopHasPassiveTag(ctx, attacker.troop, "ELDER_TOUCH")) {
+    const r = applyStabilityDelta(state, -1);
+    applyCorruptionStageEffects(state, r.stageJustReached);
+  }
 
   reapDeadTroops(state, ctx, sideKey);
   checkVictory(state);
@@ -424,7 +488,7 @@ function useSkill(state: BattleState, sideKey: Side, side: BattleState["player"]
   if (skill.cost.morale && !canAffordMorale(side.hero, skill.cost.morale)) return { ok: false, reason: "not enough morale" };
   if (skill.cost.mana && !canAffordMana(side, skill.cost.mana)) return { ok: false, reason: "not enough mana" };
   if (skill.cost.gauge && side.hero.gaugeValue < skill.cost.gauge) return { ok: false, reason: "not enough gauge" };
-  const targetCheck = validateSingleTargetEffects(state, sideKey, skill.effects, targetInstanceId);
+  const targetCheck = validateSingleTargetEffects(state, sideKey, skill.effects, targetInstanceId, ctx, "skill");
   if (!targetCheck.ok) return targetCheck;
 
   if (skill.cost.morale) spendMorale(side.hero, skill.cost.morale);
@@ -449,7 +513,7 @@ function useUltimate(state: BattleState, sideKey: Side, side: BattleState["playe
   const ult = heroDef.ultimate;
   if (side.hero.flags.ultimateUsed) return { ok: false, reason: "ultimate already used" };
   if (ult.cost.morale && !canAffordMorale(side.hero, ult.cost.morale)) return { ok: false, reason: "not enough morale" };
-  const targetCheck = validateSingleTargetEffects(state, sideKey, ult.effects, targetInstanceId);
+  const targetCheck = validateSingleTargetEffects(state, sideKey, ult.effects, targetInstanceId, ctx, "ultimate");
   if (!targetCheck.ok) return targetCheck;
 
   if (ult.cost.morale) spendMorale(side.hero, ult.cost.morale);

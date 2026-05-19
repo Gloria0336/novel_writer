@@ -5,6 +5,7 @@ import type { Card } from "../types/card";
 import type { RaceFrame } from "../types/hero";
 import { getSide } from "../selectors/battle";
 import { addTempMana } from "./mana";
+import { getTurnFlags } from "../turn/turnFlags";
 
 export const FULL_GAUGE_BUFF_SOURCE = "FULL_GAUGE_BUFF";
 
@@ -17,7 +18,7 @@ export function isFullGaugeBuffSource(source: string): boolean {
 }
 
 export function isFullGaugeActive(side: SideState, race: RaceFrame): boolean {
-  return side.hero.gaugeValue === race.gauge.max;
+  return side.hero.gaugeValue === getEffectiveGaugeMax(side, race);
 }
 
 export function syncFullGaugeBuffs(state: BattleState, ctx: BattleContext): void {
@@ -74,6 +75,20 @@ export function getEffectiveCardCost(state: BattleState, ctx: BattleContext, sid
         (isDeviceCard(card) && rule.cardTypes.includes("device"));
       if (applies) cost = Math.max(rule.minCost, cost - rule.amount);
     }
+  }
+
+  const flags = getTurnFlags(state);
+  if ((card.type === "troop" || card.type === "device") && flags.deployDiscount) {
+    cost = Math.max(0, cost - flags.deployDiscount);
+  }
+  if (card.type === "equipment" && flags.nextEquipDiscount) {
+    cost = Math.max(0, cost - flags.nextEquipDiscount);
+  }
+  if ((card.type === "troop" || card.type === "device") && state.field?.cardId === "F_e_01") {
+    cost += 1;
+  }
+  if (card.type === "equipment" && state.field?.cardId === "F_dw_01" && state.field.ownerSide === side) {
+    cost = Math.max(0, cost - 1);
   }
 
   return cost;
@@ -227,4 +242,9 @@ function collectSideTroops(state: BattleState, side: Side, sideState: SideState)
 
 function isDeviceTroop(troop: TroopInstance): boolean {
   return troop.isDevice === true;
+}
+
+function getEffectiveGaugeMax(side: SideState, race: RaceFrame): number {
+  const bonus = side.hero.flags.essenceMaxBonus as number | undefined;
+  return race.gauge.max + (typeof bonus === "number" ? bonus : 0);
 }

@@ -5,13 +5,19 @@ import type { BattleContext } from "../types/context";
 import type { Keyword } from "../types/keyword";
 import type { ActiveStatusBuff } from "../types/status";
 import { drawCards } from "../deck/draw";
-import { refillMana } from "../resource/mana";
-import { gaugeOnTroopSurvivePerTurn, gaugeOnTurnStart } from "../resource/gauge";
+import { nextRng } from "../deck/prng";
+import { addTempMana, refillMana } from "../resource/mana";
+import { addGauge, gaugeOnTroopSurvivePerTurn, gaugeOnTurnStart } from "../resource/gauge";
 import { tickRiftTremor } from "../resource/rift";
 import { aliveTroops, getSide, otherSide } from "../selectors/battle";
 import { isHeroAbilityFrozen, tickHeroAbilityFreezes } from "../effects/heroAbilityFreeze";
-import { executeEffects } from "../effects/registry";
+import { executeEffects, reapDeadTroops } from "../effects/registry";
 import { applyFullGaugeTurnStartBonuses, isFullGaugeBuffSource, syncFullGaugeBuffs } from "../resource/fullGaugeBuff";
+import { applyTroopDamageWithPassives } from "../effects/battlePassives";
+import { getFirstEquipmentPassivePayload, sideHasEquipmentPassive } from "../effects/passiveTags";
+import { resetTurnFlags } from "./turnFlags";
+import { syncDynamicPassiveAuras, isDynamicPassiveSource } from "../effects/dynamicPassives";
+import { applyCorruptionStageEffects, applyStabilityDelta } from "../resource/stability";
 
 export function checkVictory(state: BattleState): void {
   if (state.result !== "ongoing") return;
@@ -36,6 +42,7 @@ export function checkVictory(state: BattleState): void {
 export function startTurnFor(state: BattleState, side: Side, ctx: BattleContext): void {
   state.activeSide = side;
   state.phase = "start";
+  resetTurnFlags(state);
 
   const sideState = getSide(state, side);
   const heroDef = ctx.getHero(sideState.hero.defId);
@@ -44,6 +51,8 @@ export function startTurnFor(state: BattleState, side: Side, ctx: BattleContext)
   // 抽 1 張
   const draw = drawCards(sideState, 1, state.rngState);
   state.rngState = draw.newRngState;
+
+  applyLuckyDraw(state, ctx, side, sideState);
 
   // 魔力上限 +1（受種族絕對上限封頂）；魔力回復凍結時跳過回復但清掉臨時魔力。
   if (isHeroAbilityFrozen(sideState.hero, "manaRegen")) {
@@ -58,7 +67,11 @@ export function startTurnFor(state: BattleState, side: Side, ctx: BattleContext)
     refillMana(sideState, sideState.manaCapAbsolute, state.turn);
   }
 
+  applyStartTurnFieldEffects(state, ctx, side);
+  applyStartTurnEquipmentPassives(state, ctx, side, sideState, race.gauge.max);
+
   syncFullGaugeBuffs(state, ctx);
+  syncDynamicPassiveAuras(state, ctx);
   applyFullGaugeTurnStartBonuses(state, ctx, side);
 
   // 重置回合計數
@@ -98,7 +111,8 @@ export function startTurnFor(state: BattleState, side: Side, ctx: BattleContext)
 
   // 量表類型：精靈共鳴每回合重置
   if (race.gauge.id === "resonance") {
-    sideState.hero.gaugeValue = 0;
+    if (sideState.hero.flags.resonanceNoReset === true) sideState.hero.flags.resonanceNoReset = false;
+    else sideState.hero.gaugeValue = 0;
     syncFullGaugeBuffs(state, ctx);
   }
 
@@ -120,6 +134,7 @@ export function startTurnFor(state: BattleState, side: Side, ctx: BattleContext)
   });
 
   state.phase = "main";
+  syncDynamicPassiveAuras(state, ctx);
 }
 
 export function endTurnFor(state: BattleState, side: Side, ctx?: BattleContext): void {
@@ -151,6 +166,8 @@ export function endTurnFor(state: BattleState, side: Side, ctx?: BattleContext):
   tickHeroBuffs(sideState.hero);
   tickStatusBuffs(sideState.hero);
   tickHeroAbilityFreezes(sideState.hero);
+  tickHeroEffectFlags(sideState.hero);
+  if (ctx) syncDynamicPassiveAuras(state, ctx);
 
   state.log.push({ turn: state.turn, side, kind: "TURN_END", text: `回合 ${state.turn} 結束（${side === "player" ? "玩家" : "敵方"}）` });
 
@@ -166,10 +183,122 @@ export function advanceToNextSide(state: BattleState): void {
   state.activeSide = next;
 }
 
+function applyLuckyDraw(state: BattleState, ctx: BattleContext, side: Side, sideState: SideState): void {
+  if (!sideHasEquipmentPassive(ctx, sideState, "LUCKY_DRAW_CHANCE")) return;
+  const payload = getFirstEquipmentPassivePayload<{ pct?: number }>(ctx, sideState, "LUCKY_DRAW_CHANCE");
+  const pct = payload?.pct ?? 30;
+  const roll = nextRng(state.rngState);
+  state.rngState = roll.state;
+  if (roll.value * 100 >= pct) return;
+  const draw = drawCards(sideState, 1, state.rngState);
+  state.rngState = draw.newRngState;
+  if (draw.drawn > 0) state.log.push({ turn: state.turn, side, kind: "LUCKY_DRAW", text: "Lucky draw +1" });
+}
+
+function applyStartTurnEquipmentPassives(state: BattleState, ctx: BattleContext, side: Side, sideState: SideState, gaugeMax: number): void {
+  if (sideHasEquipmentPassive(ctx, sideState, "Y_ESSENCE_CORE")) sideState.hero.flags.essenceMaxBonus = 50;
+  else delete sideState.hero.flags.essenceMaxBonus;
+  if (sideHasEquipmentPassive(ctx, sideState, "DRAGONSCALE")) {
+    sideState.hero.hp = Math.min(sideState.hero.maxHp, sideState.hero.hp + 3);
+  }
+  if (sideHasEquipmentPassive(ctx, sideState, "MOON_RELIC")) {
+    addGauge(sideState.hero, gaugeMax, 10);
+  }
+}
+
+function applyStartTurnFieldEffects(state: BattleState, ctx: BattleContext, side: Side): void {
+  const field = state.field;
+  if (!field) return;
+  const active = getSide(state, side);
+  let damaged = false;
+
+  if (field.cardId === "F_c_04") {
+    addTempMana(active, 1);
+  }
+
+  if (field.cardId === "F_dw_01" && field.ownerSide === side) {
+    const heroDef = ctx.getHero(active.hero.defId);
+    const race = ctx.getRace(heroDef.raceId);
+    addGauge(active.hero, race.gauge.max, 10);
+  }
+
+  if (field.cardId === "F_de_01" && field.ownerSide === side) {
+    const r = applyStabilityDelta(state, -3);
+    applyCorruptionStageEffects(state, r.stageJustReached);
+    const heroDef = ctx.getHero(active.hero.defId);
+    const race = ctx.getRace(heroDef.raceId);
+    addGauge(active.hero, race.gauge.max, 5);
+  }
+
+  if (field.cardId === "F_c_05") {
+    damaged = damageSideTroops(state, ctx, field.ownerSide, "player", 3, "fire") || damaged;
+    damaged = damageSideTroops(state, ctx, field.ownerSide, "enemy", 3, "fire") || damaged;
+  }
+
+  if (field.cardId === "F_s_01" && field.ownerSide !== side) {
+    damaged = damageSideTroops(state, ctx, field.ownerSide, side, 2, "fire") || damaged;
+  }
+
+  if (field.cardId === "F_c_07" && field.ownerSide === side) {
+    const targetSide = otherSide(side);
+    const target = aliveTroops(getSide(state, targetSide))[0];
+    if (target) {
+      applyTroopDamageWithPassives(state, ctx, targetSide, target, 6, { sourceKind: "field" });
+      damaged = true;
+    }
+  }
+
+  if (field.cardId === "F_de_02" && field.ownerSide === side) {
+    damaged = damageSideTroops(state, ctx, field.ownerSide, otherSide(side), 4, "fire") || damaged;
+  }
+
+  if (damaged) reapDeadTroops(state, ctx, field.ownerSide);
+}
+
+function damageSideTroops(
+  state: BattleState,
+  ctx: BattleContext,
+  sourceSide: Side,
+  targetSide: Side,
+  amount: number,
+  family: "fire" | "normal",
+): boolean {
+  let damaged = false;
+  for (const troop of aliveTroops(getSide(state, targetSide))) {
+    const result = applyTroopDamageWithPassives(state, ctx, targetSide, troop, amount, { sourceKind: "field", damageFamily: family });
+    damaged = result.finalAmount > 0 || damaged;
+  }
+  if (damaged) state.log.push({ turn: state.turn, side: sourceSide, kind: "FIELD_DAMAGE", text: `Field damage ${amount}` });
+  return damaged;
+}
+
+function tickHeroEffectFlags(hero: HeroInstance): void {
+  const barrierTurns = hero.flags.divineBarrierTurns as number | undefined;
+  if (barrierTurns !== undefined) {
+    const next = barrierTurns - 1;
+    if (next > 0) hero.flags.divineBarrierTurns = next;
+    else {
+      delete hero.flags.divineBarrierTurns;
+      delete hero.flags.divineBarrierPct;
+    }
+  }
+  delete hero.flags.damageReducePctThisTurn;
+  tickNumberFlag(hero, "primordialFey");
+  tickNumberFlag(hero, "rageLockTurns");
+}
+
+function tickNumberFlag(hero: HeroInstance, key: string): void {
+  const value = hero.flags[key] as number | undefined;
+  if (value === undefined) return;
+  const next = value - 1;
+  if (next > 0) hero.flags[key] = next;
+  else delete hero.flags[key];
+}
+
 function tickTroopBuffs(troop: TroopInstance): void {
   const kept: ActiveBuff[] = [];
   for (const buff of troop.buffs) {
-    if (isFullGaugeBuffSource(buff.source)) {
+    if (isFullGaugeBuffSource(buff.source) || isDynamicPassiveSource(buff.source)) {
       kept.push(buff);
       continue;
     }
@@ -186,7 +315,7 @@ function tickTroopBuffs(troop: TroopInstance): void {
 function tickHeroBuffs(hero: HeroInstance): void {
   const kept: ActiveBuff[] = [];
   for (const buff of hero.buffs) {
-    if (isFullGaugeBuffSource(buff.source)) {
+    if (isFullGaugeBuffSource(buff.source) || isDynamicPassiveSource(buff.source)) {
       kept.push(buff);
       continue;
     }

@@ -8,7 +8,7 @@ import { addTempMana } from "../../resource/mana";
 import { drawCards } from "../../deck/draw";
 import { createTroopInstance } from "../../turn/factories";
 import { applyStabilityDelta, applyCorruptionStageEffects } from "../../resource/stability";
-import { getTurnFlags } from "./scripted";
+import { getTurnFlags } from "../../turn/turnFlags";
 import type { TroopCard } from "../../types/card";
 
 /**
@@ -23,6 +23,7 @@ export function registerRaceCardScripted(): void {
   registerFey();
   registerBeast();
   registerDemigod();
+  registerDemon();
 }
 
 // ============================================================
@@ -234,6 +235,7 @@ function registerDwarf(): void {
     else if (slots.trinket) { cardId = slots.trinket; slots.trinket = undefined; }
     if (cardId) {
       const card = ec.ctx.getCard(cardId);
+      if (cardId === "E_f_01") delete (me.hero.flags as { essenceMaxBonus?: number }).essenceMaxBonus;
       addTempMana(me, card.cost * 2);
       return;
     }
@@ -377,8 +379,8 @@ function registerFey(): void {
   // S_f_03 本回合受傷 -50%
   registerScripted("Y_DAMAGE_REDUCE_THIS_TURN", (payload, ec) => {
     const pct = (payload as { pct?: number })?.pct ?? 50;
-    const flags = getTurnFlags(ec.state);
-    (flags as unknown as { damageReducePct?: number }).damageReducePct = pct;
+    const hero = getSide(ec.state, ec.sourceSide).hero;
+    (hero.flags as { damageReducePctThisTurn?: number }).damageReducePctThisTurn = pct;
   });
 
   // S_f_04 百鬼夜行：人形召 2 個幻影；妖形召 1 個妖獸
@@ -604,5 +606,65 @@ function registerDemigod(): void {
       const t = me.troopSlots[i];
       if (t) t.hp = 0;
     }
+  });
+}
+
+function registerDemon(): void {
+  registerScripted("DM_FLAME_IMMUNE", () => {});
+  registerScripted("DM_ENERGY_CORE_PASSIVE", () => {});
+  registerScripted("DM_CURSE_GENERAL_AURA", () => {});
+  registerScripted("DM_DOOM_GIANT_SPELL_IMMUNE", () => {});
+  registerScripted("DM_SCORCHED_FIELD", () => {});
+
+  registerScripted("DM_FREEZE_RANDOM_ENEMY", (payload, ec) => {
+    const turns = (payload as { turns?: number } | undefined)?.turns ?? 2;
+    const enemy = getSide(ec.state, otherSide(ec.sourceSide));
+    const target = aliveTroops(enemy)[0];
+    if (!target) return;
+    const prev = target.frozenTurns;
+    target.frozenTurns = Math.max(prev, turns);
+    if (turns >= prev) delete target.frozenDisplayName;
+  });
+
+  registerScripted("DM_CORRUPTION_SPREAD", (_payload, ec) => {
+    const enemy = getSide(ec.state, otherSide(ec.sourceSide));
+    for (const troop of aliveTroops(enemy)) {
+      troop.atk = Math.max(0, troop.atk - 2);
+      troop.def = Math.max(0, troop.def - 2);
+      troop.buffs.push({
+        id: `dm_corrupt_${ec.state.nextInstanceId++}`,
+        source: "DM_CORRUPTION_SPREAD",
+        mod: { atk: -2, def: -2 },
+        remainingTurns: 2,
+      });
+    }
+    const me = getSide(ec.state, ec.sourceSide);
+    const heroDef = ec.ctx.getHero(me.hero.defId);
+    const race = ec.ctx.getRace(heroDef.raceId);
+    addGauge(me.hero, race.gauge.max, 15);
+  });
+
+  registerScripted("DM_RIFT_FIELD", (_payload, ec) => {
+    const r = applyStabilityDelta(ec.state, -3);
+    applyCorruptionStageEffects(ec.state, r.stageJustReached);
+    const me = getSide(ec.state, ec.sourceSide);
+    const heroDef = ec.ctx.getHero(me.hero.defId);
+    const race = ec.ctx.getRace(heroDef.raceId);
+    addGauge(me.hero, race.gauge.max, 5);
+  });
+
+  registerScripted("DM_DARK_DESCENT", (_payload, ec) => {
+    const me = getSide(ec.state, ec.sourceSide);
+    for (let i = 0; i < 3; i++) {
+      const slotIdx = freeSlotIndex(me);
+      if (slotIdx < 0) break;
+      const card = ec.ctx.getCard("T_s_34");
+      if (card.type !== "troop") break;
+      me.troopSlots[slotIdx] = createTroopInstance(ec.state, card as TroopCard);
+    }
+    const heroDef = ec.ctx.getHero(me.hero.defId);
+    const race = ec.ctx.getRace(heroDef.raceId);
+    addGauge(me.hero, race.gauge.max, 40);
+    applyStabilityDelta(ec.state, -10);
   });
 }

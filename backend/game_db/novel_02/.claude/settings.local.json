@@ -19,7 +19,8 @@
       "Bash(echo \"tsc exit=$?\")",
       "Bash(echo \"EXIT=$?\")",
       "Bash(git stash *)",
-      "Bash(node -e \"const m = require\\('./src/data/cards/troops.ts'\\); console.log\\('cannot directly'\\)\")"
+      "Bash(node -e \"const m = require\\('./src/data/cards/troops.ts'\\); console.log\\('cannot directly'\\)\")",
+      "Bash(ls -la .claude/ 2>&1; echo \"---\"; ls -la ../../../.claude/worktree 2>&1; echo \"---\"; ls -la /c/Users/user/.claude/worktree 2>&1)"
     ]
   }
 }

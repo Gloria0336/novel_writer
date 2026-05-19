@@ -21,4 +21,6 @@ export const BOSS_FEY_REBEL_KING_PROFILE: EnemyProfile = {
     saveUntilThreshold: 0.4,
     spendOnUltimateAt: 0.7,
   },
+  summonPool: ["T_s_31", "T_s_32"],
+  summonsPerTurn: { min: 1, max: 1 },
 };

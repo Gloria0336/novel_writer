@@ -21,4 +21,6 @@ export const BOSS_INFERNAL_DEMON_PROFILE: EnemyProfile = {
     saveUntilThreshold: 0.4,
     spendOnUltimateAt: 0.7,
   },
+  summonPool: ["T_de_02", "T_de_05"],
+  summonsPerTurn: { min: 1, max: 1 },
 };
