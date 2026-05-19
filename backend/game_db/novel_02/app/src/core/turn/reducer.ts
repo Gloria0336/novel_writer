@@ -23,6 +23,7 @@ import { spendGauge } from "../resource/gauge";
 import { getTurnFlags } from "./turnFlags";
 import { effectHasScriptedTag, getFirstEquipmentPassivePayload, sideHasEquipmentPassive, troopHasPassiveTag } from "../effects/passiveTags";
 import { syncDynamicPassiveAuras } from "../effects/dynamicPassives";
+import { canPlayField } from "../effects/omenHooks";
 
 export interface ApplyResult {
   ok: boolean;
@@ -77,21 +78,27 @@ function playTroop(state: BattleState, sideKey: Side, side: BattleState["player"
   if (lookup.card.type !== "troop" && lookup.card.type !== "device") return { ok: false, reason: "not a troop or device card" };
   if (lookup.card.type === "troop" && isHeroAbilityFrozen(side.hero, "troop")) return { ok: false, reason: "troop cards frozen" };
   if (slotIndex < 0 || slotIndex >= side.troopSlots.length) return { ok: false, reason: "invalid slot" };
-  if (side.troopSlots[slotIndex] !== null) return { ok: false, reason: "slot occupied" };
+  const heroDef = ctx.getHero(side.hero.defId);
+  const reserveFormation = side.troopSlots[slotIndex] !== null && getTurnFlags(state).reserveFormationActive === true;
+  const bloodSacrifice = side.troopSlots[slotIndex] !== null && canBloodSacrificeDeploy(state, sideKey, lookup.card, ctx);
+  if (side.troopSlots[slotIndex] !== null && !bloodSacrifice && !reserveFormation) return { ok: false, reason: "slot occupied" };
   const cost = getEffectiveCardCost(state, ctx, sideKey, lookup.card);
   if (!canAffordMana(side, cost)) return { ok: false, reason: "not enough mana" };
 
   spendMana(side, cost);
+  const sacrifice = bloodSacrifice ? consumeBloodSacrifice(state, sideKey, side, slotIndex, ctx) : reserveFormation ? consumeReserveFormation(state, sideKey, side, ctx) : null;
+  if (bloodSacrifice && !sacrifice) return { ok: false, reason: "no sacrifice target" };
+  if (reserveFormation && !sacrifice) return { ok: false, reason: "no reserve formation target" };
   discardFromHand(side, handIndex);
   getTurnFlags(state).nextEquipDiscount = undefined;
 
   const inst = createTroopInstance(state, lookup.card);
+  if (bloodSacrifice && sacrifice) applyBloodSacrificeBonus(state, inst, lookup.card, sacrifice);
   side.troopSlots[slotIndex] = inst;
   const eventKind = lookup.card.type === "device" ? "PLAY_DEVICE" : "PLAY_TROOP";
   state.log.push({ turn: state.turn, side: sideKey, kind: eventKind, text: `部署 ${lookup.card.name}`, payload: { cardId: lookup.card.id, instanceId: inst.instanceId, slotIndex } });
 
   // 種族量表：onTroopEnter / onDevicePlay
-  const heroDef = ctx.getHero(side.hero.defId);
   const race = ctx.getRace(heroDef.raceId);
   if (lookup.card.type === "troop" && heroDef.gauge.onTroopEnter) {
     addGauge(side.hero, race.gauge.max, heroDef.gauge.onTroopEnter);
@@ -113,6 +120,61 @@ function playTroop(state: BattleState, sideKey: Side, side: BattleState["player"
   reapDeadTroops(state, ctx, sideKey);
   checkVictory(state);
   return { ok: true };
+}
+
+function canBloodSacrificeDeploy(state: BattleState, sideKey: Side, card: Card, ctx: BattleContext): boolean {
+  if (card.type !== "troop") return false;
+  if (card.cost < 4) return false;
+  const side = getSide(state, sideKey);
+  return side.troopSlots.some(Boolean) && ctx.getHero(side.hero.defId).raceId === "beast";
+}
+
+function consumeBloodSacrifice(state: BattleState, sideKey: Side, side: BattleState["player"], slotIndex: number, ctx: BattleContext): TroopInstance | null {
+  const sacrifice = side.troopSlots[slotIndex] ?? side.troopSlots.find((t) => t !== null) ?? null;
+  if (!sacrifice) return null;
+  const idx = side.troopSlots.findIndex((t) => t?.instanceId === sacrifice.instanceId);
+  if (idx >= 0) side.troopSlots[idx] = null;
+
+  const card = ctx.getCard(sacrifice.cardId);
+  if ((card.type === "troop" || card.type === "device") && card.onDestroy && !sacrifice.isPhantom && !sacrifice.isConstruct) {
+    executeEffects(card.onDestroy, { state, ctx, sourceSide: sideKey, sourceKind: "troop_destroy", sourceInstanceId: sacrifice.instanceId, sourceCardId: sacrifice.cardId });
+  }
+  side.graveyard.push({ instanceId: sacrifice.instanceId, cardId: sacrifice.cardId });
+  state.log.push({ turn: state.turn, side: sideKey, kind: "BLOOD_SACRIFICE", text: `${card.name} 成為血祭祭品`, payload: { instanceId: sacrifice.instanceId, cardId: sacrifice.cardId } });
+  return sacrifice;
+}
+
+function consumeReserveFormation(state: BattleState, sideKey: Side, side: BattleState["player"], ctx: BattleContext): TroopInstance | null {
+  const idx = side.troopSlots.findIndex((t) => t !== null);
+  if (idx < 0) return null;
+  const troop = side.troopSlots[idx]!;
+  side.troopSlots[idx] = null;
+  const card = ctx.getCard(troop.cardId);
+  if ((card.type === "troop" || card.type === "device") && card.onDestroy && !troop.isPhantom && !troop.isConstruct) {
+    executeEffects(card.onDestroy, { state, ctx, sourceSide: sideKey, sourceKind: "troop_destroy", sourceInstanceId: troop.instanceId, sourceCardId: troop.cardId });
+  }
+  side.graveyard.push({ instanceId: troop.instanceId, cardId: troop.cardId });
+  addMorale(side.hero, 5);
+  getTurnFlags(state).reserveFormationActive = false;
+  state.log.push({ turn: state.turn, side: sideKey, kind: "RESERVE_FORMATION", text: `${card.name} 退入預備陣形並騰出欄位`, payload: { instanceId: troop.instanceId, cardId: troop.cardId } });
+  return troop;
+}
+
+function applyBloodSacrificeBonus(state: BattleState, inst: TroopInstance, card: Card, sacrifice: TroopInstance): void {
+  inst.atk += 5;
+  inst.hp += 5;
+  inst.maxHp += 5;
+  inst.buffs.push({ id: `blood_sacrifice_${state.nextInstanceId++}`, source: "BLOOD_SACRIFICE", mod: { atk: 5, hp: 5 }, remainingTurns: 9999 });
+  if (inst.atk >= 0) {
+    const transfer = getTurnFlags(state).bloodSacrificeTransferAtk === true ? sacrifice.atk : 0;
+    if (transfer > 0) {
+      inst.atk += transfer;
+      inst.buffs.push({ id: `blood_ritual_${state.nextInstanceId++}`, source: "A_b_03", mod: { atk: transfer }, remainingTurns: 9999 });
+      getTurnFlags(state).bloodSacrificeTransferAtk = false;
+    }
+  }
+  if (card.cost >= 6) inst.keywords.add("rush");
+  if (card.cost >= 7) inst.keywords.add("lifesteal");
 }
 
 function playTroopRift(state: BattleState, sideKey: Side, side: BattleState["player"], handIndex: number, ctx: BattleContext): ApplyResult {
@@ -276,6 +338,11 @@ function maybeInjectTarget<T>(e: T, instanceId: string | undefined): T {
   if (eff.target && eff.target.kind === "single" && !eff.target.pickedInstanceId) {
     return { ...(e as object), target: { ...eff.target, pickedInstanceId: instanceId } } as T;
   }
+  const scripted = e as unknown as { kind?: string; payload?: unknown };
+  if (scripted.kind === "scripted") {
+    const payload = typeof scripted.payload === "object" && scripted.payload !== null ? scripted.payload : {};
+    return { ...(e as object), payload: { ...(payload as object), targetInstanceId: instanceId } } as T;
+  }
   return e;
 }
 
@@ -283,6 +350,8 @@ function playActionCard(state: BattleState, sideKey: Side, side: BattleState["pl
   const lookup = lookupCard(side, handIndex, ctx);
   if (!lookup) return { ok: false, reason: "invalid hand index" };
   if (lookup.card.type !== "action") return { ok: false, reason: "not an action card" };
+  const classCheck = validateClassCard(lookup.card.id, side, ctx);
+  if (!classCheck.ok) return classCheck;
   if (isHeroAbilityFrozen(side.hero, "action")) return { ok: false, reason: "action cards frozen" };
   const flags = getTurnFlags(state);
   if (flags.actionDisabledThisTurn) return { ok: false, reason: "action cards disabled this turn" };
@@ -293,6 +362,8 @@ function playActionCard(state: BattleState, sideKey: Side, side: BattleState["pl
   // 守護優先檢查（若效果有 single 目標且未 ignoreGuard）
   const targetCheck = validateSingleTargetEffects(state, sideKey, lookup.card.effects, targetInstanceId, ctx, "action");
   if (!targetCheck.ok) return targetCheck;
+  const scriptedTargetCheck = validateScriptedActionTargetRequirements(state, sideKey, lookup.card, targetInstanceId);
+  if (!scriptedTargetCheck.ok) return scriptedTargetCheck;
 
   spendMana(side, cost);
   discardFromHand(side, handIndex);
@@ -324,6 +395,30 @@ function validateSingleTargetEffects(state: BattleState, sideKey: Side, effects:
     }
     const check = canActionTarget(state, sideKey, targetEntity, ignoreGuard);
     if (!check.ok) return { ok: false, reason: check.reason };
+  }
+  return { ok: true };
+}
+
+function validateScriptedActionTargetRequirements(state: BattleState, sideKey: Side, card: Card, targetInstanceId: string | undefined): ApplyResult {
+  if (card.id !== "A_h_05") return { ok: true };
+  const side = getSide(state, sideKey);
+  if (side.frontlineSlot) return { ok: false, reason: "frontline occupied" };
+  const uses = (side.hero.flags.frontlineAdvanceUses as number | undefined) ?? 0;
+  if (uses >= 2) return { ok: false, reason: "frontline advance limit reached" };
+  if (!targetInstanceId) return { ok: false, reason: "frontline advance requires target" };
+  const target = findTroopBySide(state, targetInstanceId);
+  if (!target || target.side !== sideKey || target.slotIndex < 0) return { ok: false, reason: "invalid frontline target" };
+  if (target.troop.isConstruct) return { ok: false, reason: "construct cannot advance" };
+  return { ok: true };
+}
+
+function validateClassCard(cardId: string, side: BattleState["player"], ctx: BattleContext): ApplyResult {
+  const heroDef = ctx.getHero(side.hero.defId);
+  if (["A_o_01", "A_o_02", "A_o_03"].includes(cardId) && heroDef.classId !== "smith") {
+    return { ok: false, reason: "smith class required" };
+  }
+  if (["A_o_04", "A_o_05", "A_o_06"].includes(cardId) && heroDef.classId !== "commander") {
+    return { ok: false, reason: "commander class required" };
   }
   return { ok: true };
 }
@@ -398,6 +493,8 @@ function playField(state: BattleState, sideKey: Side, side: BattleState["player"
   const lookup = lookupCard(side, handIndex, ctx);
   if (!lookup) return { ok: false, reason: "invalid hand index" };
   if (lookup.card.type !== "field") return { ok: false, reason: "not a field" };
+  // v3.4 天象「碎片雨」：持續期間禁止放置新場地。
+  if (!canPlayField(state, sideKey)) return { ok: false, reason: "shard rain prevents field placement" };
   const cost = getEffectiveCardCost(state, ctx, sideKey, lookup.card);
   if (!canAffordMana(side, cost)) return { ok: false, reason: "not enough mana" };
   // v3.3：F_c_08 次元裂縫（重作版）唯有場上已開啟裂縫時可施放
@@ -408,11 +505,15 @@ function playField(state: BattleState, sideKey: Side, side: BattleState["player"
   spendMana(side, cost);
   discardFromHand(side, handIndex);
 
-  state.field = { cardId: lookup.card.id, ownerSide: sideKey };
+  // 依 placement 路由：self → 自己槽位；enemy → 對方槽位；either 暫退回自己槽位（UI/AI 待擴充）。
+  const placement = lookup.card.placement;
+  const targetSlot: Side =
+    placement === "enemy" ? otherSide(sideKey) : sideKey;
+  state.field[targetSlot] = { cardId: lookup.card.id };
   state.log.push({ turn: state.turn, side: sideKey, kind: "PLAY_FIELD", text: `放置場地 ${lookup.card.name}` });
 
   if (lookup.card.effects.length > 0) {
-    executeEffects(lookup.card.effects, { state, ctx, sourceSide: sideKey, sourceKind: "field", sourceCardId: lookup.card.id });
+    executeEffects(lookup.card.effects, { state, ctx, sourceSide: targetSlot, sourceKind: "field", sourceCardId: lookup.card.id });
   }
   return { ok: true };
 }

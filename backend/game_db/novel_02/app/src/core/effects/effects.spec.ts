@@ -49,7 +49,7 @@ function mkState(playerHeroId = "lulu", enemyHeroId = "lulu"): BattleState {
       manaCurrent: 0, manaCap: 0, manaCapAbsolute: 10, tempMana: 0, deck: [], hand: [], graveyard: [],
       troopSlots: [null, null, null, null, null], spellsCastThisTurn: 0, spellsCastThisGame: 0,
     },
-    field: null, stability: 100, corruptionStage: 0, log: [], result: "ongoing",
+    field: { player: null, enemy: null }, omen: null, stability: 100, corruptionStage: 0, log: [], result: "ongoing",
   };
 }
 
@@ -69,8 +69,8 @@ describe("通用卡資料完整性", () => {
     expect(byType.field).toBe(8);
     expect(byType.device).toBe(7);
   });
-  it("總卡池 = 通用 104 + 6 種族×10 + 中立傳說 6 = 170 張（v4）", () => {
-    expect(ALL_CARDS).toHaveLength(170);
+  it("總卡池 = 通用 104 + 升級後種族 68 + 職業 6 + 中立傳說 6 = 184 張（v3.4 M）", () => {
+    expect(ALL_CARDS).toHaveLength(184);
   });
   it("每張卡 id 唯一", () => {
     const ids = ALL_CARDS.map((c) => c.id);
@@ -501,16 +501,22 @@ describe("scripted passive integrations", () => {
     expect(s.player.hero.hp).toBe(80);
   });
 
-  it("field burn skips flame-immune demons and damages other troops", () => {
+  it("field burn 只燒槽位方並跳過 flame-immune 惡魔", () => {
     const s = mkState();
-    s.field = { cardId: "F_c_05", ownerSide: "player" };
+    // F_c_05 改為「燒槽位方自己」的自損型場地（v3.4 重構）。
+    s.field.player = { cardId: "F_c_05" };
     s.player.troopSlots[0] = mkTroop("T_de_05", "flame_guard");
+    s.player.troopSlots[1] = mkTroop("T_c_01", "ally_soldier");
     s.enemy.troopSlots[0] = mkTroop("T_c_01", "enemy_soldier");
 
     startTurnFor(s, "player", ctx);
 
+    // 火免疫不受傷
     expect(s.player.troopSlots[0]?.hp).toBe(22);
-    expect(s.enemy.troopSlots[0]?.hp).toBe(6);
+    // 同方一般兵力受 3 火傷（9→6）
+    expect(s.player.troopSlots[1]?.hp).toBe(6);
+    // 對方槽位無 F_c_05，不受影響（T_c_01 base hp 8）
+    expect(s.enemy.troopSlots[0]?.hp).toBe(8);
   });
 
   it("dynamic troop aura updates when allies enter", () => {

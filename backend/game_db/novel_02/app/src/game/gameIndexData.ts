@@ -1,4 +1,4 @@
-import { ALL_CARDS, DEMON_CARDS, ENEMY_INTERNAL_CARDS, GENERIC_CARDS, NEUTRAL_CARDS, RACE_CARDS } from "../data/cards";
+import { ALL_CARDS, CLASS_CARDS, DEMON_CARDS, ENEMY_INTERNAL_CARDS, GENERIC_CARDS, NEUTRAL_CARDS, RACE_CARDS } from "../data/cards";
 import { CLASSES } from "../data/classes";
 import { HERO_LIST } from "../data/heroes";
 import { RACES } from "../data/races";
@@ -13,7 +13,7 @@ export type { CardType, Rarity };
 export interface CardPoolGroup {
   id: string;
   label: string;
-  kind: "generic" | "neutral" | "race" | "enemyInternal";
+  kind: "generic" | "neutral" | "race" | "class" | "enemyInternal";
   cards: IndexedCard[];
   total: number;
 }
@@ -102,6 +102,7 @@ const EMPTY_RARITY_COUNTS: Record<Rarity, number> = {
 export function buildGameIndexData(): GameIndexData {
   const groupSpecs = [
     { id: "generic", label: "通用卡", kind: "generic" as const, cards: GENERIC_CARDS },
+    { id: "class", label: "職業限定卡", kind: "class" as const, cards: CLASS_CARDS },
     { id: "neutral", label: "中立傳說", kind: "neutral" as const, cards: NEUTRAL_CARDS },
     ...Object.entries(RACE_CARDS).map(([raceId, cards]) => ({
       id: `race:${raceId}`,
@@ -370,6 +371,14 @@ const SCRIPTED_EFFECT_TEXT: Record<string, ScriptedEffectFormatter> = {
   Y_ILLUSION_MAZE: "人形：敵方所有兵力 ATK -4 持續 2 回合；妖形：控制敵方 1 個兵力 2 回合",
   Y_NINETAILS_KEYWORDS: "人形：此兵力獲得威壓；妖形：此兵力獲得疾走與汲取",
   Y_PRIMORDIAL_BLOOD: "進入始祖妖形 2 回合；己方所有兵力 +3 ATK / +3 DEF",
+  Y_PHANTOM_DETONATION: "消滅所有己方幻影；每消滅 1 個幻影，對敵方所有兵力造成 3 傷害",
+  Y_PHANTOM_SHIFT: "消滅 1 個己方幻影；本回合下一次部署兵力或器具費用 -2，最低 0",
+  Y_PHANTOM_TAUNT: "所有己方幻影獲得嘲諷直到下回合開始",
+  Y_PHANTOM_REALIZE: "指定 1 個己方幻影永久 +5 HP / +3 ATK / +2 DEF，移除壽命限制並成為真實兵力",
+  Y_PHANTOM_INFUSION: "消滅 1 個己方幻影；己方英雄恢復 2 HP",
+
+  H_FRONTLINE_ADVANCE: "指定 1 個己方兵力移至前線第六格；永久 +3 ATK / -2 DEF，獲得嘲諷直到陣亡或收回；每場最多 2 次",
+  H_FRONTLINE_ROTATION: "將目前前線單位收回手牌；可立即指定另 1 個己方兵力成為新的前線單位",
 
   B_BLOOD_RITE: (_payload, _card, context) => `對 1 個己方兵力血祭：HP 減半、ATK 翻倍 2 回合；額外 ATK +3，${gaugeTerm(context, "血怒")} +1`,
   B_SAVAGEFANG_BLOODRITE_X3: "被血祭時 ATK ×3（取代 ATK ×2）",
@@ -379,6 +388,7 @@ const SCRIPTED_EFFECT_TEXT: Record<string, ScriptedEffectFormatter> = {
   B_BATTLE_SCAR_MEDAL: "英雄每跨過 10% HP 門檻時，永久 +1 ATK",
   B_PRIMAL_HOWL: (_payload, _card, context) => `所有己方兵力進入血祭狀態：HP 減半，ATK 翻倍 2 回合；${gaugeTerm(context, "血怒")} +3`,
   B_PRIMORDIAL_BEAST_SOUL: (_payload, _card, context) => `${gaugeTerm(context, "血怒")}立即疊至 10；3 回合內不因治療降低；己方兵力血祭但不損 HP`,
+  B_BLOOD_SACRIFICE_RITUAL: "本回合下次血祭部署時，祭品目前 ATK 會永久轉移到新兵力；每場最多 2 次",
 
   G_ECHO_RESONANCE: "移除 2 層透支；若沒有透支，改為恢復英雄 10 HP",
   G_FOLLOWER_PROXY: "英雄受傷時，此兵力代替承受 5 傷害",
@@ -390,6 +400,13 @@ const SCRIPTED_EFFECT_TEXT: Record<string, ScriptedEffectFormatter> = {
   G_OVERDRAFT_REMOVE: (payload) => `移除 ${payloadNumber(payload, "amount", 1)} 層透支`,
   G_GENESIS_FRAGMENT: (_payload, _card, context) => `消耗所有${gaugeTerm(context, "神力殘響")}（至少 50）；對敵方英雄造成消耗量 ×1.5 傷害，清除透支並摧毀己方兵力`,
 
+  O_FORGE_CONSTRUCT: "在空兵力欄部署 1 個鋼鐵構裝體（10/0/4/守護）；不可治療，不觸發謝幕曲",
+  O_EMERGENCY_DISASSEMBLE: "消滅 1 個己方構裝體；本回合魔力 +2，抽 1 張牌",
+  O_CONSTRUCT_UPGRADE: "指定己方構裝體，將其取代為手牌中 1 張魔導器具；該器具永久 +5 HP / +3 ATK / +3 DEF 並觸發入場",
+  O_TACTICAL_RETREAT: "指定 1 個己方非構裝體兵力收回手牌；本回合下一次部署兵力或器具費用 -1，最低 0",
+  O_FULL_LINE_ROTATION: "將所有己方非構裝體兵力收回手牌；抽 2 張；本回合下一次部署兵力或器具費用 -2，最低 0",
+  O_RESERVE_FORMATION: "本回合若兵力欄滿，下次部署兵力時自動消滅最左側己方兵力騰位；觸發謝幕曲並獲得鬥志 +5",
+
   DM_FLAME_IMMUNE: "免疫燃燒與火焰場地傷害",
   DM_FREEZE_RANDOM_ENEMY: (payload) => `入場時隨機凍結-冰凍 1 個敵方兵力 ${payloadNumber(payload, "turns", 2)} 回合`,
   DM_CORRUPTION_SPREAD: (_payload, _card, context) => `腐化蔓延：削弱敵方陣線並推進${gaugeTerm(context, "黑暗蝕")}`,
@@ -399,6 +416,8 @@ const SCRIPTED_EFFECT_TEXT: Record<string, ScriptedEffectFormatter> = {
   DM_CURSE_GENERAL_AURA: "光環：敵方兵力 ATK / DEF 下降",
   DM_DARK_DESCENT: (_payload, _card, context) => `召喚黑暗軍勢並大幅推進${gaugeTerm(context, "黑暗蝕")}`,
   DM_DOOM_GIANT_SPELL_IMMUNE: "免疫法術傷害",
+  DM_DARK_SACRIFICE: "消滅己方 1 個兵力 A；另 1 個己方兵力 B 獲得 A 目前 ATK+DEF 的永久 ATK，並失去等同 A 目前 HP 的 HP",
+  DM_ETERNAL_CONTRACT: "指定己方兵力與敵方兵力建立永恆契約；連結期間任一方受傷時雙方分擔傷害，敵方兵力每回合衰弱",
 
   ELDER_TOUCH: "攻擊命中時穩定度 -1",
   FEY_FORM_SWITCH: "切換人形 / 妖形",

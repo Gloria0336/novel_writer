@@ -58,7 +58,7 @@ export const SPELLS: SpellCard[] = [
     id: "S_c_13", type: "spell", name: "大地裂變", cost: 5, rarity: "rare",
     effects: [
       { kind: "damage", target: { kind: "all", filter: { side: "all", entity: "troop" } }, amount: { kind: "const", value: 15 } },
-      { kind: "destroyField" },
+      { kind: "destroyField", side: "all" },
     ],
   },
   {

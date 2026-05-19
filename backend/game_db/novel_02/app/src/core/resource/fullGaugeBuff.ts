@@ -3,7 +3,8 @@ import type { BattleContext } from "../types/context";
 import type { Side } from "../types/effect";
 import type { Card } from "../types/card";
 import type { RaceFrame } from "../types/hero";
-import { getSide } from "../selectors/battle";
+import { getFieldOf, getSide } from "../selectors/battle";
+import { applyOmenSpellCostModifier, omenMakesFieldFree } from "../effects/omenHooks";
 import { addTempMana } from "./mana";
 import { getTurnFlags } from "../turn/turnFlags";
 
@@ -50,6 +51,7 @@ export function applyFullGaugeTurnStartBonuses(state: BattleState, ctx: BattleCo
     if (rule.kind === "turnStartTroopHeal") {
       let healed = 0;
       for (const troop of collectSideTroops(state, side, sideState)) {
+        if (troop.isConstruct) continue;
         const before = troop.hp;
         troop.hp = Math.min(troop.maxHp, troop.hp + rule.amount);
         if (troop.hp > before) healed++;
@@ -84,14 +86,23 @@ export function getEffectiveCardCost(state: BattleState, ctx: BattleContext, sid
   if (card.type === "equipment" && flags.nextEquipDiscount) {
     cost = Math.max(0, cost - flags.nextEquipDiscount);
   }
-  if ((card.type === "troop" || card.type === "device") && state.field?.cardId === "F_e_01") {
+  if ((card.type === "troop" || card.type === "device") && getFieldOf(state, side)?.cardId === "F_e_01") {
     cost += 1;
   }
-  if (card.type === "equipment" && state.field?.cardId === "F_dw_01" && state.field.ownerSide === side) {
+  if (card.type === "equipment" && getFieldOf(state, side)?.cardId === "F_dw_01") {
     cost = Math.max(0, cost - 1);
   }
 
-  return cost;
+  // v3.4 天象「副月凌主月」：法術費用 +1。
+  if (card.type === "spell") {
+    cost = applyOmenSpellCostModifier(state, cost);
+  }
+  // v3.4 天象「靈潮湧動」：放置場地 cost 視為 0。
+  if (card.type === "field" && omenMakesFieldFree(state)) {
+    cost = 0;
+  }
+
+  return Math.max(0, cost);
 }
 
 export function getFullGaugeSpellEffectMultiplier(state: BattleState, ctx: BattleContext, side: Side): number {
@@ -236,6 +247,7 @@ function syncHeroBuff(sideState: SideState, race: RaceFrame, mod: { def?: number
 
 function collectSideTroops(state: BattleState, side: Side, sideState: SideState): TroopInstance[] {
   const troops = sideState.troopSlots.filter((t): t is TroopInstance => t !== null);
+  if (sideState.frontlineSlot) troops.push(sideState.frontlineSlot);
   if (state.rift?.occupant && state.rift.holder === side) troops.push(state.rift.occupant);
   return troops;
 }

@@ -233,16 +233,19 @@ export const DEMON_CARDS: Card[] = [
     name: "黑暗次元裂縫",
     cost: 3,
     rarity: "uncommon",
+    placement: "self",
     effects: [{ kind: "scripted", tag: "DM_RIFT_FIELD" }],
     flavor: "次元壁開始崩解，每個回合都有更多的黑暗從縫隙中湧入。",
   },
 
   {
+    // 自身槽位開啟，每回合對「對方」兵力造火傷，並降低對方治療效果。
     id: "F_de_02",
     type: "field",
     name: "焦黑荒原",
     cost: 3,
     rarity: "uncommon",
+    placement: "self",
     effects: [{ kind: "scripted", tag: "DM_SCORCHED_FIELD" }],
     flavor: "炎魔走過之地，生命不再生長——只有灰燼與黑暗能量殘留。",
   },
@@ -335,5 +338,23 @@ export const DEMON_CARDS: Card[] = [
     ],
     passive: [{ kind: "scripted", tag: "DM_DOOM_GIANT_SPELL_IMMUNE" }],
     flavor: "傳說中末日之戰的先驅，連天空都在它的腳步下顫抖。",
+  },
+  {
+    id: "S_de_07",
+    type: "spell",
+    name: "暗黑獻祭",
+    cost: 3,
+    rarity: "uncommon",
+    effects: [{ kind: "scripted", tag: "DM_DARK_SACRIFICE" }],
+    flavor: "契約不問忠誠，只問還剩多少可以獻出。",
+  },
+  {
+    id: "S_de_08",
+    type: "spell",
+    name: "永恆契約",
+    cost: 4,
+    rarity: "rare",
+    effects: [{ kind: "scripted", tag: "DM_ETERNAL_CONTRACT" }],
+    flavor: "痛苦被寫成兩份，一份給你，一份給我。",
   },
 ];

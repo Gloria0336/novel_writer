@@ -57,4 +57,8 @@ export const BEAST_CARDS: Card[] = [
     id: "S_b_04", type: "spell", name: "始祖獸魂", cost: 6, rarity: "legendary",
     effects: [{ kind: "scripted", tag: "B_PRIMORDIAL_BEAST_SOUL" }],
   },
+  {
+    id: "A_b_03", type: "action", name: "血祭儀式", cost: 2, rarity: "uncommon",
+    effects: [{ kind: "scripted", tag: "B_BLOOD_SACRIFICE_RITUAL" }],
+  },
 ];

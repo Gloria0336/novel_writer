@@ -64,4 +64,12 @@ export const HUMAN_CARDS: Card[] = [
     slot: "weapon", modifiers: { atk: 8 },
     passive: [{ kind: "scripted", tag: "OATH_BLADE" }],
   },
+  {
+    id: "A_h_05", type: "action", name: "前線推進", cost: 2, rarity: "uncommon",
+    effects: [{ kind: "scripted", tag: "H_FRONTLINE_ADVANCE" }],
+  },
+  {
+    id: "A_h_06", type: "action", name: "前線換防", cost: 3, rarity: "rare",
+    effects: [{ kind: "scripted", tag: "H_FRONTLINE_ROTATION" }],
+  },
 ];

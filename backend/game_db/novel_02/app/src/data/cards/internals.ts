@@ -5,9 +5,11 @@ import type { TroopCard } from "../../core/types/card";
  */
 export const INTERNAL_TROOPS: TroopCard[] = [
   // S_f_04 百鬼夜行（人形）召喚的幻影兵力
-  { id: "T_s_31", type: "troop", name: "幻影", cost: 0, rarity: "common", hp: 1, atk: 0, def: 0, keywords: ["guard"] },
+  { id: "T_s_31", type: "troop", name: "幻影", cost: 0, rarity: "common", hp: 1, atk: 0, def: 0, keywords: [] },
   // S_f_04 百鬼夜行（妖形）召喚的妖獸
   { id: "T_s_32", type: "troop", name: "妖獸", cost: 0, rarity: "common", hp: 15, atk: 7, def: 3, keywords: ["rush"] },
   // S_l_04 末日倒數的「末日標記」標記兵力
   { id: "T_s_33", type: "troop", name: "末日標記", cost: 0, rarity: "common", hp: 20, atk: 0, def: 0, keywords: [] },
+  // v3.4 鍛造師構裝體流派：鋼鐵構裝體（不入牌組）
+  { id: "T_s_41", type: "troop", name: "鋼鐵構裝體", cost: 0, rarity: "common", hp: 10, atk: 0, def: 4, keywords: ["guard"] },
 ];

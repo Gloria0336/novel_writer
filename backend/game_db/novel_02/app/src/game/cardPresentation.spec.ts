@@ -90,4 +90,23 @@ describe("card face presentation", () => {
       expect(text, `${card.id} ${card.name}`).not.toMatch(rawScriptPattern);
     }
   });
+
+  it("shows explicit effect text for every v3.4 M upgrade card", () => {
+    const upgradeCardIds = [
+      "A_f_07", "A_f_08", "A_f_09", "A_f_10", "A_f_11",
+      "A_h_05", "A_h_06",
+      "A_b_03",
+      "A_o_01", "A_o_02", "A_o_03", "A_o_04", "A_o_05", "A_o_06",
+      "S_de_07", "S_de_08",
+    ];
+
+    for (const cardId of upgradeCardIds) {
+      const model = buildCardFaceModel(getCard(cardId));
+      const text = model.effectLines.join(" ");
+
+      expect(text, cardId).not.toContain("特殊效果待補文字");
+      expect(text, cardId).not.toContain("無額外效果");
+      expect(text.trim().length, cardId).toBeGreaterThan(10);
+    }
+  });
 });

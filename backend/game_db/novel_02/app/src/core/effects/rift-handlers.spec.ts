@@ -38,7 +38,7 @@ function mkState(opts: { turn?: number; stability?: number } = {}): BattleState 
       manaCurrent: 0, manaCap: 0, manaCapAbsolute: 10, tempMana: 0, deck: [], hand: [], graveyard: [],
       troopSlots: [null, null, null, null, null], spellsCastThisTurn: 0, spellsCastThisGame: 0,
     },
-    field: null, stability: opts.stability ?? 100, corruptionStage: 0, log: [], result: "ongoing",
+    field: { player: null, enemy: null }, omen: null, stability: opts.stability ?? 100, corruptionStage: 0, log: [], result: "ongoing",
   };
 }
 

@@ -57,7 +57,7 @@ export const HERO_ELNO_HONORARY_MAGE: HeroDefinition = {
     cost: { morale: 100 },
     effects: [
       { kind: "damage", target: { kind: "all", filter: { side: "enemy" } }, amount: { kind: "spellsCastThisGame", mult: 4 }, ignoreGuard: true },
-      { kind: "destroyField" },
+      { kind: "destroyField", side: "enemy" },
     ],
   },
   flavor: "「被黑暗能量侵蝕的生物，不用大腦也可以行動。記住代價。」",

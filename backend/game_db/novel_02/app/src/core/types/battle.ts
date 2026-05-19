@@ -4,6 +4,7 @@ import type { Keyword } from "./keyword";
 import type { FreezeEffectName, Side } from "./effect";
 import type { RiftState } from "./rift";
 import type { ActiveStatusBuff } from "./status";
+import type { OmenInstance } from "./omen";
 
 export interface ActiveKeywordBuff {
   id: string;
@@ -35,6 +36,14 @@ export interface TroopInstance {
   deviceForm?: "idle" | "active";
   /** Device 升級層級（僅 isDevice 時有意義）。 */
   upgradeLevel?: number;
+  /** v3.4 幻影標記：不可攻擊，並會在壽命歸零時自動消散。 */
+  isPhantom?: boolean;
+  /** v3.4 幻影剩餘壽命，於控制者回合結束時遞減。 */
+  phantomTurnsRemaining?: number;
+  /** v3.4 鍛造構造物標記：不可治療、不觸發謝幕曲。 */
+  isConstruct?: boolean;
+  /** v3.4 無死亡副作用標記：用於幻影消散與構裝體拆解。 */
+  suppressDestroyEffects?: boolean;
 }
 
 export interface SideState {
@@ -47,15 +56,24 @@ export interface SideState {
   hand: CardInstance[];
   graveyard: CardInstance[];
   troopSlots: (TroopInstance | null)[];
+  /** v3.4 人類前線第六格；不佔一般兵力欄，最多 1 個。 */
+  frontlineSlot?: TroopInstance | null;
   spellsCastThisTurn: number;
   spellsCastThisGame: number;
   /** 已摧毀的魔導器具堆，用於 DEVICE_REBUILD_FROM_GRAVEYARD 復活機制。 */
   destroyedDevices?: CardInstance[];
 }
 
+/**
+ * 場地槽位狀態。槽位本身（player/enemy）即代表擁有者；場地效果作用於擁有者所在那一方。
+ */
 export interface FieldState {
   cardId: string;
-  ownerSide: Side;
+}
+
+export interface FieldSlots {
+  player: FieldState | null;
+  enemy: FieldState | null;
 }
 
 export interface LogEntry {
@@ -77,7 +95,10 @@ export interface BattleState {
   phase: "start" | "main" | "end";
   player: SideState;
   enemy: SideState;
-  field: FieldState | null;
+  /** 場地槽位：雙方各自獨立一格，槽位方即擁有者與被作用方。 */
+  field: FieldSlots;
+  /** 戰鬥內生效中的天象，由 TowerRun.activeOmen 在戰鬥開始時複製進來。 */
+  omen: OmenInstance | null;
   stability: number;
   corruptionStage: 0 | 1 | 2 | 3 | 4;
   /** v3.3 次元滲透裂縫；undefined 表示尚未開啟（穩定度首次 < 50 時初始化）。 */

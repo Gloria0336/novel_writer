@@ -1,6 +1,8 @@
 import type { BattleState, SideState } from "../core/types/battle";
 import type { BattleContext } from "../core/types/context";
 import type { HeroDefinition, HeroInstance } from "../core/types/hero";
+import type { OmenId } from "../core/types/omen";
+import { applyOmenOnEnter, createOmenInstance } from "../core/effects/omenHooks";
 import { rngShuffle } from "../core/deck/prng";
 import { composeHeroStats } from "../core/stats/compose";
 import { ENEMIES, getEnemy } from "../data/enemies";
@@ -47,6 +49,8 @@ export interface CreateBattleOpts {
   initialHand?: number;
   initialPlayerHero?: HeroInstance;
   enemyScale?: EnemyScale;
+  /** TowerRun.activeOmen 帶入；戰鬥開始時生成 OmenInstance（隨機型用 rngState 抽持續回合）。 */
+  omen?: OmenId | null;
 }
 
 const auraResolver = (defId: string): { onStart?: string[]; onEnd?: string[] } | undefined => {
@@ -139,7 +143,8 @@ export function createBattle(opts: CreateBattleOpts): BattleState {
     phase: "start",
     player: playerSide,
     enemy: enemySide,
-    field: null,
+    field: { player: null, enemy: null },
+    omen: null,
     stability: 100,
     corruptionStage: 0,
     log: [],
@@ -153,11 +158,19 @@ export function createBattle(opts: CreateBattleOpts): BattleState {
     if (c) state.player.hand.push(c);
   }
 
-  // §E.1 Boss onBattleStart（如炎魔獄火場地）
+  // §E.1 Boss onBattleStart（如炎魔獄火場地）—— 在天象進場前先決定 Boss 場地。
   if (enemyDef.onBattleStart && enemyDef.onBattleStart.length > 0) {
     executeEffects(enemyDef.onBattleStart, {
       state, ctx, sourceSide: "enemy", sourceKind: "passive",
     });
+  }
+
+  // v3.4 天象：戰鬥內擁有自己的 OmenInstance；放在 Boss onBattleStart 之後，
+  // 確保碎片雨可摧毀 Boss 場地（若有）。
+  if (opts.omen) {
+    state.omen = createOmenInstance(opts.omen, state);
+    state.log.push({ turn: state.turn, side: "player", kind: "OMEN_START", text: `天象「${state.omen.id}」生效（${state.omen.remainingTurns} 回合）` });
+    applyOmenOnEnter(state);
   }
 
   // 啟動玩家第一回合

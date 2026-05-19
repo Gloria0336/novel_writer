@@ -45,8 +45,17 @@ export interface EquipmentCard extends CardBase {
   passive?: Effect[];
 }
 
+/**
+ * 場地牌放置位置：
+ * - "self": 放置到施放方自己的槽位，效果作用於施放方（如 F_c_01 平原 +1 ATK 給己方）
+ * - "enemy": 放置到對方槽位，效果作用於對方（如 F_c_07 風暴山脊 燒對方兵力）
+ * - "either": 由 UI 在施放時指定 targetSide（目前未啟用，預留擴充）
+ */
+export type FieldPlacement = "self" | "enemy" | "either";
+
 export interface FieldCard extends CardBase {
   type: "field";
+  placement: FieldPlacement;
   effects: Effect[];
 }
 

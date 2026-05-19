@@ -77,6 +77,11 @@ export function resolveTargets(state: BattleState, selector: TargetSelector, sou
             return [target];
           }
         }
+        if (s.frontlineSlot?.instanceId === selector.pickedInstanceId) {
+          const target: ResolvedTarget = { kind: "troop", side, troop: s.frontlineSlot };
+          if (!matchesFilter(target, selector.filter, sourceSide)) return [];
+          return [target];
+        }
       }
       // 英雄
       const playerHeroId = `H_player`;

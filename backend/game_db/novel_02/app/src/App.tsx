@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { HeroSelectScreen } from "./ui/screens/HeroSelectScreen";
 import { BattleScreen } from "./ui/screens/BattleScreen";
 import { ModeSelectScreen } from "./ui/screens/ModeSelectScreen";
+import { DeckPreviewScreen } from "./ui/screens/DeckPreviewScreen";
 import { EnemySelectScreen } from "./ui/screens/EnemySelectScreen";
 import { TowerRunScreen } from "./ui/screens/TowerRunScreen";
 import { RewardSelectScreen } from "./ui/screens/RewardSelectScreen";
@@ -14,6 +15,7 @@ import { scaleForFloor } from "./game/tower/towerScaling";
 type Stage =
   | { kind: "heroSelect" }
   | { kind: "modeSelect"; heroId: string }
+  | { kind: "deckPreview"; heroId: string }
   | { kind: "enemySelect"; heroId: string }
   | { kind: "singleBattle"; heroId: string; enemyId: string }
   | { kind: "tower"; heroId: string };
@@ -40,7 +42,17 @@ function AppInner(): JSX.Element {
         heroName={heroName}
         onSinglePick={() => setStage({ kind: "enemySelect", heroId: stage.heroId })}
         onTowerStart={() => setStage({ kind: "tower", heroId: stage.heroId })}
+        onDeckPreview={() => setStage({ kind: "deckPreview", heroId: stage.heroId })}
         onBack={() => setStage({ kind: "heroSelect" })}
+      />
+    );
+  }
+
+  if (stage.kind === "deckPreview") {
+    return (
+      <DeckPreviewScreen
+        heroId={stage.heroId}
+        onBack={() => setStage({ kind: "modeSelect", heroId: stage.heroId })}
       />
     );
   }
@@ -99,6 +111,7 @@ function TowerFlow({ heroId, onExit }: { heroId: string; onExit: () => void }): 
         initialPlayerHero={run.heroSnapshot}
         initialDeckIds={run.deckIds}
         enemyScale={scale}
+        omen={run.activeOmen}
         onExit={onExit}
         onBattleEnd={(result, finalState) => finishBattle(result, finalState)}
       />

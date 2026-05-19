@@ -2,14 +2,16 @@ import { describe, expect, it } from "vitest";
 import { HEROES, HERO_LIST } from "./index";
 import { getRace } from "../races";
 import { getCard } from "../cards";
-import { BUTTERFLY_YAO_DECK_IDS, ELDR_THORIN_DECK_IDS, ELNO_HONORARY_MAGE_DECK_IDS, LULU_DECK_IDS, MOUNTAIN_HUNTER_DECK_IDS, REKA_DECK_IDS } from "../decks/starter";
+import { getStarterDeckIds } from "../decks";
+import { AELLA_FLAIR_DECK_IDS, BUTTERFLY_YAO_DECK_IDS, ELDR_THORIN_DECK_IDS, ELNO_HONORARY_MAGE_DECK_IDS, FULDRA_DECK_IDS, LULU_DECK_IDS, MOUNTAIN_HUNTER_DECK_IDS, REKA_DECK_IDS } from "../decks/starter";
 import { addGauge, gaugeOnHeroDamaged } from "../../core/resource/gauge";
 import { applyBerserkMultiplier, applyCommandMultiplier, applyResonanceMultiplier } from "../../core/effects/amount";
+import { createBattle } from "../../game/seed";
 
 describe("英雄資料完整性", () => {
-  it("6 位小說角色英雄已登記", () => {
-    expect(HERO_LIST).toHaveLength(6);
-    expect(Object.keys(HEROES)).toEqual(expect.arrayContaining(["lulu", "mountain-hunter", "reka", "elno-honorary-mage", "butterfly-yao", "eldr-thorin"]));
+  it("8 位小說角色英雄已登記", () => {
+    expect(HERO_LIST).toHaveLength(8);
+    expect(Object.keys(HEROES)).toEqual(expect.arrayContaining(["lulu", "mountain-hunter", "reka", "elno-honorary-mage", "butterfly-yao", "eldr-thorin", "aella-flair", "fuldra"]));
     expect(Object.keys(HEROES)).not.toContain("commander_legion");
     expect(Object.keys(HEROES)).not.toContain("archmage_grand");
   });
@@ -54,6 +56,15 @@ describe("預組牌完整性 — 每位英雄 30 張 + 符合種族 deckLimits",
   it("艾爾諾老師牌組合法", () => check("elno-honorary-mage", ELNO_HONORARY_MAGE_DECK_IDS));
   it("曇牌組合法", () => check("butterfly-yao", BUTTERFLY_YAO_DECK_IDS));
   it("艾德圖林牌組合法", () => check("eldr-thorin", ELDR_THORIN_DECK_IDS));
+  it("艾拉牌組合法", () => check("aella-flair", AELLA_FLAIR_DECK_IDS));
+  it("芙爾卓牌組合法", () => check("fuldra", FULDRA_DECK_IDS));
+
+  it("all selectable heroes have a starter deck that can create a battle", () => {
+    for (const hero of HERO_LIST) {
+      const deckIds = getStarterDeckIds(hero.id);
+      expect(() => createBattle({ seed: 1, playerHeroId: hero.id, playerDeckIds: deckIds })).not.toThrow();
+    }
+  });
 });
 
 describe("英雄量表規則", () => {
@@ -90,6 +101,23 @@ describe("英雄量表規則", () => {
     expect(hero.gaugeValue).toBe(25);
     addGauge(hero, max, 90);
     expect(hero.gaugeValue).toBe(100);
+  });
+
+  it("芙爾卓受傷跨 5 個 10% 階段（HP 50% 流失）血怒 +5，並於友軍/敵兵死亡分別 +1，封頂 10", () => {
+    const hero = { defId: "fuldra", hp: 60, maxHp: 120, atk: 14, def: 9, cmd: 8, morale: 0, gaugeValue: 0, armor: 0, buffs: [], equipment: {}, flags: { ultimateUsed: false, immortalUsed: false } };
+    gaugeOnHeroDamaged(hero, 10, { perPct: 10, perValue: 1 }, 120, 60);
+    expect(hero.gaugeValue).toBe(5);
+    const def = HEROES.fuldra!;
+    const max = getRace("beast").gauge.max;
+    // 友軍兵力被摧毀 1 次
+    addGauge(hero, max, def.gauge.onTroopDestroyedAlly ?? 0);
+    expect(hero.gaugeValue).toBe(6);
+    // 自家擊殺敵兵 1 次
+    addGauge(hero, max, def.gauge.onTroopDestroyedSelf ?? 0);
+    expect(hero.gaugeValue).toBe(7);
+    // 封頂 10
+    addGauge(hero, max, 99);
+    expect(hero.gaugeValue).toBe(10);
   });
 
   it("曇每回合開始、施法、兵力進場累積靈蘊，且封頂 100", () => {
@@ -163,6 +191,26 @@ describe("英雄技能 — 主動效果定義", () => {
     expect(skill.cost).toMatchObject({ morale: 35, gauge: 30 });
     expect(skill.effects[0]).toEqual({ kind: "scripted", tag: "Y_HUNDRED_GHOSTS" });
   });
+
+  it("芙爾卓 act_spatial_lock：戰線壓制造成 ATK 傷害並標記目標", () => {
+    const skill = HEROES.fuldra!.actives.find((s) => s.id === "act_spatial_lock")!;
+    expect(skill.cost.morale).toBe(30);
+    expect(skill.effects[0]).toMatchObject({ kind: "damage", amount: { kind: "atk", bonus: 4 } });
+    expect(skill.effects[1]).toMatchObject({ kind: "addStatus", status: "marked", duration: { kind: "turns", count: 1 } });
+  });
+
+  it("芙爾卓 act_dragonbreath_sweep：龍息掃蕩消耗 3 血怒並對全敵兵 ATK 傷害無視 DEF", () => {
+    const skill = HEROES.fuldra!.actives.find((s) => s.id === "act_dragonbreath_sweep")!;
+    expect(skill.cost).toMatchObject({ morale: 40, gauge: 3 });
+    expect(skill.effects[0]).toMatchObject({ kind: "damage", ignoreDef: true, amount: { kind: "atk" } });
+  });
+
+  it("芙爾卓 act_northern_fortress_array：消耗 3 血怒並給我方兵力 2T DEF+3 守護", () => {
+    const skill = HEROES.fuldra!.actives.find((s) => s.id === "act_northern_fortress_array")!;
+    expect(skill.cost).toMatchObject({ morale: 40, gauge: 3 });
+    expect(skill.effects[0]).toMatchObject({ kind: "buff", duration: { kind: "turns", count: 2 } });
+    expect(skill.effects[1]).toMatchObject({ kind: "addKeyword", keyword: "guard", duration: { kind: "turns", count: 2 } });
+  });
 });
 
 describe("終極技施放規則", () => {
@@ -180,7 +228,7 @@ describe("終極技施放規則", () => {
     if (damage.kind === "damage" && damage.amount.kind === "spellsCastThisGame") {
       expect(damage.amount.mult).toBe(4);
     }
-    expect(ult.effects[1]).toEqual({ kind: "destroyField" });
+    expect(ult.effects[1]).toEqual({ kind: "destroyField", side: "enemy" });
   });
 
   it("曇「破繭前的空白」會凍結敵方下回合魔力回復與兵力牌", () => {
@@ -192,5 +240,17 @@ describe("終極技施放規則", () => {
       { kind: "heal", target: { kind: "self" }, amount: { kind: "const", value: 18 } },
       { kind: "draw", count: 1 },
     ]));
+  });
+
+  it("芙爾卓「黑龍真身」對英雄造成 ATK×1.5 + 血怒×2，AoE 15 無視 DEF，並回 20 HP", () => {
+    const ult = HEROES.fuldra!.ultimate;
+    expect(ult.cost.morale).toBe(100);
+    expect(ult.effects).toEqual(expect.arrayContaining([
+      { kind: "damage", target: { kind: "enemyHero" }, amount: { kind: "atk", mult: 1.5 }, ignoreGuard: true },
+      { kind: "damage", target: { kind: "enemyHero" }, amount: { kind: "rage", mult: 2 }, ignoreGuard: true },
+      { kind: "heal", target: { kind: "self" }, amount: { kind: "const", value: 20 } },
+    ]));
+    const aoe = ult.effects.find((e) => e.kind === "damage" && e.target.kind === "all");
+    expect(aoe).toMatchObject({ kind: "damage", ignoreDef: true, amount: { kind: "const", value: 15 } });
   });
 });

@@ -37,6 +37,13 @@ export function createTroopInstance(state: BattleState, card: BoardUnitCard, opt
     if (card.form) inst.deviceForm = "idle";
     if (card.upgradeable) inst.upgradeLevel = 0;
   }
+  if (card.id === "T_s_31") {
+    inst.isPhantom = true;
+    inst.phantomTurnsRemaining = 2;
+  }
+  if (card.id === "T_s_41") {
+    inst.isConstruct = true;
+  }
   return inst;
 }
 

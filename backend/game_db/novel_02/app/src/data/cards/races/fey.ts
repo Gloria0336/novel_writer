@@ -57,4 +57,24 @@ export const FEY_CARDS: Card[] = [
     id: "S_f_06", type: "spell", name: "始祖之血", cost: 7, rarity: "legendary",
     effects: [{ kind: "scripted", tag: "Y_PRIMORDIAL_BLOOD" }],
   },
+  {
+    id: "A_f_07", type: "action", name: "幻影殉爆", cost: 2, rarity: "uncommon",
+    effects: [{ kind: "scripted", tag: "Y_PHANTOM_DETONATION" }],
+  },
+  {
+    id: "A_f_08", type: "action", name: "移形換位", cost: 1, rarity: "common",
+    effects: [{ kind: "scripted", tag: "Y_PHANTOM_SHIFT" }],
+  },
+  {
+    id: "A_f_09", type: "action", name: "幻影誘敵", cost: 2, rarity: "uncommon",
+    effects: [{ kind: "scripted", tag: "Y_PHANTOM_TAUNT" }],
+  },
+  {
+    id: "A_f_10", type: "action", name: "虛實轉換", cost: 4, rarity: "rare",
+    effects: [{ kind: "scripted", tag: "Y_PHANTOM_REALIZE" }],
+  },
+  {
+    id: "A_f_11", type: "action", name: "靈質注入", cost: 1, rarity: "common",
+    effects: [{ kind: "scripted", tag: "Y_PHANTOM_INFUSION" }],
+  },
 ];

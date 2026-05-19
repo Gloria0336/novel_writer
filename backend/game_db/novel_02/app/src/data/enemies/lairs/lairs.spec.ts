@@ -48,7 +48,8 @@ function mkState(): BattleState {
       troopSlots: [null, null, null, null, null],
       spellsCastThisTurn: 0, spellsCastThisGame: 0,
     },
-    field: null,
+    field: { player: null, enemy: null },
+    omen: null,
     stability: 100, corruptionStage: 0,
     log: [], result: "ongoing",
   };

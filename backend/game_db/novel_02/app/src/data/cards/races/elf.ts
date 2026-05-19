@@ -37,6 +37,7 @@ export const ELF_CARDS: Card[] = [
   },
   {
     id: "F_e_01", type: "field", name: "精靈結界", cost: 4, rarity: "uncommon",
+    placement: "self",
     effects: [{ kind: "scripted", tag: "FIELD_ELVEN_WARD" }],
   },
   {

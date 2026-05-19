@@ -155,6 +155,26 @@ export function registerHeroScripted(): void {
     });
   });
 
+  // 芙爾卓被動「百年戰場記憶」：每回合開始時，若我方場上有 1+ 兵力，自身獲得 3 護甲。
+  // 由 startTurnFor 在 fuldra 為當前 active 英雄時觸發。透過 fuldraVigilTurn 旗標保證一回合只生效一次。
+  registerScripted("FULDRA_VIGIL", (_p, ec) => {
+    const side = getSide(ec.state, ec.sourceSide);
+    if (side.hero.defId !== "fuldra") return;
+    if (side.hero.flags.fuldraVigilTurn === ec.state.turn) return;
+    if (aliveTroops(side).length < 1) return;
+
+    side.hero.flags.fuldraVigilTurn = ec.state.turn;
+    side.hero.armor += 3;
+
+    ec.state.log.push({
+      turn: ec.state.turn,
+      side: ec.sourceSide,
+      kind: "FULDRA_VIGIL",
+      text: "百年戰場記憶：芙爾卓獲得 3 護甲",
+      payload: { armorGained: 3 },
+    });
+  });
+
   // 曇終極技：敵方下一回合不恢復魔力，且不能打出/生成兵力。
   registerScripted("TAN_BLANK_BEFORE_PUPATION", (_p, ec) => {
     const targetSide = otherSide(ec.sourceSide);

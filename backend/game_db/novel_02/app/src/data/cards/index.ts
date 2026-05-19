@@ -5,6 +5,7 @@ import { SPELLS } from "./spells";
 import { EQUIPMENTS } from "./equipments";
 import { FIELDS, ENEMY_FIELDS } from "./fields";
 import { DEVICES } from "./devices";
+import { CLASS_CARDS } from "./classCards";
 import { NEUTRAL_LEGENDS } from "./neutrals";
 import { HUMAN_CARDS } from "./races/human";
 import { ELF_CARDS } from "./races/elf";
@@ -33,7 +34,7 @@ export const RACE_CARDS: Record<string, Card[]> = {
   demigod: DEMIGOD_CARDS,
 };
 
-// 全部玩家可用卡（94 + 60 + 6 = 160 張）
+// 全部玩家可用卡（v3.4：通用 104 + 種族 68 + 職業 6 + 中立傳說 6 = 184 張）
 export const ALL_CARDS: Card[] = [
   ...GENERIC_CARDS,
   ...HUMAN_CARDS,
@@ -42,6 +43,7 @@ export const ALL_CARDS: Card[] = [
   ...FEY_CARDS,
   ...BEAST_CARDS,
   ...DEMIGOD_CARDS,
+  ...CLASS_CARDS,
   ...NEUTRAL_CARDS,
 ];
 
@@ -58,4 +60,4 @@ export function getCard(id: string): Card {
   return c;
 }
 
-export { TROOPS, ACTIONS, SPELLS, EQUIPMENTS, FIELDS, DEVICES, NEUTRAL_LEGENDS, HUMAN_CARDS, ELF_CARDS, DWARF_CARDS, FEY_CARDS, BEAST_CARDS, DEMIGOD_CARDS, DEMON_CARDS, DEMON_TOKENS, RIFT_INFILTRATOR_CARDS };
+export { TROOPS, ACTIONS, SPELLS, EQUIPMENTS, FIELDS, DEVICES, CLASS_CARDS, NEUTRAL_LEGENDS, HUMAN_CARDS, ELF_CARDS, DWARF_CARDS, FEY_CARDS, BEAST_CARDS, DEMIGOD_CARDS, DEMON_CARDS, DEMON_TOKENS, RIFT_INFILTRATOR_CARDS };

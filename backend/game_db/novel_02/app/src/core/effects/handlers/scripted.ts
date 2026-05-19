@@ -239,7 +239,9 @@ export function registerCoreScripted(): void {
 
   // §E.1/§E.2 — Boss / 巢穴專屬機制
   registerScripted("FIELD_BURN_APPLY", (_p, ec) => {
-    ec.state.field = { cardId: "F_s_01", ownerSide: ec.sourceSide };
+    // F_s_01 placement: enemy — Boss 將獄火寫入「對手槽位」，每回合燒槽位方兵力。
+    const victimSide = ec.sourceSide === "player" ? "enemy" : "player";
+    ec.state.field[victimSide] = { cardId: "F_s_01" };
     ec.state.log.push({ turn: ec.state.turn, side: ec.sourceSide, kind: "FIELD_SET", text: "獄火場地已籠罩戰場！" });
   });
 

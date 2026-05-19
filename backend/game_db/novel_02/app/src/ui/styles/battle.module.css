@@ -124,24 +124,130 @@
 
 .fieldStatus {
   flex: 1;
-  display: flex;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   align-items: center;
-  justify-content: center;
-  min-width: 180px;
+  gap: 8px;
+  min-width: 280px;
 }
 .fieldStatusCard {
-  max-width: 100%;
-  padding: 5px 18px;
+  appearance: none;
+  width: 100%;
+  min-width: 0;
+  min-height: 34px;
+  padding: 4px 10px;
   overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
   background: rgba(0,0,0,.55);
   border: 1px solid var(--metal-a);
   color: var(--ink);
   font-family:'Cinzel','Noto Serif TC',serif;
-  font-size: 12px;
-  letter-spacing: .16em;
+  text-align: left;
+  cursor: pointer;
   box-shadow: inset 0 0 0 1px rgba(255,255,255,.04), 0 0 12px rgba(201,164,90,.18);
+}
+.fieldStatusCard[data-empty="true"] {
+  cursor: default;
+  color: rgba(230,226,212,.5);
+  border-color: rgba(122,91,37,.6);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,.03);
+}
+.fieldStatusCard[data-empty="false"]:hover {
+  border-color: var(--metal-c);
+  filter: brightness(1.08);
+}
+.fieldStatusLabel {
+  display: block;
+  color: var(--ink-dim);
+  font-size: 10px;
+  letter-spacing: .14em;
+  line-height: 1.1;
+}
+.fieldStatusName {
+  display: block;
+  min-width: 0;
+  margin-top: 2px;
+  color: var(--metal-c);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0;
+  line-height: 1.1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.omenBadge {
+  position: relative;
+  min-width: 190px;
+  max-width: 240px;
+  min-height: 34px;
+  padding: 4px 12px;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  column-gap: 8px;
+  background:
+    radial-gradient(ellipse at 20% 20%, rgba(224,168,224,.25), transparent 65%),
+    linear-gradient(180deg, rgba(42,26,42,.86), rgba(12,8,18,.82));
+  border: 1px solid #8a5aa0;
+  color: #f1ddff;
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,.05), 0 0 14px rgba(180,100,220,.22);
+}
+.omenKicker {
+  color: #d0a7ea;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: .14em;
+}
+.omenName {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: #fff0ff;
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0;
+}
+.omenTurns {
+  padding: 2px 6px;
+  border: 1px solid rgba(224,168,224,.38);
+  background: rgba(0,0,0,.24);
+  color: #ead8f4;
+  font-size: 11px;
+  letter-spacing: 0;
+  white-space: nowrap;
+}
+.omenTooltip {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 50%;
+  z-index: 80;
+  display: none;
+  width: 270px;
+  transform: translateX(-50%);
+  padding: 10px 12px;
+  border: 1px solid #a777c0;
+  background: linear-gradient(180deg, rgba(32,22,42,.98), rgba(8,8,14,.98));
+  box-shadow: 0 14px 30px rgba(0,0,0,.74), inset 0 0 0 1px rgba(255,255,255,.05);
+  color: rgba(245,238,252,.9);
+  font-family: 'Noto Serif TC', serif;
+  font-size: 12px;
+  line-height: 1.45;
+  letter-spacing: 0;
+  pointer-events: none;
+}
+.omenBadge:hover .omenTooltip {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+.omenTooltipTitle {
+  color: #fff0ff;
+  font-weight: 800;
 }
 
 .phase { display:flex; gap:6px; padding: 4px; border: 1px solid var(--metal-b); background: rgba(0,0,0,.4); }
@@ -590,6 +696,23 @@
 .lane { flex: 1; position: relative; display: flex; align-items: center; justify-content: center; gap: 14px; padding: 0 24px; }
 .lane[data-side="enemy"] { align-items: flex-end; padding-bottom: 18px; }
 .lane[data-side="player"] { align-items: flex-start; padding-top: 18px; }
+.frontlineSlot {
+  position: relative;
+  flex-shrink: 0;
+  transform: translateY(-42px);
+}
+.lane[data-side="enemy"] .frontlineSlot {
+  transform: translateY(42px);
+}
+.frontlineSlot::before {
+  content: '';
+  position: absolute;
+  inset: -10px;
+  border: 1px solid var(--metal-c);
+  box-shadow: 0 0 18px rgba(255, 210, 120, .34), inset 0 0 12px rgba(255, 210, 120, .16);
+  pointer-events: none;
+  z-index: -1;
+}
 
 .fieldFloor::before {
   content:''; position:absolute; inset:0;

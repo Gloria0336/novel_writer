@@ -18,6 +18,7 @@ import { getFirstEquipmentPassivePayload, sideHasEquipmentPassive } from "../eff
 import { resetTurnFlags } from "./turnFlags";
 import { syncDynamicPassiveAuras, isDynamicPassiveSource } from "../effects/dynamicPassives";
 import { applyCorruptionStageEffects, applyStabilityDelta } from "../resource/stability";
+import { applyOmenFieldDamageModifier, applyOmenOnTurnEnd, applyOmenOnTurnStart, omenFieldStartTurnTriggerCount } from "../effects/omenHooks";
 
 export function checkVictory(state: BattleState): void {
   if (state.result !== "ongoing") return;
@@ -67,6 +68,7 @@ export function startTurnFor(state: BattleState, side: Side, ctx: BattleContext)
     refillMana(sideState, sideState.manaCapAbsolute, state.turn);
   }
 
+  applyOmenOnTurnStart(state, ctx, side);
   applyStartTurnFieldEffects(state, ctx, side);
   applyStartTurnEquipmentPassives(state, ctx, side, sideState, race.gauge.max);
 
@@ -95,8 +97,19 @@ export function startTurnFor(state: BattleState, side: Side, ctx: BattleContext)
     });
   }
 
+  // 芙爾卓被動「百年戰場記憶」：場上有兵力時於回合開始給 3 護甲。
+  if (sideState.hero.defId === "fuldra") {
+    executeEffects([{ kind: "scripted", tag: "FULDRA_VIGIL" }], {
+      state,
+      ctx,
+      sourceSide: side,
+      sourceKind: "passive",
+      sourceCardId: "FULDRA_VIGIL",
+    });
+  }
+
   // 解除兵力暈眩、重置攻擊狀態、減少凍結
-  for (const t of sideState.troopSlots) {
+  for (const t of [...sideState.troopSlots, sideState.frontlineSlot ?? null]) {
     if (!t) continue;
     t.summonedThisTurn = false;
     t.hasAttackedThisTurn = false;
@@ -117,7 +130,7 @@ export function startTurnFor(state: BattleState, side: Side, ctx: BattleContext)
   }
 
   // 兵力 / 器具的 onTurnStart hook：在凍結倒數後執行，被暈眩中（frozenTurns > 0）的單位跳過
-  for (const t of sideState.troopSlots) {
+  for (const t of [...sideState.troopSlots, sideState.frontlineSlot ?? null]) {
     if (!t || t.frozenTurns > 0) continue;
     const card = ctx.getCard(t.cardId);
     const hooks = (card.type === "troop" || card.type === "device") ? card.onTurnStart : undefined;
@@ -144,8 +157,8 @@ export function endTurnFor(state: BattleState, side: Side, ctx?: BattleContext):
   // 兵力 / 器具的 onTurnEnd hook：在 tick buff 之前執行（避免 buff 倒數後才開砲）
   // 暈眩中（frozenTurns > 0）的單位跳過。
   if (ctx) {
-    for (const t of sideState.troopSlots) {
-      if (!t || t.frozenTurns > 0) continue;
+  for (const t of [...sideState.troopSlots, sideState.frontlineSlot ?? null]) {
+    if (!t || t.frozenTurns > 0) continue;
       const card = ctx.getCard(t.cardId);
       const hooks = (card.type === "troop" || card.type === "device") ? card.onTurnEnd : undefined;
       if (hooks && hooks.length > 0) {
@@ -161,6 +174,12 @@ export function endTurnFor(state: BattleState, side: Side, ctx?: BattleContext):
     tickTroopKeywordBuffs(t, ctx);
     tickStatusBuffs(t);
   }
+  if (sideState.frontlineSlot) {
+    tickTroopBuffs(sideState.frontlineSlot);
+    tickTroopKeywordBuffs(sideState.frontlineSlot, ctx);
+    tickStatusBuffs(sideState.frontlineSlot);
+  }
+  expirePhantoms(state, side);
 
   // 英雄 buff 衰減，過期時回復數值。
   tickHeroBuffs(sideState.hero);
@@ -173,6 +192,9 @@ export function endTurnFor(state: BattleState, side: Side, ctx?: BattleContext):
 
   // v3.3：tick 次元滲透裂縫倒數（僅在裂縫開啟時生效）
   if (ctx) tickRiftTremor(state, ctx);
+
+  // v3.4：天象倒數遞減（每方結束回合各 -1）
+  if (ctx) applyOmenOnTurnEnd(state, ctx, side);
 }
 
 export function advanceToNextSide(state: BattleState): void {
@@ -207,22 +229,35 @@ function applyStartTurnEquipmentPassives(state: BattleState, ctx: BattleContext,
 }
 
 function applyStartTurnFieldEffects(state: BattleState, ctx: BattleContext, side: Side): void {
-  const field = state.field;
+  // 新語意：以「side 自己槽位上的場地」為主，效果作用於該方。
+  const field = state.field[side];
   if (!field) return;
+
+  // v3.4 天象「靈潮湧動」：場地回合開始效果觸發兩次。
+  const triggers = omenFieldStartTurnTriggerCount(state);
+  for (let n = 0; n < triggers; n++) {
+    runFieldStartTurnEffectsOnce(state, ctx, side, field.cardId);
+  }
+}
+
+function runFieldStartTurnEffectsOnce(state: BattleState, ctx: BattleContext, side: Side, cardId: string): void {
   const active = getSide(state, side);
   let damaged = false;
 
-  if (field.cardId === "F_c_04") {
+  // F_c_04 魔力節點：每回合 +1 臨時魔力給槽位方。
+  if (cardId === "F_c_04") {
     addTempMana(active, 1);
   }
 
-  if (field.cardId === "F_dw_01" && field.ownerSide === side) {
+  // F_dw_01 深山礦坑：每回合 +10 量表。
+  if (cardId === "F_dw_01") {
     const heroDef = ctx.getHero(active.hero.defId);
     const race = ctx.getRace(heroDef.raceId);
     addGauge(active.hero, race.gauge.max, 10);
   }
 
-  if (field.cardId === "F_de_01" && field.ownerSide === side) {
+  // F_de_01 黑暗次元裂縫：穩定度 -3、量表 +5。
+  if (cardId === "F_de_01") {
     const r = applyStabilityDelta(state, -3);
     applyCorruptionStageEffects(state, r.stageJustReached);
     const heroDef = ctx.getHero(active.hero.defId);
@@ -230,29 +265,35 @@ function applyStartTurnFieldEffects(state: BattleState, ctx: BattleContext, side
     addGauge(active.hero, race.gauge.max, 5);
   }
 
-  if (field.cardId === "F_c_05") {
-    damaged = damageSideTroops(state, ctx, field.ownerSide, "player", 3, "fire") || damaged;
-    damaged = damageSideTroops(state, ctx, field.ownerSide, "enemy", 3, "fire") || damaged;
+  // F_c_05 荒蕪焦土（self 槽位）：每回合燒「槽位方自己」全兵力 3 火傷。
+  if (cardId === "F_c_05") {
+    const dmg = applyOmenFieldDamageModifier(state, side, 3);
+    if (dmg > 0) damaged = damageSideTroops(state, ctx, side, side, dmg, "fire") || damaged;
   }
 
-  if (field.cardId === "F_s_01" && field.ownerSide !== side) {
-    damaged = damageSideTroops(state, ctx, field.ownerSide, side, 2, "fire") || damaged;
+  // F_s_01 獄火（敵方放在被籠罩方槽位）：每回合燒槽位方全兵力 2 火傷。
+  if (cardId === "F_s_01") {
+    const dmg = applyOmenFieldDamageModifier(state, side, 2);
+    if (dmg > 0) damaged = damageSideTroops(state, ctx, side, side, dmg, "fire") || damaged;
   }
 
-  if (field.cardId === "F_c_07" && field.ownerSide === side) {
-    const targetSide = otherSide(side);
-    const target = aliveTroops(getSide(state, targetSide))[0];
-    if (target) {
-      applyTroopDamageWithPassives(state, ctx, targetSide, target, 6, { sourceKind: "field" });
+  // F_c_07 風暴山脊（enemy 槽位）：每回合對槽位方首個活躍兵力造 6 點傷。
+  if (cardId === "F_c_07") {
+    const target = aliveTroops(active)[0];
+    const dmg = applyOmenFieldDamageModifier(state, side, 6);
+    if (target && dmg > 0) {
+      applyTroopDamageWithPassives(state, ctx, side, target, dmg, { sourceKind: "field" });
       damaged = true;
     }
   }
 
-  if (field.cardId === "F_de_02" && field.ownerSide === side) {
-    damaged = damageSideTroops(state, ctx, field.ownerSide, otherSide(side), 4, "fire") || damaged;
+  // F_de_02 焦黑荒原（self 槽位）：每回合對「對方」兵力造 4 火傷。
+  if (cardId === "F_de_02") {
+    const dmg = applyOmenFieldDamageModifier(state, side, 4);
+    if (dmg > 0) damaged = damageSideTroops(state, ctx, side, otherSide(side), dmg, "fire") || damaged;
   }
 
-  if (damaged) reapDeadTroops(state, ctx, field.ownerSide);
+  if (damaged) reapDeadTroops(state, ctx, side);
 }
 
 function damageSideTroops(
@@ -356,6 +397,24 @@ function tickTroopKeywordBuffs(troop: TroopInstance, ctx?: BattleContext): void 
     if (!stillGranted && !baseKeywords.has(buff.keyword)) {
       troop.keywords.delete(buff.keyword);
     }
+  }
+}
+
+function expirePhantoms(state: BattleState, side: Side): void {
+  const sideState = getSide(state, side);
+  for (let i = 0; i < sideState.troopSlots.length; i++) {
+    const troop = sideState.troopSlots[i];
+    if (!troop?.isPhantom) continue;
+    troop.phantomTurnsRemaining = (troop.phantomTurnsRemaining ?? 1) - 1;
+    if (troop.phantomTurnsRemaining > 0) continue;
+    sideState.troopSlots[i] = null;
+    state.log.push({
+      turn: state.turn,
+      side,
+      kind: "PHANTOM_FADE",
+      text: "幻影自動消散",
+      payload: { instanceId: troop.instanceId, cardId: troop.cardId, slotIndex: i },
+    });
   }
 }
 

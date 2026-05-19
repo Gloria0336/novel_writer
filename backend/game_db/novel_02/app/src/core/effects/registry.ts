@@ -14,7 +14,8 @@ import { openRiftIfNeeded, vacateRiftIfOccupantDead, MORALE_KILL_RIFT_INFILTRATO
 import { drawCards } from "../deck/draw";
 import { nextRng } from "../deck/prng";
 import { addTempMana } from "../resource/mana";
-import { aliveTroops, getSide, otherSide } from "../selectors/battle";
+import { aliveTroops, getFieldOf, getSide, otherSide } from "../selectors/battle";
+import { applyOmenFieldValueModifier, isFieldProtected } from "./omenHooks";
 import { createTroopInstance } from "../turn/factories";
 import { addHeroAbilityFreeze, HERO_ABILITY_FREEZE_LABEL } from "./heroAbilityFreeze";
 import {
@@ -79,15 +80,15 @@ function applyDamageMultipliers(amount: number, ec: EffectContext): number {
     result *= 1.1;
   }
 
-  if ((sourceKind === "spell" || sourceKind === "action") && state.field?.cardId === "F_c_08") {
+  if ((sourceKind === "spell" || sourceKind === "action") && getFieldOf(state, sourceSide)?.cardId === "F_c_08") {
     result *= 1.5;
   }
 
-  if (sourceKind === "spell" && state.field?.cardId === "F_c_04") {
+  if (sourceKind === "spell" && getFieldOf(state, sourceSide)?.cardId === "F_c_04") {
     result *= 1.1;
   }
 
-  if (sourceKind === "spell" && state.field?.cardId === "F_e_01" && state.field.ownerSide === sourceSide) {
+  if (sourceKind === "spell" && getFieldOf(state, sourceSide)?.cardId === "F_e_01") {
     result *= 1.25;
   }
 
@@ -113,8 +114,8 @@ function applyHealMultipliers(amount: number, ec: EffectContext): number {
   if (cls.keyword === "blessing") result = Math.round(result * 1.5);
   if (ec.sourceKind === "spell") result *= getFullGaugeSpellEffectMultiplier(state, ctx, sourceSide);
   if (ec.sourceKind === "spell" && getTurnFlags(state).currentSpellDouble === true) result *= 2;
-  if (ec.sourceKind === "spell" && state.field?.cardId === "F_c_04") result *= 1.1;
-  if (ec.sourceKind === "spell" && state.field?.cardId === "F_e_01" && state.field.ownerSide === sourceSide) result *= 1.25;
+  if (ec.sourceKind === "spell" && getFieldOf(state, sourceSide)?.cardId === "F_c_04") result *= 1.1;
+  if (ec.sourceKind === "spell" && getFieldOf(state, sourceSide)?.cardId === "F_e_01") result *= 1.25;
   result = result * healingMultiplier(state);
   return Math.max(0, Math.round(result));
 }
@@ -204,6 +205,7 @@ function executeEffect(e: Effect, ec: EffectContext): void {
           tg.hero.hp = Math.min(tg.hero.maxHp, tg.hero.hp + targetAmount);
           state.log.push({ turn: state.turn, side: sourceSide, kind: "HEAL_HERO", text: `${tg.side === "player" ? "玩家" : "敵方"}英雄回復 ${amount} HP`, payload: { side: tg.side, amount } });
         } else if (tg.kind === "troop" && tg.troop) {
+          if (tg.troop.isConstruct) continue;
           tg.troop.hp = Math.min(tg.troop.maxHp, tg.troop.hp + targetAmount);
         }
       }
@@ -272,28 +274,35 @@ function executeEffect(e: Effect, ec: EffectContext): void {
     case "buff": {
       const targets = resolveTargets(state, e.target, sourceSide);
       const turns = e.duration.kind === "permanent" ? 9999 : e.duration.kind === "thisTurn" ? 1 : e.duration.count;
+      // v3.4 天象修飾：場地來源的 buff 數值受天象影響。
+      const mod = ec.sourceKind === "field" ? {
+        atk: e.mod.atk !== undefined ? applyOmenFieldValueModifier(state, sourceSide, e.mod.atk) : undefined,
+        def: e.mod.def !== undefined ? applyOmenFieldValueModifier(state, sourceSide, e.mod.def) : undefined,
+        hp: e.mod.hp !== undefined ? applyOmenFieldValueModifier(state, sourceSide, e.mod.hp) : undefined,
+        cmd: e.mod.cmd,
+      } : e.mod;
       for (const tg of targets) {
-        if (isNegativeMod(e.mod) && isBlockedSingleTarget(e.target, tg, ec)) continue;
-        if (isNegativeMod(e.mod) && isDebuffImmune(state, tg.side)) {
+        if (isNegativeMod(mod) && isBlockedSingleTarget(e.target, tg, ec)) continue;
+        if (isNegativeMod(mod) && isDebuffImmune(state, tg.side)) {
           state.log.push({ turn: state.turn, side: sourceSide, kind: "DEBUFF_IMMUNE", text: `${tg.side === "player" ? "玩家" : "敵方"}免疫負面狀態` });
           continue;
         }
-        const buff = { id: `buff_${state.nextInstanceId++}`, source: ec.sourceCardId ?? "x", mod: e.mod, remainingTurns: turns };
+        const buff = { id: `buff_${state.nextInstanceId++}`, source: ec.sourceCardId ?? "x", mod, remainingTurns: turns };
         if (tg.kind === "troop" && tg.troop) {
           tg.troop.buffs.push(buff);
-          if (e.mod.atk) tg.troop.atk += e.mod.atk;
-          if (e.mod.def) tg.troop.def += e.mod.def;
-          if (e.mod.hp) {
-            tg.troop.hp += e.mod.hp;
-            tg.troop.maxHp += e.mod.hp;
+          if (mod.atk) tg.troop.atk += mod.atk;
+          if (mod.def) tg.troop.def += mod.def;
+          if (mod.hp) {
+            tg.troop.hp += mod.hp;
+            tg.troop.maxHp += mod.hp;
           }
         } else if (tg.kind === "hero" && tg.hero) {
           tg.hero.buffs.push(buff);
-          if (e.mod.atk) tg.hero.atk += e.mod.atk;
-          if (e.mod.def) tg.hero.def += e.mod.def;
-          if (e.mod.hp) {
-            tg.hero.hp += e.mod.hp;
-            tg.hero.maxHp += e.mod.hp;
+          if (mod.atk) tg.hero.atk += mod.atk;
+          if (mod.def) tg.hero.def += mod.def;
+          if (mod.hp) {
+            tg.hero.hp += mod.hp;
+            tg.hero.maxHp += mod.hp;
           }
         }
       }
@@ -392,8 +401,23 @@ function executeEffect(e: Effect, ec: EffectContext): void {
       break;
     }
     case "destroyField": {
-      state.field = null;
-      state.log.push({ turn: state.turn, side: sourceSide, kind: "FIELD_DESTROY", text: "場地摧毀" });
+      const targetSide = e.side ?? "all";
+      const sides: Side[] =
+        targetSide === "all" ? ["player", "enemy"] :
+        targetSide === "self" ? [sourceSide] :
+        targetSide === "player" ? ["player"] :
+        targetSide === "enemy" ? [otherSide(sourceSide)] :
+        ["player", "enemy"];
+      let destroyed = false;
+      for (const sd of sides) {
+        // v3.4 天象「雙月同圓」保護期：場地不可被摧毀。
+        if (isFieldProtected(state, sd)) continue;
+        if (state.field[sd]) {
+          state.field[sd] = null;
+          destroyed = true;
+        }
+      }
+      if (destroyed) state.log.push({ turn: state.turn, side: sourceSide, kind: "FIELD_DESTROY", text: "場地摧毀" });
       break;
     }
     case "search": {
@@ -436,7 +460,7 @@ export function reapDeadTroops(state: BattleState, ctx: BattleContext, sourceSid
     for (let i = 0; i < s.troopSlots.length; i++) {
       const t = s.troopSlots[i];
       if (t && t.hp <= 0) {
-        if (tryFieldResurrect(state, t)) continue;
+        if (tryFieldResurrect(state, t, side)) continue;
         s.troopSlots[i] = null;
         s.graveyard.push({ instanceId: t.instanceId, cardId: t.cardId });
         if (t.isDevice === true) {
@@ -446,6 +470,14 @@ export function reapDeadTroops(state: BattleState, ctx: BattleContext, sourceSid
         removed = true;
         reapHandleDeath(state, ctx, side, sourceSide, t);
       }
+    }
+    if (s.frontlineSlot && s.frontlineSlot.hp <= 0) {
+      const t = s.frontlineSlot;
+      if (tryFieldResurrect(state, t, side)) continue;
+      s.frontlineSlot = null;
+      s.graveyard.push({ instanceId: t.instanceId, cardId: t.cardId });
+      removed = true;
+      reapHandleDeath(state, ctx, side, sourceSide, t);
     }
   }
   // v3.3：rift occupant 陣亡時觸發 onDestroy / 鬥志 / vacate（occupant 不在 troopSlots 內，需獨立處理）
@@ -470,11 +502,14 @@ function reapHandleDeath(state: BattleState, ctx: BattleContext, side: Side, sou
   const s = getSide(state, side);
   // 觸發謝幕曲（troop 與 device 共用）
   const card = ctx.getCard(t.cardId);
-  if ((card.type === "troop" || card.type === "device") && card.onDestroy) {
+  const suppressDestroyEffects = t.suppressDestroyEffects === true || t.isPhantom === true || t.isConstruct === true;
+  if (!suppressDestroyEffects && (card.type === "troop" || card.type === "device") && card.onDestroy) {
     executeEffects(card.onDestroy, { state, ctx, sourceSide: side, sourceKind: "troop_destroy", sourceInstanceId: t.instanceId, sourceCardId: t.cardId });
   }
   // 鬥志：擊殺者鬥志（若 sourceSide 是對立方）
-  if (side !== sourceSide) {
+  if (suppressDestroyEffects) {
+    // 幻影消散、構裝體拆解等不觸發謝幕與鬥志補償。
+  } else if (side !== sourceSide) {
     // v3.3：擊殺敵方滲透體 → +10（與一般 +15 互斥）
     const killReward = t.fromRift === true ? MORALE_KILL_RIFT_INFILTRATOR : MORALE_KILL_TROOP;
     const killerSide = getSide(state, sourceSide);
@@ -500,8 +535,8 @@ function reapHandleDeath(state: BattleState, ctx: BattleContext, side: Side, sou
   triggerReactionsBySide(state, ctx, "allyTroopDestroyed", side);
 }
 
-function tryFieldResurrect(state: BattleState, troop: TroopInstance): boolean {
-  if (state.field?.cardId !== "F_c_06") return false;
+function tryFieldResurrect(state: BattleState, troop: TroopInstance, side: Side): boolean {
+  if (getFieldOf(state, side)?.cardId !== "F_c_06") return false;
   const roll = nextRng(state.rngState);
   state.rngState = roll.state;
   if (roll.value >= 0.3) return false;
@@ -511,9 +546,12 @@ function tryFieldResurrect(state: BattleState, troop: TroopInstance): boolean {
 
 function adjustHealForTarget(state: BattleState, amount: number, targetSide: Side, targetKind: "hero" | "troop"): number {
   let result = amount;
-  if (targetKind === "troop" && state.field?.cardId === "F_c_07") return 0;
-  if (targetKind === "troop" && state.field?.cardId === "F_c_05") result *= 0.5;
-  if (state.field?.cardId === "F_de_02" && state.field.ownerSide !== targetSide) result *= 0.5;
+  // F_c_07 風暴山脊（enemy 槽位）：被籠罩方無法治療兵力
+  if (targetKind === "troop" && getFieldOf(state, targetSide)?.cardId === "F_c_07") return 0;
+  // F_c_05 荒蕪焦土（self 槽位）：自身兵力治療折半
+  if (targetKind === "troop" && getFieldOf(state, targetSide)?.cardId === "F_c_05") result *= 0.5;
+  // F_de_02 焦黑荒原（self 槽位）：對方兵力治療折半
+  if (getFieldOf(state, otherSide(targetSide))?.cardId === "F_de_02") result *= 0.5;
   return Math.max(0, Math.round(result));
 }
 

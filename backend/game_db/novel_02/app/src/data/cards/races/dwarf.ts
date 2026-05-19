@@ -64,6 +64,7 @@ export const DWARF_CARDS: Card[] = [
   },
   {
     id: "F_dw_01", type: "field", name: "深山礦坑", cost: 4, rarity: "uncommon",
+    placement: "self",
     effects: [
       { kind: "scripted", tag: "FIELD_DEEP_MINE" },
       { kind: "gauge", delta: 10, side: "self" },

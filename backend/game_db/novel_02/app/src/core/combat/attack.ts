@@ -2,10 +2,9 @@ import type { BattleState, TroopInstance, LogEntry } from "../types/battle";
 import type { Side } from "../types/effect";
 import type { BattleContext } from "../types/context";
 import { aliveTroops, findTroopBySide, getSide, hasGuardTroop, heroHasStatus, otherSide, sideHasStatusTarget, troopHasStatus } from "../selectors/battle";
-import { applyHeroDamage, applyTroopDamage } from "./damage";
 import { getFullGaugeHeroDamageTakenMultiplier, getFullGaugeTroopDamageMultiplier } from "../resource/fullGaugeBuff";
 import { getTurnFlags } from "../turn/turnFlags";
-import { applyHeroDamageWithPassives } from "../effects/battlePassives";
+import { applyHeroDamageWithPassives, applyTroopDamageWithPassives } from "../effects/battlePassives";
 
 export interface TroopAttackResult {
   attackerKilled: boolean;
@@ -28,8 +27,8 @@ export function troopVsTroop(state: BattleState, ctx: BattleContext, attacker: T
 
   const attackerDamage = Math.round(attacker.atk * consumeFirstAttackMultiplier(state, attacker) * getFullGaugeTroopDamageMultiplier(state, ctx, attackerSide));
   const defenderDamage = Math.round(defender.atk * getFullGaugeTroopDamageMultiplier(state, ctx, defenderSide));
-  const dmgToDefender = applyTroopDamage(defender, attackerDamage, { ignoreDef: aPierce });
-  const dmgToAttacker = applyTroopDamage(attacker, defenderDamage, { ignoreDef: dPierce });
+  const dmgToDefender = applyTroopDamageWithPassives(state, ctx, defenderSide, defender, attackerDamage, { ignoreDef: aPierce, sourceKind: "troop" });
+  const dmgToAttacker = applyTroopDamageWithPassives(state, ctx, attackerSide, attacker, defenderDamage, { ignoreDef: dPierce, sourceKind: "troop" });
 
   const aLethal = attacker.keywords.has("lethal");
   const dLethal = defender.keywords.has("lethal");
@@ -106,6 +105,7 @@ function consumeFirstAttackMultiplier(state: BattleState, attacker: TroopInstanc
  */
 export function canTroopAttack(state: BattleState, attackerSide: Side, attacker: TroopInstance, target: TroopInstance | "hero"): { ok: true } | { ok: false; reason: string } {
   if (attacker.hp <= 0) return { ok: false, reason: "attacker destroyed" };
+  if (attacker.isPhantom) return { ok: false, reason: "phantom cannot attack" };
   if (attacker.frozenTurns > 0) return { ok: false, reason: "frozen" };
   if (attacker.hasAttackedThisTurn) return { ok: false, reason: "already attacked" };
 

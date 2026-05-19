@@ -2,6 +2,7 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useReducer,
 import type { BattleState, BattleResult } from "../core/types/battle";
 import type { HeroInstance } from "../core/types/hero";
 import type { GameAction } from "../core/turn/actions";
+import type { OmenId } from "../core/types/omen";
 import { applyAction } from "../core/turn/reducer";
 import { createBattle, createBattleContext, DEFAULT_ENEMY_ID, endPlayerTurnAndRunAI, type EnemyScale } from "./seed";
 import { getStarterDeckIds } from "../data/decks";
@@ -44,6 +45,7 @@ interface ProviderProps {
   initialPlayerHero?: HeroInstance;
   initialDeckIds?: string[];
   enemyScale?: EnemyScale;
+  omen?: OmenId | null;
   onBattleEnd?: (result: Exclude<BattleResult, "ongoing">, finalState: BattleState) => void;
   children: ReactNode;
 }
@@ -55,6 +57,7 @@ export function BattleProvider({
   initialPlayerHero,
   initialDeckIds,
   enemyScale,
+  omen,
   onBattleEnd,
   children,
 }: ProviderProps): JSX.Element {
@@ -66,6 +69,7 @@ export function BattleProvider({
       enemyId,
       initialPlayerHero,
       enemyScale,
+      omen,
     }),
     // 戰鬥初始化僅取一次 — 後續變更走 dispatch / reset。
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -97,9 +101,10 @@ export function BattleProvider({
       enemyId,
       initialPlayerHero,
       enemyScale,
+      omen,
     });
     dispatch({ type: "RESET", state: fresh });
-  }, [heroId, enemyId, seed, initialDeckIds, initialPlayerHero, enemyScale]);
+  }, [heroId, enemyId, seed, initialDeckIds, initialPlayerHero, enemyScale, omen]);
 
   const store = useMemo<BattleStore>(() => ({ state: internal.state, dispatch: dispatchGame, reset }), [internal.state, dispatchGame, reset]);
 

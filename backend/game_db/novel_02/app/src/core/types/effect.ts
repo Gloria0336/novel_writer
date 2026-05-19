@@ -64,5 +64,5 @@ export type Effect =
   | { kind: "freezeHeroAbility"; side?: TargetSide; modes: HeroAbilityFreezeKind[]; turns: number; displayName?: FreezeEffectName }
   | { kind: "stability"; delta: number }
   | { kind: "search"; predicate: { type?: string }; toHand: boolean; costMod?: number }
-  | { kind: "destroyField" }
+  | { kind: "destroyField"; side?: TargetSide }
   | { kind: "scripted"; tag: string; payload?: unknown };

@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type CSSProperties, type MouseEvent, type ReactNode } from "react";
+import { useEffect, useMemo, useRef, useState, type CSSProperties, type MouseEvent, type ReactNode } from "react";
 import { BattleProvider, useBattle } from "../../game/BattleProvider";
 import { getCard } from "../../data/cards";
 import { canTroopAttack, canActionTarget } from "../../core/combat/attack";
@@ -10,17 +10,21 @@ import { ENEMIES } from "../../data/enemies";
 import { getRace } from "../../data/races";
 import type { TroopInstance, BattleState, BattleResult, LogEntry } from "../../core/types/battle";
 import type { RiftState } from "../../core/types/rift";
+import type { BattleContext } from "../../core/types/context";
 import type { Side } from "../../core/types/effect";
 import type { HeroInstance } from "../../core/types/hero";
-import type { EnemyScale } from "../../game/seed";
+import { createBattleContext, type EnemyScale } from "../../game/seed";
 import type { Card } from "../../core/types/card";
 import type { HeroDefinition } from "../../core/types/hero";
 import type { OathChoice } from "../../core/turn/actions";
+import type { OmenId } from "../../core/types/omen";
 import styles from "../styles/battle.module.css";
 import { GameIndexOverlay } from "./GameIndexOverlay";
 import { buildCardFaceModel } from "../../game/cardPresentation";
 import { CardFace } from "../components/CardFace";
-import { isDeviceCard, isFullGaugeActive } from "../../core/resource/fullGaugeBuff";
+import { getEffectiveCardCost, isFullGaugeActive } from "../../core/resource/fullGaugeBuff";
+import { canPlayField } from "../../core/effects/omenHooks";
+import { OMEN_DEFS } from "../../game/tower/towerData";
 import {
   buildHeroStatusIndicators,
   buildTroopStatusIndicators,
@@ -33,11 +37,12 @@ interface Props {
   initialPlayerHero?: HeroInstance;
   initialDeckIds?: string[];
   enemyScale?: EnemyScale;
+  omen?: OmenId | null;
   onExit: () => void;
   onBattleEnd?: (result: Exclude<BattleResult, "ongoing">, finalState: BattleState) => void;
 }
 
-export function BattleScreen({ heroId, enemyId, initialPlayerHero, initialDeckIds, enemyScale, onExit, onBattleEnd }: Props): JSX.Element {
+export function BattleScreen({ heroId, enemyId, initialPlayerHero, initialDeckIds, enemyScale, omen, onExit, onBattleEnd }: Props): JSX.Element {
   return (
     <BattleProvider
       heroId={heroId}
@@ -45,6 +50,7 @@ export function BattleScreen({ heroId, enemyId, initialPlayerHero, initialDeckId
       initialPlayerHero={initialPlayerHero}
       initialDeckIds={initialDeckIds}
       enemyScale={enemyScale}
+      omen={omen}
       onBattleEnd={onBattleEnd}
     >
       <BattleView onExit={onExit} />
@@ -75,6 +81,7 @@ const RACE_TO_THEME: Record<string, string> = {
 
 const FRAME_THEME = "midnight";
 const ATTACK_FX_MS = 760;
+const SCRIPTED_SELF_TROOP_TARGET_CARDS = new Set(["A_h_05"]);
 
 interface Point {
   x: number;
@@ -97,6 +104,7 @@ interface AttackFx {
 
 function BattleView({ onExit }: { onExit: () => void }): JSX.Element {
   const { state, dispatch, reset } = useBattle();
+  const battleCtx = useMemo(() => createBattleContext(), []);
   const [select, setSelect] = useState<SelectMode>({ kind: "none" });
   const [indexOpen, setIndexOpen] = useState(false);
   const [previewCard, setPreviewCard] = useState<{ card: Card; gaugeName?: string } | null>(null);
@@ -214,7 +222,7 @@ function BattleView({ onExit }: { onExit: () => void }): JSX.Element {
     const inst = state.player.hand[idx];
     if (!inst) return;
     const card = getCard(inst.cardId);
-    if (!canPlayCardCheck(state, card)) return;
+    if (!canPlayCardCheck(state, battleCtx, card)) return;
 
     if (card.type === "troop") {
       // v3.3：rift 開啟且 Open 狀態時，同時可選裂縫位
@@ -229,7 +237,7 @@ function BattleView({ onExit }: { onExit: () => void }): JSX.Element {
         setSelect({ kind: "none" });
         return;
       }
-      const needsTarget = (card.effects ?? []).some((e) => "target" in e && (e.target as { kind?: string }).kind === "single");
+      const needsTarget = cardNeedsTarget(card);
       if (!needsTarget) {
         dispatch({ type: card.type === "spell" ? "PLAY_SPELL" : "PLAY_ACTION", handIndex: idx });
         setSelect({ kind: "none" });
@@ -289,6 +297,7 @@ function BattleView({ onExit }: { onExit: () => void }): JSX.Element {
       const inst = state.player.hand[select.handIndex];
       if (!inst) return;
       const card = getCard(inst.cardId);
+      if (!canPlayCardTargetTroop(card, side, slot, false)) return;
       dispatch({
         type: card.type === "spell" ? "PLAY_SPELL" : "PLAY_ACTION",
         handIndex: select.handIndex,
@@ -318,6 +327,44 @@ function BattleView({ onExit }: { onExit: () => void }): JSX.Element {
     }
   }
 
+  function clickFrontline(side: "player" | "enemy"): void {
+    if (state.activeSide !== "player") return;
+    const slot = (side === "player" ? state.player : state.enemy).frontlineSlot;
+    if (!slot) return;
+    if (select.kind === "playCard" && select.needsTarget) {
+      const inst = state.player.hand[select.handIndex];
+      if (!inst) return;
+      const card = getCard(inst.cardId);
+      if (!canPlayCardTargetTroop(card, side, slot, true)) return;
+      dispatch({
+        type: card.type === "spell" ? "PLAY_SPELL" : "PLAY_ACTION",
+        handIndex: select.handIndex,
+        targetInstanceId: slot.instanceId,
+      });
+      setSelect({ kind: "none" });
+      return;
+    }
+    if (select.kind === "useSkill" && select.needsTarget) {
+      dispatch({ type: "USE_SKILL", skillId: select.skillId, targetInstanceId: slot.instanceId });
+      setSelect({ kind: "none" });
+      return;
+    }
+    if (select.kind === "attackWithTroop" && side === "enemy") {
+      const me = findTroopAnywhere(state, select.instanceId);
+      if (!me) return setSelect({ kind: "none" });
+      const check = canTroopAttack(state, "player", me, slot);
+      if (!check.ok) return;
+      dispatch({ type: "TROOP_ATTACK", attackerInstanceId: select.instanceId, targetInstanceId: slot.instanceId });
+      setSelect({ kind: "none" });
+      return;
+    }
+    if (select.kind === "none" && side === "player") {
+      const heroCheck = canTroopAttack(state, "player", slot, "hero");
+      const anyValid = aliveTroops(state.enemy).some((t) => canTroopAttack(state, "player", slot, t).ok) || heroCheck.ok;
+      if (anyValid) setSelect({ kind: "attackWithTroop", instanceId: slot.instanceId });
+    }
+  }
+
   function clickEnemyHero(): void {
     if (state.activeSide !== "player") return;
     if (select.kind === "attackWithTroop") {
@@ -333,6 +380,7 @@ function BattleView({ onExit }: { onExit: () => void }): JSX.Element {
       const inst = state.player.hand[select.handIndex];
       if (!inst) return;
       const card = getCard(inst.cardId);
+      if (isScriptedSelfTroopTargetCard(card)) return;
       const ignoreGuard = (card.type === "spell" || card.type === "action") && (card.effects ?? []).some((e) => "ignoreGuard" in e && (e as { ignoreGuard?: boolean }).ignoreGuard);
       const guardCheck = canActionTarget(state, "player", "hero", ignoreGuard);
       if (!guardCheck.ok) return;
@@ -401,10 +449,12 @@ function BattleView({ onExit }: { onExit: () => void }): JSX.Element {
   const stabilityScale = Math.max(0, Math.min(100, stability)) / 100;
   const phase = isPlayerTurn ? "主要" : "結束";
 
+  const selectedPlayCard = select.kind === "playCard" ? getHandCard(state, select.handIndex) : null;
+
   const enemyTargetable =
     isPlayerTurn && (
       select.kind === "attackWithTroop" ||
-      (select.kind === "playCard" && select.needsTarget) ||
+      (select.kind === "playCard" && select.needsTarget && (!selectedPlayCard || !isScriptedSelfTroopTargetCard(selectedPlayCard))) ||
       select.kind === "useUltimate" ||
       (select.kind === "useSkill" && select.needsTarget)
     );
@@ -412,7 +462,9 @@ function BattleView({ onExit }: { onExit: () => void }): JSX.Element {
   const ultReady = playerHero.morale >= 100 && !playerHero.flags.ultimateUsed;
   const lastLog = state.log.slice(-1)[0];
   const recentLogs = state.log.slice(-3).reverse();
-
+  const playerFieldCard = state.field.player ? getCard(state.field.player.cardId) : null;
+  const enemyFieldCard = state.field.enemy ? getCard(state.field.enemy.cardId) : null;
+  const currentOmen = state.omen ? OMEN_DEFS[state.omen.id] : null;
   function toggleCardPreview(cardId: string, gaugeName = heroGaugeName): void {
     setPreviewCard((current) => (current?.card.id === cardId ? null : { card: getCard(cardId), gaugeName }));
   }
@@ -438,10 +490,32 @@ function BattleView({ onExit }: { onExit: () => void }): JSX.Element {
 
             <div className={styles.divider} />
 
-            {state.field && (
+            <div className={styles.fieldStatus} aria-label="雙方場地槽">
+              <FieldStatusChip
+                label="我方場地"
+                card={playerFieldCard}
+                onPreview={playerFieldCard ? () => toggleCardPreview(playerFieldCard.id, heroGaugeName) : undefined}
+              />
+              <FieldStatusChip
+                label="敵方場地"
+                card={enemyFieldCard}
+                onPreview={enemyFieldCard ? () => toggleCardPreview(enemyFieldCard.id, enemyGaugeName) : undefined}
+              />
+            </div>
+
+            <div className={styles.divider} />
+
+            {currentOmen && state.omen && (
               <>
-                <div className={styles.fieldStatus}>
-                  <div className={styles.fieldStatusCard}>場地：{getCard(state.field.cardId).name}</div>
+                <div className={styles.omenBadge} title={currentOmen.battleEffect}>
+                  <span className={styles.omenKicker}>天象</span>
+                  <span className={styles.omenName}>{currentOmen.name}</span>
+                  <span className={styles.omenTurns}>{state.omen.remainingTurns} 回合</span>
+                  <span className={styles.omenTooltip} role="tooltip">
+                    <span className={styles.omenTooltipTitle}>{currentOmen.name}</span>
+                    <span>{currentOmen.description}</span>
+                    <span>{currentOmen.battleEffect}</span>
+                  </span>
                 </div>
 
                 <div className={styles.divider} />
@@ -587,6 +661,25 @@ function BattleView({ onExit }: { onExit: () => void }): JSX.Element {
               <div className={styles.fieldFloor} data-persp="on">
                 <div className={styles.lanes}>
                   <div className={styles.lane} data-side="enemy">
+                    {state.enemy.frontlineSlot && (
+                      <div className={styles.frontlineSlot}>
+                        <TroopSlotView
+                          slot={state.enemy.frontlineSlot}
+                          side="enemy"
+                          isTargetable={
+                            isPlayerTurn && (
+                              select.kind === "attackWithTroop" ||
+                              ((select.kind === "playCard" && select.needsTarget) && (!selectedPlayCard || canPlayCardTargetTroop(selectedPlayCard, "enemy", state.enemy.frontlineSlot, true))) ||
+                              (select.kind === "useSkill" && select.needsTarget) ||
+                              (select.kind === "useUltimate" && select.needsTarget)
+                            )
+                          }
+                          canAttack={false}
+                          onClick={() => clickFrontline("enemy")}
+                          onPreview={() => toggleCardPreview(state.enemy.frontlineSlot!.cardId, enemyGaugeName)}
+                        />
+                      </div>
+                    )}
                     {state.enemy.troopSlots.map((t, i) => (
                       <TroopSlotView
                         key={i}
@@ -595,7 +688,7 @@ function BattleView({ onExit }: { onExit: () => void }): JSX.Element {
                         isTargetable={
                           isPlayerTurn && t !== null && (
                             select.kind === "attackWithTroop" ||
-                            (select.kind === "playCard" && select.needsTarget) ||
+                            ((select.kind === "playCard" && select.needsTarget) && (!selectedPlayCard || canPlayCardTargetTroop(selectedPlayCard, "enemy", t, false))) ||
                             (select.kind === "useSkill" && select.needsTarget) ||
                             (select.kind === "useUltimate" && select.needsTarget)
                           )
@@ -623,6 +716,30 @@ function BattleView({ onExit }: { onExit: () => void }): JSX.Element {
                     />
                   )}
                   <div className={styles.lane} data-side="player">
+                    {state.player.frontlineSlot && (
+                      <div className={styles.frontlineSlot}>
+                        <TroopSlotView
+                          slot={state.player.frontlineSlot}
+                          side="player"
+                          isTargetable={
+                            isPlayerTurn &&
+                            select.kind === "playCard" &&
+                            select.needsTarget &&
+                            !!selectedPlayCard &&
+                            canPlayCardTargetTroop(selectedPlayCard, "player", state.player.frontlineSlot, true)
+                          }
+                          canAttack={
+                            isPlayerTurn && select.kind === "none" && (
+                              aliveTroops(state.enemy).some((e) => canTroopAttack(state, "player", state.player.frontlineSlot!, e).ok) ||
+                              canTroopAttack(state, "player", state.player.frontlineSlot, "hero").ok
+                            )
+                          }
+                          isSelected={select.kind === "attackWithTroop" && state.player.frontlineSlot.instanceId === select.instanceId}
+                          onClick={() => clickFrontline("player")}
+                          onPreview={() => toggleCardPreview(state.player.frontlineSlot!.cardId, heroGaugeName)}
+                        />
+                      </div>
+                    )}
                     {state.player.troopSlots.map((t, i) => {
                       const canAttack =
                         isPlayerTurn && t !== null && select.kind === "none" && (
@@ -630,7 +747,10 @@ function BattleView({ onExit }: { onExit: () => void }): JSX.Element {
                           canTroopAttack(state, "player", t, "hero").ok
                         );
                       const isSelected = select.kind === "attackWithTroop" && t?.instanceId === select.instanceId;
-                      const isTargetable = isPlayerTurn && !t && select.kind === "playCard" && select.needsSlot;
+                      const isTargetable = isPlayerTurn && (
+                        (!t && select.kind === "playCard" && select.needsSlot) ||
+                        (!!t && select.kind === "playCard" && select.needsTarget && !!selectedPlayCard && canPlayCardTargetTroop(selectedPlayCard, "player", t, false))
+                      );
                       return (
                         <TroopSlotView
                           key={i}
@@ -679,7 +799,7 @@ function BattleView({ onExit }: { onExit: () => void }): JSX.Element {
                 const isS_c_15Self = inNeedsRiftHand && select.handIndex === i;
                 const playable = inNeedsRiftHand
                   ? isPlayerTurn && !isS_c_15Self && card.type === "troop"
-                  : isPlayerTurn && canPlayCardCheck(state, card);
+                  : isPlayerTurn && canPlayCardCheck(state, battleCtx, card);
                 const selected =
                   (select.kind === "playCard" && select.handIndex === i) ||
                   isS_c_15Self;
@@ -756,21 +876,35 @@ function describeSelect(s: SelectMode): string {
   }
 }
 
-function canPlayCardCheck(state: BattleState, card: Card): boolean {
+function getHandCard(state: BattleState, handIndex: number): Card | null {
+  const inst = state.player.hand[handIndex];
+  return inst ? getCard(inst.cardId) : null;
+}
+
+function cardNeedsTarget(card: Card): boolean {
+  if ((card.type === "spell" || card.type === "action") && isScriptedSelfTroopTargetCard(card)) return true;
+  if (card.type !== "spell" && card.type !== "action") return false;
+  return card.effects.some((e) => "target" in e && (e.target as { kind?: string }).kind === "single");
+}
+
+function isScriptedSelfTroopTargetCard(card: Card): boolean {
+  return card.type === "action" && SCRIPTED_SELF_TROOP_TARGET_CARDS.has(card.id);
+}
+
+function canPlayCardTargetTroop(card: Card, side: "player" | "enemy", troop: TroopInstance, isFrontline: boolean): boolean {
+  if (isScriptedSelfTroopTargetCard(card)) {
+    return side === "player" && !isFrontline && !troop.isConstruct;
+  }
+  return true;
+}
+
+function canPlayCardCheck(state: BattleState, ctx: BattleContext, card: Card): boolean {
   if (state.activeSide !== "player") return false;
-  let cost = card.cost;
+  if (card.type === "field" && !canPlayField(state, "player")) return false;
+  let cost = getEffectiveCardCost(state, ctx, "player", card);
   const heroDef = ENEMIES[state.player.hero.defId]?.heroDef ?? HEROES[state.player.hero.defId];
   if (heroDef) {
     const race = getRace(heroDef.raceId);
-    if (isFullGaugeActive(state.player, race)) {
-      for (const rule of race.fullGaugeBuff.rules) {
-        if (rule.kind !== "cardCostReduction") continue;
-        const applies =
-          (card.type === "equipment" && rule.cardTypes.includes("equipment")) ||
-          (isDeviceCard(card) && rule.cardTypes.includes("device"));
-        if (applies) cost = Math.max(rule.minCost, cost - rule.amount);
-      }
-    }
     if (card.type === "spell" && race.gauge.id === "resonance" && state.player.hero.gaugeValue >= 4) cost = 0;
   }
   if (!canAffordMana(state.player, cost)) return false;
@@ -802,13 +936,45 @@ function canPlayCardCheck(state: BattleState, card: Card): boolean {
   if (card.id === "F_c_08") {
     if (!state.rift) return false;
   }
+  if (card.id === "A_h_05") {
+    const uses = (state.player.hero.flags.frontlineAdvanceUses as number | undefined) ?? 0;
+    if (state.player.frontlineSlot || uses >= 2) return false;
+    if (!state.player.troopSlots.some((t) => t && !t.isConstruct)) return false;
+  }
   return true;
+}
+
+function FieldStatusChip({ label, card, onPreview }: { label: string; card: Card | null; onPreview?: () => void }): JSX.Element {
+  const content = (
+    <>
+      <span className={styles.fieldStatusLabel}>{label}</span>
+      <span className={styles.fieldStatusName}>{card ? card.name : "空槽"}</span>
+    </>
+  );
+
+  if (!card || !onPreview) {
+    return <div className={styles.fieldStatusCard} data-empty="true">{content}</div>;
+  }
+
+  return (
+    <button
+      type="button"
+      className={styles.fieldStatusCard}
+      data-empty="false"
+      title={`${label}：${card.name}`}
+      onClick={onPreview}
+    >
+      {content}
+    </button>
+  );
 }
 
 function findTroopAnywhere(state: BattleState, instanceId: string): TroopInstance | null {
   for (const side of ["player", "enemy"] as const) {
     const slots = (side === "player" ? state.player : state.enemy).troopSlots;
     for (const t of slots) if (t && t.instanceId === instanceId) return t;
+    const frontline = (side === "player" ? state.player : state.enemy).frontlineSlot;
+    if (frontline?.instanceId === instanceId) return frontline;
   }
   return null;
 }

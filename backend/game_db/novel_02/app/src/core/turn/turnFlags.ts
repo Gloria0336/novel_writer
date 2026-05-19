@@ -9,6 +9,8 @@ export interface TurnFlagsState {
   currentSpellDouble?: boolean;
   nextEquipDiscount?: number;
   packTacticsActive?: boolean;
+  bloodSacrificeTransferAtk?: boolean;
+  reserveFormationActive?: boolean;
 }
 
 const TURN_FLAGS = new WeakMap<object, TurnFlagsState>();

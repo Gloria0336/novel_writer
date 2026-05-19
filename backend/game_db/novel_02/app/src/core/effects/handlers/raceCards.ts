@@ -1,6 +1,6 @@
 import type { EffectContext } from "../registry";
-import { registerScripted } from "../registry";
-import { aliveTroops, getSide, otherSide, freeSlotIndex } from "../../selectors/battle";
+import { executeEffects, registerScripted } from "../registry";
+import { aliveTroops, findTroopBySide, getSide, otherSide, freeSlotIndex } from "../../selectors/battle";
 import { applyHeroDamage, applyTroopDamage } from "../../combat/damage";
 import { addGauge } from "../../resource/gauge";
 import { syncFullGaugeBuffs } from "../../resource/fullGaugeBuff";
@@ -9,7 +9,9 @@ import { drawCards } from "../../deck/draw";
 import { createTroopInstance } from "../../turn/factories";
 import { applyStabilityDelta, applyCorruptionStageEffects } from "../../resource/stability";
 import { getTurnFlags } from "../../turn/turnFlags";
-import type { TroopCard } from "../../types/card";
+import type { BoardUnitCard, TroopCard } from "../../types/card";
+import type { Side } from "../../types/effect";
+import type { TroopInstance } from "../../types/battle";
 
 /**
  * 種族卡與中立傳說卡的腳本化效果。
@@ -24,6 +26,51 @@ export function registerRaceCardScripted(): void {
   registerBeast();
   registerDemigod();
   registerDemon();
+  registerClassCards();
+}
+
+function getPayloadTargetId(payload: unknown): string | undefined {
+  return (payload as { targetInstanceId?: string } | undefined)?.targetInstanceId;
+}
+
+function findOwnTroopByPayload(ec: EffectContext, payload: unknown): TroopInstance | undefined {
+  const id = getPayloadTargetId(payload);
+  if (!id) return undefined;
+  const found = findTroopBySide(ec.state, id);
+  return found?.side === ec.sourceSide ? found.troop : undefined;
+}
+
+function findOwnTroopSlot(ec: EffectContext, instanceId: string): { side: ReturnType<typeof getSide>; slotIndex: number; frontline: boolean } | null {
+  const side = getSide(ec.state, ec.sourceSide);
+  const slotIndex = side.troopSlots.findIndex((t) => t?.instanceId === instanceId);
+  if (slotIndex >= 0) return { side, slotIndex, frontline: false };
+  if (side.frontlineSlot?.instanceId === instanceId) return { side, slotIndex: -1, frontline: true };
+  return null;
+}
+
+function removeOwnTroopSilently(ec: EffectContext, troop: TroopInstance, kind = "UNIT_REMOVED"): void {
+  const loc = findOwnTroopSlot(ec, troop.instanceId);
+  if (!loc) return;
+  if (loc.frontline) loc.side.frontlineSlot = null;
+  else loc.side.troopSlots[loc.slotIndex] = null;
+  loc.side.graveyard.push({ instanceId: troop.instanceId, cardId: troop.cardId });
+  ec.state.log.push({ turn: ec.state.turn, side: ec.sourceSide, kind, text: `${troop.cardId} 離場`, payload: { instanceId: troop.instanceId, cardId: troop.cardId } });
+}
+
+function addTaunt(troop: TroopInstance, state: EffectContext["state"], source: string, turns: number): void {
+  troop.keywords.delete("menace");
+  troop.statusBuffs ??= [];
+  troop.statusBuffs.push({ id: `taunt_${state.nextInstanceId++}`, source, status: "taunt", remainingTurns: turns });
+}
+
+function addPermanentBuff(troop: TroopInstance, state: EffectContext["state"], source: string, mod: { hp?: number; atk?: number; def?: number }): void {
+  if (mod.hp) {
+    troop.hp += mod.hp;
+    troop.maxHp += mod.hp;
+  }
+  if (mod.atk) troop.atk += mod.atk;
+  if (mod.def) troop.def += mod.def;
+  troop.buffs.push({ id: `${source}_${state.nextInstanceId++}`, source, mod, remainingTurns: 9999 });
 }
 
 // ============================================================
@@ -142,6 +189,41 @@ function registerHuman(): void {
 
   // E_h_01 盟約之劍：被動 — 每次行動卡攻擊後隨機己方兵力 +2 ATK
   registerScripted("OATH_BLADE", () => { /* MVP：在 reducer 內單獨檢查 */ });
+
+  registerScripted("H_FRONTLINE_ADVANCE", (payload, ec) => {
+    const me = getSide(ec.state, ec.sourceSide);
+    if (me.frontlineSlot) return;
+    const uses = (me.hero.flags.frontlineAdvanceUses as number | undefined) ?? 0;
+    if (uses >= 2) return;
+    const target = findOwnTroopByPayload(ec, payload);
+    if (!target || target.isConstruct) return;
+    const loc = findOwnTroopSlot(ec, target.instanceId);
+    if (!loc || loc.frontline) return;
+    loc.side.troopSlots[loc.slotIndex] = null;
+    addPermanentBuff(target, ec.state, "A_h_05", { atk: 3, def: -2 });
+    addTaunt(target, ec.state, "A_h_05", 9999);
+    me.frontlineSlot = target;
+    me.hero.flags.frontlineAdvanceUses = uses + 1;
+    ec.state.log.push({ turn: ec.state.turn, side: ec.sourceSide, kind: "FRONTLINE_ADVANCE", text: `${target.cardId} 推進到前線第六格`, payload: { instanceId: target.instanceId } });
+  });
+
+  registerScripted("H_FRONTLINE_ROTATION", (payload, ec) => {
+    const me = getSide(ec.state, ec.sourceSide);
+    const old = me.frontlineSlot;
+    if (!old || me.hand.length >= 9) return;
+    me.frontlineSlot = null;
+    me.hand.push({ instanceId: `frontline_${ec.state.nextInstanceId++}`, cardId: old.cardId });
+    ec.state.log.push({ turn: ec.state.turn, side: ec.sourceSide, kind: "FRONTLINE_RETURN", text: `${old.cardId} 收回手牌`, payload: { cardId: old.cardId } });
+
+    const next = findOwnTroopByPayload(ec, payload);
+    if (!next || next.instanceId === old.instanceId || next.isConstruct || me.frontlineSlot) return;
+    const loc = findOwnTroopSlot(ec, next.instanceId);
+    if (!loc || loc.frontline) return;
+    loc.side.troopSlots[loc.slotIndex] = null;
+    addPermanentBuff(next, ec.state, "A_h_06", { atk: 3, def: -2 });
+    addTaunt(next, ec.state, "A_h_06", 9999);
+    me.frontlineSlot = next;
+  });
 }
 
 // ============================================================
@@ -441,6 +523,45 @@ function registerFey(): void {
       t.buffs.push({ id: `primord_${ec.state.nextInstanceId++}`, source: "S_f_06", mod: { atk: 3, def: 3 }, remainingTurns: 2 });
     }
   });
+
+  registerScripted("Y_PHANTOM_DETONATION", (_p, ec) => {
+    const me = getSide(ec.state, ec.sourceSide);
+    const phantoms = aliveTroops(me).filter((t) => t.isPhantom);
+    for (const phantom of phantoms) removeOwnTroopSilently(ec, phantom, "PHANTOM_DETONATE");
+    const damage = phantoms.length * 3;
+    if (damage <= 0) return;
+    const enemy = getSide(ec.state, otherSide(ec.sourceSide));
+    for (const troop of aliveTroops(enemy)) applyTroopDamage(troop, damage);
+    ec.state.log.push({ turn: ec.state.turn, side: ec.sourceSide, kind: "PHANTOM_DETONATION", text: `幻影殉爆：${phantoms.length} 個幻影造成全體 ${damage} 傷害` });
+  });
+
+  registerScripted("Y_PHANTOM_SHIFT", (payload, ec) => {
+    const target = findOwnTroopByPayload(ec, payload) ?? aliveTroops(getSide(ec.state, ec.sourceSide)).find((t) => t.isPhantom);
+    if (!target?.isPhantom) return;
+    removeOwnTroopSilently(ec, target, "PHANTOM_SHIFT");
+    getTurnFlags(ec.state).deployDiscount = Math.max(getTurnFlags(ec.state).deployDiscount ?? 0, 2);
+  });
+
+  registerScripted("Y_PHANTOM_TAUNT", (_payload, ec) => {
+    const phantoms = aliveTroops(getSide(ec.state, ec.sourceSide)).filter((t) => t.isPhantom);
+    for (const phantom of phantoms) addTaunt(phantom, ec.state, "A_f_09", 2);
+  });
+
+  registerScripted("Y_PHANTOM_REALIZE", (payload, ec) => {
+    const target = findOwnTroopByPayload(ec, payload) ?? aliveTroops(getSide(ec.state, ec.sourceSide)).find((t) => t.isPhantom);
+    if (!target?.isPhantom) return;
+    target.isPhantom = false;
+    delete target.phantomTurnsRemaining;
+    addPermanentBuff(target, ec.state, "A_f_10", { hp: 5, atk: 3, def: 2 });
+  });
+
+  registerScripted("Y_PHANTOM_INFUSION", (payload, ec) => {
+    const target = findOwnTroopByPayload(ec, payload) ?? aliveTroops(getSide(ec.state, ec.sourceSide)).find((t) => t.isPhantom);
+    if (!target?.isPhantom) return;
+    removeOwnTroopSilently(ec, target, "PHANTOM_INFUSION");
+    const me = getSide(ec.state, ec.sourceSide);
+    me.hero.hp = Math.min(me.hero.maxHp, me.hero.hp + 2);
+  });
 }
 
 // ============================================================
@@ -517,6 +638,11 @@ function registerBeast(): void {
       t.buffs.push({ id: `pbsoul_${ec.state.nextInstanceId++}`, source: "S_b_04", mod: { atk: origAtk }, remainingTurns: 3 });
     }
     (me.hero.flags as { rageLockTurns?: number }).rageLockTurns = 3;
+  });
+
+  registerScripted("B_BLOOD_SACRIFICE_RITUAL", (_p, ec) => {
+    getTurnFlags(ec.state).bloodSacrificeTransferAtk = true;
+    ec.state.log.push({ turn: ec.state.turn, side: ec.sourceSide, kind: "BLOOD_RITUAL_READY", text: "本回合下次血祭部署將轉移祭品 ATK" });
   });
 }
 
@@ -609,6 +735,90 @@ function registerDemigod(): void {
   });
 }
 
+function registerClassCards(): void {
+  registerScripted("O_FORGE_CONSTRUCT", (_payload, ec) => {
+    const me = getSide(ec.state, ec.sourceSide);
+    const slotIdx = freeSlotIndex(me);
+    if (slotIdx < 0) return;
+    const card = ec.ctx.getCard("T_s_41");
+    if (card.type !== "troop") return;
+    me.troopSlots[slotIdx] = createTroopInstance(ec.state, card);
+    ec.state.log.push({ turn: ec.state.turn, side: ec.sourceSide, kind: "FORGE_CONSTRUCT", text: "部署 1 個鋼鐵構裝體", payload: { slotIdx } });
+  });
+
+  registerScripted("O_EMERGENCY_DISASSEMBLE", (payload, ec) => {
+    const target = findOwnTroopByPayload(ec, payload) ?? aliveTroops(getSide(ec.state, ec.sourceSide)).find((t) => t.isConstruct);
+    if (!target?.isConstruct) return;
+    removeOwnTroopSilently(ec, target, "CONSTRUCT_DISASSEMBLE");
+    addTempMana(getSide(ec.state, ec.sourceSide), 2);
+    const draw = drawCards(getSide(ec.state, ec.sourceSide), 1, ec.state.rngState);
+    ec.state.rngState = draw.newRngState;
+  });
+
+  registerScripted("O_CONSTRUCT_UPGRADE", (payload, ec) => {
+    const me = getSide(ec.state, ec.sourceSide);
+    const target = findOwnTroopByPayload(ec, payload) ?? aliveTroops(me).find((t) => t.isConstruct);
+    if (!target?.isConstruct) return;
+    const loc = findOwnTroopSlot(ec, target.instanceId);
+    if (!loc || loc.frontline) return;
+    const handIdx = me.hand.findIndex((inst) => inst.cardId.startsWith("T_m_"));
+    if (handIdx < 0) return;
+    const [deviceInst] = me.hand.splice(handIdx, 1);
+    if (!deviceInst) return;
+    me.graveyard.push(deviceInst);
+    const card = ec.ctx.getCard(deviceInst.cardId);
+    if (card.type !== "device") return;
+    const upgraded = createTroopInstance(ec.state, card as BoardUnitCard);
+    addPermanentBuff(upgraded, ec.state, "A_o_03", { hp: 5, atk: 3, def: 3 });
+    loc.side.troopSlots[loc.slotIndex] = upgraded;
+    if (card.onPlay) {
+      executeEffects(card.onPlay, {
+        state: ec.state,
+        ctx: ec.ctx,
+        sourceSide: ec.sourceSide,
+        sourceKind: "troop_play",
+        sourceInstanceId: upgraded.instanceId,
+        sourceCardId: card.id,
+      });
+    }
+    ec.state.log.push({ turn: ec.state.turn, side: ec.sourceSide, kind: "CONSTRUCT_UPGRADE", text: `構裝升級為 ${card.name}`, payload: { cardId: card.id, instanceId: upgraded.instanceId } });
+  });
+
+  registerScripted("O_TACTICAL_RETREAT", (payload, ec) => {
+    const me = getSide(ec.state, ec.sourceSide);
+    if (me.hand.length >= 9) return;
+    const target = findOwnTroopByPayload(ec, payload) ?? aliveTroops(me).find((t) => !t.isConstruct);
+    if (!target || target.isConstruct) return;
+    const loc = findOwnTroopSlot(ec, target.instanceId);
+    if (!loc) return;
+    if (loc.frontline) loc.side.frontlineSlot = null;
+    else loc.side.troopSlots[loc.slotIndex] = null;
+    me.hand.push({ instanceId: `retreat_${ec.state.nextInstanceId++}`, cardId: target.cardId });
+    getTurnFlags(ec.state).deployDiscount = Math.max(getTurnFlags(ec.state).deployDiscount ?? 0, 1);
+    ec.state.log.push({ turn: ec.state.turn, side: ec.sourceSide, kind: "TACTICAL_RETREAT", text: `${target.cardId} 撤退回手`, payload: { cardId: target.cardId } });
+  });
+
+  registerScripted("O_FULL_LINE_ROTATION", (_payload, ec) => {
+    const me = getSide(ec.state, ec.sourceSide);
+    for (const troop of [...aliveTroops(me)]) {
+      if (troop.isConstruct || me.hand.length >= 9) continue;
+      const loc = findOwnTroopSlot(ec, troop.instanceId);
+      if (!loc) continue;
+      if (loc.frontline) loc.side.frontlineSlot = null;
+      else loc.side.troopSlots[loc.slotIndex] = null;
+      me.hand.push({ instanceId: `rotation_${ec.state.nextInstanceId++}`, cardId: troop.cardId });
+    }
+    const draw = drawCards(me, 2, ec.state.rngState);
+    ec.state.rngState = draw.newRngState;
+    getTurnFlags(ec.state).deployDiscount = Math.max(getTurnFlags(ec.state).deployDiscount ?? 0, 2);
+  });
+
+  registerScripted("O_RESERVE_FORMATION", (_payload, ec) => {
+    getTurnFlags(ec.state).reserveFormationActive = true;
+    ec.state.log.push({ turn: ec.state.turn, side: ec.sourceSide, kind: "RESERVE_FORMATION_READY", text: "本回合滿格部署將消滅最左側己方兵力騰位" });
+  });
+}
+
 function registerDemon(): void {
   registerScripted("DM_FLAME_IMMUNE", () => {});
   registerScripted("DM_ENERGY_CORE_PASSIVE", () => {});
@@ -666,5 +876,34 @@ function registerDemon(): void {
     const race = ec.ctx.getRace(heroDef.raceId);
     addGauge(me.hero, race.gauge.max, 40);
     applyStabilityDelta(ec.state, -10);
+  });
+
+  registerScripted("DM_DARK_SACRIFICE", (_payload, ec) => {
+    const me = getSide(ec.state, ec.sourceSide);
+    const [a, b] = aliveTroops(me);
+    if (!a || !b) return;
+    const bonus = a.atk + a.def;
+    const hpLoss = a.hp;
+    removeOwnTroopSilently(ec, a, "DARK_SACRIFICE");
+    b.atk += bonus;
+    b.buffs.push({ id: `dark_sac_${ec.state.nextInstanceId++}`, source: "S_de_07", mod: { atk: bonus }, remainingTurns: 9999 });
+    b.hp = Math.max(0, b.hp - hpLoss);
+    ec.state.log.push({ turn: ec.state.turn, side: ec.sourceSide, kind: "DARK_SACRIFICE", text: `暗黑獻祭：${b.cardId} ATK +${bonus}，HP -${hpLoss}` });
+  });
+
+  registerScripted("DM_ETERNAL_CONTRACT", (_payload, ec) => {
+    const me = getSide(ec.state, ec.sourceSide);
+    const enemy = getSide(ec.state, otherSide(ec.sourceSide));
+    const a = aliveTroops(me)[0];
+    const b = aliveTroops(enemy).sort((x, y) => y.atk - x.atk)[0];
+    if (!a || !b) return;
+    if (me.hero.flags.eternalContractActive) return;
+    me.hero.flags.eternalContractActive = true;
+    me.hero.flags.eternalContractA = a.instanceId;
+    me.hero.flags.eternalContractB = b.instanceId;
+    b.hp = Math.max(0, b.hp - 1);
+    b.atk = Math.max(0, b.atk - 3);
+    b.buffs.push({ id: `eternal_${ec.state.nextInstanceId++}`, source: "S_de_08", mod: { atk: -3 }, remainingTurns: 9999 });
+    ec.state.log.push({ turn: ec.state.turn, side: ec.sourceSide, kind: "ETERNAL_CONTRACT", text: `${a.cardId} 與 ${b.cardId} 建立永恆契約`, payload: { a: a.instanceId, b: b.instanceId } });
   });
 }

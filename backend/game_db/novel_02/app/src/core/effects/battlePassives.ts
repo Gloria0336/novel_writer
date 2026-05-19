@@ -92,5 +92,41 @@ export function applyTroopDamageWithPassives(
     if (form !== "fey") amount = Math.ceil(amount * 0.5);
   }
 
+  const contract = findEternalContractPeer(state, troop);
+  if (contract && amount > 0) {
+    const shared = Math.floor(amount / 2);
+    const result = applyTroopDamage(troop, shared, opts);
+    applyTroopDamage(contract.peer, shared, opts);
+    state.log.push({
+      turn: state.turn,
+      side: contract.ownerSide,
+      kind: "ETERNAL_CONTRACT_SHARE",
+      text: `永恆契約：${troop.cardId} 與 ${contract.peer.cardId} 各承受 ${shared} 傷害`,
+      payload: { target: troop.instanceId, peer: contract.peer.instanceId, amount: shared },
+    });
+    return result;
+  }
+
   return applyTroopDamage(troop, amount, opts);
+}
+
+function findEternalContractPeer(state: BattleState, troop: TroopInstance): { ownerSide: Side; peer: TroopInstance } | null {
+  for (const ownerSide of ["player", "enemy"] as const) {
+    const flags = getSide(state, ownerSide).hero.flags;
+    if (flags.eternalContractActive !== true) continue;
+    const a = flags.eternalContractA as string | undefined;
+    const b = flags.eternalContractB as string | undefined;
+    if (!a || !b) continue;
+    const peerId = troop.instanceId === a ? b : troop.instanceId === b ? a : undefined;
+    if (!peerId) continue;
+    const peer = [...aliveTroops(state.player), ...aliveTroops(state.enemy)].find((candidate) => candidate.instanceId === peerId && candidate.hp > 0);
+    if (!peer) {
+      flags.eternalContractActive = false;
+      delete flags.eternalContractA;
+      delete flags.eternalContractB;
+      return null;
+    }
+    return { ownerSide, peer };
+  }
+  return null;
 }
