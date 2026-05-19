@@ -57,3 +57,11 @@ export function gaugeOnEquipmentPlay(hero: HeroInstance, max: number, gauge: Gau
 export function gaugeOnTurnStart(hero: HeroInstance, max: number, gauge: GaugePersonalization): void {
   if (gauge.onTurnStart) addGauge(hero, max, gauge.onTurnStart);
 }
+
+export function gaugeOnForge(hero: HeroInstance, max: number, gauge: GaugePersonalization): void {
+  if (gauge.onForge) addGauge(hero, max, gauge.onForge);
+}
+
+export function gaugeOnDevicePlay(hero: HeroInstance, max: number, gauge: GaugePersonalization): void {
+  if (gauge.onDevicePlay) addGauge(hero, max, gauge.onDevicePlay);
+}

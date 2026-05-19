@@ -18,7 +18,8 @@
       "Bash(npm test *)",
       "Bash(echo \"tsc exit=$?\")",
       "Bash(echo \"EXIT=$?\")",
-      "Bash(git stash *)"
+      "Bash(git stash *)",
+      "Bash(node -e \"const m = require\\('./src/data/cards/troops.ts'\\); console.log\\('cannot directly'\\)\")"
     ]
   }
 }

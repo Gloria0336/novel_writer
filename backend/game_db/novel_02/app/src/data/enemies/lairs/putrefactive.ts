@@ -36,7 +36,7 @@ function createInstance(): HeroInstance {
 
 export const LAIR_PUTREFACTIVE_TROOPS: TroopCard[] = [
   {
-    id: "L01", name: "腐植芽",
+    id: "T_s_01", name: "腐植芽",
     type: "troop", rarity: "common", cost: 0,
     hp: 5, atk: 2, def: 0,
     keywords: [],
@@ -44,7 +44,7 @@ export const LAIR_PUTREFACTIVE_TROOPS: TroopCard[] = [
     flavor: "從巢穴中破土而出的孢子體。",
   },
   {
-    id: "L02", name: "腐植觸手",
+    id: "T_s_02", name: "腐植觸手",
     type: "troop", rarity: "uncommon", cost: 0,
     hp: 8, atk: 3, def: 1,
     keywords: [],
@@ -54,7 +54,7 @@ export const LAIR_PUTREFACTIVE_TROOPS: TroopCard[] = [
     flavor: "黏液裹覆的偽足，每回合持續侵蝕3回合後枯萎。",
   },
   {
-    id: "L03", name: "腐植膿瘤",
+    id: "T_s_03", name: "腐植膿瘤",
     type: "troop", rarity: "uncommon", cost: 0,
     hp: 14, atk: 5, def: 0,
     keywords: [],
@@ -65,18 +65,18 @@ export const LAIR_PUTREFACTIVE_TROOPS: TroopCard[] = [
     flavor: "巨大的腫瘤，破裂時噴出腐液傷及所有敵方兵力。",
   },
   {
-    id: "L04", name: "腐植寄生獸",
+    id: "T_s_04", name: "腐植寄生獸",
     type: "troop", rarity: "rare", cost: 0,
     hp: 18, atk: 4, def: 0,
     keywords: ["pierce"],
     onDestroy: [
       { kind: "stability", delta: -3 },
-      { kind: "summon", cardId: "L01", count: 2, side: "self" },
+      { kind: "summon", cardId: "T_s_01", count: 2, side: "self" },
     ],
     flavor: "死去後仍留下種子，兩株腐植芽從屍體中破體而出。",
   },
   {
-    id: "L05", name: "腐植之壁",
+    id: "T_s_05", name: "腐植之壁",
     type: "troop", rarity: "uncommon", cost: 0,
     hp: 15, atk: 0, def: 5,
     keywords: ["guard"],

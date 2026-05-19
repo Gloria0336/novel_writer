@@ -55,7 +55,7 @@ export function BattleScreen({ heroId, enemyId, initialPlayerHero, initialDeckId
 type SelectMode =
   | { kind: "none" }
   | { kind: "playCard"; handIndex: number; needsTarget: boolean; needsSlot: boolean; needsRiftSlot?: boolean }
-  | { kind: "playCardNeedsRiftHand"; handIndex: number } // v3.3 S15
+  | { kind: "playCardNeedsRiftHand"; handIndex: number } // v3.3 S_c_15
   | { kind: "attackWithTroop"; instanceId: string }
   | { kind: "useSkill"; skillId: string; needsTarget: boolean }
   | { kind: "useUltimate"; needsTarget: boolean };
@@ -195,7 +195,7 @@ function BattleView({ onExit }: { onExit: () => void }): JSX.Element {
   const manaCap = state.player.manaCap;
 
   function clickHandCard(idx: number): void {
-    // v3.3 S15 needsRiftHand 模式：此次 click 是目標兵力卡
+    // v3.3 S_c_15 needsRiftHand 模式：此次 click 是目標兵力卡
     if (select.kind === "playCardNeedsRiftHand") {
       if (idx === select.handIndex) return; // 不可選自己
       const target = state.player.hand[idx];
@@ -220,11 +220,11 @@ function BattleView({ onExit }: { onExit: () => void }): JSX.Element {
       // v3.3：rift 開啟且 Open 狀態時，同時可選裂縫位
       const needsRiftSlot = state.rift?.holder === "open";
       setSelect({ kind: "playCard", handIndex: idx, needsTarget: false, needsSlot: true, needsRiftSlot });
-    } else if (card.id === "S15" && card.type === "spell") {
-      // v3.3 S15 裂痕召喚：進入 needsRiftHand 模式，等待玩家點手牌中兵力
+    } else if (card.id === "S_c_15" && card.type === "spell") {
+      // v3.3 S_c_15 裂痕召喚：進入 needsRiftHand 模式，等待玩家點手牌中兵力
       setSelect({ kind: "playCardNeedsRiftHand", handIndex: idx });
     } else if (card.type === "spell" || card.type === "action") {
-      if (card.id === "S14" && card.type === "spell") {
+      if (card.id === "S_c_14" && card.type === "spell") {
         setOathPrompt({ handIndex: idx });
         setSelect({ kind: "none" });
         return;
@@ -674,15 +674,15 @@ function BattleView({ onExit }: { onExit: () => void }): JSX.Element {
             <div className={styles.handZone}>
               {state.player.hand.map((inst, i) => {
                 const card = getCard(inst.cardId);
-                // v3.3 S15 needsRiftHand 模式：playable 改為「是否為合法 S15 召喚目標」
+                // v3.3 S_c_15 needsRiftHand 模式：playable 改為「是否為合法 S_c_15 召喚目標」
                 const inNeedsRiftHand = select.kind === "playCardNeedsRiftHand";
-                const isS15Self = inNeedsRiftHand && select.handIndex === i;
+                const isS_c_15Self = inNeedsRiftHand && select.handIndex === i;
                 const playable = inNeedsRiftHand
-                  ? isPlayerTurn && !isS15Self && card.type === "troop"
+                  ? isPlayerTurn && !isS_c_15Self && card.type === "troop"
                   : isPlayerTurn && canPlayCardCheck(state, card);
                 const selected =
                   (select.kind === "playCard" && select.handIndex === i) ||
-                  isS15Self;
+                  isS_c_15Self;
                 const total = state.player.hand.length;
                 const spread = Math.min(60, total * 11);
                 const step = total > 1 ? spread / (total - 1) : 0;
@@ -781,12 +781,12 @@ function canPlayCardCheck(state: BattleState, card: Card): boolean {
     if (!free && !riftOpen) return false;
   }
   // v3.3 次元滲透裂縫條件
-  if (card.id === "S15") {
+  if (card.id === "S_c_15") {
     if (!state.rift || state.rift.holder !== "open") return false;
     if (state.rift.s15UsesPlayer >= 3) return false;
-    // 必須有其他可作為目標的手牌兵力（不能單獨選 S15）
+    // 必須有其他可作為目標的手牌兵力（不能單獨選 S_c_15）
     const hasOtherTroop = state.player.hand.some((h) => {
-      if (h.cardId === "S15") return false;
+      if (h.cardId === "S_c_15") return false;
       try {
         return getCard(h.cardId).type === "troop";
       } catch {
@@ -795,11 +795,11 @@ function canPlayCardCheck(state: BattleState, card: Card): boolean {
     });
     if (!hasOtherTroop) return false;
   }
-  if (card.id === "S16") {
+  if (card.id === "S_c_16") {
     if (!state.rift) return false;
     if (state.rift.s16UsedPlayer) return false;
   }
-  if (card.id === "F08") {
+  if (card.id === "F_c_08") {
     if (!state.rift) return false;
   }
   return true;
@@ -961,7 +961,7 @@ function OathChoiceOverlay({ onChoose, onClose }: { onChoose: (choice: OathChoic
     <div className={styles.oathBackdrop} role="dialog" aria-modal="true" aria-label="盟約之誓選擇">
       <div className={styles.oathPanel}>
         <div className={styles.oathHeader}>
-          <div className={styles.oathKicker}>S14 · 傳奇法術</div>
+          <div className={styles.oathKicker}>S_c_14 · 傳奇法術</div>
           <h2>盟約之誓</h2>
         </div>
         <div className={styles.oathOptions}>
@@ -1208,7 +1208,7 @@ function CornerOrn({ pos }: { pos: "tl" | "tr" | "bl" | "br" }): JSX.Element {
       </defs>
       <g fill={`url(#co-grad-${pos})`} stroke="#0007" strokeWidth=".4">
         <path d="M0 0 H14 V2 H2 V14 H0 Z" />
-        <path d="M5 5 H10 V6 H6 V10 H5 Z" />
+        <path d="M5 5 E_h_01 V6 H6 V10 H5 Z" />
       </g>
       <circle cx="7" cy="7" r="1.4" fill="var(--metal-c)" stroke="#0007" strokeWidth=".3" />
     </svg>

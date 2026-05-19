@@ -17,7 +17,7 @@ export const LAIR_SHADOW_GATE_PROFILE: EnemyProfile = {
     boardControl: 0.6,
     gaugeBuildup: -1.0,
   },
-  summonPool: ["I_SHADOW_GUARD", "I_SHADOW_ELITE", "I_SHADOW_LORD"],
+  summonPool: ["T_s_16", "T_s_17", "T_s_18"],
   summonsPerTurn: { min: 1, max: 2 },
   summonCadenceTurns: 2,
 };

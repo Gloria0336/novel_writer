@@ -36,7 +36,7 @@ export function resetTurnFlags(state: object): void {
 }
 
 export function registerCoreScripted(): void {
-  // T05 回合結束治療相鄰兵力
+  // T_c_05 回合結束治療相鄰兵力
   registerScripted("HEAL_ADJACENT", (payload, ec) => {
     const amount = (payload as { amount?: number })?.amount ?? 3;
     const id = ec.sourceInstanceId;
@@ -50,7 +50,7 @@ export function registerCoreScripted(): void {
     }
   });
 
-  // T09 重裝騎兵：首次攻擊傷害 ×2（簡化：戰鬥前由攻擊端檢查 set）
+  // T_c_09 重裝騎兵：首次攻擊傷害 ×2（簡化：戰鬥前由攻擊端檢查 set）
   registerScripted("FIRST_ATTACK_DOUBLE", (_p, ec) => {
     if (ec.sourceInstanceId) {
       const f = getTurnFlags(ec.state);
@@ -58,7 +58,7 @@ export function registerCoreScripted(): void {
     }
   });
 
-  // T12 老練傭兵隊長：使另一個己方兵力獲得突進
+  // T_c_12 老練傭兵隊長：使另一個己方兵力獲得突進
   registerScripted("GIVE_ANOTHER_RUSH", (_p, ec) => {
     const side = getSide(ec.state, ec.sourceSide);
     const others = aliveTroops(side).filter((t) => t.instanceId !== ec.sourceInstanceId);
@@ -66,10 +66,10 @@ export function registerCoreScripted(): void {
     others[0]!.keywords.add("rush");
   });
 
-  // T13 精英禁衛：英雄受到行動卡傷害時代替承受一半（複雜，MVP 略過 — 標記 passive 即可）
+  // T_c_13 精英禁衛：英雄受到行動卡傷害時代替承受一半（複雜，MVP 略過 — 標記 passive 即可）
   registerScripted("ABSORB_HALF_HERO_ACTION_DAMAGE", () => { /* MVP 略 */ });
 
-  // A06 致命突刺：若擊殺，鬥志 +20
+  // A_c_06 致命突刺：若擊殺，鬥志 +20
   registerScripted("MORALE_IF_KILLED", (payload, ec) => {
     // 直接給；嚴格判定要看 last damage 結果，MVP 直接給（reapDeadTroops 已處理擊殺鬥志）
     // 為了精確，這裡略過讓 MORALE_KILL_TROOP 處理
@@ -77,7 +77,7 @@ export function registerCoreScripted(): void {
     addMorale(getSide(ec.state, ec.sourceSide).hero, amount - 15); // 額外 +5（已加 15 by reap）
   });
 
-  // A08 奮力一搏：英雄自傷 10（不可減免）
+  // A_c_08 奮力一搏：英雄自傷 10（不可減免）
   registerScripted("SELF_DAMAGE_FIXED", (payload, ec) => {
     const amount = (payload as { amount?: number })?.amount ?? 10;
     const hero = getSide(ec.state, ec.sourceSide).hero;
@@ -85,12 +85,12 @@ export function registerCoreScripted(): void {
     ec.state.log.push({ turn: ec.state.turn, side: ec.sourceSide, kind: "SELF_DAMAGE", text: `自傷 ${amount}` });
   });
 
-  // A09 全力一擊：本回合無法再使用行動卡
+  // A_c_09 全力一擊：本回合無法再使用行動卡
   registerScripted("DISABLE_ACTION_THIS_TURN", (_p, ec) => {
     getTurnFlags(ec.state).actionDisabledThisTurn = true;
   });
 
-  // A10 星落之劍
+  // A_c_10 星落之劍
   registerScripted("STARFALL_BLADE", (_p, ec) => {
     const heroAtk = getSide(ec.state, ec.sourceSide).hero.atk;
     let amount = heroAtk * 2 + 20;
@@ -101,13 +101,13 @@ export function registerCoreScripted(): void {
     ec.state.log.push({ turn: ec.state.turn, side: ec.sourceSide, kind: "STARFALL", text: `星落之劍對敵方英雄造 ${amount} 傷害`, payload: { amount } });
   });
 
-  // S11/B05 等：本回合可額外使用 N 張行動卡（MVP：標記 flag，不嚴格限制行動次數）
+  // S_c_11/A_b_01 等：本回合可額外使用 N 張行動卡（MVP：標記 flag，不嚴格限制行動次數）
   registerScripted("EXTRA_ACTIONS", (payload, ec) => {
     const count = (payload as { count?: number } | undefined)?.count ?? 2;
     getTurnFlags(ec.state).extraActionsThisTurn += count;
   });
 
-  // S14 盟約之誓：三選一。未傳選項時保留舊行為，預設全面恢復。
+  // S_c_14 盟約之誓：三選一。未傳選項時保留舊行為，預設全面恢復。
   registerScripted("OATH_CHOICE", (payload, ec) => {
     const choice = readOathChoice(payload);
     const side = getSide(ec.state, ec.sourceSide);
@@ -115,7 +115,7 @@ export function registerCoreScripted(): void {
     if (choice === "strengthen") {
       for (const t of aliveTroops(side)) {
         t.atk += 5;
-        t.buffs.push({ id: `oath_atk_${ec.state.nextInstanceId++}`, source: "S14", mod: { atk: 5 }, remainingTurns: 3 });
+        t.buffs.push({ id: `oath_atk_${ec.state.nextInstanceId++}`, source: "S_c_14", mod: { atk: 5 }, remainingTurns: 3 });
       }
       ec.state.log.push({ turn: ec.state.turn, side: ec.sourceSide, kind: "OATH", text: "盟約之誓：全面強化" });
       return;
@@ -135,7 +135,7 @@ export function registerCoreScripted(): void {
     ec.state.log.push({ turn: ec.state.turn, side: ec.sourceSide, kind: "OATH", text: "盟約之誓：全面恢復" });
   });
 
-  // E03 幸運墜飾、E04 符文長劍、E05 矮人鍛甲、E06 指揮官戰冠、E07 噬魂戰刃、E08 龍鱗胸甲
+  // E_c_03 幸運墜飾、E_c_04 符文長劍、E_c_05 矮人鍛甲、E_c_06 指揮官戰冠、E_c_07 噬魂戰刃、E_c_08 龍鱗胸甲
   // MVP：passive 已記錄於英雄裝備欄，這些被動效果走「標記」path（具體觸發在對應位置處理）
   registerScripted("LUCKY_DRAW_CHANCE", () => { /* 由 phases 抽牌時讀 equipment 判斷 */ });
   registerScripted("MANA_ON_KILL", () => { /* 由 reapDeadTroops 觸發 */ });
@@ -150,13 +150,13 @@ export function registerCoreScripted(): void {
   registerScripted("FIELD_RESURRECT", () => {});
   registerScripted("FIELD_STORM", () => {});
 
-  // v3.3 F08 次元裂縫【重作】：升級已開啟裂縫為「加強裂縫」狀態
+  // v3.3 F_c_08 次元裂縫【重作】：升級已開啟裂縫為「加強裂縫」狀態
   // ① 玩家佔據者獲〔穿透〕 ② 敵方滲透體抽取池往上一階（由 selectInfiltratorPool 處理）
   // ③ 法術行動傷害 +50%（場地系統整合留 Stage 3；本 Stage 只設 enhanced flag）
   registerScripted("FIELD_DIMENSIONAL_RIFT", (_p, ec) => {
     const rift = ec.state.rift;
     if (!rift) {
-      ec.state.log.push({ turn: ec.state.turn, side: ec.sourceSide, kind: "FIELD_RIFT_NOOP", text: "F08 次元裂縫：無裂縫可加強，效果無作用。" });
+      ec.state.log.push({ turn: ec.state.turn, side: ec.sourceSide, kind: "FIELD_RIFT_NOOP", text: "F_c_08 次元裂縫：無裂縫可加強，效果無作用。" });
       return;
     }
     rift.enhanced = true;
@@ -167,7 +167,7 @@ export function registerCoreScripted(): void {
     ec.state.log.push({ turn: ec.state.turn, side: ec.sourceSide, kind: "FIELD_RIFT_ENHANCE", text: "次元裂縫升級為加強裂縫！滲透池升階，佔據者獲〔穿透〕。" });
   });
 
-  // v3.3 N05 次元壁碎片：滿穩定度時改為全體 15 傷害；否則 +25 穩定度 + 抽 1
+  // v3.3 S_l_03 次元壁碎片：滿穩定度時改為全體 15 傷害；否則 +25 穩定度 + 抽 1
   registerScripted("DIMENSION_SHARD", (_p, ec) => {
     const state = ec.state;
     if (state.stability >= 100) {
@@ -190,13 +190,13 @@ export function registerCoreScripted(): void {
     state.log.push({ turn: state.turn, side: ec.sourceSide, kind: "DIMENSION_SHARD", text: `次元壁碎片：穩定度 +25 → ${r.newValue}，抽 1 張` });
   });
 
-  // v3.3 S15 裂痕召喚：免費把指定手牌兵力部署到裂縫位
+  // v3.3 S_c_15 裂痕召喚：免費把指定手牌兵力部署到裂縫位
   // payload: { handCardInstanceId: string } — 由 reducer playSpell 注入
   registerScripted("RIFT_CALL", (payload, ec) => {
     const state = ec.state;
     const rift = state.rift;
     if (!rift || rift.holder !== "open") {
-      state.log.push({ turn: state.turn, side: ec.sourceSide, kind: "RIFT_CALL_NOOP", text: "S15 裂痕召喚：裂縫不可佔據" });
+      state.log.push({ turn: state.turn, side: ec.sourceSide, kind: "RIFT_CALL_NOOP", text: "S_c_15 裂痕召喚：裂縫不可佔據" });
       return;
     }
     const instId = (payload as { handCardInstanceId?: string } | undefined)?.handCardInstanceId;
@@ -204,7 +204,7 @@ export function registerCoreScripted(): void {
     const side = getSide(state, ec.sourceSide);
     const handIdx = side.hand.findIndex((c) => c.instanceId === instId);
     if (handIdx < 0) {
-      state.log.push({ turn: state.turn, side: ec.sourceSide, kind: "RIFT_CALL_NOOP", text: "S15 裂痕召喚：手牌目標已不存在" });
+      state.log.push({ turn: state.turn, side: ec.sourceSide, kind: "RIFT_CALL_NOOP", text: "S_c_15 裂痕召喚：手牌目標已不存在" });
       return;
     }
     const handCard = side.hand[handIdx]!;
@@ -219,7 +219,7 @@ export function registerCoreScripted(): void {
     rift.occupant = inst;
     rift.holder = "player";
     rift.s15UsesPlayer += 1;
-    state.log.push({ turn: state.turn, side: ec.sourceSide, kind: "RIFT_CALL", text: `S15 裂痕召喚：${card.name} 免費部署到次元裂縫`, payload: { cardId: card.id, instanceId: inst.instanceId, atk: inst.atk, def: inst.def } });
+    state.log.push({ turn: state.turn, side: ec.sourceSide, kind: "RIFT_CALL", text: `S_c_15 裂痕召喚：${card.name} 免費部署到次元裂縫`, payload: { cardId: card.id, instanceId: inst.instanceId, atk: inst.atk, def: inst.def } });
     // 觸發入場曲
     if (card.onPlay) {
       for (const eff of card.onPlay) {
@@ -231,12 +231,12 @@ export function registerCoreScripted(): void {
     }
   });
 
-  // v3.3 S16 裂縫共鳴：抽 2 + 鬥志 +20；玩家佔據時佔據者疾走（清 hasAttackedThisTurn）
+  // v3.3 S_c_16 裂縫共鳴：抽 2 + 鬥志 +20；玩家佔據時佔據者疾走（清 hasAttackedThisTurn）
   registerScripted("RIFT_RESONANCE", (_p, ec) => {
     const state = ec.state;
     const rift = state.rift;
     if (!rift) {
-      state.log.push({ turn: state.turn, side: ec.sourceSide, kind: "RIFT_RESONANCE_NOOP", text: "S16 裂縫共鳴：場上無裂縫" });
+      state.log.push({ turn: state.turn, side: ec.sourceSide, kind: "RIFT_RESONANCE_NOOP", text: "S_c_16 裂縫共鳴：場上無裂縫" });
       return;
     }
     const side = getSide(state, ec.sourceSide);
@@ -246,18 +246,18 @@ export function registerCoreScripted(): void {
     // 鬥志 +20
     addMorale(side.hero, 20);
     rift.s16UsedPlayer = true;
-    state.log.push({ turn: state.turn, side: ec.sourceSide, kind: "RIFT_RESONANCE", text: `S16 裂縫共鳴：抽 ${draw.drawn} 張、鬥志 +20` });
+    state.log.push({ turn: state.turn, side: ec.sourceSide, kind: "RIFT_RESONANCE", text: `S_c_16 裂縫共鳴：抽 ${draw.drawn} 張、鬥志 +20` });
     // 玩家佔據時佔據者疾走（清 hasAttackedThisTurn 並 suppress summoningSickness）
     if (rift.holder === "player" && rift.occupant) {
       rift.occupant.hasAttackedThisTurn = false;
       rift.occupant.summonedThisTurn = false;
-      state.log.push({ turn: state.turn, side: ec.sourceSide, kind: "RIFT_RESONANCE_HASTE", text: `S16 追加：佔據者 ${rift.occupant.cardId} 立即可再行動` });
+      state.log.push({ turn: state.turn, side: ec.sourceSide, kind: "RIFT_RESONANCE_HASTE", text: `S_c_16 追加：佔據者 ${rift.occupant.cardId} 立即可再行動` });
     }
   });
 
   // §E.1/§E.2 — Boss / 巢穴專屬機制
   registerScripted("FIELD_BURN_APPLY", (_p, ec) => {
-    ec.state.field = { cardId: "F_BURN_INFERNO", ownerSide: ec.sourceSide };
+    ec.state.field = { cardId: "F_s_01", ownerSide: ec.sourceSide };
     ec.state.log.push({ turn: ec.state.turn, side: ec.sourceSide, kind: "FIELD_SET", text: "獄火場地已籠罩戰場！" });
   });
 
@@ -267,18 +267,18 @@ export function registerCoreScripted(): void {
     const larvae: { slotIdx: number; troop: TroopInstance }[] = [];
     for (let i = 0; i < enemy.troopSlots.length; i++) {
       const t = enemy.troopSlots[i];
-      if (t && t.cardId === "I_QUEEN_LARVA") larvae.push({ slotIdx: i, troop: t });
+      if (t && t.cardId === "T_s_08") larvae.push({ slotIdx: i, troop: t });
     }
     if (larvae.length < 5) return;
     const consume = larvae.slice(0, 5);
     const targetSlot = consume[0]!.slotIdx;
     for (let i = 1; i < 5; i++) enemy.troopSlots[consume[i]!.slotIdx] = null;
-    const queenCard = ec.ctx.getCard("I_INSECT_QUEEN");
+    const queenCard = ec.ctx.getCard("T_s_09");
     if (queenCard.type !== "troop") return;
     ec.state.nextInstanceId++;
     enemy.troopSlots[targetSlot] = {
       instanceId: `t${ec.state.nextInstanceId}`,
-      cardId: "I_INSECT_QUEEN",
+      cardId: "T_s_09",
       hp: queenCard.hp, maxHp: queenCard.hp,
       atk: queenCard.atk, def: queenCard.def,
       keywords: new Set(queenCard.keywords),
@@ -294,18 +294,18 @@ export function registerCoreScripted(): void {
     const shards: { slotIdx: number; troop: TroopInstance }[] = [];
     for (let i = 0; i < enemy.troopSlots.length; i++) {
       const t = enemy.troopSlots[i];
-      if (t && t.cardId === "I_CRYSTAL_SHARD") shards.push({ slotIdx: i, troop: t });
+      if (t && t.cardId === "T_s_20") shards.push({ slotIdx: i, troop: t });
     }
     if (shards.length < 3) return;
     const consume = shards.slice(0, 3);
     const targetSlot = consume[0]!.slotIdx;
     for (let i = 1; i < 3; i++) enemy.troopSlots[consume[i]!.slotIdx] = null;
-    const golemCard = ec.ctx.getCard("I_CRYSTAL_GOLEM");
+    const golemCard = ec.ctx.getCard("T_s_22");
     if (golemCard.type !== "troop") return;
     ec.state.nextInstanceId++;
     enemy.troopSlots[targetSlot] = {
       instanceId: `t${ec.state.nextInstanceId}`,
-      cardId: "I_CRYSTAL_GOLEM",
+      cardId: "T_s_22",
       hp: golemCard.hp, maxHp: golemCard.hp,
       atk: golemCard.atk, def: golemCard.def,
       keywords: new Set(golemCard.keywords),
@@ -318,7 +318,7 @@ export function registerCoreScripted(): void {
   // §E.2 腐化神殿：祭司存活時巢穴 +5 HP / 回合。
   registerScripted("TEMPLE_PRIEST_HEAL", (_p, ec) => {
     const enemy = ec.state.enemy;
-    const hasPriest = aliveTroops(enemy).some((t) => t.cardId === "I_TEMPLE_PRIEST");
+    const hasPriest = aliveTroops(enemy).some((t) => t.cardId === "T_s_24");
     if (!hasPriest) return;
     const before = enemy.hero.hp;
     enemy.hero.hp = Math.min(enemy.hero.maxHp, enemy.hero.hp + 5);
@@ -453,7 +453,7 @@ export function registerCoreScripted(): void {
   // 蟲后光環 aura（onStart）：蟲后在場時，所有敵方兵力 ATK +1（一次性 flag 控制；蟲后死亡後撤銷）。
   registerScripted("QUEEN_AURA", (_p, ec) => {
     const enemy = ec.state.enemy;
-    const queenAlive = aliveTroops(enemy).some((t) => t.cardId === "I_INSECT_QUEEN");
+    const queenAlive = aliveTroops(enemy).some((t) => t.cardId === "T_s_09");
     const auraApplied = enemy.hero.flags.queenAuraApplied === true;
     if (queenAlive && !auraApplied) {
       for (const t of aliveTroops(enemy)) {
@@ -478,7 +478,7 @@ export function registerCoreScripted(): void {
   // 甲蟲衛士光環 aura（onStart）：甲蟲衛士在場時，所有敵方兵力 DEF +1。
   registerScripted("BEETLE_SHELL_AURA", (_p, ec) => {
     const enemy = ec.state.enemy;
-    const beetleAlive = aliveTroops(enemy).some((t) => t.cardId === "I_BEETLE_GUARD");
+    const beetleAlive = aliveTroops(enemy).some((t) => t.cardId === "T_s_11");
     const auraApplied = enemy.hero.flags.beetleShellApplied === true;
     if (beetleAlive && !auraApplied) {
       for (const t of aliveTroops(enemy)) {
@@ -541,10 +541,10 @@ export function registerCoreScripted(): void {
   // 獸群之王光環 aura（onStart）：在場時所有獸族友方兵力 ATK +2。
   registerScripted("ALPHA_AURA", (_p, ec) => {
     const enemy = ec.state.enemy;
-    const alphaAlive = aliveTroops(enemy).some((t) => t.cardId === "I_ALPHA_BEAST");
+    const alphaAlive = aliveTroops(enemy).some((t) => t.cardId === "T_s_14");
     const auraApplied = enemy.hero.flags.alphaAuraApplied === true;
     if (alphaAlive && !auraApplied) {
-      for (const t of aliveTroops(enemy).filter((t) => t.cardId !== "I_ALPHA_BEAST")) {
+      for (const t of aliveTroops(enemy).filter((t) => t.cardId !== "T_s_14")) {
         t.atk += 2;
         t.buffs.push({ id: `alpha_aura_${ec.state.nextInstanceId++}`, source: "ALPHA_AURA", mod: { atk: 2 }, remainingTurns: 999 });
       }
@@ -580,7 +580,7 @@ export function registerCoreScripted(): void {
   registerScripted("SHADOW_VEIL", (_p, ec) => {
     const enemy = ec.state.enemy;
     const shadowCount = aliveTroops(enemy).filter((t) =>
-      ["I_SHADOW_GUARD", "I_SHADOW_ELITE", "I_SHADOW_LORD", "I_SHADOW_ASSASSIN"].includes(t.cardId),
+      ["T_s_16", "T_s_17", "T_s_18", "T_s_19"].includes(t.cardId),
     ).length;
     if (shadowCount >= 3) {
       addTempMana(ec.state.player, -1);
@@ -626,12 +626,12 @@ export function registerCoreScripted(): void {
     // 召喚腐化魔神（若有空格）
     const emptySlot = enemy.troopSlots.findIndex((s) => s === null);
     if (emptySlot < 0) return;
-    const demonCard = ec.ctx.getCard("I_CORRUPT_DEMON");
+    const demonCard = ec.ctx.getCard("T_s_27");
     if (demonCard.type !== "troop") return;
     ec.state.nextInstanceId++;
     enemy.troopSlots[emptySlot] = {
       instanceId: `t${ec.state.nextInstanceId}`,
-      cardId: "I_CORRUPT_DEMON",
+      cardId: "T_s_27",
       hp: demonCard.hp, maxHp: demonCard.hp,
       atk: demonCard.atk, def: demonCard.def,
       keywords: new Set(demonCard.keywords),

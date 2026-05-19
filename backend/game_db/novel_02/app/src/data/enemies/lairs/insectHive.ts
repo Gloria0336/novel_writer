@@ -36,39 +36,39 @@ function createInstance(): HeroInstance {
 
 export const LAIR_INSECT_TROOPS: TroopCard[] = [
   {
-    id: "I_INSECT_EGG", name: "蟲卵",
+    id: "T_s_06", name: "蟲卵",
     type: "troop", rarity: "common", cost: 0,
     hp: 3, atk: 0, def: 0,
     keywords: [],
     // 擊破孵化：死亡時召喚1隻工蟲
-    onDestroy: [{ kind: "summon", cardId: "I_WORKER_BUG", count: 1, side: "self" }],
+    onDestroy: [{ kind: "summon", cardId: "T_s_07", count: 1, side: "self" }],
     flavor: "黏液包覆的脈動小球，被打破時孵化出工蟲。",
   },
   {
-    id: "I_WORKER_BUG", name: "工蟲",
+    id: "T_s_07", name: "工蟲",
     type: "troop", rarity: "common", cost: 0,
     hp: 6, atk: 3, def: 0,
     keywords: ["rush"],
     flavor: "為蟲母而活的勞動體，出場即可攻擊。",
   },
   {
-    id: "I_QUEEN_LARVA", name: "蟲母幼體",
+    id: "T_s_08", name: "蟲母幼體",
     type: "troop", rarity: "common", cost: 0,
     hp: 10, atk: 2, def: 1,
     keywords: [],
     flavor: "尚未孵化的蟲母前身，五體合一方顯真形。",
   },
   {
-    id: "I_INSECT_QUEEN", name: "蟲后",
+    id: "T_s_09", name: "蟲后",
     type: "troop", rarity: "rare", cost: 0,
     hp: 30, atk: 8, def: 3,
     keywords: ["guard"],
     // 每回合產2工蟲；QUEEN_AURA光環由auraTags驅動，確保在場時全場+1ATK
-    onTurnEnd: [{ kind: "summon", cardId: "I_WORKER_BUG", count: 2, side: "self" }],
+    onTurnEnd: [{ kind: "summon", cardId: "T_s_07", count: 2, side: "self" }],
     flavor: "五幼體合體而生的成熟蟲母，源源不斷繁衍蟲群。",
   },
   {
-    id: "I_FOOD_BUG", name: "糧蟲",
+    id: "T_s_10", name: "糧蟲",
     type: "troop", rarity: "common", cost: 0,
     hp: 8, atk: 1, def: 1,
     keywords: [],
@@ -78,7 +78,7 @@ export const LAIR_INSECT_TROOPS: TroopCard[] = [
     flavor: "以自身為糧，存活時滋養群落，死亡時釋放全部精華。",
   },
   {
-    id: "I_BEETLE_GUARD", name: "甲蟲衛士",
+    id: "T_s_11", name: "甲蟲衛士",
     type: "troop", rarity: "uncommon", cost: 0,
     hp: 12, atk: 5, def: 4,
     keywords: ["guard"],

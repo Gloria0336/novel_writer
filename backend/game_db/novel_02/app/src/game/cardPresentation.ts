@@ -1,4 +1,4 @@
-import type { Card, CardType, Rarity, TroopCard } from "../core/types/card";
+import type { Card, CardType, DeviceCard, Rarity, TroopCard } from "../core/types/card";
 import { CARD_TYPE_LABEL, RARITY_LABEL, describeCardEffects } from "./gameIndexData";
 import { resolveCardArt, type CardArtManifest, type ResolvedCardArt } from "./cardArt";
 
@@ -38,6 +38,7 @@ export const CARD_TYPE_COLOR: Record<CardType, string> = {
   spell: "#8ea7d8",
   equipment: "#d3ad58",
   field: "#6fb4c8",
+  device: "#b39ddb",
 };
 
 export const RARITY_COLOR: Record<Rarity, string> = {
@@ -62,12 +63,12 @@ export function buildCardFaceModel(card: Card, options: BuildCardFaceModelOption
     rarityColor: RARITY_COLOR[card.rarity],
     metaLine: options.metaLine,
     effectLines,
-    stats: card.type === "troop" ? troopStats(card as TroopCard) : undefined,
+    stats: card.type === "troop" || card.type === "device" ? unitStats(card as TroopCard | DeviceCard) : undefined,
     art: resolveCardArt(card.id, options.artManifest),
   };
 }
 
-function troopStats(card: TroopCard): CardFaceStats {
+function unitStats(card: TroopCard | DeviceCard): CardFaceStats {
   return { hp: card.hp, atk: card.atk, def: card.def };
 }
 

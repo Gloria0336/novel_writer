@@ -1,26 +1,26 @@
 import type { TroopCard } from "../../core/types/card";
 
 /**
- * 次元滲透裂縫滲透體 M01–M06（v3.3 新增）
+ * 次元滲透裂縫滲透體 T_s_35–T_s_40（v3.3 新增）
  *
  * 來源：rift_slot_design_v1.md §3.3。
  * 取自 `bible/demonology.yaml` 的惡魔類（demon_class）與原生類（native_class），不使用魔化類（corrupted_class）。
  * 僅敵方可用——由次元滲透裂縫機制（resource/rift.ts triggerInfiltration）自動召出，玩家牌庫不可加入。
  *
- * 數值原則：對標 H03 帝國弩砲（4 費 12/9/2）等既有卡，滲透體略偏強以體現「黑暗次元入侵」威脅。
+ * 數值原則：對標 T_h_03 帝國弩砲（4 費 12/9/2）等既有卡，滲透體略偏強以體現「黑暗次元入侵」威脅。
  * 進入裂縫位時自動套用 ATK ×2、DEF +5 加成（applyRiftBuff），表中 stats 為未加成基準值。
  *
  * 池規則（rift.ts selectInfiltratorPool）：
- *   - 回合 1–4：M01–M02
- *   - 回合 5–8：M01–M04
- *   - 回合 9+：M01–M06
- *   - F08 加強裂縫：池往上一階
+ *   - 回合 1–4：T_s_35–T_s_36
+ *   - 回合 5–8：T_s_35–T_s_38
+ *   - 回合 9+：T_s_35–T_s_40
+ *   - F_c_08 加強裂縫：池往上一階
  *
- * 同卡上限：M01–M06 同一場戰鬥各最多召喚 2 次（RIFT_SAME_CARD_LIMIT）。
+ * 同卡上限：T_s_35–T_s_40 同一場戰鬥各最多召喚 2 次（RIFT_SAME_CARD_LIMIT）。
  */
 export const RIFT_INFILTRATOR_CARDS: TroopCard[] = [
   {
-    id: "M01",
+    id: "T_s_35",
     type: "troop",
     name: "黑暗史萊姆",
     cost: 1,
@@ -41,7 +41,7 @@ export const RIFT_INFILTRATOR_CARDS: TroopCard[] = [
     flavor: "無形之物從裂痕滲出，吞噬接觸到的一切。",
   },
   {
-    id: "M02",
+    id: "T_s_36",
     type: "troop",
     name: "觸手蠕行體",
     cost: 2,
@@ -54,7 +54,7 @@ export const RIFT_INFILTRATOR_CARDS: TroopCard[] = [
     flavor: "裂縫對面伸出的，未必是一隻手。",
   },
   {
-    id: "M03",
+    id: "T_s_37",
     type: "troop",
     name: "古魔咆哮者",
     cost: 3,
@@ -75,7 +75,7 @@ export const RIFT_INFILTRATOR_CARDS: TroopCard[] = [
     flavor: "不可名狀者沒有名字，也不需要名字。它只認得殺戮。",
   },
   {
-    id: "M04",
+    id: "T_s_38",
     type: "troop",
     name: "夢魔影刺",
     cost: 4,
@@ -88,7 +88,7 @@ export const RIFT_INFILTRATOR_CARDS: TroopCard[] = [
     flavor: "兩條觸手是初出茅廬。八條觸手者，曾在七位帝王的夢中漫步。",
   },
   {
-    id: "M05",
+    id: "T_s_39",
     type: "troop",
     name: "冰魔施法者",
     cost: 5,
@@ -114,7 +114,7 @@ export const RIFT_INFILTRATOR_CARDS: TroopCard[] = [
     flavor: "她的肌膚冷如月宮殘骸，她的咒語不需要話語。",
   },
   {
-    id: "M06",
+    id: "T_s_40",
     type: "troop",
     name: "巨魔碎牆者",
     cost: 6,

@@ -24,7 +24,7 @@ function hero(overrides: Partial<HeroInstance> = {}): HeroInstance {
 function troop(overrides: Partial<TroopInstance> = {}): TroopInstance {
   return {
     instanceId: "t1",
-    cardId: "T01",
+    cardId: "T_c_01",
     hp: 10,
     maxHp: 10,
     atk: 3,
@@ -42,8 +42,8 @@ function troop(overrides: Partial<TroopInstance> = {}): TroopInstance {
 describe("status indicator builders", () => {
   it("turns hero stat buffs into readable indicators", () => {
     const indicators = buildHeroStatusIndicators(hero({
-      buffs: [{ id: "b1", source: "S14", mod: { atk: 5 }, remainingTurns: 3 }],
-    }), (source) => source === "S14" ? "盟約之誓" : undefined);
+      buffs: [{ id: "b1", source: "S_c_14", mod: { atk: 5 }, remainingTurns: 3 }],
+    }), (source) => source === "S_c_14" ? "盟約之誓" : undefined);
 
     expect(indicators[0]).toMatchObject({
       owner: "hero",
@@ -88,8 +88,8 @@ describe("status indicator builders", () => {
 
   it("turns temporary troop keywords into keyword indicators", () => {
     const indicators = buildTroopStatusIndicators(troop({
-      keywordBuffs: [{ id: "k1", source: "H05", keyword: "guard", remainingTurns: 1 }],
-    }), (source) => source === "H05" ? "軍團盾陣" : undefined);
+      keywordBuffs: [{ id: "k1", source: "S_h_01", keyword: "guard", remainingTurns: 1 }],
+    }), (source) => source === "S_h_01" ? "軍團盾陣" : undefined);
 
     expect(indicators[0]).toMatchObject({
       owner: "troop",

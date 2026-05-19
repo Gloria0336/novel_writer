@@ -65,7 +65,7 @@ export const HERO_BUTTERFLY_YAO: HeroDefinition = {
     cost: { morale: 100 },
     effects: [
       { kind: "scripted", tag: "TAN_BLANK_BEFORE_PUPATION" },
-      { kind: "summon", cardId: "I_PHANTOM", count: 2, side: "self" },
+      { kind: "summon", cardId: "T_s_31", count: 2, side: "self" },
       { kind: "heal", target: { kind: "self" }, amount: { kind: "const", value: 18 } },
       { kind: "draw", count: 1 },
     ],

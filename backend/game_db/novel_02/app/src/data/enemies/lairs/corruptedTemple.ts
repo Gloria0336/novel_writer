@@ -36,7 +36,7 @@ function createInstance(): HeroInstance {
 
 export const LAIR_CORRUPTED_TROOPS: TroopCard[] = [
   {
-    id: "I_TEMPLE_PRIEST", name: "腐化祭司",
+    id: "T_s_24", name: "腐化祭司",
     type: "troop", rarity: "uncommon", cost: 0,
     hp: 12, atk: 2, def: 2,
     keywords: ["guard"],
@@ -46,7 +46,7 @@ export const LAIR_CORRUPTED_TROOPS: TroopCard[] = [
     flavor: "誦經之聲不絕，死亡時以最後祈禱滋養神殿。",
   },
   {
-    id: "I_TEMPLE_FOLLOWER", name: "腐化信徒",
+    id: "T_s_25", name: "腐化信徒",
     type: "troop", rarity: "common", cost: 0,
     hp: 8, atk: 4, def: 1,
     keywords: [],
@@ -58,7 +58,7 @@ export const LAIR_CORRUPTED_TROOPS: TroopCard[] = [
     flavor: "犧牲自我以滋養神殿，每一次死亡都是奉獻。",
   },
   {
-    id: "I_CORRUPT_RELIC", name: "腐爛聖物",
+    id: "T_s_26", name: "腐爛聖物",
     type: "troop", rarity: "rare", cost: 0,
     hp: 18, atk: 5, def: 3,
     keywords: [],
@@ -72,7 +72,7 @@ export const LAIR_CORRUPTED_TROOPS: TroopCard[] = [
     flavor: "曾經神聖，如今滴落腐液，持續侵蝕一切。",
   },
   {
-    id: "I_CORRUPT_DEMON", name: "腐化魔神",
+    id: "T_s_27", name: "腐化魔神",
     type: "troop", rarity: "rare", cost: 0,
     hp: 22, atk: 8, def: 2,
     keywords: ["lethal", "menace"],

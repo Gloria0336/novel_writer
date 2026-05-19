@@ -34,8 +34,10 @@ describe("預組牌完整性 — 每位英雄 30 張 + 符合種族 deckLimits",
       acc[t] = (acc[t] ?? 0) + 1;
       return acc;
     }, {});
-    expect(byType.troop ?? 0).toBeGreaterThanOrEqual(race.deckLimits.troop[0]);
-    expect(byType.troop ?? 0).toBeLessThanOrEqual(race.deckLimits.troop[1]);
+    // device 與 troop 共用 troopSlots，計入相同限額。
+    const boardUnitCount = (byType.troop ?? 0) + (byType.device ?? 0);
+    expect(boardUnitCount).toBeGreaterThanOrEqual(race.deckLimits.troop[0]);
+    expect(boardUnitCount).toBeLessThanOrEqual(race.deckLimits.troop[1]);
     expect(byType.action ?? 0).toBeGreaterThanOrEqual(race.deckLimits.action[0]);
     expect(byType.action ?? 0).toBeLessThanOrEqual(race.deckLimits.action[1]);
     expect(byType.spell ?? 0).toBeGreaterThanOrEqual(race.deckLimits.spell[0]);
@@ -186,7 +188,7 @@ describe("終極技施放規則", () => {
     expect(ult.cost.morale).toBe(100);
     expect(ult.effects[0]).toEqual({ kind: "scripted", tag: "TAN_BLANK_BEFORE_PUPATION" });
     expect(ult.effects).toEqual(expect.arrayContaining([
-      { kind: "summon", cardId: "I_PHANTOM", count: 2, side: "self" },
+      { kind: "summon", cardId: "T_s_31", count: 2, side: "self" },
       { kind: "heal", target: { kind: "self" }, amount: { kind: "const", value: 18 } },
       { kind: "draw", count: 1 },
     ]));

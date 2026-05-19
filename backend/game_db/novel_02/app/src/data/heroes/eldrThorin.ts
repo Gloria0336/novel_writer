@@ -8,8 +8,10 @@ export const HERO_ELDR_THORIN: HeroDefinition = {
   rarity: "R",
   statTuning: { hp: -5, atk: 0, def: -1, cmd: 0 },
   gauge: {
-    description: "每打出 1 張裝備牌 +20 爐火；每回合開始 +5。爐火越旺，鋼鐵越能承載重擊。",
+    description: "每打出 1 張裝備牌 +20 爐火；每打出 1 個魔導器具 +15 爐火；每次改造/製造 +15 爐火；每回合開始 +5。爐火越旺，鋼鐵越能承載重擊。",
     onEquipmentPlay: 20,
+    onDevicePlay: 15,
+    onForge: 15,
     onTurnStart: 5,
   },
   passives: [

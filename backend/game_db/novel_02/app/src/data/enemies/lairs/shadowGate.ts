@@ -38,7 +38,7 @@ const SHADOW_DESTROY_STAB: { kind: "stability"; delta: number } = { kind: "stabi
 
 export const LAIR_SHADOW_TROOPS: TroopCard[] = [
   {
-    id: "I_SHADOW_GUARD", name: "暗影守衛",
+    id: "T_s_16", name: "暗影守衛",
     type: "troop", rarity: "common", cost: 0,
     hp: 10, atk: 3, def: 2,
     keywords: ["guard"],
@@ -46,7 +46,7 @@ export const LAIR_SHADOW_TROOPS: TroopCard[] = [
     flavor: "在門戶前列陣的虛影，死亡時撕裂現實壁壘。",
   },
   {
-    id: "I_SHADOW_ELITE", name: "暗影精英",
+    id: "T_s_17", name: "暗影精英",
     type: "troop", rarity: "uncommon", cost: 0,
     hp: 14, atk: 6, def: 2,
     keywords: ["guard", "pierce"],
@@ -54,16 +54,16 @@ export const LAIR_SHADOW_TROOPS: TroopCard[] = [
     flavor: "穿越次元的精銳，守護的同時能無視敵方防線直擊要害。",
   },
   {
-    id: "I_SHADOW_LORD", name: "暗影領主",
+    id: "T_s_18", name: "暗影領主",
     type: "troop", rarity: "rare", cost: 0,
     hp: 22, atk: 9, def: 3,
     keywords: ["guard", "pierce"],
-    onPlay: [{ kind: "summon", cardId: "I_SHADOW_GUARD", count: 1, side: "self" }],
+    onPlay: [{ kind: "summon", cardId: "T_s_16", count: 1, side: "self" }],
     onDestroy: [SHADOW_DESTROY_STAB],
     flavor: "領袖降臨即召喚守衛，死亡時對現實造成最深的裂傷。",
   },
   {
-    id: "I_SHADOW_ASSASSIN", name: "虛影刺客",
+    id: "T_s_19", name: "虛影刺客",
     type: "troop", rarity: "rare", cost: 0,
     hp: 8, atk: 11, def: 0,
     keywords: ["menace", "pierce"],

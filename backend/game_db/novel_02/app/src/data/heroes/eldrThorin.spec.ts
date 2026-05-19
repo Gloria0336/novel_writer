@@ -36,8 +36,8 @@ describe("艾德 · 圖林 — 矮人鍛造師 runtime", () => {
   it("重錘鍛擊：對敵方兵力造成 ATK +3 傷害", () => {
     const s = createBattle({ seed: 13, playerHeroId: "eldr-thorin", playerDeckIds: ELDR_THORIN_DECK_IDS });
     const ctx = createBattleContext();
-    const enemyCard = getCard("T02");
-    if (enemyCard.type !== "troop") throw new Error("T02 should be a troop");
+    const enemyCard = getCard("T_c_02");
+    if (enemyCard.type !== "troop") throw new Error("T_c_02 should be a troop");
 
     const enemyTroop = createTroopInstance(s, enemyCard as TroopCard);
     s.enemy.troopSlots[0] = enemyTroop;

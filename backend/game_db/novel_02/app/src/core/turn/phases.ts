@@ -93,10 +93,23 @@ export function startTurnFor(state: BattleState, side: Side, ctx: BattleContext)
     }
   }
 
+  // 鍛造師職業：重置「改造/製造」每回合限額
+  sideState.hero.flags.forgeUsedThisTurn = false;
+
   // 量表類型：精靈共鳴每回合重置
   if (race.gauge.id === "resonance") {
     sideState.hero.gaugeValue = 0;
     syncFullGaugeBuffs(state, ctx);
+  }
+
+  // 兵力 / 器具的 onTurnStart hook：在凍結倒數後執行，被暈眩中（frozenTurns > 0）的單位跳過
+  for (const t of sideState.troopSlots) {
+    if (!t || t.frozenTurns > 0) continue;
+    const card = ctx.getCard(t.cardId);
+    const hooks = (card.type === "troop" || card.type === "device") ? card.onTurnStart : undefined;
+    if (hooks && hooks.length > 0) {
+      executeEffects(hooks, { state, ctx, sourceSide: side, sourceKind: "passive", sourceInstanceId: t.instanceId, sourceCardId: t.cardId });
+    }
   }
 
   state.log.push({
@@ -112,6 +125,19 @@ export function startTurnFor(state: BattleState, side: Side, ctx: BattleContext)
 export function endTurnFor(state: BattleState, side: Side, ctx?: BattleContext): void {
   state.phase = "end";
   const sideState = getSide(state, side);
+
+  // 兵力 / 器具的 onTurnEnd hook：在 tick buff 之前執行（避免 buff 倒數後才開砲）
+  // 暈眩中（frozenTurns > 0）的單位跳過。
+  if (ctx) {
+    for (const t of sideState.troopSlots) {
+      if (!t || t.frozenTurns > 0) continue;
+      const card = ctx.getCard(t.cardId);
+      const hooks = (card.type === "troop" || card.type === "device") ? card.onTurnEnd : undefined;
+      if (hooks && hooks.length > 0) {
+        executeEffects(hooks, { state, ctx, sourceSide: side, sourceKind: "passive", sourceInstanceId: t.instanceId, sourceCardId: t.cardId });
+      }
+    }
+  }
 
   // 兵力 buff/debuff/臨時關鍵字持續時間 -1，過期時回復數值與關鍵字。
   for (const t of sideState.troopSlots) {
@@ -207,7 +233,16 @@ function tickTroopKeywordBuffs(troop: TroopInstance, ctx?: BattleContext): void 
 function getBaseKeywords(troop: TroopInstance, ctx?: BattleContext): Set<Keyword> {
   if (!ctx) return new Set();
   const card = ctx.getCard(troop.cardId);
-  return card.type === "troop" ? new Set(card.keywords) : new Set();
+  if (card.type === "troop") return new Set(card.keywords);
+  if (card.type === "device") {
+    // Device 型態變化時的基準關鍵字以當前 form 為準
+    if (card.form && troop.deviceForm) {
+      const formKw = card.form[troop.deviceForm].keywords;
+      if (formKw) return new Set(formKw);
+    }
+    return new Set(card.keywords);
+  }
+  return new Set();
 }
 
 function revertTroopMod(troop: TroopInstance, mod: StatModifier): void {

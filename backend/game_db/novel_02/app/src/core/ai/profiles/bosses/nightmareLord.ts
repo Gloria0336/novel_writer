@@ -20,6 +20,6 @@ export const BOSS_NIGHTMARE_LORD_PROFILE: EnemyProfile = {
     saveUntilThreshold: 0.5,
     spendOnUltimateAt: 0.7,
   },
-  summonPool: ["I_PHANTOM_AWE"],
+  summonPool: ["T_s_28"],
   summonsPerTurn: { min: 0, max: 1 },
 };

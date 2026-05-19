@@ -17,7 +17,7 @@ export const LAIR_BEAST_CAVE_PROFILE: EnemyProfile = {
     boardControl: 0.4,
     gaugeBuildup: -1.0,
   },
-  summonPool: ["I_FERAL_BEAST", "I_DIRE_HOUND", "I_ALPHA_BEAST"],
+  summonPool: ["T_s_12", "T_s_13", "T_s_14"],
   summonsPerTurn: { min: 1, max: 1 },
   summonCadenceTurns: 2,
 };

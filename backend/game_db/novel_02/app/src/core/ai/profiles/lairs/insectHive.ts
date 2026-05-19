@@ -17,7 +17,7 @@ export const LAIR_INSECT_HIVE_PROFILE: EnemyProfile = {
     boardControl: 1.2,
     gaugeBuildup: -1.0,
   },
-  summonPool: ["I_INSECT_EGG", "I_WORKER_BUG", "I_QUEEN_LARVA"],
+  summonPool: ["T_s_06", "T_s_07", "T_s_08"],
   summonsPerTurn: { min: 2, max: 2 },
   summonCadenceTurns: 1,
 };

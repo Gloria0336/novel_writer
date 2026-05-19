@@ -36,7 +36,7 @@ function createInstance(): HeroInstance {
 
 export const LAIR_BEAST_TROOPS: TroopCard[] = [
   {
-    id: "I_FERAL_BEAST", name: "野性魔獸",
+    id: "T_s_12", name: "野性魔獸",
     type: "troop", rarity: "common", cost: 0,
     hp: 12, atk: 5, def: 1,
     keywords: [],
@@ -45,14 +45,14 @@ export const LAIR_BEAST_TROOPS: TroopCard[] = [
     flavor: "尚未理智的幼獸，在戰場上越戰越狂。",
   },
   {
-    id: "I_DIRE_HOUND", name: "嗜血獵犬",
+    id: "T_s_13", name: "嗜血獵犬",
     type: "troop", rarity: "common", cost: 0,
     hp: 14, atk: 6, def: 1,
     keywords: ["rush", "lifesteal"],
     flavor: "獵犬群之首，突進後吸取敵血回復巢穴。",
   },
   {
-    id: "I_ALPHA_BEAST", name: "獸群之王",
+    id: "T_s_14", name: "獸群之王",
     type: "troop", rarity: "rare", cost: 0,
     hp: 24, atk: 8, def: 2,
     keywords: ["guard"],
@@ -61,7 +61,7 @@ export const LAIR_BEAST_TROOPS: TroopCard[] = [
     flavor: "洞穴最深處的領導者，其存在令群獸戰意暴漲。",
   },
   {
-    id: "I_ENRAGED_BOAR", name: "憤怒野豬",
+    id: "T_s_15", name: "憤怒野豬",
     type: "troop", rarity: "uncommon", cost: 0,
     hp: 16, atk: 9, def: 0,
     keywords: ["rush", "pierce"],

@@ -134,45 +134,45 @@ describe("tickRiftTremor — 倒數至 0 自動滲透", () => {
 });
 
 describe("selectInfiltratorPool — 依回合與 enhanced 分階段", () => {
-  it("回合 1–4 選 M01–M02", () => {
+  it("回合 1–4 選 T_s_35–T_s_36", () => {
     const s = mkState({ turn: 3 });
     s.rift = { holder: "open", occupant: null, tremorCountdown: 1, enhanced: false, infiltrationsByCard: {}, s15UsesPlayer: 0, s16UsedPlayer: false };
-    expect(selectInfiltratorPool(s)).toEqual(["M01", "M02"]);
+    expect(selectInfiltratorPool(s)).toEqual(["T_s_35", "T_s_36"]);
   });
 
-  it("回合 5–8 選 M01–M04", () => {
+  it("回合 5–8 選 T_s_35–T_s_38", () => {
     const s = mkState({ turn: 6 });
     s.rift = { holder: "open", occupant: null, tremorCountdown: 1, enhanced: false, infiltrationsByCard: {}, s15UsesPlayer: 0, s16UsedPlayer: false };
-    expect(selectInfiltratorPool(s)).toEqual(["M01", "M02", "M03", "M04"]);
+    expect(selectInfiltratorPool(s)).toEqual(["T_s_35", "T_s_36", "T_s_37", "T_s_38"]);
   });
 
-  it("回合 9+ 選 M01–M06", () => {
+  it("回合 9+ 選 T_s_35–T_s_40", () => {
     const s = mkState({ turn: 12 });
     s.rift = { holder: "open", occupant: null, tremorCountdown: 1, enhanced: false, infiltrationsByCard: {}, s15UsesPlayer: 0, s16UsedPlayer: false };
-    expect(selectInfiltratorPool(s)).toEqual(["M01", "M02", "M03", "M04", "M05", "M06"]);
+    expect(selectInfiltratorPool(s)).toEqual(["T_s_35", "T_s_36", "T_s_37", "T_s_38", "T_s_39", "T_s_40"]);
   });
 
-  it("enhanced 池往上一階：回合 3 + enhanced → M01–M04", () => {
+  it("enhanced 池往上一階：回合 3 + enhanced → T_s_35–T_s_38", () => {
     const s = mkState({ turn: 3 });
     s.rift = { holder: "open", occupant: null, tremorCountdown: 1, enhanced: true, infiltrationsByCard: {}, s15UsesPlayer: 0, s16UsedPlayer: false };
-    expect(selectInfiltratorPool(s)).toEqual(["M01", "M02", "M03", "M04"]);
+    expect(selectInfiltratorPool(s)).toEqual(["T_s_35", "T_s_36", "T_s_37", "T_s_38"]);
   });
 
   it("enhanced 在最高階仍是全池（不超出）", () => {
     const s = mkState({ turn: 15 });
     s.rift = { holder: "open", occupant: null, tremorCountdown: 1, enhanced: true, infiltrationsByCard: {}, s15UsesPlayer: 0, s16UsedPlayer: false };
-    expect(selectInfiltratorPool(s)).toEqual(["M01", "M02", "M03", "M04", "M05", "M06"]);
+    expect(selectInfiltratorPool(s)).toEqual(["T_s_35", "T_s_36", "T_s_37", "T_s_38", "T_s_39", "T_s_40"]);
   });
 });
 
 describe("triggerInfiltration — 滲透體佔據 rift 並標記 fromRift", () => {
-  it("回合 1 滲透 M01 或 M02", () => {
+  it("回合 1 滲透 T_s_35 或 T_s_36", () => {
     const s = mkState({ turn: 1, stability: 40 });
     openRiftIfNeeded(s);
     triggerInfiltration(s, ctx);
     expect(s.rift?.holder).toBe("enemy");
     expect(s.rift?.occupant).not.toBeNull();
-    expect(["M01", "M02"]).toContain(s.rift?.occupant?.cardId);
+    expect(["T_s_35", "T_s_36"]).toContain(s.rift?.occupant?.cardId);
     expect(s.rift?.occupant?.fromRift).toBe(true);
   });
 
@@ -247,7 +247,7 @@ describe("applyRiftBuff / removeRiftBuff — modifier 對稱", () => {
   }
 
   it("applyRiftBuff：ATK ×2、DEF +5、HP 不變", () => {
-    const t = mkTroop("T02"); // 12/5/2
+    const t = mkTroop("T_c_02"); // 12/5/2
     applyRiftBuff(t);
     expect(t.atk).toBe(10); // 5 × 2
     expect(t.def).toBe(7); // 2 + 5
@@ -256,7 +256,7 @@ describe("applyRiftBuff / removeRiftBuff — modifier 對稱", () => {
   });
 
   it("applyRiftBuff 不重複套用", () => {
-    const t = mkTroop("T02");
+    const t = mkTroop("T_c_02");
     applyRiftBuff(t);
     applyRiftBuff(t); // 第二次應 no-op
     expect(t.atk).toBe(10);
@@ -265,7 +265,7 @@ describe("applyRiftBuff / removeRiftBuff — modifier 對稱", () => {
   });
 
   it("removeRiftBuff：還原 stat", () => {
-    const t = mkTroop("T02");
+    const t = mkTroop("T_c_02");
     applyRiftBuff(t);
     removeRiftBuff(t);
     expect(t.atk).toBe(5);
@@ -278,10 +278,10 @@ describe("tryPlayerOccupy — 玩家佔據成功與 buff", () => {
   it("Open 時可佔據 → holder=player + buff 生效", () => {
     const s = mkState({ stability: 40 });
     openRiftIfNeeded(s);
-    const c = getCard("T02");
+    const c = getCard("T_c_02");
     if (c.type !== "troop") throw new Error("not troop");
     const inst: TroopInstance = {
-      instanceId: "t99", cardId: "T02",
+      instanceId: "t99", cardId: "T_c_02",
       hp: c.hp, maxHp: c.hp, atk: c.atk, def: c.def,
       keywords: new Set(c.keywords),
       hasAttackedThisTurn: false, summonedThisTurn: true, frozenTurns: 0, buffs: [],
@@ -298,10 +298,10 @@ describe("tryPlayerOccupy — 玩家佔據成功與 buff", () => {
     const s = mkState({ stability: 40 });
     openRiftIfNeeded(s);
     triggerInfiltration(s, ctx); // → enemy 佔據
-    const c = getCard("T02");
+    const c = getCard("T_c_02");
     if (c.type !== "troop") throw new Error("not troop");
     const inst: TroopInstance = {
-      instanceId: "t99", cardId: "T02",
+      instanceId: "t99", cardId: "T_c_02",
       hp: c.hp, maxHp: c.hp, atk: c.atk, def: c.def,
       keywords: new Set(c.keywords),
       hasAttackedThisTurn: false, summonedThisTurn: true, frozenTurns: 0, buffs: [],

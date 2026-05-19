@@ -21,11 +21,11 @@ describe("E2E：艾爾諾老師 vs 腐植巢穴", () => {
     const s = createBattle({ seed: 7, playerHeroId: "elno-honorary-mage", playerDeckIds: ELNO_HONORARY_MAGE_DECK_IDS });
     const ctx = createBattleContext();
 
-    // 找一張低費法術（S01 偵查術 0 費）
-    const idx = s.player.hand.findIndex((inst) => getCard(inst.cardId).id === "S01");
+    // 找一張低費法術（S_c_01 偵查術 0 費）
+    const idx = s.player.hand.findIndex((inst) => getCard(inst.cardId).id === "S_c_01");
     if (idx < 0) {
       // 強制注入
-      s.player.hand.unshift({ instanceId: "x", cardId: "S01" });
+      s.player.hand.unshift({ instanceId: "x", cardId: "S_c_01" });
       const r = applyPlayerAction(s, { type: "PLAY_SPELL", handIndex: 0 }, ctx);
       expect(r.ok).toBe(true);
     } else {
@@ -41,7 +41,7 @@ describe("E2E：艾爾諾老師 vs 腐植巢穴", () => {
     const ctx = createBattleContext();
     s.player.hero.gaugeValue = 4;
     const manaBefore = s.player.manaCurrent;
-    s.player.hand = [{ instanceId: "x", cardId: "S07" }]; // S07 4 費
+    s.player.hand = [{ instanceId: "x", cardId: "S_c_07" }]; // S_c_07 4 費
     const r = applyPlayerAction(s, { type: "PLAY_SPELL", handIndex: 0 }, ctx);
     expect(r.ok).toBe(true);
     expect(s.player.manaCurrent).toBe(manaBefore); // 0 費，魔力沒消耗
@@ -53,10 +53,10 @@ describe("E2E：艾爾諾老師 vs 腐植巢穴", () => {
     const ctx = createBattleContext();
     s.player.manaCurrent = 20; // 充足魔力
     s.player.hand = [
-      { instanceId: "x1", cardId: "S01" },
-      { instanceId: "x2", cardId: "S01" },
-      { instanceId: "x3", cardId: "S01" },
-      { instanceId: "x4", cardId: "S01" },
+      { instanceId: "x1", cardId: "S_c_01" },
+      { instanceId: "x2", cardId: "S_c_01" },
+      { instanceId: "x3", cardId: "S_c_01" },
+      { instanceId: "x4", cardId: "S_c_01" },
     ];
     const tempBefore = s.player.tempMana;
     applyPlayerAction(s, { type: "PLAY_SPELL", handIndex: 0 }, ctx);
@@ -78,7 +78,7 @@ describe("E2E：艾爾諾老師 vs 腐植巢穴", () => {
     expect(s.enemy.hero.hp).toBe(Math.max(0, enemyHpBefore - 28));
   });
 
-  it("共鳴 3 層時 S07 烈焰風暴傷害 ×1.6（含本次施放 onSpellCast +1）", () => {
+  it("共鳴 3 層時 S_c_07 烈焰風暴傷害 ×1.6（含本次施放 onSpellCast +1）", () => {
     const s = createBattle({ seed: 11, playerHeroId: "elno-honorary-mage", playerDeckIds: ELNO_HONORARY_MAGE_DECK_IDS });
     const ctx = createBattleContext();
     // 起始 gauge = 2，本次施放 +1 → 結算時為 3 層
@@ -88,10 +88,10 @@ describe("E2E：艾爾諾老師 vs 腐植巢穴", () => {
     const t = createTroopInstance(s, dummy, { suppressSummonSickness: true });
     s.enemy.troopSlots[0] = t;
 
-    s.player.hand = [{ instanceId: "z", cardId: "S07" }];
+    s.player.hand = [{ instanceId: "z", cardId: "S_c_07" }];
     applyPlayerAction(s, { type: "PLAY_SPELL", handIndex: 0 }, ctx);
 
-    // S07 基礎 10，共鳴 3 層（本次施放使其達 3）→ ×1.6 = 16，DEF 0
+    // S_c_07 基礎 10，共鳴 3 層（本次施放使其達 3）→ ×1.6 = 16，DEF 0
     expect(t.hp).toBe(84);
   });
 });

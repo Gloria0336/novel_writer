@@ -1,14 +1,16 @@
 import type { BattleState, TroopInstance } from "../types/battle";
 import type { Effect, Side } from "../types/effect";
 import type { BattleContext } from "../types/context";
-import type { GameAction, OathChoice } from "./actions";
+import type { ForgeMode, GameAction, OathChoice } from "./actions";
 import type { Card } from "../types/card";
 import { executeEffects, reapDeadTroops, type EffectContext } from "../effects/registry";
 import { canActionTarget, canTroopAttack, troopVsHero, troopVsTroop, type TroopAttackResult } from "../combat/attack";
 import { applyHeroDamage } from "../combat/damage";
 import { canAffordMana, spendMana } from "../resource/mana";
 import { addMorale, canAffordMorale, MORALE_ACTION_HIT, MORALE_KILL_TROOP, spendMorale } from "../resource/morale";
-import { addGauge, gaugeOnEquipmentPlay, gaugeOnSpellCast } from "../resource/gauge";
+import { addGauge, gaugeOnEquipmentPlay, gaugeOnForge, gaugeOnSpellCast } from "../resource/gauge";
+import { DEVICE_POOL } from "../../data/cards/devices";
+import { triggerReactionsBySide } from "../effects/reactions";
 import { applyCorruptionStageEffects, applyStabilityDelta } from "../resource/stability";
 import { tryPlayerOccupy } from "../resource/rift";
 import { aliveTroops, freeSlotIndex, getSide, otherSide } from "../selectors/battle";
@@ -46,6 +48,7 @@ export function applyAction(state: BattleState, action: GameAction, ctx: BattleC
     case "TROOP_ATTACK": result = troopAttack(state, sideKey, action.attackerInstanceId, action.targetInstanceId, ctx); break;
     case "USE_SKILL": result = useSkill(state, sideKey, side, action.skillId, action.targetInstanceId, ctx); break;
     case "USE_ULTIMATE": result = useUltimate(state, sideKey, side, action.targetInstanceId, ctx); break;
+    case "FORGE_ACTION": result = forgeAction(state, sideKey, side, action.mode, action.handIndex, ctx); break;
     case "END_TURN": result = endTurn(state, sideKey, ctx); break;
   }
   if (result.ok) syncFullGaugeBuffs(state, ctx);
@@ -66,8 +69,8 @@ function discardFromHand(side: BattleState["player"], handIndex: number): void {
 function playTroop(state: BattleState, sideKey: Side, side: BattleState["player"], handIndex: number, slotIndex: number, ctx: BattleContext): ApplyResult {
   const lookup = lookupCard(side, handIndex, ctx);
   if (!lookup) return { ok: false, reason: "invalid hand index" };
-  if (lookup.card.type !== "troop") return { ok: false, reason: "not a troop card" };
-  if (isHeroAbilityFrozen(side.hero, "troop")) return { ok: false, reason: "troop cards frozen" };
+  if (lookup.card.type !== "troop" && lookup.card.type !== "device") return { ok: false, reason: "not a troop or device card" };
+  if (lookup.card.type === "troop" && isHeroAbilityFrozen(side.hero, "troop")) return { ok: false, reason: "troop cards frozen" };
   if (slotIndex < 0 || slotIndex >= side.troopSlots.length) return { ok: false, reason: "invalid slot" };
   if (side.troopSlots[slotIndex] !== null) return { ok: false, reason: "slot occupied" };
   const cost = getEffectiveCardCost(state, ctx, sideKey, lookup.card);
@@ -78,12 +81,18 @@ function playTroop(state: BattleState, sideKey: Side, side: BattleState["player"
 
   const inst = createTroopInstance(state, lookup.card);
   side.troopSlots[slotIndex] = inst;
-  state.log.push({ turn: state.turn, side: sideKey, kind: "PLAY_TROOP", text: `部署 ${lookup.card.name}`, payload: { cardId: lookup.card.id, instanceId: inst.instanceId, slotIndex } });
+  const eventKind = lookup.card.type === "device" ? "PLAY_DEVICE" : "PLAY_TROOP";
+  state.log.push({ turn: state.turn, side: sideKey, kind: eventKind, text: `部署 ${lookup.card.name}`, payload: { cardId: lookup.card.id, instanceId: inst.instanceId, slotIndex } });
 
-  // 種族量表：onTroopEnter
+  // 種族量表：onTroopEnter / onDevicePlay
   const heroDef = ctx.getHero(side.hero.defId);
   const race = ctx.getRace(heroDef.raceId);
-  if (heroDef.gauge.onTroopEnter) addGauge(side.hero, race.gauge.max, heroDef.gauge.onTroopEnter);
+  if (lookup.card.type === "troop" && heroDef.gauge.onTroopEnter) {
+    addGauge(side.hero, race.gauge.max, heroDef.gauge.onTroopEnter);
+  }
+  if (lookup.card.type === "device" && heroDef.gauge.onDevicePlay) {
+    addGauge(side.hero, race.gauge.max, heroDef.gauge.onDevicePlay);
+  }
   syncFullGaugeBuffs(state, ctx);
 
   // 入場曲
@@ -146,22 +155,22 @@ function playSpell(state: BattleState, sideKey: Side, side: BattleState["player"
   if (lookup.card.type !== "spell") return { ok: false, reason: "not a spell card" };
   if (isHeroAbilityFrozen(side.hero, "spell")) return { ok: false, reason: "spell cards frozen" };
 
-  // v3.3：S15 / S16 條件檢查（在付費前 reject）
+  // v3.3：S_c_15 / S_c_16 條件檢查（在付費前 reject）
   let riftCardInstanceId: string | undefined;
-  if (lookup.card.id === "S15") {
-    if (!state.rift || state.rift.holder !== "open") return { ok: false, reason: "S15 requires open rift" };
-    if (state.rift.s15UsesPlayer >= 3) return { ok: false, reason: "S15 per-battle limit reached" };
-    if (riftHandIndex === undefined || riftHandIndex < 0 || riftHandIndex >= side.hand.length) return { ok: false, reason: "S15 requires riftHandIndex" };
-    if (riftHandIndex === handIndex) return { ok: false, reason: "S15 cannot target itself" };
+  if (lookup.card.id === "S_c_15") {
+    if (!state.rift || state.rift.holder !== "open") return { ok: false, reason: "S_c_15 requires open rift" };
+    if (state.rift.s15UsesPlayer >= 3) return { ok: false, reason: "S_c_15 per-battle limit reached" };
+    if (riftHandIndex === undefined || riftHandIndex < 0 || riftHandIndex >= side.hand.length) return { ok: false, reason: "S_c_15 requires riftHandIndex" };
+    if (riftHandIndex === handIndex) return { ok: false, reason: "S_c_15 cannot target itself" };
     const target = side.hand[riftHandIndex];
-    if (!target) return { ok: false, reason: "S15 target hand slot empty" };
-    if (ctx.getCard(target.cardId).type !== "troop") return { ok: false, reason: "S15 target must be a troop" };
+    if (!target) return { ok: false, reason: "S_c_15 target hand slot empty" };
+    if (ctx.getCard(target.cardId).type !== "troop") return { ok: false, reason: "S_c_15 target must be a troop" };
     // 在 discardFromHand 之前先記錄 instanceId（之後 hand index 會位移）
     riftCardInstanceId = target.instanceId;
   }
-  if (lookup.card.id === "S16") {
-    if (!state.rift) return { ok: false, reason: "S16 requires rift on battlefield" };
-    if (state.rift.s16UsedPlayer) return { ok: false, reason: "S16 already used this battle" };
+  if (lookup.card.id === "S_c_16") {
+    if (!state.rift) return { ok: false, reason: "S_c_16 requires rift on battlefield" };
+    if (state.rift.s16UsedPlayer) return { ok: false, reason: "S_c_16 already used this battle" };
   }
 
   // 共鳴量表：法術費用是否在「詠唱完成」狀態（>= 4 stacks）需減免？我們在 spec 用 hero gaugeValue
@@ -196,13 +205,16 @@ function playSpell(state: BattleState, sideKey: Side, side: BattleState["player"
   state.log.push({ turn: state.turn, side: sideKey, kind: "PLAY_SPELL", text: `施放 ${lookup.card.name}`, payload: { cardId: lookup.card.id } });
 
   const ec: EffectContext = { state, ctx, sourceSide: sideKey, sourceKind: "spell", sourceCardId: lookup.card.id };
-  // 把 single 目標的 pickedInstanceId 注入；以及 S15 RIFT_CALL 的 handCardInstanceId
+  // 把 single 目標的 pickedInstanceId 注入；以及 S_c_15 RIFT_CALL 的 handCardInstanceId
   const effects = lookup.card.effects
     .map((e) => maybeInjectOathChoice(e, oathChoice))
     .map((e) => maybeInjectTarget(e, targetInstanceId))
     .map((e) => maybeInjectRiftHand(e, riftCardInstanceId));
   executeEffects(effects, ec);
 
+  reapDeadTroops(state, ctx, sideKey);
+  // 自動反應：對立面器具對「敵方施法」反應
+  triggerReactionsBySide(state, ctx, "enemySpellCast", sideKey);
   reapDeadTroops(state, ctx, sideKey);
   checkVictory(state);
   return { ok: true };
@@ -316,6 +328,9 @@ function playEquipment(state: BattleState, sideKey: Side, side: BattleState["pla
   if (lookup.card.onPlay) {
     executeEffects(lookup.card.onPlay, { state, ctx, sourceSide: sideKey, sourceKind: "equipment", sourceCardId: lookup.card.id });
   }
+  // 自動反應：對立面器具對「敵方裝備上場」反應
+  triggerReactionsBySide(state, ctx, "enemyEquipmentPlayed", sideKey);
+  reapDeadTroops(state, ctx, sideKey);
   return { ok: true };
 }
 
@@ -325,9 +340,9 @@ function playField(state: BattleState, sideKey: Side, side: BattleState["player"
   if (lookup.card.type !== "field") return { ok: false, reason: "not a field" };
   const cost = getEffectiveCardCost(state, ctx, sideKey, lookup.card);
   if (!canAffordMana(side, cost)) return { ok: false, reason: "not enough mana" };
-  // v3.3：F08 次元裂縫（重作版）唯有場上已開啟裂縫時可施放
-  if (lookup.card.id === "F08" && !state.rift) {
-    return { ok: false, reason: "F08 requires open rift" };
+  // v3.3：F_c_08 次元裂縫（重作版）唯有場上已開啟裂縫時可施放
+  if (lookup.card.id === "F_c_08" && !state.rift) {
+    return { ok: false, reason: "F_c_08 requires open rift" };
   }
 
   spendMana(side, cost);
@@ -377,6 +392,8 @@ function troopAttack(state: BattleState, sideKey: Side, attackerId: string, targ
   let attackResult: TroopAttackResult;
   if (targetEntity === "hero") {
     attackResult = troopVsHero(state, ctx, attacker.troop, sideKey);
+    // 自動反應：被攻擊方的器具對「敵方攻擊我方英雄」反應
+    triggerReactionsBySide(state, ctx, "enemyHeroAttacked", sideKey);
   } else {
     attackResult = troopVsTroop(state, ctx, attacker.troop, sideKey, targetEntity, targetSide);
     // 汲取
@@ -453,5 +470,43 @@ function endTurn(state: BattleState, sideKey: Side, ctx: BattleContext): ApplyRe
   advanceToNextSide(state);
   startTurnFor(state, state.activeSide, ctx);
   checkVictory(state);
+  return { ok: true };
+}
+
+/** 鍛造師職業「改造/製造」：每回合限額 1 次，二選一。
+ *  - mode === "equipment"：棄 1 張手牌，加入 1 張隨機通用裝備（E_c_01–E_c_08 池）。
+ *  - mode === "device"：直接從 DEVICE_POOL 加入 1 張魔導器具到手牌（不需棄手牌）。
+ *  消耗 1 魔力；觸發英雄爐火 onForge。
+ *  handIndex 僅 equipment 模式使用，指定要被熔毀的手牌；省略則丟手牌頂張。
+ */
+function forgeAction(state: BattleState, sideKey: Side, side: BattleState["player"], mode: ForgeMode, handIndex: number | undefined, ctx: BattleContext): ApplyResult {
+  const heroDef = ctx.getHero(side.hero.defId);
+  const cls = ctx.getClass(heroDef.classId);
+  if (cls.keyword !== "forge") return { ok: false, reason: "class keyword is not forge" };
+  if (side.hero.flags.forgeUsedThisTurn === true) return { ok: false, reason: "forge already used this turn" };
+  if (!canAffordMana(side, 1)) return { ok: false, reason: "not enough mana" };
+  if (side.hand.length >= 9) return { ok: false, reason: "hand full" };
+
+  spendMana(side, 1);
+
+  if (mode === "equipment") {
+    if (side.hand.length === 0) return { ok: false, reason: "no hand card to forge" };
+    const idx = handIndex !== undefined && handIndex >= 0 && handIndex < side.hand.length ? handIndex : 0;
+    const [removed] = side.hand.splice(idx, 1);
+    if (removed) side.graveyard.push(removed);
+    const equipIds = ["E_c_01", "E_c_02", "E_c_03", "E_c_04", "E_c_05", "E_c_06", "E_c_07", "E_c_08"];
+    const pick = equipIds[Math.floor(((state.rngState >>> 0) % equipIds.length))] ?? "E_c_01";
+    side.hand.push({ instanceId: `forged_eq_${state.nextInstanceId++}`, cardId: pick });
+    state.log.push({ turn: state.turn, side: sideKey, kind: "FORGE_EQUIPMENT", text: `改造：獲得隨機裝備 ${pick}`, payload: { cardId: pick } });
+  } else {
+    const pick = DEVICE_POOL[Math.floor(((state.rngState >>> 0) % DEVICE_POOL.length))] ?? "T_m_01";
+    side.hand.push({ instanceId: `forged_dev_${state.nextInstanceId++}`, cardId: pick });
+    state.log.push({ turn: state.turn, side: sideKey, kind: "FORGE_DEVICE", text: `製造：獲得魔導器具 ${pick}`, payload: { cardId: pick } });
+  }
+
+  side.hero.flags.forgeUsedThisTurn = true;
+  const race = ctx.getRace(heroDef.raceId);
+  gaugeOnForge(side.hero, race.gauge.max, heroDef.gauge);
+  syncFullGaugeBuffs(state, ctx);
   return { ok: true };
 }

@@ -7,7 +7,7 @@ import { HERO_BLOOD_CHIEF } from "../../heroes/bloodChief";
  * 炎魔 — §E.1 鏡像模式
  * HP 160 / ATK 18 / DEF 6 / CMD 3
  * 借用「蠻血酋長」狂戰士技能；種族改 demon。
- * 戰鬥開始時自動掛獄火場地（F_BURN_INFERNO，雙方兵力每回合結束受 2 傷）。
+ * 戰鬥開始時自動掛獄火場地（F_s_01，雙方兵力每回合結束受 2 傷）。
  */
 export const BOSS_INFERNAL_DEMON_ID = "boss_infernal_demon";
 

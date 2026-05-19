@@ -96,7 +96,7 @@ export function registerHeroScripted(): void {
     const slotIdx = side.troopSlots.findIndex((slot) => slot === null);
     if (slotIdx < 0) return;
 
-    const card = ec.ctx.getCard("I_PHANTOM");
+    const card = ec.ctx.getCard("T_s_31");
     if (card.type !== "troop") return;
 
     const inst = createTroopInstance(ec.state, card as TroopCard);

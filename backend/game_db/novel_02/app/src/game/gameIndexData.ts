@@ -73,6 +73,7 @@ export const CARD_TYPE_LABEL: Record<CardType, string> = {
   spell: "法術",
   equipment: "裝備",
   field: "場地",
+  device: "魔導",
 };
 
 export const RARITY_LABEL: Record<Rarity, string> = {
@@ -88,6 +89,7 @@ const EMPTY_TYPE_COUNTS: Record<CardType, number> = {
   spell: 0,
   equipment: 0,
   field: 0,
+  device: 0,
 };
 
 const EMPTY_RARITY_COUNTS: Record<Rarity, number> = {
@@ -190,8 +192,37 @@ export function describeCardEffects(card: Card, context: CardTextContext = {}): 
     if (card.keywords.length > 0) lines.push(`關鍵字：${card.keywords.map((keyword) => KEYWORD_LABEL[keyword]).join("、")}`);
     appendEffects(lines, "入場", card.onPlay, card, context);
     appendEffects(lines, "謝幕", card.onDestroy, card, context);
+    appendEffects(lines, "回合開始", card.onTurnStart, card, context);
     appendEffects(lines, "回合結束", card.onTurnEnd, card, context);
     appendEffects(lines, "被動", card.passive, card, context);
+  }
+
+  if (card.type === "device") {
+    lines.push(`體質 ${card.hp}/${card.atk}/${card.def}`);
+    if (card.keywords.length > 0) lines.push(`關鍵字：${card.keywords.map((keyword) => KEYWORD_LABEL[keyword]).join("、")}`);
+    if (card.form) {
+      lines.push(`待機：${card.form.idle.atk}/${card.form.idle.def}${card.form.idle.keywords?.length ? `（${card.form.idle.keywords.map((k) => KEYWORD_LABEL[k]).join("、")}）` : ""}`);
+      lines.push(`啟動：${card.form.active.atk}/${card.form.active.def}${card.form.active.keywords?.length ? `（${card.form.active.keywords.map((k) => KEYWORD_LABEL[k]).join("、")}）` : ""}`);
+    }
+    if (card.upgradeable) {
+      lines.push(`可升級：最多 ${card.upgradeable.maxLevel} 層，每層 ${describeModifiers(card.upgradeable.perLevel) || "—"}`);
+    }
+    appendEffects(lines, "入場", card.onPlay, card, context);
+    appendEffects(lines, "謝幕", card.onDestroy, card, context);
+    appendEffects(lines, "回合開始", card.onTurnStart, card, context);
+    appendEffects(lines, "回合結束", card.onTurnEnd, card, context);
+    appendEffects(lines, "被動", card.passive, card, context);
+    if (card.onReaction && card.onReaction.length > 0) {
+      const labels: Record<string, string> = {
+        enemySpellCast: "敵方施法",
+        enemyHeroAttacked: "敵方攻擊我方英雄",
+        allyTroopDestroyed: "我方兵力陣亡",
+        enemyEquipmentPlayed: "敵方裝備上場",
+      };
+      for (const r of card.onReaction) {
+        appendEffects(lines, `反應（${labels[r.on] ?? r.on}）`, r.effects, card, context);
+      }
+    }
   }
 
   if (card.type === "action") {
@@ -288,7 +319,7 @@ const SCRIPTED_EFFECT_TEXT: Record<string, ScriptedEffectFormatter> = {
 
   FIELD_MANA_NODE: "場地：每回合雙方額外獲得 1 魔力；法術效果 +10%",
   FIELD_BURN: (_payload, card) =>
-    card?.id === "F_BURN_INFERNO"
+    card?.id === "F_s_01"
       ? "場地：每回合結束時，雙方兵力受到 2 傷害"
       : "場地：每回合所有兵力受到 3 傷害；治療效果 -50%",
   FIELD_RESURRECT: "場地：兵力被摧毀時，30% 機率以 30% HP 原地復活",

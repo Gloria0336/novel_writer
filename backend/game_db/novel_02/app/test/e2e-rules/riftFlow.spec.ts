@@ -16,9 +16,9 @@ beforeAll(() => ensureScriptedRegistered());
  *
  * 對應 UI flow：
  * - 點兵力卡 + 點裂縫位 → PLAY_TROOP_RIFT
- * - 點 S15 → 點手牌兵力 → PLAY_SPELL with riftHandIndex
- * - 點 F08 → PLAY_FIELD（reducer 內部檢查 rift 條件）
- * - 點 S16 → PLAY_SPELL（reducer 內部檢查）
+ * - 點 S_c_15 → 點手牌兵力 → PLAY_SPELL with riftHandIndex
+ * - 點 F_c_08 → PLAY_FIELD（reducer 內部檢查 rift 條件）
+ * - 點 S_c_16 → PLAY_SPELL（reducer 內部檢查）
  * - 完整拉鋸戰：跨 50 → 開啟 → 玩家佔據 → 敵方滲透嘗試 → 擊殺 → 重歸 open
  */
 
@@ -49,7 +49,7 @@ describe("Stage 3 整合：rift UI flow", () => {
     it("perform stability damage → state.rift 已初始化", () => {
       const { state, ctx } = setupBattle();
       state.stability = 60;
-      // 模擬 UI dispatch 一張造穩定度傷害的卡（用既有 F08 嘗試？實際 F08 已重作，改直接呼叫）
+      // 模擬 UI dispatch 一張造穩定度傷害的卡（用既有 F_c_08 嘗試？實際 F_c_08 已重作，改直接呼叫）
       applyStabilityDelta(state, -15); // 60 → 45
       applyCorruptionStageEffects(state, 2);
       openRiftIfNeeded(state);
@@ -63,14 +63,14 @@ describe("Stage 3 整合：rift UI flow", () => {
     it("rift 開啟時仍可正常 PLAY_TROOP 到兵力欄（不佔據裂縫）", () => {
       const { state, ctx } = setupBattle();
       forceRiftOpen(state, ctx, 40);
-      const handIdx = pushHand(state, "T01"); // 民兵 1 費
+      const handIdx = pushHand(state, "T_c_01"); // 民兵 1 費
       state.player.manaCurrent = 10;
       // 找空 slot
       const slotIdx = state.player.troopSlots.findIndex((s) => s === null);
       expect(slotIdx).toBeGreaterThanOrEqual(0);
       const r = applyPlayerAction(state, { type: "PLAY_TROOP", handIndex: handIdx, slotIndex: slotIdx }, ctx);
       expect(r.ok).toBe(true);
-      expect(state.player.troopSlots[slotIdx]?.cardId).toBe("T01");
+      expect(state.player.troopSlots[slotIdx]?.cardId).toBe("T_c_01");
       expect(state.rift?.holder).toBe("open"); // 仍 open
     });
   });
@@ -79,12 +79,12 @@ describe("Stage 3 整合：rift UI flow", () => {
     it("rift Open 時可成功佔據，套 ATK×2 DEF+5 加成", () => {
       const { state, ctx } = setupBattle();
       forceRiftOpen(state, ctx, 40);
-      const handIdx = pushHand(state, "T13"); // 精英禁衛 5 費 22/8/5
+      const handIdx = pushHand(state, "T_c_13"); // 精英禁衛 5 費 22/8/5
       state.player.manaCurrent = 10;
       const r = applyPlayerAction(state, { type: "PLAY_TROOP_RIFT", handIndex: handIdx }, ctx);
       expect(r.ok).toBe(true);
       expect(state.rift?.holder).toBe("player");
-      expect(state.rift?.occupant?.cardId).toBe("T13");
+      expect(state.rift?.occupant?.cardId).toBe("T_c_13");
       expect(state.rift?.occupant?.atk).toBe(16); // 8 × 2
       expect(state.rift?.occupant?.def).toBe(5 + RIFT_BUFF_DEF_BONUS); // 5 + 5
     });
@@ -95,7 +95,7 @@ describe("Stage 3 整合：rift UI flow", () => {
       // 模擬敵方先滲透
       triggerInfiltration(state, ctx);
       expect(state.rift?.holder).toBe("enemy");
-      const handIdx = pushHand(state, "T01");
+      const handIdx = pushHand(state, "T_c_01");
       state.player.manaCurrent = 10;
       const r = applyPlayerAction(state, { type: "PLAY_TROOP_RIFT", handIndex: handIdx }, ctx);
       expect(r.ok).toBe(false);
@@ -104,7 +104,7 @@ describe("Stage 3 整合：rift UI flow", () => {
 
     it("rift 不存在時 reject", () => {
       const { state, ctx } = setupBattle();
-      const handIdx = pushHand(state, "T01");
+      const handIdx = pushHand(state, "T_c_01");
       state.player.manaCurrent = 10;
       const r = applyPlayerAction(state, { type: "PLAY_TROOP_RIFT", handIndex: handIdx }, ctx);
       expect(r.ok).toBe(false);
@@ -112,24 +112,24 @@ describe("Stage 3 整合：rift UI flow", () => {
     });
   });
 
-  describe("S15 裂痕召喚 dispatch flow", () => {
+  describe("S_c_15 裂痕召喚 dispatch flow", () => {
     it("rift Open + 手牌有兵力 → 成功召喚到裂縫位", () => {
       const { state, ctx } = setupBattle();
       forceRiftOpen(state, ctx, 40);
-      const s15Idx = pushHand(state, "S15");
-      const targetIdx = pushHand(state, "T02"); // 傭兵 12/5/2
+      const s15Idx = pushHand(state, "S_c_15");
+      const targetIdx = pushHand(state, "T_c_02"); // 傭兵 12/5/2
       state.player.manaCurrent = 10;
       const r = applyPlayerAction(state, { type: "PLAY_SPELL", handIndex: s15Idx, riftHandIndex: targetIdx }, ctx);
       expect(r.ok).toBe(true);
       expect(state.rift?.holder).toBe("player");
-      expect(state.rift?.occupant?.cardId).toBe("T02");
+      expect(state.rift?.occupant?.cardId).toBe("T_c_02");
       expect(state.rift?.s15UsesPlayer).toBe(1);
     });
 
     it("rift 不存在時 reject", () => {
       const { state, ctx } = setupBattle();
-      const s15Idx = pushHand(state, "S15");
-      const targetIdx = pushHand(state, "T02");
+      const s15Idx = pushHand(state, "S_c_15");
+      const targetIdx = pushHand(state, "T_c_02");
       state.player.manaCurrent = 10;
       const r = applyPlayerAction(state, { type: "PLAY_SPELL", handIndex: s15Idx, riftHandIndex: targetIdx }, ctx);
       expect(r.ok).toBe(false);
@@ -139,23 +139,23 @@ describe("Stage 3 整合：rift UI flow", () => {
       const { state, ctx } = setupBattle();
       forceRiftOpen(state, ctx, 40);
       state.rift!.s15UsesPlayer = 3;
-      const s15Idx = pushHand(state, "S15");
-      const targetIdx = pushHand(state, "T02");
+      const s15Idx = pushHand(state, "S_c_15");
+      const targetIdx = pushHand(state, "T_c_02");
       state.player.manaCurrent = 10;
       const r = applyPlayerAction(state, { type: "PLAY_SPELL", handIndex: s15Idx, riftHandIndex: targetIdx }, ctx);
       expect(r.ok).toBe(false);
     });
   });
 
-  describe("S16 裂縫共鳴 dispatch flow", () => {
+  describe("S_c_16 裂縫共鳴 dispatch flow", () => {
     it("rift 存在時：抽 2 + 鬥志 +20", () => {
       const { state, ctx } = setupBattle();
       forceRiftOpen(state, ctx, 40);
-      const s16Idx = pushHand(state, "S16");
+      const s16Idx = pushHand(state, "S_c_16");
       // 牌庫塞 2 張供抽
       state.player.deck = [
-        { instanceId: "d_t01", cardId: "T01" },
-        { instanceId: "d_t02", cardId: "T02" },
+        { instanceId: "d_t01", cardId: "T_c_01" },
+        { instanceId: "d_t02", cardId: "T_c_02" },
         ...state.player.deck,
       ];
       const moraleBefore = state.player.hero.morale;
@@ -164,16 +164,16 @@ describe("Stage 3 整合：rift UI flow", () => {
       const r = applyPlayerAction(state, { type: "PLAY_SPELL", handIndex: s16Idx }, ctx);
       expect(r.ok).toBe(true);
       expect(state.player.hero.morale).toBe(moraleBefore + 20);
-      // handBefore - 1 (S16 自身棄牌) + 2 (抽 2) = handBefore + 1
+      // handBefore - 1 (S_c_16 自身棄牌) + 2 (抽 2) = handBefore + 1
       expect(state.player.hand.length).toBe(handBefore + 1);
       expect(state.rift?.s16UsedPlayer).toBe(true);
     });
 
-    it("S16 二次施放 reject", () => {
+    it("S_c_16 二次施放 reject", () => {
       const { state, ctx } = setupBattle();
       forceRiftOpen(state, ctx, 40);
       state.rift!.s16UsedPlayer = true;
-      const s16Idx = pushHand(state, "S16");
+      const s16Idx = pushHand(state, "S_c_16");
       state.player.manaCurrent = 10;
       const r = applyPlayerAction(state, { type: "PLAY_SPELL", handIndex: s16Idx }, ctx);
       expect(r.ok).toBe(false);
@@ -181,18 +181,18 @@ describe("Stage 3 整合：rift UI flow", () => {
 
     it("無 rift 時 reject", () => {
       const { state, ctx } = setupBattle();
-      const s16Idx = pushHand(state, "S16");
+      const s16Idx = pushHand(state, "S_c_16");
       state.player.manaCurrent = 10;
       const r = applyPlayerAction(state, { type: "PLAY_SPELL", handIndex: s16Idx }, ctx);
       expect(r.ok).toBe(false);
     });
   });
 
-  describe("F08 次元裂縫 dispatch flow", () => {
+  describe("F_c_08 次元裂縫 dispatch flow", () => {
     it("rift 存在時：enhanced = true", () => {
       const { state, ctx } = setupBattle();
       forceRiftOpen(state, ctx, 40);
-      const f08Idx = pushHand(state, "F08");
+      const f08Idx = pushHand(state, "F_c_08");
       state.player.manaCurrent = 10;
       const r = applyPlayerAction(state, { type: "PLAY_FIELD", handIndex: f08Idx }, ctx);
       expect(r.ok).toBe(true);
@@ -201,7 +201,7 @@ describe("Stage 3 整合：rift UI flow", () => {
 
     it("rift 不存在時 reject", () => {
       const { state, ctx } = setupBattle();
-      const f08Idx = pushHand(state, "F08");
+      const f08Idx = pushHand(state, "F_c_08");
       state.player.manaCurrent = 10;
       const r = applyPlayerAction(state, { type: "PLAY_FIELD", handIndex: f08Idx }, ctx);
       expect(r.ok).toBe(false);
@@ -216,11 +216,11 @@ describe("Stage 3 整合：rift UI flow", () => {
       expect(state.rift?.holder).toBe("open");
 
       // 玩家佔據
-      const handIdx = pushHand(state, "T02"); // 傭兵 12/5/2
+      const handIdx = pushHand(state, "T_c_02"); // 傭兵 12/5/2
       state.player.manaCurrent = 10;
       applyPlayerAction(state, { type: "PLAY_TROOP_RIFT", handIndex: handIdx }, ctx);
       expect(state.rift?.holder).toBe("player");
-      expect(state.rift?.occupant?.cardId).toBe("T02");
+      expect(state.rift?.occupant?.cardId).toBe("T_c_02");
 
       // 模擬佔據者陣亡（直接設 HP=0，再以一個 effect 觸發 reapDeadTroops）
       state.rift!.occupant!.hp = 0;

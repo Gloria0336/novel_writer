@@ -15,7 +15,7 @@ import { createTroopInstance } from "../turn/factories";
  */
 
 /** 滲透體白名單（依回合數分階段池）。 */
-export const RIFT_INFILTRATORS = ["M01", "M02", "M03", "M04", "M05", "M06"] as const;
+export const RIFT_INFILTRATORS = ["T_s_35", "T_s_36", "T_s_37", "T_s_38", "T_s_39", "T_s_40"] as const;
 
 /** 同卡上限。 */
 export const RIFT_SAME_CARD_LIMIT = 2;
@@ -62,8 +62,8 @@ export function tickRiftTremor(state: BattleState, ctx: BattleContext): void {
 
 /**
  * 從白名單依回合數選池並滲透 1 個敵方魔族單位到裂縫位。
- * 池規則：1–4 回合 [M01,M02] / 5–8 [M01–M04] / 9+ [M01–M06]
- * F08 enhanced 狀態：池往上一階。
+ * 池規則：1–4 回合 [T_s_35,T_s_36] / 5–8 [T_s_35–T_s_38] / 9+ [T_s_35–T_s_40]
+ * F_c_08 enhanced 狀態：池往上一階。
  * 同卡上限 2 次。
  */
 export function triggerInfiltration(state: BattleState, ctx: BattleContext): void {
@@ -123,9 +123,9 @@ export function selectInfiltratorPool(state: BattleState): string[] {
   else tier = 2;
   if (enhanced && tier < 2) tier = (tier + 1) as 0 | 1 | 2;
   switch (tier) {
-    case 0: return ["M01", "M02"];
-    case 1: return ["M01", "M02", "M03", "M04"];
-    case 2: return ["M01", "M02", "M03", "M04", "M05", "M06"];
+    case 0: return ["T_s_35", "T_s_36"];
+    case 1: return ["T_s_35", "T_s_36", "T_s_37", "T_s_38"];
+    case 2: return ["T_s_35", "T_s_36", "T_s_37", "T_s_38", "T_s_39", "T_s_40"];
   }
 }
 

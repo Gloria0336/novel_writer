@@ -17,7 +17,7 @@ export const LAIR_CRYSTAL_VEIN_PROFILE: EnemyProfile = {
     selfSurvival: 0.6,
     gaugeBuildup: -1.0,
   },
-  summonPool: ["I_CRYSTAL_SHARD", "I_CRYSTAL_GUARD"],
+  summonPool: ["T_s_20", "T_s_21"],
   summonsPerTurn: { min: 1, max: 1 },
   summonCadenceTurns: 3,
 };

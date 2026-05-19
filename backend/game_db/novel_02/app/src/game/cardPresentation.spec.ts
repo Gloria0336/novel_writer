@@ -4,13 +4,13 @@ import { buildCardFaceModel } from "./cardPresentation";
 
 describe("card art resolution", () => {
   it("uses the public card-art path by default", () => {
-    expect(defaultCardArtSrc("T01")).toBe("/card-art/cards/T01.webp");
-    expect(resolveCardArt("T01").src).toBe("/card-art/cards/T01.webp");
+    expect(defaultCardArtSrc("T_c_01")).toBe("/card-art/cards/T_c_01.webp");
+    expect(resolveCardArt("T_c_01").src).toBe("/card-art/cards/T_c_01.webp");
   });
 
   it("allows manifest overrides for source, focus, and credit data", () => {
-    const art = resolveCardArt("T01", {
-      T01: {
+    const art = resolveCardArt("T_c_01", {
+      T_c_01: {
         src: "/custom/t01.png",
         objectPosition: "30% 20%",
         artist: "Studio Test",
@@ -59,7 +59,7 @@ describe("card face presentation", () => {
   });
 
   it("shows readable choice text for 盟約之誓 instead of raw script tag", () => {
-    const model = buildCardFaceModel(getCard("S14"));
+    const model = buildCardFaceModel(getCard("S_c_14"));
     const text = model.effectLines.join(" ");
 
     expect(text).toContain("三選一");
@@ -70,10 +70,10 @@ describe("card face presentation", () => {
   });
 
   it("uses the active hero gauge name in card face text", () => {
-    const gaugeCard = buildCardFaceModel(getCard("H01"), { gaugeName: "軍令" });
+    const gaugeCard = buildCardFaceModel(getCard("T_h_01"), { gaugeName: "軍令" });
     expect(gaugeCard.effectLines.join(" ")).toContain("我方軍令 +5");
 
-    const neutralCard = buildCardFaceModel(getCard("N04"), { gaugeName: "靈蘊" });
+    const neutralCard = buildCardFaceModel(getCard("E_l_01"), { gaugeName: "靈蘊" });
     const text = neutralCard.effectLines.join(" ");
     expect(text).toContain("靈蘊 +10");
     expect(text).toContain("50 靈蘊");

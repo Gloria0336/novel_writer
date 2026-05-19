@@ -40,7 +40,7 @@ export const HERO_AELLA_FLAIR: HeroDefinition = {
       cost: { morale: 35 },
       effects: [
         { kind: "draw", count: 1 },
-        { kind: "summon", cardId: "T03", count: 1, side: "self" },
+        { kind: "summon", cardId: "T_c_03", count: 1, side: "self" },
       ],
     },
     {

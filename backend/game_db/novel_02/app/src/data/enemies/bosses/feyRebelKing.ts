@@ -52,7 +52,7 @@ const HERO_DEF: HeroDefinition = {
       name: "鏡像風暴",
       description: "召喚 2 個幻影。（消耗 40 鬥志）",
       cost: { morale: 40 },
-      effects: [{ kind: "summon", cardId: "I_PHANTOM", count: 2, side: "self" }],
+      effects: [{ kind: "summon", cardId: "T_s_31", count: 2, side: "self" }],
     },
   ],
   ultimate: {

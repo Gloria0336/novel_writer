@@ -19,7 +19,7 @@ export const PUTREFACTIVE_LAIR_PROFILE: EnemyProfile = {
     stabilityPressure: 1.5,
     gaugeBuildup: -1.0,
   },
-  summonPool: ["L01", "L02", "L03"],
+  summonPool: ["T_s_01", "T_s_02", "T_s_03"],
   summonsPerTurn: { min: 1, max: 1 },
   summonCadenceTurns: 1,
 };

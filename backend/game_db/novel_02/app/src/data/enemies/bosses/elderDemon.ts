@@ -38,7 +38,7 @@ function createInstance(): HeroInstance {
 
 const ELDER_TROOPS: TroopCard[] = [
   {
-    id: "I_ELDER_SPAWN", type: "troop", name: "古魔孳生體",
+    id: "T_s_29", type: "troop", name: "古魔孳生體",
     cost: 0, rarity: "common",
     hp: 8, atk: 4, def: 1,
     keywords: [],
@@ -46,7 +46,7 @@ const ELDER_TROOPS: TroopCard[] = [
     flavor: "其觸碰滲透次元壁。",
   },
   {
-    id: "I_ELDER_HORROR", type: "troop", name: "古魔恐怖",
+    id: "T_s_30", type: "troop", name: "古魔恐怖",
     cost: 0, rarity: "uncommon",
     hp: 14, atk: 7, def: 2,
     keywords: ["pierce"],

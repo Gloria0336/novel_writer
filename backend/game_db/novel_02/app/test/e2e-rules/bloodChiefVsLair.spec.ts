@@ -71,8 +71,8 @@ describe("E2E：芮卡 vs 腐植巢穴", () => {
     const t = createTroopInstance(s, dummy, { suppressSummonSickness: true });
     s.enemy.troopSlots[0] = t;
 
-    // 給玩家 A03 猛攻（20 + 6 = 26 傷害基礎）
-    s.player.hand = [{ instanceId: "a", cardId: "A03" }];
+    // 給玩家 A_c_03 猛攻（20 + 6 = 26 傷害基礎）
+    s.player.hand = [{ instanceId: "a", cardId: "A_c_03" }];
     const hpBefore = t.hp;
     applyPlayerAction(s, { type: "PLAY_ACTION", handIndex: 0, targetInstanceId: t.instanceId }, ctx);
     // 26 * (1 + 5*0.08) = 36.4

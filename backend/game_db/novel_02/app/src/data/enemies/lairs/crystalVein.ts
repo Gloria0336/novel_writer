@@ -36,7 +36,7 @@ function createInstance(): HeroInstance {
 
 export const LAIR_CRYSTAL_TROOPS: TroopCard[] = [
   {
-    id: "I_CRYSTAL_SHARD", name: "晶體碎片",
+    id: "T_s_20", name: "晶體碎片",
     type: "troop", rarity: "common", cost: 0,
     hp: 5, atk: 0, def: 4,
     keywords: ["guard"],
@@ -49,7 +49,7 @@ export const LAIR_CRYSTAL_TROOPS: TroopCard[] = [
     flavor: "三片合一即可組成魔像；被擊碎時迸射晶刃。",
   },
   {
-    id: "I_CRYSTAL_GUARD", name: "晶體衛兵",
+    id: "T_s_21", name: "晶體衛兵",
     type: "troop", rarity: "uncommon", cost: 0,
     hp: 15, atk: 4, def: 5,
     keywords: ["guard"],
@@ -58,7 +58,7 @@ export const LAIR_CRYSTAL_TROOPS: TroopCard[] = [
     flavor: "守護礦脈的水晶巨人，越久越堅不可摧。",
   },
   {
-    id: "I_CRYSTAL_GOLEM", name: "晶體魔像",
+    id: "T_s_22", name: "晶體魔像",
     type: "troop", rarity: "rare", cost: 0,
     hp: 35, atk: 10, def: 6,
     keywords: ["guard"],
@@ -67,7 +67,7 @@ export const LAIR_CRYSTAL_TROOPS: TroopCard[] = [
     flavor: "由三片晶體碎片合成的活體雕像，誕生時已披覆晶甲。",
   },
   {
-    id: "I_CRYSTAL_SPIKE", name: "晶刃尖刺",
+    id: "T_s_23", name: "晶刃尖刺",
     type: "troop", rarity: "uncommon", cost: 0,
     hp: 6, atk: 8, def: 0,
     keywords: ["pierce"],

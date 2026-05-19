@@ -92,8 +92,11 @@ export interface GaugePersonalization {
   onTroopDestroyedAlly?: number;
   onSpellCast?: number;
   onEquipmentPlay?: number;
+  /** 每打出 1 張 device 卡部署成功時觸發。 */
+  onDevicePlay?: number;
   onTurnStart?: number;
   onHeroDamaged?: { perPct: number; perValue: number };
+  /** 每次使用「改造裝備」或「製造器具」職業動作時觸發。 */
   onForge?: number;
   thresholdEffects?: Array<{ at: number; effect: Effect; once?: boolean }>;
 }
@@ -141,12 +144,16 @@ export interface HeroInstance {
     feyForm?: FeyForm;
     /** 半神族「透支」累積層數 */
     overdraft?: number;
-    /** 末日倒數剩餘回合（N06） */
+    /** 末日倒數剩餘回合（S_l_04） */
     doomsdayCountdown?: number;
     /** 英雄能力凍結：行動牌 / 法術牌 / 兵力牌 / 魔力回復剩餘回合。 */
     heroAbilityFreeze?: Partial<Record<HeroAbilityFreezeKind, number>>;
     /** 英雄能力凍結的呈現子分類；判定仍依 heroAbilityFreeze。 */
     heroAbilityFreezeDisplayNames?: Partial<Record<HeroAbilityFreezeKind, FreezeEffectName>>;
+    /** 鍛造師職業關鍵字「forge」每回合限額（改造裝備或製造器具共用）。 */
+    forgeUsedThisTurn?: boolean;
+    /** Device 升級層級追蹤：key=troop instanceId, value=已升級層數。 */
+    deviceUpgrades?: Record<string, number>;
     /** 額外標記 */
     [key: string]: unknown;
   };

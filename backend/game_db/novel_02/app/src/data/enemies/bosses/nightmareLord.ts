@@ -6,7 +6,7 @@ import type { BossDefinition } from "./types";
  * 夢魔宗主 — §E.1 鏡像模式
  * HP 90 / ATK 10 / DEF 4 / CMD 4
  * 種族 demon / 職業 illusionist
- * 夢幻體（I_PHANTOM_AWE）擁有威壓關鍵字。
+ * 夢幻體（T_s_28）擁有威壓關鍵字。
  */
 export const BOSS_NIGHTMARE_LORD_ID = "boss_nightmare_lord";
 
@@ -39,7 +39,7 @@ const HERO_DEF: HeroDefinition = {
       description: "召喚 1 個夢幻體並對 1 目標造成 6 傷害。（消耗 25 鬥志）",
       cost: { morale: 25 },
       effects: [
-        { kind: "summon", cardId: "I_PHANTOM_AWE", count: 1, side: "self" },
+        { kind: "summon", cardId: "T_s_28", count: 1, side: "self" },
         { kind: "damage", target: { kind: "single", filter: { side: "enemy" } }, amount: { kind: "const", value: 6 } },
       ],
     },
@@ -67,7 +67,7 @@ const HERO_DEF: HeroDefinition = {
     description: "召喚 3 個夢幻體，並對敵方英雄造成 25 傷害無視守護。",
     cost: { morale: 100 },
     effects: [
-      { kind: "summon", cardId: "I_PHANTOM_AWE", count: 3, side: "self" },
+      { kind: "summon", cardId: "T_s_28", count: 3, side: "self" },
       { kind: "damage", target: { kind: "enemyHero" }, amount: { kind: "const", value: 25 }, ignoreGuard: true },
     ],
   },
@@ -87,7 +87,7 @@ function createInstance(): HeroInstance {
 
 const NIGHTMARE_TROOPS: TroopCard[] = [
   {
-    id: "I_PHANTOM_AWE", type: "troop", name: "夢幻體",
+    id: "T_s_28", type: "troop", name: "夢幻體",
     cost: 0, rarity: "uncommon",
     hp: 6, atk: 4, def: 0,
     keywords: ["menace"],

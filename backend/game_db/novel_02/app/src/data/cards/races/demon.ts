@@ -1,7 +1,7 @@
 import type { Card, TroopCard } from "../../../core/types/card";
 
 /**
- * 魔族種族卡 DM01-DM20
+ * 魔族種族卡 T_de_01-T_de_09
  * 設計主軸：次元侵蝕、砲灰召喚、精英壓制。與黑暗蝕量表互動。
  *
  * 黑暗蝕（Dark Erosion）量表規則：
@@ -14,7 +14,7 @@ import type { Card, TroopCard } from "../../../core/types/card";
 // ── 內部召喚 Token（不入牌組）──────────────────────────────────────────────
 export const DEMON_TOKENS: TroopCard[] = [
   {
-    id: "DM_TOKEN_WORM",
+    id: "T_s_34",
     type: "troop",
     name: "腐蟲",
     cost: 0,
@@ -33,7 +33,7 @@ export const DEMON_CARDS: Card[] = [
   // ── 魔化類：砲灰基層（共通）─────────────────────────────────────────────
 
   {
-    id: "DM01",
+    id: "T_de_01",
     type: "troop",
     name: "腐爛步兵",
     cost: 1,
@@ -50,7 +50,7 @@ export const DEMON_CARDS: Card[] = [
   },
 
   {
-    id: "DM02",
+    id: "T_de_02",
     type: "troop",
     name: "腐獸衝鋒",
     cost: 2,
@@ -64,20 +64,20 @@ export const DEMON_CARDS: Card[] = [
   },
 
   {
-    id: "DM09",
+    id: "S_de_01",
     type: "spell",
     name: "蟲群滲透",
     cost: 2,
     rarity: "common",
     effects: [
-      { kind: "summon", cardId: "DM_TOKEN_WORM", count: 3, side: "self" },
+      { kind: "summon", cardId: "T_s_34", count: 3, side: "self" },
       { kind: "gauge", delta: 5, side: "self" },
     ],
     flavor: "裂縫一旦打開，無數腐蟲從黑暗的縫隙中傾瀉而出。",
   },
 
   {
-    id: "DM10",
+    id: "S_de_02",
     type: "spell",
     name: "黑暗詛咒",
     cost: 2,
@@ -94,7 +94,7 @@ export const DEMON_CARDS: Card[] = [
   },
 
   {
-    id: "DM14",
+    id: "A_de_01",
     type: "action",
     name: "黑暗重擊",
     cost: 2,
@@ -109,7 +109,7 @@ export const DEMON_CARDS: Card[] = [
   // ── 惡魔類：菁英分支（少而精）──────────────────────────────────────────
 
   {
-    id: "DM03",
+    id: "T_de_03",
     type: "troop",
     name: "夢魔刺客",
     cost: 3,
@@ -123,7 +123,7 @@ export const DEMON_CARDS: Card[] = [
   },
 
   {
-    id: "DM04",
+    id: "T_de_04",
     type: "troop",
     name: "天魔突擊兵",
     cost: 3,
@@ -137,7 +137,7 @@ export const DEMON_CARDS: Card[] = [
   },
 
   {
-    id: "DM13",
+    id: "S_de_03",
     type: "spell",
     name: "黑暗祭祀",
     cost: 3,
@@ -154,7 +154,7 @@ export const DEMON_CARDS: Card[] = [
   },
 
   {
-    id: "DM11",
+    id: "S_de_04",
     type: "spell",
     name: "次元侵蝕",
     cost: 3,
@@ -168,7 +168,7 @@ export const DEMON_CARDS: Card[] = [
   },
 
   {
-    id: "DM05",
+    id: "T_de_05",
     type: "troop",
     name: "炎魔守衛",
     cost: 4,
@@ -185,7 +185,7 @@ export const DEMON_CARDS: Card[] = [
   },
 
   {
-    id: "DM06",
+    id: "T_de_06",
     type: "troop",
     name: "冰魔法師",
     cost: 4,
@@ -206,7 +206,7 @@ export const DEMON_CARDS: Card[] = [
   },
 
   {
-    id: "DM12",
+    id: "S_de_05",
     type: "spell",
     name: "腐化蔓延",
     cost: 4,
@@ -216,7 +216,7 @@ export const DEMON_CARDS: Card[] = [
   },
 
   {
-    id: "DM16",
+    id: "E_de_01",
     type: "equipment",
     name: "黑暗能量核心",
     cost: 3,
@@ -228,7 +228,7 @@ export const DEMON_CARDS: Card[] = [
   },
 
   {
-    id: "DM17",
+    id: "F_de_01",
     type: "field",
     name: "黑暗次元裂縫",
     cost: 3,
@@ -238,7 +238,7 @@ export const DEMON_CARDS: Card[] = [
   },
 
   {
-    id: "DM18",
+    id: "F_de_02",
     type: "field",
     name: "焦黑荒原",
     cost: 3,
@@ -250,7 +250,7 @@ export const DEMON_CARDS: Card[] = [
   // ── 惡魔類：稀有精英 ─────────────────────────────────────────────────────
 
   {
-    id: "DM07",
+    id: "T_de_07",
     type: "troop",
     name: "咒魔軍師",
     cost: 4,
@@ -260,14 +260,14 @@ export const DEMON_CARDS: Card[] = [
     def: 5,
     keywords: [],
     onPlay: [
-      { kind: "summon", cardId: "DM01", count: 2, side: "self" },
+      { kind: "summon", cardId: "T_de_01", count: 2, side: "self" },
     ],
     passive: [{ kind: "scripted", tag: "DM_CURSE_GENERAL_AURA" }],
     flavor: "從戰場亡魂怨念中誕生，它了解戰場上所有的痛苦——並懂得如何製造更多。",
   },
 
   {
-    id: "DM08",
+    id: "T_de_08",
     type: "troop",
     name: "巨魔先鋒",
     cost: 6,
@@ -287,7 +287,7 @@ export const DEMON_CARDS: Card[] = [
   },
 
   {
-    id: "DM15",
+    id: "A_de_02",
     type: "action",
     name: "次元斬",
     cost: 4,
@@ -307,7 +307,7 @@ export const DEMON_CARDS: Card[] = [
   // ── 傳說 ─────────────────────────────────────────────────────────────────
 
   {
-    id: "DM19",
+    id: "S_de_06",
     type: "spell",
     name: "黑暗降臨",
     cost: 7,
@@ -317,7 +317,7 @@ export const DEMON_CARDS: Card[] = [
   },
 
   {
-    id: "DM20",
+    id: "T_de_09",
     type: "troop",
     name: "末日巨魔",
     cost: 8,

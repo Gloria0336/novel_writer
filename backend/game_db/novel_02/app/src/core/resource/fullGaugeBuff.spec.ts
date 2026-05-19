@@ -106,7 +106,7 @@ function mkState(playerHeroId = "humanHero", enemyHeroId = "humanHero"): BattleS
 describe("滿值種族 Buff", () => {
   it("人類滿軍令給所有兵力 +1/+1，量表下降後移除", () => {
     const state = mkState("humanHero");
-    const troop = mkTroop("H01", 2, 2);
+    const troop = mkTroop("T_h_01", 2, 2);
     state.player.troopSlots[0] = troop;
     state.player.hero.gaugeValue = 100;
 
@@ -134,9 +134,9 @@ describe("滿值種族 Buff", () => {
     const state = mkState("dwarfHero");
     state.player.hero.gaugeValue = 100;
 
-    expect(getEffectiveCardCost(state, ctx, "player", getCard("D10"))).toBe(7);
-    expect(getEffectiveCardCost(state, ctx, "player", getCard("K02"))).toBe(2);
-    expect(getEffectiveCardCost(state, ctx, "player", getCard("D02"))).toBe(1);
+    expect(getEffectiveCardCost(state, ctx, "player", getCard("E_dw_01"))).toBe(7);
+    expect(getEffectiveCardCost(state, ctx, "player", getCard("T_m_02"))).toBe(2);
+    expect(getEffectiveCardCost(state, ctx, "player", getCard("S_dw_01"))).toBe(1);
   });
 
   it("妖族人形滿靈蘊只加法術效果，妖形加行動傷害與 DEF", () => {
@@ -169,8 +169,8 @@ describe("滿值種族 Buff", () => {
   it("惡魔滿黑暗蝕讓兵力傷害 +10%，且回合開始回復 3 HP", () => {
     const state = mkState("humanHero", "demonHero");
     state.enemy.hero.gaugeValue = 100;
-    const attacker = mkTroop("DM01", 10, 0);
-    const defender = mkTroop("H01", 0, 0);
+    const attacker = mkTroop("T_de_01", 10, 0);
+    const defender = mkTroop("T_h_01", 0, 0);
     state.enemy.troopSlots[0] = attacker;
     state.player.troopSlots[0] = defender;
 

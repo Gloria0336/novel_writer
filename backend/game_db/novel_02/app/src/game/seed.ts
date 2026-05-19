@@ -19,6 +19,7 @@ import { registerCoreScripted } from "../core/effects/handlers/scripted";
 import { registerHeroScripted } from "../core/effects/handlers/heroes";
 import { resetTurnFlags } from "../core/effects/handlers/scripted";
 import { registerRaceCardScripted } from "../core/effects/handlers/raceCards";
+import { registerDeviceScripted } from "../core/effects/handlers/devices";
 
 let SCRIPTED_REGISTERED = false;
 
@@ -27,6 +28,7 @@ export function ensureScriptedRegistered(): void {
   registerCoreScripted();
   registerHeroScripted();
   registerRaceCardScripted();
+  registerDeviceScripted();
   SCRIPTED_REGISTERED = true;
 }
 
@@ -95,6 +97,7 @@ function buildSide(deckIds: readonly string[], hero: HeroInstance, manaCapAbsolu
     hand: [], graveyard: [],
     troopSlots: new Array(slotCount).fill(null),
     spellsCastThisTurn: 0, spellsCastThisGame: 0,
+    destroyedDevices: [],
   };
 }
 

@@ -23,6 +23,7 @@ import {
   maybeHealHeroFromFullGaugeTroopKill,
   syncFullGaugeBuffs,
 } from "../resource/fullGaugeBuff";
+import { triggerReactionsBySide } from "./reactions";
 
 export type EffectSourceKind = "troop_play" | "troop_destroy" | "spell" | "action" | "equipment" | "field" | "skill" | "ultimate" | "passive";
 
@@ -379,6 +380,10 @@ export function reapDeadTroops(state: BattleState, ctx: BattleContext, sourceSid
       if (t && t.hp <= 0) {
         s.troopSlots[i] = null;
         s.graveyard.push({ instanceId: t.instanceId, cardId: t.cardId });
+        if (t.isDevice === true) {
+          s.destroyedDevices ??= [];
+          s.destroyedDevices.push({ instanceId: t.instanceId, cardId: t.cardId });
+        }
         removed = true;
         reapHandleDeath(state, ctx, side, sourceSide, t);
       }
@@ -401,9 +406,9 @@ export function reapDeadTroops(state: BattleState, ctx: BattleContext, sourceSid
  */
 function reapHandleDeath(state: BattleState, ctx: BattleContext, side: Side, sourceSide: Side, t: TroopInstance): void {
   const s = getSide(state, side);
-  // 觸發謝幕曲
+  // 觸發謝幕曲（troop 與 device 共用）
   const card = ctx.getCard(t.cardId);
-  if (card.type === "troop" && card.onDestroy) {
+  if ((card.type === "troop" || card.type === "device") && card.onDestroy) {
     executeEffects(card.onDestroy, { state, ctx, sourceSide: side, sourceKind: "troop_destroy", sourceInstanceId: t.instanceId, sourceCardId: t.cardId });
   }
   // 鬥志：擊殺者鬥志（若 sourceSide 是對立方）
@@ -427,6 +432,8 @@ function reapHandleDeath(state: BattleState, ctx: BattleContext, side: Side, sou
     const prev = (state.enemy.hero.flags.sacrificeCount as number | undefined) ?? 0;
     state.enemy.hero.flags.sacrificeCount = prev + 1;
   }
+  // 自動反應：陣亡兵力的同陣營器具對「我方兵力陣亡」反應
+  triggerReactionsBySide(state, ctx, "allyTroopDestroyed", side);
 }
 
 const SCRIPTED_HANDLERS: Record<string, (payload: unknown, ec: EffectContext) => void> = {};

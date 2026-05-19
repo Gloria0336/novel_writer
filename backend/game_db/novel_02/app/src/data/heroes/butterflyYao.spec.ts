@@ -15,15 +15,15 @@ describe("曇 — 留白控場英雄 runtime", () => {
 
     expect(s.player.hero.flags.feyForm).toBe("human");
     expect(s.player.hero.gaugeValue).toBe(10); // 回合開始 +4，幻影進場 +6
-    expect(s.player.troopSlots.filter((troop) => troop?.cardId === "I_PHANTOM")).toHaveLength(1);
+    expect(s.player.troopSlots.filter((troop) => troop?.cardId === "T_s_31")).toHaveLength(1);
     expect(s.log.some((entry) => entry.kind === "ILLUSIONIST_TURN_PHANTOM")).toBe(true);
   });
 
   it("鱗粉記憶每回合只觸發一次，第二次形態切換不重複 debuff", () => {
     const s = createBattle({ seed: 8, playerHeroId: "butterfly-yao", playerDeckIds: BUTTERFLY_YAO_DECK_IDS });
     const ctx = createBattleContext();
-    const enemyCard = getCard("T02");
-    if (enemyCard.type !== "troop") throw new Error("T02 should be a troop");
+    const enemyCard = getCard("T_c_02");
+    if (enemyCard.type !== "troop") throw new Error("T_c_02 should be a troop");
 
     const enemyTroop = createTroopInstance(s, enemyCard as TroopCard);
     s.enemy.troopSlots[0] = enemyTroop;
@@ -45,19 +45,19 @@ describe("曇 — 留白控場英雄 runtime", () => {
 
     s.player.hero.morale = 100;
     s.player.hero.hp = 50;
-    s.player.deck.push({ instanceId: "draw_after_ult", cardId: "S01" });
+    s.player.deck.push({ instanceId: "draw_after_ult", cardId: "S_c_01" });
 
     expect(applyAction(s, { type: "USE_ULTIMATE" }, ctx)).toMatchObject({ ok: true });
     expect(s.enemy.hero.flags.heroAbilityFreeze).toMatchObject({ manaRegen: 1, troop: 1 });
     expect(s.player.hero.hp).toBe(68);
-    expect(s.player.troopSlots.filter((troop) => troop?.cardId === "I_PHANTOM")).toHaveLength(3);
+    expect(s.player.troopSlots.filter((troop) => troop?.cardId === "T_s_31")).toHaveLength(3);
 
     s.enemy.manaCap = 2;
     s.enemy.manaCurrent = 1;
     s.enemy.tempMana = 3;
     s.enemy.hand = [
-      { instanceId: "enemy_troop", cardId: "T01" },
-      { instanceId: "enemy_spell", cardId: "S01" },
+      { instanceId: "enemy_troop", cardId: "T_c_01" },
+      { instanceId: "enemy_spell", cardId: "S_c_01" },
     ];
     s.turn = 2;
     startTurnFor(s, "enemy", ctx);

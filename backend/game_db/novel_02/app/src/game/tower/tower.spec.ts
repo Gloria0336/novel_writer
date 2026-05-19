@@ -83,9 +83,9 @@ describe("§F.1 獎勵生成與套用", () => {
 
   it("applyReward addCard：deckIds 新增", () => {
     const hero = makeHero({ hp: 50, maxHp: 80 });
-    const r = applyReward({ kind: "addCard", cardId: "T01" }, hero, ["T01"]);
+    const r = applyReward({ kind: "addCard", cardId: "T_c_01" }, hero, ["T_c_01"]);
     expect(r.deckIds).toHaveLength(2);
-    expect(r.deckIds).toEqual(["T01", "T01"]);
+    expect(r.deckIds).toEqual(["T_c_01", "T_c_01"]);
   });
 });
 
