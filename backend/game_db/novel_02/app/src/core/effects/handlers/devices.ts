@@ -1,6 +1,7 @@
 import { registerScripted, type EffectContext } from "../registry";
 import { aliveTroops, freeSlotIndex, getSide, otherSide } from "../../selectors/battle";
-import { applyHeroDamage, applyTroopDamage } from "../../combat/damage";
+import { applyTroopDamage } from "../../combat/damage";
+import { rngPick } from "../../deck/prng";
 import { createTroopInstance } from "../../turn/factories";
 import type { BattleState, TroopInstance } from "../../types/battle";
 import type { Card, DeviceForm } from "../../types/card";
@@ -93,11 +94,7 @@ export function registerDeviceScripted(): void {
   registerScripted("AUTO_TURRET_FIRE", (_p, ec) => {
     const enemy = getSide(ec.state, otherSide(ec.sourceSide));
     const targets = aliveTroops(enemy);
-    if (targets.length === 0) {
-      applyHeroDamage(enemy.hero, 8);
-      ec.state.log.push({ turn: ec.state.turn, side: ec.sourceSide, kind: "TURRET_FIRE", text: "魔導砲台射擊敵方英雄 8 傷害" });
-      return;
-    }
+    if (targets.length === 0) return;
     const top = [...targets].sort((a, b) => b.atk - a.atk)[0]!;
     applyTroopDamage(top, 8);
     ec.state.log.push({ turn: ec.state.turn, side: ec.sourceSide, kind: "TURRET_FIRE", text: `魔導砲台射擊 ${top.cardId} 8 傷害`, payload: { instanceId: top.instanceId } });
@@ -113,7 +110,9 @@ export function registerDeviceScripted(): void {
     const enemy = getSide(ec.state, otherSide(ec.sourceSide));
     const targets = aliveTroops(enemy);
     if (targets.length === 0) return;
-    const top = targets[0]!;
+    const pick = rngPick(ec.state.rngState, targets);
+    ec.state.rngState = pick.state;
+    const top = pick.value;
     applyTroopDamage(top, self.atk);
     top.frozenTurns = Math.max(top.frozenTurns, 1);
     top.frozenDisplayName = "暈眩";

@@ -1,39 +1,25 @@
-import { createContext, useCallback, useContext, useEffect, useMemo, useReducer, useRef, type ReactNode } from "react";
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import type { BattleState, BattleResult } from "../core/types/battle";
 import type { HeroInstance } from "../core/types/hero";
 import type { GameAction } from "../core/turn/actions";
 import type { OmenId } from "../core/types/omen";
-import { applyAction } from "../core/turn/reducer";
-import { createBattle, createBattleContext, DEFAULT_ENEMY_ID, endPlayerTurnAndRunAI, type EnemyScale } from "./seed";
+import type { BattleVisualEvent, BattleVisualStep } from "../core/types/visual";
+import { createBattle, createBattleContext, DEFAULT_ENEMY_ID, applyPlayerActionWithTimeline, type EnemyScale } from "./seed";
 import { getStarterDeckIds } from "../data/decks";
 import { useBattleAutoRecorder } from "../logger/useBattleAutoRecorder";
 
 interface BattleStore {
   state: BattleState;
+  actionState: BattleState;
   dispatch: (action: GameAction) => void;
   reset: () => void;
-}
-
-type ReducerAction = { type: "DISPATCH_GAME"; action: GameAction } | { type: "RESET"; state: BattleState };
-
-interface InternalState {
-  state: BattleState;
+  canAct: boolean;
+  isAnimating: boolean;
+  visualEvents: BattleVisualEvent[];
 }
 
 function deepClone<T>(v: T): T {
   return structuredClone(v);
-}
-
-function reducer(internal: InternalState, ra: ReducerAction): InternalState {
-  if (ra.type === "RESET") return { state: ra.state };
-  const ctx = createBattleContext();
-  const next = deepClone(internal.state);
-  if (ra.action.type === "END_TURN") {
-    endPlayerTurnAndRunAI(next, ctx);
-  } else {
-    applyAction(next, ra.action, ctx);
-  }
-  return { state: next };
 }
 
 const StoreContext = createContext<BattleStore | null>(null);
@@ -75,22 +61,97 @@ export function BattleProvider({
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [heroId, enemyId, seed],
   );
-  const [internal, dispatch] = useReducer(reducer, { state: initial });
+  const [settledState, setSettledState] = useState(initial);
+  const [displayState, setDisplayState] = useState(initial);
+  const [activeStep, setActiveStep] = useState<BattleVisualStep | null>(null);
+  const [isAnimating, setIsAnimating] = useState(false);
+  const settledRef = useRef(settledState);
+  const animatingRef = useRef(false);
+  const playbackIdRef = useRef(0);
+  const playbackTimeoutRef = useRef<number | undefined>(undefined);
 
-  useBattleAutoRecorder(internal.state);
+  useEffect(() => {
+    settledRef.current = settledState;
+  }, [settledState]);
+
+  useEffect(() => {
+    animatingRef.current = isAnimating;
+  }, [isAnimating]);
+
+  useBattleAutoRecorder(settledState);
 
   const endedRef = useRef(false);
   useEffect(() => {
     if (endedRef.current) return;
-    if (internal.state.result !== "ongoing") {
+    if (settledState.result !== "ongoing") {
       endedRef.current = true;
-      onBattleEnd?.(internal.state.result as Exclude<BattleResult, "ongoing">, internal.state);
+      onBattleEnd?.(settledState.result as Exclude<BattleResult, "ongoing">, settledState);
     }
-  }, [internal.state, onBattleEnd]);
+  }, [settledState, onBattleEnd]);
+
+  const stopPlayback = useCallback(() => {
+    playbackIdRef.current += 1;
+    if (playbackTimeoutRef.current !== undefined) {
+      window.clearTimeout(playbackTimeoutRef.current);
+      playbackTimeoutRef.current = undefined;
+    }
+  }, []);
+
+  const playTimeline = useCallback((steps: BattleVisualStep[], finalState: BattleState) => {
+    stopPlayback();
+    if (steps.length === 0) {
+      setActiveStep(null);
+      setDisplayState(finalState);
+      animatingRef.current = false;
+      setIsAnimating(false);
+      return;
+    }
+
+    const playbackId = playbackIdRef.current;
+    let index = 0;
+
+    animatingRef.current = true;
+    setIsAnimating(true);
+
+    const playNext = (): void => {
+      if (playbackIdRef.current !== playbackId) return;
+      const step = steps[index];
+      if (!step) {
+        setActiveStep(null);
+        setDisplayState(finalState);
+        animatingRef.current = false;
+        setIsAnimating(false);
+        return;
+      }
+      setActiveStep(step);
+      setDisplayState(step.stateSnapshot);
+      index += 1;
+      playbackTimeoutRef.current = window.setTimeout(playNext, step.durationMs);
+    };
+
+    playNext();
+  }, [stopPlayback]);
+
+  useEffect(() => {
+    return () => {
+      stopPlayback();
+    };
+  }, [stopPlayback]);
 
   const dispatchGame = useCallback((action: GameAction) => {
-    dispatch({ type: "DISPATCH_GAME", action });
-  }, []);
+    if (animatingRef.current) return;
+    const ctx = createBattleContext();
+    const next = deepClone(settledRef.current);
+    const result = applyPlayerActionWithTimeline(next, action, ctx);
+    if (!result.ok) return;
+    settledRef.current = next;
+    setSettledState(next);
+    if (result.timeline.length > 0) {
+      playTimeline(result.timeline, next);
+    } else {
+      setDisplayState(next);
+    }
+  }, [playTimeline]);
 
   const reset = useCallback(() => {
     endedRef.current = false;
@@ -103,10 +164,20 @@ export function BattleProvider({
       enemyScale,
       omen,
     });
-    dispatch({ type: "RESET", state: fresh });
-  }, [heroId, enemyId, seed, initialDeckIds, initialPlayerHero, enemyScale, omen]);
+    stopPlayback();
+    settledRef.current = fresh;
+    setSettledState(fresh);
+    setDisplayState(fresh);
+    setActiveStep(null);
+    animatingRef.current = false;
+    setIsAnimating(false);
+  }, [heroId, enemyId, seed, initialDeckIds, initialPlayerHero, enemyScale, omen, stopPlayback]);
 
-  const store = useMemo<BattleStore>(() => ({ state: internal.state, dispatch: dispatchGame, reset }), [internal.state, dispatchGame, reset]);
+  const canAct = !isAnimating && settledState.activeSide === "player" && settledState.result === "ongoing";
+  const store = useMemo<BattleStore>(
+    () => ({ state: displayState, actionState: settledState, dispatch: dispatchGame, reset, canAct, isAnimating, visualEvents: activeStep?.events ?? [] }),
+    [displayState, settledState, dispatchGame, reset, canAct, isAnimating, activeStep],
+  );
 
   return <StoreContext.Provider value={store}>{children}</StoreContext.Provider>;
 }

@@ -224,6 +224,9 @@ function executeEffect(e: Effect, ec: EffectContext): void {
         const card = sourceState.hand.shift();
         if (card) sourceState.graveyard.push(card);
       }
+      if (count > 0) {
+        state.log.push({ turn: state.turn, side: sourceSide, kind: "DISCARD", text: `棄 ${count} 張牌`, payload: { count } });
+      }
       break;
     }
     case "summon": {

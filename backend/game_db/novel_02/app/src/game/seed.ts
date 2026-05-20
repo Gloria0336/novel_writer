@@ -15,6 +15,7 @@ import { ENEMY_PROFILES } from "../core/ai/profiles";
 import { runLairAuras } from "../core/turn/lairAura";
 import { executeEffects } from "../core/effects/registry";
 import { applyAction, type ApplyResult } from "../core/turn/reducer";
+import { applyActionWithTimeline, applyActionWithTimelineRunner, type TimelineApplyResult } from "../core/turn/timeline";
 import type { GameAction } from "../core/turn/actions";
 import { advanceToNextSide, endTurnFor, startTurnFor } from "../core/turn/phases";
 import { registerCoreScripted } from "../core/effects/handlers/scripted";
@@ -187,6 +188,13 @@ export function applyPlayerAction(state: BattleState, action: GameAction, ctx: B
     return endPlayerTurnAndRunAI(state, ctx);
   }
   return applyAction(state, action, ctx);
+}
+
+export function applyPlayerActionWithTimeline(state: BattleState, action: GameAction, ctx: BattleContext): TimelineApplyResult {
+  if (action.type === "END_TURN") {
+    return applyActionWithTimelineRunner(state, action, ctx, (runnerState, _action, runnerCtx) => endPlayerTurnAndRunAI(runnerState, runnerCtx));
+  }
+  return applyActionWithTimeline(state, action, ctx);
 }
 
 export function endPlayerTurnAndRunAI(state: BattleState, ctx: BattleContext): ApplyResult {

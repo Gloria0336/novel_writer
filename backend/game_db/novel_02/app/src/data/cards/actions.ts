@@ -3,18 +3,18 @@ import type { ActionCard } from "../../core/types/card";
 export const ACTIONS: ActionCard[] = [
   {
     id: "A_c_01", type: "action", name: "劈斬", cost: 1, rarity: "common",
-    effects: [{ kind: "damage", target: { kind: "single", filter: {} }, amount: { kind: "atk", bonus: 3 } }],
+    effects: [{ kind: "damage", target: { kind: "single", filter: { side: "enemy", entity: "any" } }, amount: { kind: "atk", bonus: 3 } }],
   },
   {
     id: "A_c_02", type: "action", name: "盾擊", cost: 2, rarity: "common",
     effects: [
-      { kind: "damage", target: { kind: "single", filter: {} }, amount: { kind: "atk" } },
+      { kind: "damage", target: { kind: "single", filter: { side: "enemy", entity: "any" } }, amount: { kind: "atk" } },
       { kind: "armor", amount: 10 },
     ],
   },
   {
     id: "A_c_03", type: "action", name: "猛攻", cost: 2, rarity: "common",
-    effects: [{ kind: "damage", target: { kind: "single", filter: {} }, amount: { kind: "atk", bonus: 6 } }],
+    effects: [{ kind: "damage", target: { kind: "single", filter: { side: "enemy", entity: "any" } }, amount: { kind: "atk", bonus: 6 } }],
   },
   {
     id: "A_c_04", type: "action", name: "鐵壁", cost: 2, rarity: "common",
@@ -29,23 +29,23 @@ export const ACTIONS: ActionCard[] = [
   },
   {
     id: "A_c_06", type: "action", name: "致命突刺", cost: 3, rarity: "uncommon",
-    effects: [{ kind: "damage", target: { kind: "single", filter: {} }, amount: { kind: "atk", mult: 2 } }],
+    effects: [{ kind: "damage", target: { kind: "single", filter: { side: "enemy", entity: "any" } }, amount: { kind: "atk", mult: 2 } }],
     postEffects: [{ kind: "scripted", tag: "MORALE_IF_KILLED", payload: { amount: 20 } }],
   },
   {
     id: "A_c_07", type: "action", name: "破甲重擊", cost: 3, rarity: "uncommon",
-    effects: [{ kind: "damage", target: { kind: "single", filter: {} }, amount: { kind: "atk", bonus: 5 }, ignoreDef: true }],
+    effects: [{ kind: "damage", target: { kind: "single", filter: { side: "enemy", entity: "any" } }, amount: { kind: "atk", bonus: 5 }, ignoreDef: true }],
   },
   {
     id: "A_c_08", type: "action", name: "奮力一搏", cost: 4, rarity: "rare",
     effects: [
-      { kind: "damage", target: { kind: "single", filter: {} }, amount: { kind: "atk", mult: 2 } },
+      { kind: "damage", target: { kind: "single", filter: { side: "enemy", entity: "any" } }, amount: { kind: "atk", mult: 2 } },
       { kind: "scripted", tag: "SELF_DAMAGE_FIXED", payload: { amount: 10 } },
     ],
   },
   {
     id: "A_c_09", type: "action", name: "全力一擊", cost: 5, rarity: "rare",
-    effects: [{ kind: "damage", target: { kind: "single", filter: {} }, amount: { kind: "atk", mult: 3 } }],
+    effects: [{ kind: "damage", target: { kind: "single", filter: { side: "enemy", entity: "any" } }, amount: { kind: "atk", mult: 3 } }],
     postEffects: [{ kind: "scripted", tag: "DISABLE_ACTION_THIS_TURN" }],
   },
   {

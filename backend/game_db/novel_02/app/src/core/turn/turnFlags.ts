@@ -2,6 +2,7 @@ export interface TurnFlagsState {
   extraActionsThisTurn: number;
   actionDisabledThisTurn: boolean;
   firstAttackDoubleInstanceIds: Set<string>;
+  troopCounteredThisTurnInstanceIds: Set<string>;
   actionCardsPlayedThisTurn: number;
   ignoreGuardThisTurn?: boolean;
   deployDiscount?: number;
@@ -20,6 +21,7 @@ export function createTurnFlags(): TurnFlagsState {
     extraActionsThisTurn: 0,
     actionDisabledThisTurn: false,
     firstAttackDoubleInstanceIds: new Set(),
+    troopCounteredThisTurnInstanceIds: new Set(),
     actionCardsPlayedThisTurn: 0,
   };
 }

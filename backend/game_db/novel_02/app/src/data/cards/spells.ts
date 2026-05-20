@@ -52,7 +52,7 @@ export const SPELLS: SpellCard[] = [
   },
   {
     id: "S_c_12", type: "spell", name: "毀滅射線", cost: 6, rarity: "rare",
-    effects: [{ kind: "damage", target: { kind: "single", filter: {} }, amount: { kind: "const", value: 30 }, ignoreDef: true }],
+    effects: [{ kind: "damage", target: { kind: "single", filter: { side: "enemy", entity: "any" } }, amount: { kind: "const", value: 30 }, ignoreDef: true }],
   },
   {
     id: "S_c_13", type: "spell", name: "大地裂變", cost: 5, rarity: "rare",

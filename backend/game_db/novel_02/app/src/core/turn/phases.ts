@@ -5,7 +5,7 @@ import type { BattleContext } from "../types/context";
 import type { Keyword } from "../types/keyword";
 import type { ActiveStatusBuff } from "../types/status";
 import { drawCards } from "../deck/draw";
-import { nextRng } from "../deck/prng";
+import { nextRng, rngPick } from "../deck/prng";
 import { addTempMana, refillMana } from "../resource/mana";
 import { addGauge, gaugeOnTroopSurvivePerTurn, gaugeOnTurnStart } from "../resource/gauge";
 import { tickRiftTremor } from "../resource/rift";
@@ -279,10 +279,20 @@ function runFieldStartTurnEffectsOnce(state: BattleState, ctx: BattleContext, si
 
   // F_c_07 風暴山脊（enemy 槽位）：每回合對槽位方首個活躍兵力造 6 點傷。
   if (cardId === "F_c_07") {
-    const target = aliveTroops(active)[0];
+    const targets = aliveTroops(active);
     const dmg = applyOmenFieldDamageModifier(state, side, 6);
-    if (target && dmg > 0) {
+    if (targets.length > 0 && dmg > 0) {
+      const pick = rngPick(state.rngState, targets);
+      state.rngState = pick.state;
+      const target = pick.value;
       applyTroopDamageWithPassives(state, ctx, side, target, dmg, { sourceKind: "field" });
+      state.log.push({
+        turn: state.turn,
+        side,
+        kind: "FIELD_STORM",
+        text: `風暴山脊隨機命中 ${target.cardId}，造成 ${dmg} 傷害`,
+        payload: { targetInstanceId: target.instanceId, cardId: target.cardId, damage: dmg },
+      });
       damaged = true;
     }
   }

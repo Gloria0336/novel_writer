@@ -65,6 +65,20 @@ describe("預組牌完整性 — 每位英雄 30 張 + 符合種族 deckLimits",
       expect(() => createBattle({ seed: 1, playerHeroId: hero.id, playerDeckIds: deckIds })).not.toThrow();
     }
   });
+
+  it("M 章場地管理卡已放入對應英雄牌組", () => {
+    const expectIncludes = (deck: string[], cards: string[]) => {
+      expect(deck).toEqual(expect.arrayContaining(cards));
+    };
+
+    expectIncludes(BUTTERFLY_YAO_DECK_IDS, ["A_f_07", "A_f_08", "A_f_09", "A_f_10", "A_f_11"]);
+    expectIncludes(LULU_DECK_IDS, ["A_h_05", "A_h_06", "A_o_04", "A_o_05", "A_o_06"]);
+    expectIncludes(MOUNTAIN_HUNTER_DECK_IDS, ["A_h_05", "A_h_06"]);
+    expectIncludes(AELLA_FLAIR_DECK_IDS, ["A_h_05", "A_h_06"]);
+    expectIncludes(REKA_DECK_IDS, ["A_b_03"]);
+    expectIncludes(FULDRA_DECK_IDS, ["A_b_03", "A_o_04", "A_o_05", "A_o_06"]);
+    expectIncludes(ELDR_THORIN_DECK_IDS, ["A_o_01", "A_o_02", "A_o_03"]);
+  });
 });
 
 describe("英雄量表規則", () => {

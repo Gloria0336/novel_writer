@@ -12,6 +12,7 @@ import type { TroopInstance, BattleState, BattleResult, LogEntry } from "../../c
 import type { RiftState } from "../../core/types/rift";
 import type { BattleContext } from "../../core/types/context";
 import type { Side } from "../../core/types/effect";
+import type { BattleVisualEvent, BattleVisualZone } from "../../core/types/visual";
 import type { HeroInstance } from "../../core/types/hero";
 import { createBattleContext, type EnemyScale } from "../../game/seed";
 import type { Card } from "../../core/types/card";
@@ -82,6 +83,7 @@ const RACE_TO_THEME: Record<string, string> = {
 const FRAME_THEME = "midnight";
 const ATTACK_FX_MS = 760;
 const SCRIPTED_SELF_TROOP_TARGET_CARDS = new Set(["A_h_05"]);
+const SCRIPTED_ENEMY_ANY_TARGET_CARDS = new Set(["A_b_02"]);
 
 interface Point {
   x: number;
@@ -103,7 +105,7 @@ interface AttackFx {
 }
 
 function BattleView({ onExit }: { onExit: () => void }): JSX.Element {
-  const { state, dispatch, reset } = useBattle();
+  const { state, actionState, dispatch, reset, canAct, isAnimating, visualEvents } = useBattle();
   const battleCtx = useMemo(() => createBattleContext(), []);
   const [select, setSelect] = useState<SelectMode>({ kind: "none" });
   const [indexOpen, setIndexOpen] = useState(false);
@@ -197,16 +199,19 @@ function BattleView({ onExit }: { onExit: () => void }): JSX.Element {
   const gaugeMax = heroRace.gauge.max;
   const fullGaugeReady = isFullGaugeActive(state.player, heroRace);
   const heroTheme = RACE_TO_THEME[heroDef.raceId] ?? "azure";
+  const actionPlayerHero = actionState.player.hero;
 
-  const isPlayerTurn = state.activeSide === "player" && state.result === "ongoing";
+  const isPlayerTurn = canAct;
   const mana = totalAvailableMana(state.player);
   const manaCap = state.player.manaCap;
+  const actionMana = totalAvailableMana(actionState.player);
 
   function clickHandCard(idx: number): void {
+    if (!canAct) return;
     // v3.3 S_c_15 needsRiftHand 模式：此次 click 是目標兵力卡
     if (select.kind === "playCardNeedsRiftHand") {
       if (idx === select.handIndex) return; // 不可選自己
-      const target = state.player.hand[idx];
+      const target = actionState.player.hand[idx];
       if (!target) return;
       const targetCard = getCard(target.cardId);
       if (targetCard.type !== "troop") return;
@@ -219,14 +224,14 @@ function BattleView({ onExit }: { onExit: () => void }): JSX.Element {
       return;
     }
 
-    const inst = state.player.hand[idx];
+    const inst = actionState.player.hand[idx];
     if (!inst) return;
     const card = getCard(inst.cardId);
-    if (!canPlayCardCheck(state, battleCtx, card)) return;
+    if (!canPlayCardCheck(actionState, battleCtx, card)) return;
 
     if (card.type === "troop") {
       // v3.3：rift 開啟且 Open 狀態時，同時可選裂縫位
-      const needsRiftSlot = state.rift?.holder === "open";
+      const needsRiftSlot = actionState.rift?.holder === "open";
       setSelect({ kind: "playCard", handIndex: idx, needsTarget: false, needsSlot: true, needsRiftSlot });
     } else if (card.id === "S_c_15" && card.type === "spell") {
       // v3.3 S_c_15 裂痕召喚：進入 needsRiftHand 模式，等待玩家點手牌中兵力
@@ -237,7 +242,7 @@ function BattleView({ onExit }: { onExit: () => void }): JSX.Element {
         setSelect({ kind: "none" });
         return;
       }
-      const needsTarget = cardNeedsTarget(card);
+      const needsTarget = cardNeedsTarget(card, actionState);
       if (!needsTarget) {
         dispatch({ type: card.type === "spell" ? "PLAY_SPELL" : "PLAY_ACTION", handIndex: idx });
         setSelect({ kind: "none" });
@@ -254,27 +259,27 @@ function BattleView({ onExit }: { onExit: () => void }): JSX.Element {
   }
 
   function clickRiftSlot(): void {
-    if (state.activeSide !== "player") return;
-    if (!state.rift) return;
+    if (!canAct) return;
+    if (!actionState.rift) return;
     // 玩家佔據裂縫（兵力卡 + needsRiftSlot + Open）
-    if (select.kind === "playCard" && select.needsRiftSlot && state.rift.holder === "open") {
+    if (select.kind === "playCard" && select.needsRiftSlot && actionState.rift.holder === "open") {
       dispatch({ type: "PLAY_TROOP_RIFT", handIndex: select.handIndex });
       setSelect({ kind: "none" });
       return;
     }
     // 攻擊裂縫中的滲透體（敵方佔據 + attackWithTroop）
-    if (select.kind === "attackWithTroop" && state.rift.holder === "enemy" && state.rift.occupant) {
-      const me = findTroopAnywhere(state, select.instanceId);
+    if (select.kind === "attackWithTroop" && actionState.rift.holder === "enemy" && actionState.rift.occupant) {
+      const me = findTroopAnywhere(actionState, select.instanceId);
       if (!me) {
         setSelect({ kind: "none" });
         return;
       }
-      const check = canTroopAttack(state, "player", me, state.rift.occupant);
+      const check = canTroopAttack(actionState, "player", me, actionState.rift.occupant);
       if (!check.ok) return;
       dispatch({
         type: "TROOP_ATTACK",
         attackerInstanceId: select.instanceId,
-        targetInstanceId: state.rift.occupant.instanceId,
+        targetInstanceId: actionState.rift.occupant.instanceId,
       });
       setSelect({ kind: "none" });
       return;
@@ -282,8 +287,8 @@ function BattleView({ onExit }: { onExit: () => void }): JSX.Element {
   }
 
   function clickSlot(side: "player" | "enemy", idx: number): void {
-    if (state.activeSide !== "player") return;
-    const slot = (side === "player" ? state.player : state.enemy).troopSlots[idx];
+    if (!canAct) return;
+    const slot = (side === "player" ? actionState.player : actionState.enemy).troopSlots[idx];
 
     if (select.kind === "playCard" && select.needsSlot && side === "player") {
       if (!slot) {
@@ -294,7 +299,7 @@ function BattleView({ onExit }: { onExit: () => void }): JSX.Element {
       return;
     }
     if (select.kind === "playCard" && select.needsTarget && slot) {
-      const inst = state.player.hand[select.handIndex];
+      const inst = actionState.player.hand[select.handIndex];
       if (!inst) return;
       const card = getCard(inst.cardId);
       if (!canPlayCardTargetTroop(card, side, slot, false)) return;
@@ -312,27 +317,27 @@ function BattleView({ onExit }: { onExit: () => void }): JSX.Element {
       return;
     }
     if (select.kind === "attackWithTroop" && side === "enemy" && slot) {
-      const me = findTroopAnywhere(state, select.instanceId);
+      const me = findTroopAnywhere(actionState, select.instanceId);
       if (!me) return setSelect({ kind: "none" });
-      const check = canTroopAttack(state, "player", me, slot);
+      const check = canTroopAttack(actionState, "player", me, slot);
       if (!check.ok) return;
       dispatch({ type: "TROOP_ATTACK", attackerInstanceId: select.instanceId, targetInstanceId: slot.instanceId });
       setSelect({ kind: "none" });
       return;
     }
     if (select.kind === "none" && side === "player" && slot) {
-      const heroCheck = canTroopAttack(state, "player", slot, "hero");
-      const anyValid = aliveTroops(state.enemy).some((t) => canTroopAttack(state, "player", slot, t).ok) || heroCheck.ok;
+      const heroCheck = canTroopAttack(actionState, "player", slot, "hero");
+      const anyValid = aliveTroops(actionState.enemy).some((t) => canTroopAttack(actionState, "player", slot, t).ok) || heroCheck.ok;
       if (anyValid) setSelect({ kind: "attackWithTroop", instanceId: slot.instanceId });
     }
   }
 
   function clickFrontline(side: "player" | "enemy"): void {
-    if (state.activeSide !== "player") return;
-    const slot = (side === "player" ? state.player : state.enemy).frontlineSlot;
+    if (!canAct) return;
+    const slot = (side === "player" ? actionState.player : actionState.enemy).frontlineSlot;
     if (!slot) return;
     if (select.kind === "playCard" && select.needsTarget) {
-      const inst = state.player.hand[select.handIndex];
+      const inst = actionState.player.hand[select.handIndex];
       if (!inst) return;
       const card = getCard(inst.cardId);
       if (!canPlayCardTargetTroop(card, side, slot, true)) return;
@@ -350,39 +355,39 @@ function BattleView({ onExit }: { onExit: () => void }): JSX.Element {
       return;
     }
     if (select.kind === "attackWithTroop" && side === "enemy") {
-      const me = findTroopAnywhere(state, select.instanceId);
+      const me = findTroopAnywhere(actionState, select.instanceId);
       if (!me) return setSelect({ kind: "none" });
-      const check = canTroopAttack(state, "player", me, slot);
+      const check = canTroopAttack(actionState, "player", me, slot);
       if (!check.ok) return;
       dispatch({ type: "TROOP_ATTACK", attackerInstanceId: select.instanceId, targetInstanceId: slot.instanceId });
       setSelect({ kind: "none" });
       return;
     }
     if (select.kind === "none" && side === "player") {
-      const heroCheck = canTroopAttack(state, "player", slot, "hero");
-      const anyValid = aliveTroops(state.enemy).some((t) => canTroopAttack(state, "player", slot, t).ok) || heroCheck.ok;
+      const heroCheck = canTroopAttack(actionState, "player", slot, "hero");
+      const anyValid = aliveTroops(actionState.enemy).some((t) => canTroopAttack(actionState, "player", slot, t).ok) || heroCheck.ok;
       if (anyValid) setSelect({ kind: "attackWithTroop", instanceId: slot.instanceId });
     }
   }
 
   function clickEnemyHero(): void {
-    if (state.activeSide !== "player") return;
+    if (!canAct) return;
     if (select.kind === "attackWithTroop") {
-      const me = findTroopAnywhere(state, select.instanceId);
+      const me = findTroopAnywhere(actionState, select.instanceId);
       if (!me) return;
-      const check = canTroopAttack(state, "player", me, "hero");
+      const check = canTroopAttack(actionState, "player", me, "hero");
       if (!check.ok) return;
       dispatch({ type: "TROOP_ATTACK", attackerInstanceId: select.instanceId, targetInstanceId: "H_enemy" });
       setSelect({ kind: "none" });
       return;
     }
     if (select.kind === "playCard" && select.needsTarget) {
-      const inst = state.player.hand[select.handIndex];
+      const inst = actionState.player.hand[select.handIndex];
       if (!inst) return;
       const card = getCard(inst.cardId);
       if (isScriptedSelfTroopTargetCard(card)) return;
       const ignoreGuard = (card.type === "spell" || card.type === "action") && (card.effects ?? []).some((e) => "ignoreGuard" in e && (e as { ignoreGuard?: boolean }).ignoreGuard);
-      const guardCheck = canActionTarget(state, "player", "hero", ignoreGuard);
+      const guardCheck = canActionTarget(actionState, "player", "hero", ignoreGuard);
       if (!guardCheck.ok) return;
       dispatch({
         type: card.type === "spell" ? "PLAY_SPELL" : "PLAY_ACTION",
@@ -404,10 +409,10 @@ function BattleView({ onExit }: { onExit: () => void }): JSX.Element {
   }
 
   function clickSkill(skillId: string): void {
-    if (state.activeSide !== "player") return;
+    if (!canAct) return;
     const skill = heroDef.actives.find((s) => s.id === skillId);
     if (!skill) return;
-    if (skill.cost.morale && !canAffordMorale(playerHero, skill.cost.morale)) return;
+    if (skill.cost.morale && !canAffordMorale(actionPlayerHero, skill.cost.morale)) return;
     const needsTarget = skill.effects.some((e) => "target" in e && (e.target as { kind?: string }).kind === "single");
     if (!needsTarget) {
       dispatch({ type: "USE_SKILL", skillId });
@@ -418,9 +423,9 @@ function BattleView({ onExit }: { onExit: () => void }): JSX.Element {
   }
 
   function clickUltimate(): void {
-    if (state.activeSide !== "player") return;
-    if (playerHero.flags.ultimateUsed) return;
-    if (playerHero.morale < 100) return;
+    if (!canAct) return;
+    if (actionPlayerHero.flags.ultimateUsed) return;
+    if (actionPlayerHero.morale < 100) return;
     const ult = heroDef.ultimate;
     const needsTarget = ult.effects.some((e) => "target" in e && (e.target as { kind?: string }).kind === "single");
     if (!needsTarget) {
@@ -432,12 +437,14 @@ function BattleView({ onExit }: { onExit: () => void }): JSX.Element {
   }
 
   function endTurn(): void {
+    if (!canAct) return;
     dispatch({ type: "END_TURN" });
     setSelect({ kind: "none" });
     setOathPrompt(null);
   }
 
   function chooseOath(choice: OathChoice): void {
+    if (!canAct) return;
     if (!oathPrompt) return;
     dispatch({ type: "PLAY_SPELL", handIndex: oathPrompt.handIndex, oathChoice: choice });
     setOathPrompt(null);
@@ -449,7 +456,7 @@ function BattleView({ onExit }: { onExit: () => void }): JSX.Element {
   const stabilityScale = Math.max(0, Math.min(100, stability)) / 100;
   const phase = isPlayerTurn ? "主要" : "結束";
 
-  const selectedPlayCard = select.kind === "playCard" ? getHandCard(state, select.handIndex) : null;
+  const selectedPlayCard = select.kind === "playCard" ? getHandCard(actionState, select.handIndex) : null;
 
   const enemyTargetable =
     isPlayerTurn && (
@@ -459,7 +466,7 @@ function BattleView({ onExit }: { onExit: () => void }): JSX.Element {
       (select.kind === "useSkill" && select.needsTarget)
     );
 
-  const ultReady = playerHero.morale >= 100 && !playerHero.flags.ultimateUsed;
+  const ultReady = actionPlayerHero.morale >= 100 && !actionPlayerHero.flags.ultimateUsed;
   const lastLog = state.log.slice(-1)[0];
   const recentLogs = state.log.slice(-3).reverse();
   const playerFieldCard = state.field.player ? getCard(state.field.player.cardId) : null;
@@ -609,9 +616,9 @@ function BattleView({ onExit }: { onExit: () => void }): JSX.Element {
 
               <div className={styles.skillsList}>
                 {heroDef.actives.map((skill) => {
-                  const moraleOk = !skill.cost.morale || canAffordMorale(playerHero, skill.cost.morale);
-                  const gaugeOk = !skill.cost.gauge || playerHero.gaugeValue >= skill.cost.gauge;
-                  const manaOk = !skill.cost.mana || mana >= skill.cost.mana;
+                  const moraleOk = !skill.cost.morale || canAffordMorale(actionPlayerHero, skill.cost.morale);
+                  const gaugeOk = !skill.cost.gauge || actionPlayerHero.gaugeValue >= skill.cost.gauge;
+                  const manaOk = !skill.cost.mana || actionMana >= skill.cost.mana;
                   const disabled = !isPlayerTurn || !moraleOk || !gaugeOk || !manaOk;
                   const costs = [
                     skill.cost.morale ? `${skill.cost.morale} 鬥志` : null,
@@ -648,10 +655,12 @@ function BattleView({ onExit }: { onExit: () => void }): JSX.Element {
             <button
               className={styles.endTurn}
               data-disabled={!isPlayerTurn ? "true" : "false"}
+              data-busy={isAnimating ? "true" : "false"}
+              aria-busy={isAnimating ? "true" : "false"}
               onClick={endTurn}
               disabled={!isPlayerTurn}
             >
-              結束回合
+              {isAnimating ? "回合結算中..." : "結束回合"}
             </button>
           </div>
 
@@ -771,6 +780,7 @@ function BattleView({ onExit }: { onExit: () => void }): JSX.Element {
             </div>
           </div>
 
+          <VisualEventOverlay events={visualEvents} />
           {attackFx && <AttackEffectOverlay fx={attackFx} />}
 
           {/* Race gauge strip (mirrors right-panel gauge along bottom) */}
@@ -799,7 +809,7 @@ function BattleView({ onExit }: { onExit: () => void }): JSX.Element {
                 const isS_c_15Self = inNeedsRiftHand && select.handIndex === i;
                 const playable = inNeedsRiftHand
                   ? isPlayerTurn && !isS_c_15Self && card.type === "troop"
-                  : isPlayerTurn && canPlayCardCheck(state, battleCtx, card);
+                  : isPlayerTurn && canPlayCardCheck(actionState, battleCtx, card);
                 const selected =
                   (select.kind === "playCard" && select.handIndex === i) ||
                   isS_c_15Self;
@@ -881,7 +891,9 @@ function getHandCard(state: BattleState, handIndex: number): Card | null {
   return inst ? getCard(inst.cardId) : null;
 }
 
-function cardNeedsTarget(card: Card): boolean {
+function cardNeedsTarget(card: Card, state?: BattleState): boolean {
+  if (card.id === "S_e_07") return state ? state.player.hero.gaugeValue < 4 : true;
+  if ((card.type === "spell" || card.type === "action") && isScriptedEnemyAnyTargetCard(card)) return true;
   if ((card.type === "spell" || card.type === "action") && isScriptedSelfTroopTargetCard(card)) return true;
   if (card.type !== "spell" && card.type !== "action") return false;
   return card.effects.some((e) => "target" in e && (e.target as { kind?: string }).kind === "single");
@@ -891,9 +903,19 @@ function isScriptedSelfTroopTargetCard(card: Card): boolean {
   return card.type === "action" && SCRIPTED_SELF_TROOP_TARGET_CARDS.has(card.id);
 }
 
+function isScriptedEnemyAnyTargetCard(card: Card): boolean {
+  return card.type === "action" && SCRIPTED_ENEMY_ANY_TARGET_CARDS.has(card.id);
+}
+
 function canPlayCardTargetTroop(card: Card, side: "player" | "enemy", troop: TroopInstance, isFrontline: boolean): boolean {
   if (isScriptedSelfTroopTargetCard(card)) {
     return side === "player" && !isFrontline && !troop.isConstruct;
+  }
+  if (isScriptedEnemyAnyTargetCard(card)) {
+    return side === "enemy";
+  }
+  if (card.id === "S_e_07") {
+    return side === "enemy";
   }
   return true;
 }
@@ -1093,6 +1115,103 @@ function AttackEffectOverlay({ fx }: { fx: AttackFx }): JSX.Element {
       </div>
     </div>
   );
+}
+
+function VisualEventOverlay({ events }: { events: BattleVisualEvent[] }): JSX.Element | null {
+  const visible = events.filter((event) => event.type === "cardMove" || event.type === "damage" || event.type === "heal" || event.type === "destroy" || event.type === "summon");
+  if (visible.length === 0) return null;
+  return (
+    <div className={styles.visualEventLayer} aria-hidden="true">
+      {visible.map((event, index) => {
+        if (event.type === "cardMove") return <CardFlightEvent key={`move-${index}-${event.cardInstanceId ?? event.cardId}`} event={event} />;
+        if (event.type === "damage" || event.type === "heal") return <HealthFloatEvent key={`${event.type}-${index}-${event.targetInstanceId ?? event.target.kind}`} event={event} />;
+        if (event.type === "destroy") return <BoardPulseEvent key={`destroy-${index}-${event.instanceId}`} event={event} tone="destroy" />;
+        return <BoardPulseEvent key={`summon-${index}-${event.instanceId}`} event={event} tone="summon" />;
+      })}
+    </div>
+  );
+}
+
+function CardFlightEvent({ event }: { event: Extract<BattleVisualEvent, { type: "cardMove" }> }): JSX.Element {
+  const from = visualZoneCenter(event.from);
+  const to = visualZoneCenter(event.to);
+  let card: Card | null = null;
+  try {
+    card = getCard(event.cardId);
+  } catch {
+    card = null;
+  }
+  const style = {
+    "--move-from-x": `${from.x}px`,
+    "--move-from-y": `${from.y}px`,
+    "--move-to-x": `${to.x}px`,
+    "--move-to-y": `${to.y}px`,
+  } as CSSProperties;
+
+  return (
+    <div className={styles.cardFlight} style={style}>
+      {card ? (
+        <CardFace model={buildCardFaceModel(card)} variant="mini" />
+      ) : (
+        <div className={styles.cardFlightFallback}>{event.cardId}</div>
+      )}
+    </div>
+  );
+}
+
+function HealthFloatEvent({ event }: { event: Extract<BattleVisualEvent, { type: "damage" | "heal" }> }): JSX.Element {
+  const point = visualZoneCenter(event.target);
+  const style = {
+    "--float-x": `${point.x}px`,
+    "--float-y": `${point.y}px`,
+  } as CSSProperties;
+  return (
+    <div className={styles.healthFloat} data-tone={event.type} style={style}>
+      {event.type === "damage" ? "-" : "+"}{event.amount}
+    </div>
+  );
+}
+
+function BoardPulseEvent({
+  event,
+  tone,
+}: {
+  event: Extract<BattleVisualEvent, { type: "destroy" | "summon" }>;
+  tone: "destroy" | "summon";
+}): JSX.Element {
+  const point = visualZoneCenter(event.target);
+  const style = {
+    "--pulse-x": `${point.x}px`,
+    "--pulse-y": `${point.y}px`,
+  } as CSSProperties;
+  return <div className={styles.boardPulse} data-tone={tone} style={style} />;
+}
+
+function visualZoneCenter(zone: BattleVisualZone): Point {
+  switch (zone.kind) {
+    case "hero":
+      return heroCenter(zone.side);
+    case "troopSlot":
+      return troopSlotCenter(zone.side, zone.slotIndex, 5);
+    case "frontline":
+      return { ...troopSlotCenter(zone.side, 2, 5), y: zone.side === "enemy" ? 270 : 614 };
+    case "rift":
+      return { x: 960, y: 442 };
+    case "hand": {
+      const index = zone.index ?? 2;
+      return { x: 820 + index * 74, y: 948 };
+    }
+    case "deck":
+      return zone.side === "player" ? { x: 340, y: 930 } : { x: 146, y: 210 };
+    case "graveyard":
+      return zone.side === "player" ? { x: 1580, y: 930 } : { x: 146, y: 338 };
+    case "equipment":
+      return zone.side === "player" ? { x: 1776, y: 380 } : { x: 146, y: 210 };
+    case "field":
+      return zone.side === "player" ? { x: 780, y: 56 } : { x: 1140, y: 56 };
+    case "unknown":
+      return zone.side ? heroCenter(zone.side) : { x: 960, y: 540 };
+  }
 }
 
 function CardPreviewOverlay({ card, gaugeName, onClose }: { card: Card; gaugeName?: string; onClose: () => void }): JSX.Element {

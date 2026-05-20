@@ -11,6 +11,7 @@ import { aliveTroops, findTroopBySide, getSide, heroHasStatus, troopHasStatus } 
 import { evalAmount } from "../effects/amount";
 import { fullGaugeOpportunityCost, getEffectiveCardCost, getFullGaugeTroopDamageMultiplier } from "../resource/fullGaugeBuff";
 import { damageAfterDefense } from "../combat/damage";
+import { hasTroopCounteredThisTurn } from "../combat/attack";
 
 export interface Prediction {
   /** 玩家英雄受到的傷害（正值）。 */
@@ -100,11 +101,12 @@ function predictAttack(state: BattleState, ctx: BattleContext, attackerId: strin
   const dLethal = defender.keywords.has("lethal");
 
   const rawAttackerDamage = Math.round(attacker.atk * getFullGaugeTroopDamageMultiplier(state, ctx, "enemy"));
-  const rawDefenderDamage = Math.round(defender.atk * getFullGaugeTroopDamageMultiplier(state, ctx, "player"));
+  const defenderCanCounter = !hasTroopCounteredThisTurn(state, defender);
+  const rawDefenderDamage = defenderCanCounter ? Math.round(defender.atk * getFullGaugeTroopDamageMultiplier(state, ctx, "player")) : 0;
   const dmgToDef = damageAfterDefense(rawAttackerDamage, defender.def, { ignoreDef: aPierce, allowZeroAfterDefense: troopHasStatus(defender, "invincible") });
-  const dmgToAtt = damageAfterDefense(rawDefenderDamage, attacker.def, { ignoreDef: dPierce, allowZeroAfterDefense: troopHasStatus(attacker, "invincible") });
+  const dmgToAtt = defenderCanCounter ? damageAfterDefense(rawDefenderDamage, attacker.def, { ignoreDef: dPierce, allowZeroAfterDefense: troopHasStatus(attacker, "invincible") }) : 0;
   const defKilled = dmgToDef >= defender.hp || (aLethal && dmgToDef > 0);
-  const attKilled = dmgToAtt >= attacker.hp || (dLethal && dmgToAtt > 0);
+  const attKilled = defenderCanCounter && (dmgToAtt >= attacker.hp || (dLethal && dmgToAtt > 0));
 
   return {
     ...EMPTY,

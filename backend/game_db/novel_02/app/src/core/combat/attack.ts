@@ -5,6 +5,7 @@ import { aliveTroops, findTroopBySide, getSide, hasGuardTroop, heroHasStatus, ot
 import { getFullGaugeHeroDamageTakenMultiplier, getFullGaugeTroopDamageMultiplier } from "../resource/fullGaugeBuff";
 import { getTurnFlags } from "../turn/turnFlags";
 import { applyHeroDamageWithPassives, applyTroopDamageWithPassives } from "../effects/battlePassives";
+import { applyLifesteal } from "./damage";
 
 export interface TroopAttackResult {
   attackerKilled: boolean;
@@ -26,15 +27,20 @@ export function troopVsTroop(state: BattleState, ctx: BattleContext, attacker: T
   const dPierce = defender.keywords.has("pierce");
 
   const attackerDamage = Math.round(attacker.atk * consumeFirstAttackMultiplier(state, attacker) * getFullGaugeTroopDamageMultiplier(state, ctx, attackerSide));
-  const defenderDamage = Math.round(defender.atk * getFullGaugeTroopDamageMultiplier(state, ctx, defenderSide));
+  const defenderCountered = consumeTroopCounterattack(state, defender);
+  const defenderDamage = defenderCountered ? Math.round(defender.atk * getFullGaugeTroopDamageMultiplier(state, ctx, defenderSide)) : 0;
   const dmgToDefender = applyTroopDamageWithPassives(state, ctx, defenderSide, defender, attackerDamage, { ignoreDef: aPierce, sourceKind: "troop" });
-  const dmgToAttacker = applyTroopDamageWithPassives(state, ctx, attackerSide, attacker, defenderDamage, { ignoreDef: dPierce, sourceKind: "troop" });
+  const dmgToAttacker = defenderCountered
+    ? applyTroopDamageWithPassives(state, ctx, attackerSide, attacker, defenderDamage, { ignoreDef: dPierce, sourceKind: "troop" })
+    : { finalAmount: 0, killed: false };
 
   const aLethal = attacker.keywords.has("lethal");
   const dLethal = defender.keywords.has("lethal");
 
   const defenderKilled = dmgToDefender.killed || (aLethal && dmgToDefender.finalAmount > 0);
   const attackerKilled = dmgToAttacker.killed || (dLethal && dmgToAttacker.finalAmount > 0);
+  if (attacker.keywords.has("lifesteal")) applyLifesteal(state, attackerSide, dmgToDefender.finalAmount, 100);
+  if (defenderCountered && defender.keywords.has("lifesteal")) applyLifesteal(state, defenderSide, dmgToAttacker.finalAmount, 100);
   if (defenderKilled) defender.hp = 0;
   if (attackerKilled) attacker.hp = 0;
 
@@ -46,6 +52,7 @@ export function troopVsTroop(state: BattleState, ctx: BattleContext, attacker: T
       defenderInstanceId: defender.instanceId,
       damageToDefender: dmgToDefender.finalAmount,
       damageToAttacker: dmgToAttacker.finalAmount,
+      defenderCountered,
       defenderKilled,
       attackerKilled,
     },
@@ -75,6 +82,7 @@ export function troopVsHero(state: BattleState, ctx: BattleContext, attacker: Tr
     finalMultiplier: getFullGaugeHeroDamageTakenMultiplier(state, ctx, defendingSide),
     sourceKind: "troop",
   });
+  if (attacker.keywords.has("lifesteal")) applyLifesteal(state, attackingSide, dmg.finalAmount, 100);
 
   log.push({
     kind: "TROOP_VS_HERO",
@@ -95,6 +103,17 @@ function consumeFirstAttackMultiplier(state: BattleState, attacker: TroopInstanc
   if (!flags.firstAttackDoubleInstanceIds.has(attacker.instanceId)) return 1;
   flags.firstAttackDoubleInstanceIds.delete(attacker.instanceId);
   return 2;
+}
+
+export function hasTroopCounteredThisTurn(state: BattleState, troop: TroopInstance): boolean {
+  return getTurnFlags(state).troopCounteredThisTurnInstanceIds.has(troop.instanceId);
+}
+
+function consumeTroopCounterattack(state: BattleState, defender: TroopInstance): boolean {
+  const flags = getTurnFlags(state);
+  if (flags.troopCounteredThisTurnInstanceIds.has(defender.instanceId)) return false;
+  flags.troopCounteredThisTurnInstanceIds.add(defender.instanceId);
+  return true;
 }
 
 /**

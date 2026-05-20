@@ -19,7 +19,7 @@ export const DWARF_CARDS: Card[] = [
     ],
   },
   {
-    id: "A_dw_01", type: "action", name: "礦脈爆破", cost: 3, rarity: "uncommon",
+    id: "A_dw_01", type: "action", name: "礦脈爆破", cost: 4, rarity: "uncommon",
     effects: [{ kind: "scripted", tag: "MINEVEIN_BLAST" }],
   },
   {

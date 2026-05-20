@@ -34,7 +34,7 @@ export const DEMIGOD_CARDS: Card[] = [
   {
     id: "A_g_02", type: "action", name: "虛空漫步", cost: 3, rarity: "uncommon",
     effects: [
-      { kind: "damage", target: { kind: "single", filter: {} }, amount: { kind: "atk" }, ignoreGuard: true, ignoreDef: true },
+      { kind: "damage", target: { kind: "single", filter: { side: "enemy", entity: "any" } }, amount: { kind: "atk" }, ignoreGuard: true, ignoreDef: true },
       { kind: "scripted", tag: "G_OVERDRAFT_ADD", payload: { amount: 1 } },
     ],
   },

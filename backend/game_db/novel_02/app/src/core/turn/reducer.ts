@@ -257,6 +257,8 @@ function playSpell(state: BattleState, sideKey: Side, side: BattleState["player"
   if (!canAffordMana(side, cost)) return { ok: false, reason: "not enough mana" };
   const targetCheck = validateSingleTargetEffects(state, sideKey, lookup.card.effects, targetInstanceId, ctx, "spell");
   if (!targetCheck.ok) return targetCheck;
+  const scriptedTargetCheck = validateScriptedSpellTargetRequirements(state, sideKey, lookup.card, targetInstanceId, ctx);
+  if (!scriptedTargetCheck.ok) return scriptedTargetCheck;
 
   spendMana(side, cost);
   discardFromHand(side, handIndex);
@@ -399,7 +401,39 @@ function validateSingleTargetEffects(state: BattleState, sideKey: Side, effects:
   return { ok: true };
 }
 
+function validateScriptedSpellTargetRequirements(state: BattleState, sideKey: Side, card: Card, targetInstanceId: string | undefined, ctx: BattleContext): ApplyResult {
+  if (card.id !== "S_e_07") return { ok: true };
+  const side = getSide(state, sideKey);
+  if (side.hero.gaugeValue >= 4) return { ok: true };
+  if (!targetInstanceId) return { ok: false, reason: "Aeno forbidden requires target before resonance 4" };
+  const enemySide = otherSide(sideKey);
+  if (targetInstanceId === `H_${enemySide}`) {
+    const check = canActionTarget(state, sideKey, "hero");
+    return check.ok ? { ok: true } : { ok: false, reason: check.reason };
+  }
+  const target = findTroopBySide(state, targetInstanceId);
+  if (!target || target.side !== enemySide) return { ok: false, reason: "invalid Aeno forbidden target" };
+  if (troopHasPassiveTag(ctx, target.troop, "UNTARGETABLE_BY_SPELL")) {
+    return { ok: false, reason: "untargetable by spell" };
+  }
+  const check = canActionTarget(state, sideKey, target.troop);
+  return check.ok ? { ok: true } : { ok: false, reason: check.reason };
+}
+
 function validateScriptedActionTargetRequirements(state: BattleState, sideKey: Side, card: Card, targetInstanceId: string | undefined): ApplyResult {
+  if (card.id === "A_b_02") {
+    if (!targetInstanceId) return { ok: false, reason: "brute charge requires target" };
+    const enemySide = otherSide(sideKey);
+    if (targetInstanceId === `H_${enemySide}`) {
+      const check = canActionTarget(state, sideKey, "hero");
+      return check.ok ? { ok: true } : { ok: false, reason: check.reason };
+    }
+    const target = findTroopBySide(state, targetInstanceId);
+    if (!target || target.side !== enemySide) return { ok: false, reason: "invalid brute charge target" };
+    const check = canActionTarget(state, sideKey, target.troop);
+    return check.ok ? { ok: true } : { ok: false, reason: check.reason };
+  }
+
   if (card.id !== "A_h_05") return { ok: true };
   const side = getSide(state, sideKey);
   if (side.frontlineSlot) return { ok: false, reason: "frontline occupied" };
@@ -471,7 +505,7 @@ function playEquipment(state: BattleState, sideKey: Side, side: BattleState["pla
   }
   if (lookup.card.modifiers.cmd) side.hero.cmd += lookup.card.modifiers.cmd;
 
-  state.log.push({ turn: state.turn, side: sideKey, kind: "PLAY_EQUIPMENT", text: `裝備 ${lookup.card.name}` });
+  state.log.push({ turn: state.turn, side: sideKey, kind: "PLAY_EQUIPMENT", text: `裝備 ${lookup.card.name}`, payload: { cardId: lookup.card.id, slot } });
 
   // 量表 onEquipmentPlay
   const heroDef = ctx.getHero(side.hero.defId);
@@ -510,7 +544,7 @@ function playField(state: BattleState, sideKey: Side, side: BattleState["player"
   const targetSlot: Side =
     placement === "enemy" ? otherSide(sideKey) : sideKey;
   state.field[targetSlot] = { cardId: lookup.card.id };
-  state.log.push({ turn: state.turn, side: sideKey, kind: "PLAY_FIELD", text: `放置場地 ${lookup.card.name}` });
+  state.log.push({ turn: state.turn, side: sideKey, kind: "PLAY_FIELD", text: `放置場地 ${lookup.card.name}`, payload: { cardId: lookup.card.id, targetSlot } });
 
   if (lookup.card.effects.length > 0) {
     executeEffects(lookup.card.effects, { state, ctx, sourceSide: targetSlot, sourceKind: "field", sourceCardId: lookup.card.id });

@@ -6,6 +6,7 @@ import { canActionTarget, canTroopAttack, troopVsHero, troopVsTroop } from "./at
 import { applyHeroDamage, applyTroopDamage } from "./damage";
 import { getRace } from "../../data/races";
 import { getClass } from "../../data/classes";
+import { resetTurnFlags } from "../turn/turnFlags";
 
 interface TroopOverrides {
   instanceId?: string;
@@ -121,6 +122,7 @@ describe("damage 計算", () => {
     expect(hero.armor).toBe(10);
     expect(hero.hp).toBe(60);
   });
+
 });
 
 describe("status target priority", () => {
@@ -317,5 +319,29 @@ describe("troopVsTroop — 雙方互相造傷", () => {
     const state = mkBattleState([a], [b]);
     troopVsTroop(state, ctx, a, "player", b, "enemy");
     expect(a.hasAttackedThisTurn).toBe(true);
+  });
+
+  it("同一張兵力牌每回合最多只反擊一次", () => {
+    const firstAttacker = mkTroop({ atk: 5, hp: 10 });
+    const secondAttacker = mkTroop({ atk: 5, hp: 10 });
+    const thirdAttacker = mkTroop({ atk: 5, hp: 10 });
+    const defender = mkTroop({ atk: 3, hp: 20 });
+    const state = mkBattleState([firstAttacker, secondAttacker, thirdAttacker], [defender]);
+
+    const first = troopVsTroop(state, ctx, firstAttacker, "player", defender, "enemy");
+    expect(first.attackerDamage).toBe(3);
+    expect(firstAttacker.hp).toBe(7);
+    expect(defender.hp).toBe(15);
+
+    const second = troopVsTroop(state, ctx, secondAttacker, "player", defender, "enemy");
+    expect(second.attackerDamage).toBe(0);
+    expect(secondAttacker.hp).toBe(10);
+    expect(defender.hp).toBe(10);
+
+    resetTurnFlags(state);
+    const third = troopVsTroop(state, ctx, thirdAttacker, "player", defender, "enemy");
+    expect(third.attackerDamage).toBe(3);
+    expect(thirdAttacker.hp).toBe(7);
+    expect(defender.hp).toBe(5);
   });
 });

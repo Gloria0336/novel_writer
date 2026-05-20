@@ -6,6 +6,7 @@ import { addGauge } from "../../resource/gauge";
 import { syncFullGaugeBuffs } from "../../resource/fullGaugeBuff";
 import { addTempMana } from "../../resource/mana";
 import { drawCards } from "../../deck/draw";
+import { rngPick } from "../../deck/prng";
 import { createTroopInstance } from "../../turn/factories";
 import { applyStabilityDelta, applyCorruptionStageEffects } from "../../resource/stability";
 import { getTurnFlags } from "../../turn/turnFlags";
@@ -236,8 +237,11 @@ function registerElf(): void {
     const dmg = me.hero.gaugeValue >= 2 ? 12 : 8;
     // 對單一目標——MVP：找第一個敵方兵力，否則打英雄
     const enemy = getSide(ec.state, otherSide(ec.sourceSide));
-    const target = aliveTroops(enemy)[0];
-    if (target) {
+    const targets = aliveTroops(enemy);
+    if (targets.length > 0) {
+      const pick = rngPick(ec.state.rngState, targets);
+      ec.state.rngState = pick.state;
+      const target = pick.value;
       applyTroopDamage(target, dmg);
     } else {
       applyHeroDamage(enemy.hero, dmg);
@@ -264,18 +268,22 @@ function registerElf(): void {
   });
 
   // S_e_07 艾爾諾禁咒：50 魔法傷害；共鳴 ≥ 4 改 80 對全體
-  registerScripted("AENO_FORBIDDEN", (_p, ec) => {
+  registerScripted("AENO_FORBIDDEN", (payload, ec) => {
     const me = getSide(ec.state, ec.sourceSide);
     const enemy = getSide(ec.state, otherSide(ec.sourceSide));
     if (me.hero.gaugeValue >= 4) {
-      applyHeroDamage(enemy.hero, 80);
+      applyHeroDamage(enemy.hero, 70);
       for (const t of enemy.troopSlots) {
-        if (t) applyTroopDamage(t, 80);
+        if (t) applyTroopDamage(t, 70);
       }
     } else {
-      const target = aliveTroops(enemy)[0];
-      if (target) applyTroopDamage(target, 50);
-      else applyHeroDamage(enemy.hero, 50);
+      const targetInstanceId = (payload as { targetInstanceId?: string } | undefined)?.targetInstanceId;
+      if (targetInstanceId === `H_${otherSide(ec.sourceSide)}`) {
+        applyHeroDamage(enemy.hero, 40);
+        return;
+      }
+      const target = targetInstanceId ? findTroopBySide(ec.state, targetInstanceId) : null;
+      if (target?.side === otherSide(ec.sourceSide)) applyTroopDamage(target.troop, 40);
     }
   });
 }
@@ -338,18 +346,17 @@ function registerDwarf(): void {
   // T_m_03 免疫法術傷害（MVP 略）
   registerScripted("IMMUNE_SPELL_DAMAGE", () => { /* MVP 略 */ });
 
-  // A_dw_01 礦脈爆破：傷害 = (已裝備裝備數 + 場上器具數 + 升級總層數) × 8
+  // A_dw_01 礦脈爆破：敵方全體傷害 = (已裝備裝備數 + 場上器具數 + 升級總層數) × 3
   registerScripted("MINEVEIN_BLAST", (_p, ec) => {
     const me = getSide(ec.state, ec.sourceSide);
     const equipped = [me.hero.equipment.weapon, me.hero.equipment.armor, me.hero.equipment.trinket].filter(Boolean).length;
     const deviceTroops = aliveTroops(me).filter((t) => t.isDevice === true);
     const devices = deviceTroops.length;
     const upgradeLayers = deviceTroops.reduce((sum, t) => sum + (t.upgradeLevel ?? 0), 0);
-    const dmg = (equipped + devices + upgradeLayers) * 8;
+    const dmg = (equipped + devices + upgradeLayers) * 3;
     const enemy = getSide(ec.state, otherSide(ec.sourceSide));
-    const target = aliveTroops(enemy)[0];
-    if (target) applyTroopDamage(target, dmg);
-    else applyHeroDamage(enemy.hero, dmg);
+    applyHeroDamage(enemy.hero, dmg);
+    for (const target of aliveTroops(enemy)) applyTroopDamage(target, dmg);
   });
 
   // S_dw_02 矮人麥酒：恢復英雄 12 HP；裝備 ≥ 2 件時額外 +8
@@ -600,15 +607,19 @@ function registerBeast(): void {
     (flags as unknown as { packTacticsActive?: boolean }).packTacticsActive = true;
   });
 
-  // A_b_02 蠻力突進：英雄 ATK 傷害無視護甲與守護；血怒 ≥ 5 時 +10
-  registerScripted("B_BRUTE_CHARGE", (_p, ec) => {
+  // A_b_02 蠻力突進：指定敵方任意單體造成英雄 ATK 傷害；血怒 ≥ 5 時 +10
+  registerScripted("B_BRUTE_CHARGE", (payload, ec) => {
     const me = getSide(ec.state, ec.sourceSide);
     const enemy = getSide(ec.state, otherSide(ec.sourceSide));
     let dmg = me.hero.atk;
     if (me.hero.gaugeValue >= 5) dmg += 10;
-    const target = aliveTroops(enemy)[0];
-    if (target) applyTroopDamage(target, dmg, { ignoreDef: false });
-    else applyHeroDamage(enemy.hero, dmg);
+    const targetInstanceId = (payload as { targetInstanceId?: string } | undefined)?.targetInstanceId;
+    if (targetInstanceId === `H_${otherSide(ec.sourceSide)}`) {
+      applyHeroDamage(enemy.hero, dmg);
+      return;
+    }
+    const target = targetInstanceId ? findTroopBySide(ec.state, targetInstanceId) : null;
+    if (target?.side === otherSide(ec.sourceSide)) applyTroopDamage(target.troop, dmg, { ignoreDef: false });
   });
 
   // E_b_01 戰痕勳章被動（MVP 略）
