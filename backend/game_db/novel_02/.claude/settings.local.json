@@ -17,7 +17,8 @@
       "Bash(tee /tmp/tsc-out.txt)",
       "Bash(npm test *)",
       "Bash(echo \"tsc exit=$?\")",
-      "Bash(echo \"EXIT=$?\")"
+      "Bash(echo \"EXIT=$?\")",
+      "Bash(ls \"D:/o/\" 2>&1 | head -30; echo \"---C side---\"; ls \"C:/Users/danie/Desktop/o/\" 2>&1 | head -5)"
     ]
   }
 }
