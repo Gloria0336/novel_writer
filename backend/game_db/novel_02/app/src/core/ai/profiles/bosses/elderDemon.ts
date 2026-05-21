@@ -16,11 +16,12 @@ export const BOSS_ELDER_DEMON_PROFILE: EnemyProfile = {
     gaugeBuildup: 0.4,
     stabilityPressure: 0.6,
     boardControl: 0.3,
+    bossGaugeBuildup: 0.5,
   },
   gaugePolicy: {
     saveUntilThreshold: 0.5,
     spendOnUltimateAt: 0.8,
   },
-  summonPool: ["I_ELDER_SPAWN", "I_ELDER_HORROR"],
-  summonsPerTurn: { min: 0, max: 1 },
+  summonPool: ["T_s_29", "T_s_30"],
+  summonsPerTurn: { min: 1, max: 1 },
 };

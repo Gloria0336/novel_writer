@@ -50,16 +50,60 @@ export interface OmenDef {
   id: OmenId;
   name: string;
   description: string;
+  battleEffect: string;
+  durationLabel: string;
   defaultTurns: number;
 }
 
 export const OMEN_DEFS: Record<OmenId, OmenDef> = {
-  twin_moons:    { id: "twin_moons",    name: "雙月同圓",   description: "5 回合內每回合 +1 額外魔力。", defaultTurns: 5 },
-  minor_eclipse: { id: "minor_eclipse", name: "副月凌主月", description: "7 回合內每回合穩定度 -1。", defaultTurns: 7 },
-  shard_rain:    { id: "shard_rain",    name: "碎片雨",     description: "每回合結束隨機 1 兵力受 2 傷。", defaultTurns: 6 },
-  solar_eclipse: { id: "solar_eclipse", name: "日蝕",       description: "10 回合內法術 +1 cost。", defaultTurns: 10 },
-  meteor:        { id: "meteor",        name: "流星墜",     description: "每回合開始隨機 1 兵力 +3 ATK。", defaultTurns: 8 },
-  spirit_surge:  { id: "spirit_surge",  name: "靈潮湧動",   description: "4 回合內所有量表累積 ×1.5。", defaultTurns: 4 },
+  twin_moons: {
+    id: "twin_moons",
+    name: "雙月同圓",
+    description: "雙月並照，場地力量被放大並受到庇護。",
+    battleEffect: "雙方場地效果數值與場地傷害 x1.5，且場地不可被摧毀。",
+    durationLabel: "5 回合",
+    defaultTurns: 5,
+  },
+  minor_eclipse: {
+    id: "minor_eclipse",
+    name: "副月凌主月",
+    description: "副月遮蔽主月，法術流動受阻，場地紋路變得尖銳。",
+    battleEffect: "法術費用 +1；場地 buff/數值修飾額外 +1。",
+    durationLabel: "7 回合",
+    defaultTurns: 7,
+  },
+  shard_rain: {
+    id: "shard_rain",
+    name: "碎片雨",
+    description: "月之碎片落下，既有場地可能被擊碎，新的場地難以穩定。",
+    battleEffect: "進場時摧毀一方既有場地；持續期間不能放置新場地。",
+    durationLabel: "3-9 回合",
+    defaultTurns: 6,
+  },
+  solar_eclipse: {
+    id: "solar_eclipse",
+    name: "日蝕",
+    description: "光暗反轉，場地的傷害脈衝沉寂，增益結構被放大。",
+    battleEffect: "場地傷害類效果失效；場地 buff 類數值 x2。",
+    durationLabel: "10 回合",
+    defaultTurns: 10,
+  },
+  meteor: {
+    id: "meteor",
+    name: "流星墜",
+    description: "高空隕星逐回合逼近，命中時會撕裂對方場地。",
+    battleEffect: "每方回合開始有 1 / 剩餘回合機率摧毀對方場地，並對對方英雄造成 8 傷；命中後天象結束。",
+    durationLabel: "6-12 回合",
+    defaultTurns: 8,
+  },
+  spirit_surge: {
+    id: "spirit_surge",
+    name: "靈潮湧動",
+    description: "靈潮灌入地脈，場地能以近乎無成本的方式回應。",
+    battleEffect: "放置場地費用變為 0；場地回合開始效果觸發兩次。",
+    durationLabel: "4 回合",
+    defaultTurns: 4,
+  },
 };
 
 export const OMEN_LIST: OmenId[] = Object.keys(OMEN_DEFS) as OmenId[];

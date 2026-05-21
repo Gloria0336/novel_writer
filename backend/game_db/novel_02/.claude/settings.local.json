@@ -18,7 +18,16 @@
       "Bash(npm test *)",
       "Bash(echo \"tsc exit=$?\")",
       "Bash(echo \"EXIT=$?\")",
-      "Bash(ls \"D:/o/\" 2>&1 | head -30; echo \"---C side---\"; ls \"C:/Users/danie/Desktop/o/\" 2>&1 | head -5)"
+      "Bash(ls \"D:/o/\" 2>&1 | head -30; echo \"---C side---\"; ls \"C:/Users/danie/Desktop/o/\" 2>&1 | head -5)",
+      "Bash(git stash *)",
+      "Bash(node -e \"const m = require\\('./src/data/cards/troops.ts'\\); console.log\\('cannot directly'\\)\")",
+      "Bash(ls -la .claude/ 2>&1; echo \"---\"; ls -la ../../../.claude/worktree 2>&1; echo \"---\"; ls -la /c/Users/user/.claude/worktree 2>&1)",
+      "Bash(git worktree *)",
+      "Bash(git branch *)",
+      "Bash(npx tsc *)",
+      "Bash(awk '/### E.1 Boss/,/^### /' card_game_design_v3.3.md)",
+      "Bash(awk '/### E.1 Boss/{flag=1; next} flag && /^### / {exit} flag' card_game_design_v3.3.md)",
+      "mcp__Claude_Preview__preview_start"
     ]
   }
 }

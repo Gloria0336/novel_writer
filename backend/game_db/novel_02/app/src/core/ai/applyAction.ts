@@ -9,6 +9,8 @@ import { createTroopInstance } from "../turn/factories";
 import { checkVictory } from "../turn/phases";
 import { reapDeadTroops } from "../effects/registry";
 import type { CandidateAction } from "./types";
+import { isHeroAbilityFrozen } from "../effects/heroAbilityFreeze";
+import { notifyBossGauge } from "../resource/bossGauge";
 
 export interface AIApplyResult {
   ok: boolean;
@@ -24,6 +26,7 @@ export function applyAIAction(state: BattleState, ctx: BattleContext, action: Ca
 
     case "deployFromPool": {
       // 巢穴模式：從卡池直接召喚到指定 slot（不走手牌）
+      if (isHeroAbilityFrozen(state.enemy.hero, "troop")) return { ok: false, reason: "troop generation frozen" };
       const card = ctx.getCard(action.cardId);
       if (card.type !== "troop") return { ok: false, reason: "not a troop" };
       const slot = state.enemy.troopSlots;
@@ -39,6 +42,8 @@ export function applyAIAction(state: BattleState, ctx: BattleContext, action: Ca
         payload: { cardId: card.id, instanceId: inst.instanceId, slotIdx: action.slotIdx },
       });
       // onPlay 一般在「部署」時觸發；池召喚對齊舊 lairAI 不觸發 onPlay（沿用 effects/registry summon 分支：召喚 ≠ 部署）。
+      // BossGauge：池召喚也算 onSummon（夢魔宗主夢幻體、惡魔將領暗影兵）
+      notifyBossGauge(state, ctx, { kind: "onSummon", cardId: card.id });
       reapDeadTroops(state, ctx, "enemy");
       checkVictory(state);
       return { ok: true };
@@ -54,6 +59,24 @@ export function applyAIAction(state: BattleState, ctx: BattleContext, action: Ca
       const idx = state.enemy.hand.findIndex((c) => c.instanceId === action.cardInstanceId);
       if (idx < 0) return { ok: false, reason: "card not in hand" };
       return toApply(reducerApply(state, { type: "PLAY_SPELL", handIndex: idx, targetInstanceId: action.targetRef }, ctx));
+    }
+
+    case "action": {
+      const idx = state.enemy.hand.findIndex((c) => c.instanceId === action.cardInstanceId);
+      if (idx < 0) return { ok: false, reason: "card not in hand" };
+      return toApply(reducerApply(state, { type: "PLAY_ACTION", handIndex: idx, targetInstanceId: action.targetRef }, ctx));
+    }
+
+    case "equipment": {
+      const idx = state.enemy.hand.findIndex((c) => c.instanceId === action.cardInstanceId);
+      if (idx < 0) return { ok: false, reason: "card not in hand" };
+      return toApply(reducerApply(state, { type: "PLAY_EQUIPMENT", handIndex: idx }, ctx));
+    }
+
+    case "field": {
+      const idx = state.enemy.hand.findIndex((c) => c.instanceId === action.cardInstanceId);
+      if (idx < 0) return { ok: false, reason: "card not in hand" };
+      return toApply(reducerApply(state, { type: "PLAY_FIELD", handIndex: idx }, ctx));
     }
 
     case "attack":

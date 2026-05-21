@@ -1,36 +1,36 @@
 import type { Card } from "../../../core/types/card";
 
 /**
- * 妖族種族卡 Y01-Y10
+ * 妖族種族卡 S_f_01-S_f_06
  * 設計主軸：形態互動、靈蘊管理、幻影/欺騙。與靈蘊量表互動。
  * 形態切換存於 hero.flags.feyForm（"human" | "fey"）。
  */
 export const FEY_CARDS: Card[] = [
   {
-    id: "Y01", type: "spell", name: "靈蘊吐息", cost: 1, rarity: "common",
+    id: "S_f_01", type: "spell", name: "靈蘊吐息", cost: 1, rarity: "common",
     effects: [{ kind: "gauge", delta: 30, side: "self" }],
   },
   {
-    id: "Y02", type: "troop", name: "妖狐斥候", cost: 2, rarity: "common",
+    id: "T_f_01", type: "troop", name: "妖狐斥候", cost: 2, rarity: "common",
     hp: 10, atk: 5, def: 2, keywords: ["rush"],
     onDestroy: [{ kind: "gauge", delta: 20, side: "self" }],
   },
   {
-    id: "Y03", type: "spell", name: "狐火", cost: 2, rarity: "common",
+    id: "S_f_02", type: "spell", name: "狐火", cost: 2, rarity: "common",
     effects: [{ kind: "scripted", tag: "Y_FOXFIRE" }],
   },
   {
-    id: "Y04", type: "troop", name: "蛇妖衛士", cost: 4, rarity: "uncommon",
+    id: "T_f_02", type: "troop", name: "蛇妖衛士", cost: 4, rarity: "uncommon",
     hp: 18, atk: 6, def: 5, keywords: [],
     passive: [{ kind: "scripted", tag: "Y_SERPENT_GUARD" }],
   },
   {
-    id: "Y05", type: "equipment", name: "千年妖核", cost: 3, rarity: "uncommon",
+    id: "E_f_01", type: "equipment", name: "千年妖核", cost: 3, rarity: "uncommon",
     slot: "trinket", modifiers: {},
     passive: [{ kind: "scripted", tag: "Y_ESSENCE_CORE" }],
   },
   {
-    id: "Y06", type: "spell", name: "形態殘影", cost: 2, rarity: "uncommon",
+    id: "S_f_03", type: "spell", name: "形態殘影", cost: 2, rarity: "uncommon",
     effects: [
       { kind: "scripted", tag: "Y_FORM_TOGGLE" },
       { kind: "gauge", delta: 10, side: "self" },
@@ -38,15 +38,15 @@ export const FEY_CARDS: Card[] = [
     ],
   },
   {
-    id: "Y07", type: "spell", name: "百鬼夜行", cost: 4, rarity: "uncommon",
+    id: "S_f_04", type: "spell", name: "百鬼夜行", cost: 4, rarity: "uncommon",
     effects: [{ kind: "scripted", tag: "Y_HUNDRED_GHOSTS" }],
   },
   {
-    id: "Y08", type: "spell", name: "幻境迷陣", cost: 4, rarity: "rare",
+    id: "S_f_05", type: "spell", name: "幻境迷陣", cost: 4, rarity: "rare",
     effects: [{ kind: "scripted", tag: "Y_ILLUSION_MAZE" }],
   },
   {
-    id: "Y09", type: "troop", name: "九尾妖狐", cost: 6, rarity: "rare",
+    id: "T_f_03", type: "troop", name: "九尾妖狐", cost: 6, rarity: "rare",
     hp: 22, atk: 8, def: 4, keywords: [],
     onPlay: [
       { kind: "gauge", delta: 30, side: "self" },
@@ -54,7 +54,27 @@ export const FEY_CARDS: Card[] = [
     ],
   },
   {
-    id: "Y10", type: "spell", name: "始祖之血", cost: 7, rarity: "legendary",
+    id: "S_f_06", type: "spell", name: "始祖之血", cost: 7, rarity: "legendary",
     effects: [{ kind: "scripted", tag: "Y_PRIMORDIAL_BLOOD" }],
+  },
+  {
+    id: "A_f_07", type: "action", name: "幻影殉爆", cost: 2, rarity: "uncommon",
+    effects: [{ kind: "scripted", tag: "Y_PHANTOM_DETONATION" }],
+  },
+  {
+    id: "A_f_08", type: "action", name: "移形換位", cost: 1, rarity: "common",
+    effects: [{ kind: "scripted", tag: "Y_PHANTOM_SHIFT" }],
+  },
+  {
+    id: "A_f_09", type: "action", name: "幻影誘敵", cost: 2, rarity: "uncommon",
+    effects: [{ kind: "scripted", tag: "Y_PHANTOM_TAUNT" }],
+  },
+  {
+    id: "A_f_10", type: "action", name: "虛實轉換", cost: 4, rarity: "rare",
+    effects: [{ kind: "scripted", tag: "Y_PHANTOM_REALIZE" }],
+  },
+  {
+    id: "A_f_11", type: "action", name: "靈質注入", cost: 1, rarity: "common",
+    effects: [{ kind: "scripted", tag: "Y_PHANTOM_INFUSION" }],
   },
 ];

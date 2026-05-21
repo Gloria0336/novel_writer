@@ -1,0 +1,395 @@
+.root {
+  width: 100%;
+  height: 100vh;
+  overflow: hidden;
+  color: #ece8dd;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.035), transparent 160px),
+    #18191d;
+}
+
+.header {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 18px;
+  align-items: start;
+  padding: 24px 28px 18px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.09);
+  background: rgba(18, 19, 23, 0.96);
+}
+
+.backButton {
+  min-height: 38px;
+  padding: 8px 16px;
+  border-color: rgba(255, 255, 255, 0.18);
+  color: #e5e0d0;
+  background: #25272d;
+}
+
+.heroSummary {
+  display: flex;
+  gap: 20px;
+  align-items: flex-start;
+  justify-content: space-between;
+  min-width: 0;
+}
+
+.kicker {
+  display: block;
+  margin-bottom: 5px;
+  color: #8fcfb4;
+  font-size: 12px;
+  letter-spacing: 0;
+}
+
+.heroSummary h1 {
+  margin: 0;
+  color: #fff8df;
+  font-size: 30px;
+  line-height: 1.12;
+}
+
+.heroSummary p {
+  margin-top: 7px;
+  color: #aeb2bd;
+}
+
+.statStrip {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(62px, 1fr));
+  gap: 8px;
+  min-width: min(430px, 48%);
+}
+
+.statStrip span {
+  padding: 8px 10px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 6px;
+  color: #f0dfb8;
+  background: rgba(255, 255, 255, 0.055);
+  font-family: Consolas, monospace;
+  font-size: 13px;
+  font-weight: 700;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.content {
+  display: grid;
+  grid-template-columns: minmax(280px, 340px) minmax(0, 1fr);
+  gap: 20px;
+  height: calc(100vh - 116px);
+  padding: 20px 28px 28px;
+  overflow: hidden;
+}
+
+.sidePanel,
+.deckSection {
+  min-height: 0;
+  overflow-y: auto;
+}
+
+.sidePanel {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding-right: 4px;
+}
+
+.panel {
+  padding: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  background: #22242a;
+}
+
+.panel h2,
+.deckToolbar h2 {
+  margin: 0;
+  color: #fff7df;
+  font-size: 18px;
+  line-height: 1.2;
+}
+
+.gaugeLine {
+  margin-top: 8px;
+  color: #bdc6d2;
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.skillGroup {
+  margin-top: 14px;
+}
+
+.skillGroup h3 {
+  margin: 0 0 8px;
+  color: #8fcfb4;
+  font-size: 13px;
+}
+
+.skillItem {
+  padding: 10px 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.skillItem div {
+  display: flex;
+  gap: 8px;
+  align-items: baseline;
+  justify-content: space-between;
+}
+
+.skillItem strong {
+  color: #f4ecd5;
+  font-size: 14px;
+}
+
+.skillItem span {
+  flex-shrink: 0;
+  color: #d5a768;
+  font-size: 12px;
+}
+
+.skillItem p,
+.emptyLine {
+  margin-top: 5px;
+  color: #c2c6ce;
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.deckTotal {
+  display: flex;
+  gap: 10px;
+  align-items: baseline;
+  margin-top: 12px;
+}
+
+.deckTotal strong {
+  color: #fff7df;
+  font-family: Consolas, monospace;
+  font-size: 34px;
+  line-height: 1;
+}
+
+.deckTotal span {
+  color: #aeb2bd;
+}
+
+.typeCounts {
+  display: grid;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.typeCount {
+  display: grid;
+  grid-template-columns: 10px minmax(0, 1fr) auto;
+  gap: 8px;
+  align-items: center;
+  min-height: 30px;
+}
+
+.typeCount > span {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--type-color);
+}
+
+.typeCount p {
+  min-width: 0;
+  color: #c8ccd4;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.typeCount strong {
+  color: #f0dfb8;
+  font-family: Consolas, monospace;
+}
+
+.deckSection {
+  padding-right: 8px;
+}
+
+.deckToolbar {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+
+.deckToolbar p {
+  margin-top: 6px;
+  color: #aeb2bd;
+  font-size: 13px;
+}
+
+.filterBar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: flex-end;
+  max-width: 560px;
+}
+
+.filterBar button {
+  min-height: 32px;
+  padding: 6px 11px;
+  border-color: rgba(255, 255, 255, 0.14);
+  border-radius: 6px;
+  color: #d8dce4;
+  background: #25272d;
+}
+
+.filterBar .activeFilter {
+  border-color: rgba(143, 207, 180, 0.72);
+  color: #f8fff9;
+  background: #2d5548;
+}
+
+.cardGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 14px;
+  padding-bottom: 2px;
+}
+
+.cardItem {
+  position: relative;
+  min-width: 0;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  background: #22242a;
+}
+
+.cardFaceWrap {
+  position: relative;
+  padding: 12px 12px 0;
+}
+
+.copyBadge {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  z-index: 2;
+  min-width: 34px;
+  padding: 4px 7px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 999px;
+  color: #fff7df;
+  background: rgba(16, 17, 20, 0.86);
+  font-family: Consolas, monospace;
+  font-size: 12px;
+  font-weight: 700;
+  text-align: center;
+}
+
+.cardText {
+  padding: 12px;
+}
+
+.cardTitleRow {
+  display: flex;
+  gap: 8px;
+  align-items: baseline;
+  justify-content: space-between;
+  min-width: 0;
+}
+
+.cardTitleRow h3 {
+  min-width: 0;
+  margin: 0;
+  overflow: hidden;
+  color: #fff7df;
+  font-size: 16px;
+  line-height: 1.25;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cardTitleRow span {
+  flex-shrink: 0;
+  color: #9da6b4;
+  font-family: Consolas, monospace;
+  font-size: 12px;
+}
+
+.cardText ul {
+  display: grid;
+  gap: 6px;
+  margin-top: 10px;
+  padding-left: 18px;
+}
+
+.cardText li {
+  color: #c9ced7;
+  font-size: 13px;
+  line-height: 1.42;
+  overflow-wrap: anywhere;
+}
+
+.emptyState {
+  display: grid;
+  place-items: center;
+  height: calc(100vh - 80px);
+  color: #c9ced7;
+}
+
+@media (max-width: 980px) {
+  .root {
+    overflow-y: auto;
+  }
+
+  .header,
+  .content {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .content {
+    height: auto;
+    overflow: visible;
+  }
+
+  .sidePanel,
+  .deckSection {
+    overflow: visible;
+  }
+
+  .heroSummary,
+  .deckToolbar {
+    flex-direction: column;
+  }
+
+  .statStrip {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .filterBar {
+    justify-content: flex-start;
+    max-width: none;
+  }
+}
+
+@media (max-width: 560px) {
+  .header,
+  .content {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+
+  .statStrip {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .cardGrid {
+    grid-template-columns: 1fr;
+  }
+}

@@ -5,7 +5,7 @@ import type { LairDefinition } from "./types";
 /**
  * 暗影門戶 — §E.2
  * HP 150 / DEF 5 / 每 2 回合 1–2 / 兵力守護且 onDestroy 穩定度 -5；
- * 巢穴存活每回合穩定度 -3。
+ * 巢穴存活每回合穩定度 -3；SHADOW_VEIL 使門戶開啟時玩家施法費用+1。
  */
 export const LAIR_SHADOW_GATE_ID = "shadow_gate";
 
@@ -38,28 +38,37 @@ const SHADOW_DESTROY_STAB: { kind: "stability"; delta: number } = { kind: "stabi
 
 export const LAIR_SHADOW_TROOPS: TroopCard[] = [
   {
-    id: "I_SHADOW_GUARD", type: "troop", name: "暗影守衛",
-    cost: 0, rarity: "common",
+    id: "T_s_16", name: "暗影守衛",
+    type: "troop", rarity: "common", cost: 0,
     hp: 10, atk: 3, def: 2,
     keywords: ["guard"],
     onDestroy: [SHADOW_DESTROY_STAB],
-    flavor: "在門戶前列陣的虛影。",
+    flavor: "在門戶前列陣的虛影，死亡時撕裂現實壁壘。",
   },
   {
-    id: "I_SHADOW_ELITE", type: "troop", name: "暗影精英",
-    cost: 0, rarity: "uncommon",
+    id: "T_s_17", name: "暗影精英",
+    type: "troop", rarity: "uncommon", cost: 0,
     hp: 14, atk: 6, def: 2,
-    keywords: ["guard"],
-    onDestroy: [SHADOW_DESTROY_STAB],
-    flavor: "穿越次元的精銳。",
-  },
-  {
-    id: "I_SHADOW_LORD", type: "troop", name: "暗影領主",
-    cost: 0, rarity: "rare",
-    hp: 22, atk: 9, def: 3,
     keywords: ["guard", "pierce"],
     onDestroy: [SHADOW_DESTROY_STAB],
-    flavor: "領袖之姿。其穿透無視所有防禦。",
+    flavor: "穿越次元的精銳，守護的同時能無視敵方防線直擊要害。",
+  },
+  {
+    id: "T_s_18", name: "暗影領主",
+    type: "troop", rarity: "rare", cost: 0,
+    hp: 22, atk: 9, def: 3,
+    keywords: ["guard", "pierce"],
+    onPlay: [{ kind: "summon", cardId: "T_s_16", count: 1, side: "self" }],
+    onDestroy: [SHADOW_DESTROY_STAB],
+    flavor: "領袖降臨即召喚守衛，死亡時對現實造成最深的裂傷。",
+  },
+  {
+    id: "T_s_19", name: "虛影刺客",
+    type: "troop", rarity: "rare", cost: 0,
+    hp: 8, atk: 11, def: 0,
+    keywords: ["menace", "pierce"],
+    onDestroy: [{ kind: "stability", delta: -6 }],
+    flavor: "無形無影，無法被鎖定，只有在它消滅時才感受到它曾存在過。",
   },
 ];
 
@@ -70,6 +79,9 @@ export const LAIR_SHADOW_GATE: LairDefinition = {
   createInstance,
   profileId: "lair_shadow_gate",
   internalTroops: LAIR_SHADOW_TROOPS,
-  auraTags: { onEnd: ["SHADOW_TICK"] },
-  description: "HP 150 / DEF 5；每 2 回合召喚 1–2 隻精英暗影（守護）。巢穴每回合穩定度 -3。",
+  auraTags: {
+    onStart: ["SHADOW_VEIL"],
+    onEnd: ["SHADOW_TICK"],
+  },
+  description: "HP 150 / DEF 5；每 2 回合召喚 1–2 隻暗影。巢穴每回合穩定度 -3。暗影精英具穿透。暗影領主出場時召喚 1 守衛。虛影刺客具威壓（無法被指定），死亡穩定度 -6。場上 3+ 暗影時玩家法術費用 +1（SHADOW_VEIL）。",
 };

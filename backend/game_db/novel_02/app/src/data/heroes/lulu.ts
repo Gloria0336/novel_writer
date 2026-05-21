@@ -33,22 +33,21 @@ export const HERO_LULU: HeroDefinition = {
     {
       id: "act_lowest_loss_command",
       name: "最低損傷指揮",
-      description: "抽 1 張牌，獲得 8 護甲，軍令 +10。（消耗 30 鬥志）",
-      cost: { morale: 30 },
+      description: "抽 1 張牌，獲得 8 護甲。（消耗 30 鬥志，軍令 10）",
+      cost: { morale: 30, gauge: 10 },
       effects: [
         { kind: "draw", count: 1 },
         { kind: "armor", amount: 8 },
-        { kind: "gauge", delta: 10, side: "self" },
       ],
     },
     {
       id: "act_first_legion_line",
       name: "第一軍團防線",
-      description: "所有我方兵力本回合 DEF +4 並獲得守護。（消耗 40 鬥志）",
-      cost: { morale: 40 },
+      description: "所有我方兵力 2 回合 DEF +4 並獲得守護。（消耗 40 鬥志，軍令 25）",
+      cost: { morale: 40, gauge: 25 },
       effects: [
-        { kind: "buff", target: { kind: "all", filter: { side: "self", entity: "troop" } }, mod: { def: 4 }, duration: { kind: "thisTurn" } },
-        { kind: "addKeyword", target: { kind: "all", filter: { side: "self", entity: "troop" } }, keyword: "guard", duration: { kind: "thisTurn" } },
+        { kind: "buff", target: { kind: "all", filter: { side: "self", entity: "troop" } }, mod: { def: 4 }, duration: { kind: "turns", count: 2 } },
+        { kind: "addKeyword", target: { kind: "all", filter: { side: "self", entity: "troop" } }, keyword: "guard", duration: { kind: "turns", count: 2 } },
       ],
     },
   ],

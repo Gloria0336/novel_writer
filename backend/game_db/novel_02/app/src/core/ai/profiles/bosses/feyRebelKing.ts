@@ -16,9 +16,12 @@ export const BOSS_FEY_REBEL_KING_PROFILE: EnemyProfile = {
     gaugeBuildup: 0.6,
     boardControl: 0.4,
     heroPressure: 0.3,
+    bossGaugeBuildup: 0.5,
   },
   gaugePolicy: {
     saveUntilThreshold: 0.4,
     spendOnUltimateAt: 0.7,
   },
+  summonPool: ["T_s_31", "T_s_32"],
+  summonsPerTurn: { min: 1, max: 1 },
 };

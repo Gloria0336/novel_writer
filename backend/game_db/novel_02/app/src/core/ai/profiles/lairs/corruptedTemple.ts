@@ -18,7 +18,7 @@ export const LAIR_CORRUPTED_TEMPLE_PROFILE: EnemyProfile = {
     stabilityPressure: 0.4,
     gaugeBuildup: -1.0,
   },
-  summonPool: ["I_TEMPLE_PRIEST", "I_TEMPLE_FOLLOWER", "I_CORRUPT_RELIC"],
+  summonPool: ["T_s_24", "T_s_25", "T_s_26"],
   summonsPerTurn: { min: 1, max: 1 },
   summonCadenceTurns: 2,
 };

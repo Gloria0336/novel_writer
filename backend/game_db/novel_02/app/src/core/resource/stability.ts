@@ -1,4 +1,6 @@
 import type { BattleState } from "../types/battle";
+import type { BattleContext } from "../types/context";
+import { notifyBossGauge } from "./bossGauge";
 
 export interface StabilityChangeResult {
   newValue: number;
@@ -14,7 +16,7 @@ export function stageOf(value: number): 0 | 1 | 2 | 3 | 4 {
   return 0;
 }
 
-export function applyStabilityDelta(state: BattleState, delta: number): StabilityChangeResult {
+export function applyStabilityDelta(state: BattleState, delta: number, ctx?: BattleContext): StabilityChangeResult {
   const previous = state.stability;
   const newValue = Math.max(0, Math.min(100, previous + delta));
   const oldStage = state.corruptionStage;
@@ -25,6 +27,11 @@ export function applyStabilityDelta(state: BattleState, delta: number): Stabilit
   let stageJustReached: 1 | 2 | 3 | 4 | undefined;
   if (newStage > oldStage) {
     stageJustReached = newStage as 1 | 2 | 3 | 4;
+  }
+
+  // BossGauge：穩定度跌幅累積（古魔次元滲透）
+  if (ctx && delta < 0) {
+    notifyBossGauge(state, ctx, { kind: "onStabilityDelta", delta });
   }
   return { newValue, newStage, stageJustReached };
 }

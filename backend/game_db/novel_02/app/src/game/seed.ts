@@ -1,6 +1,8 @@
 import type { BattleState, SideState } from "../core/types/battle";
 import type { BattleContext } from "../core/types/context";
 import type { HeroDefinition, HeroInstance } from "../core/types/hero";
+import type { OmenId } from "../core/types/omen";
+import { applyOmenOnEnter, createOmenInstance } from "../core/effects/omenHooks";
 import { rngShuffle } from "../core/deck/prng";
 import { composeHeroStats } from "../core/stats/compose";
 import { ENEMIES, getEnemy } from "../data/enemies";
@@ -13,12 +15,14 @@ import { ENEMY_PROFILES } from "../core/ai/profiles";
 import { runLairAuras } from "../core/turn/lairAura";
 import { executeEffects } from "../core/effects/registry";
 import { applyAction, type ApplyResult } from "../core/turn/reducer";
+import { applyActionWithTimeline, applyActionWithTimelineRunner, type TimelineApplyResult } from "../core/turn/timeline";
 import type { GameAction } from "../core/turn/actions";
 import { advanceToNextSide, endTurnFor, startTurnFor } from "../core/turn/phases";
 import { registerCoreScripted } from "../core/effects/handlers/scripted";
 import { registerHeroScripted } from "../core/effects/handlers/heroes";
 import { resetTurnFlags } from "../core/effects/handlers/scripted";
 import { registerRaceCardScripted } from "../core/effects/handlers/raceCards";
+import { registerDeviceScripted } from "../core/effects/handlers/devices";
 
 let SCRIPTED_REGISTERED = false;
 
@@ -27,6 +31,7 @@ export function ensureScriptedRegistered(): void {
   registerCoreScripted();
   registerHeroScripted();
   registerRaceCardScripted();
+  registerDeviceScripted();
   SCRIPTED_REGISTERED = true;
 }
 
@@ -45,6 +50,8 @@ export interface CreateBattleOpts {
   initialHand?: number;
   initialPlayerHero?: HeroInstance;
   enemyScale?: EnemyScale;
+  /** TowerRun.activeOmen 帶入；戰鬥開始時生成 OmenInstance（隨機型用 rngState 抽持續回合）。 */
+  omen?: OmenId | null;
 }
 
 const auraResolver = (defId: string): { onStart?: string[]; onEnd?: string[] } | undefined => {
@@ -77,7 +84,11 @@ function makePlayerHeroInstance(def: HeroDefinition): HeroInstance {
     atk: stats.atk, def: stats.def, cmd: stats.cmd,
     morale: 0, gaugeValue: 0, armor: 0,
     buffs: [], equipment: {},
-    flags: { ultimateUsed: false, immortalUsed: false },
+    flags: {
+      ultimateUsed: false,
+      immortalUsed: false,
+      ...(def.raceId === "fey" ? { feyForm: "human" as const } : {}),
+    },
   };
 }
 
@@ -91,6 +102,7 @@ function buildSide(deckIds: readonly string[], hero: HeroInstance, manaCapAbsolu
     hand: [], graveyard: [],
     troopSlots: new Array(slotCount).fill(null),
     spellsCastThisTurn: 0, spellsCastThisGame: 0,
+    destroyedDevices: [],
   };
 }
 
@@ -121,23 +133,44 @@ export function createBattle(opts: CreateBattleOpts): BattleState {
 
   // 敵方建構
   const enemyHero = applyEnemyScale(enemyDef.createInstance(), opts.enemyScale);
-  const enemySide = buildSide([], enemyHero, 10);
+  const enemyRace = getRace(enemyDef.heroDef.raceId);
+  // Boss 戰：用 Boss 專屬牌組做鏡像；其他敵人（lair）維持空牌庫（純召喚池運作）。
+  const enemyDeckIds = enemyDef.kind === "boss" && enemyDef.deckIds ? enemyDef.deckIds : [];
+  const enemySide = buildSide(enemyDeckIds, enemyHero, enemyRace.manaCap ?? 10);
+
+  // 敵方牌庫洗牌（用 player 洗牌後的 rng state 繼續推進，確保 deterministic）
+  let rngStateAfter = sh.state;
+  if (enemySide.deck.length > 0) {
+    const sh2 = rngShuffle(rngStateAfter, enemySide.deck);
+    enemySide.deck = sh2.value;
+    rngStateAfter = sh2.state;
+  }
 
   let state: BattleState = {
     seed: opts.seed,
-    rngState: sh.state,
+    rngState: rngStateAfter,
     nextInstanceId: 1000,
     turn: 1,
     activeSide: "player",
     phase: "start",
     player: playerSide,
     enemy: enemySide,
-    field: null,
+    field: { player: null, enemy: null },
+    omen: null,
     stability: 100,
     corruptionStage: 0,
     log: [],
     result: "ongoing",
   };
+
+  // Boss 戰：初始化 BossGauge state
+  if (enemyDef.kind === "boss" && enemyDef.bossGauge) {
+    state.bossGauge = {
+      value: 0,
+      spec: enemyDef.bossGauge,
+      burstCount: 0,
+    };
+  }
 
   // 起手 N 張（預設 3）
   const initialHandSize = opts.initialHand ?? 3;
@@ -145,12 +178,27 @@ export function createBattle(opts: CreateBattleOpts): BattleState {
     const c = state.player.deck.shift();
     if (c) state.player.hand.push(c);
   }
+  // Boss 戰：敵方也抽相同起手張數，達成手牌鏡像
+  if (enemyDef.kind === "boss") {
+    for (let i = 0; i < initialHandSize; i++) {
+      const c = state.enemy.deck.shift();
+      if (c) state.enemy.hand.push(c);
+    }
+  }
 
-  // §E.1 Boss onBattleStart（如炎魔獄火場地）
+  // §E.1 Boss onBattleStart（如炎魔獄火場地）—— 在天象進場前先決定 Boss 場地。
   if (enemyDef.onBattleStart && enemyDef.onBattleStart.length > 0) {
     executeEffects(enemyDef.onBattleStart, {
       state, ctx, sourceSide: "enemy", sourceKind: "passive",
     });
+  }
+
+  // v3.4 天象：戰鬥內擁有自己的 OmenInstance；放在 Boss onBattleStart 之後，
+  // 確保碎片雨可摧毀 Boss 場地（若有）。
+  if (opts.omen) {
+    state.omen = createOmenInstance(opts.omen, state);
+    state.log.push({ turn: state.turn, side: "player", kind: "OMEN_START", text: `天象「${state.omen.id}」生效（${state.omen.remainingTurns} 回合）` });
+    applyOmenOnEnter(state);
   }
 
   // 啟動玩家第一回合
@@ -169,11 +217,18 @@ export function applyPlayerAction(state: BattleState, action: GameAction, ctx: B
   return applyAction(state, action, ctx);
 }
 
+export function applyPlayerActionWithTimeline(state: BattleState, action: GameAction, ctx: BattleContext): TimelineApplyResult {
+  if (action.type === "END_TURN") {
+    return applyActionWithTimelineRunner(state, action, ctx, (runnerState, _action, runnerCtx) => endPlayerTurnAndRunAI(runnerState, runnerCtx));
+  }
+  return applyActionWithTimeline(state, action, ctx);
+}
+
 export function endPlayerTurnAndRunAI(state: BattleState, ctx: BattleContext): ApplyResult {
   if (state.result !== "ongoing") return { ok: false, reason: "battle ended" };
 
   // 結束玩家回合
-  endTurnFor(state, "player");
+  endTurnFor(state, "player", ctx);
   resetTurnFlags(state);
 
   // 切換到敵方
@@ -181,17 +236,10 @@ export function endPlayerTurnAndRunAI(state: BattleState, ctx: BattleContext): A
   if (state.result !== "ongoing") return { ok: true };
 
   // 敵方回合
-  state.phase = "main";
-  state.log.push({ turn: state.turn, side: "enemy", kind: "TURN_START", text: `回合 ${state.turn}：敵方` });
-
-  // 重置敵方兵力暈眩
-  for (const t of state.enemy.troopSlots) {
-    if (t) {
-      t.summonedThisTurn = false;
-      t.hasAttackedThisTurn = false;
-      if (t.frozenTurns > 0) t.frozenTurns--;
-    }
-  }
+  // Enemy turn start: use the shared turn-start path so Bosses draw, refill mana,
+  // gain turn-start gauge, and reset troop attack state just like players.
+  startTurnFor(state, "enemy", ctx);
+  if (state.result !== "ongoing") return { ok: true };
 
   // §E.2 巢穴 onStart 光環（例如魔獸洞穴半血爆發）
   runLairAuras(state, ctx, "start", auraResolver);
@@ -213,7 +261,7 @@ export function endPlayerTurnAndRunAI(state: BattleState, ctx: BattleContext): A
   if (state.result !== "ongoing") return { ok: true };
 
   // 結束敵方回合
-  endTurnFor(state, "enemy");
+  endTurnFor(state, "enemy", ctx);
   advanceToNextSide(state);
   if (state.result !== "ongoing") return { ok: true };
 

@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type CSSProperties, type MouseEvent, type ReactNode } from "react";
+import { useEffect, useMemo, useRef, useState, type CSSProperties, type MouseEvent, type ReactNode } from "react";
 import { BattleProvider, useBattle } from "../../game/BattleProvider";
 import { getCard } from "../../data/cards";
 import { canTroopAttack, canActionTarget } from "../../core/combat/attack";
@@ -7,17 +7,31 @@ import { canAffordMana, totalAvailableMana } from "../../core/resource/mana";
 import { canAffordMorale } from "../../core/resource/morale";
 import { HEROES } from "../../data/heroes";
 import { ENEMIES } from "../../data/enemies";
+import { getRace } from "../../data/races";
 import type { TroopInstance, BattleState, BattleResult, LogEntry } from "../../core/types/battle";
+import type { RiftState } from "../../core/types/rift";
+import type { BattleContext } from "../../core/types/context";
 import type { Side } from "../../core/types/effect";
+import type { BattleVisualEvent, BattleVisualZone } from "../../core/types/visual";
 import type { HeroInstance } from "../../core/types/hero";
-import type { EnemyScale } from "../../game/seed";
+import { createBattleContext, type EnemyScale } from "../../game/seed";
 import type { Card } from "../../core/types/card";
 import type { HeroDefinition } from "../../core/types/hero";
 import type { OathChoice } from "../../core/turn/actions";
+import type { OmenId } from "../../core/types/omen";
 import styles from "../styles/battle.module.css";
 import { GameIndexOverlay } from "./GameIndexOverlay";
 import { buildCardFaceModel } from "../../game/cardPresentation";
 import { CardFace } from "../components/CardFace";
+import { LLMTakeoverButton } from "../components/LLMTakeoverButton";
+import { getEffectiveCardCost, isFullGaugeActive } from "../../core/resource/fullGaugeBuff";
+import { canPlayField } from "../../core/effects/omenHooks";
+import { OMEN_DEFS } from "../../game/tower/towerData";
+import {
+  buildHeroStatusIndicators,
+  buildTroopStatusIndicators,
+  type StatusIndicator,
+} from "../statusIndicators";
 
 interface Props {
   heroId: string;
@@ -25,11 +39,12 @@ interface Props {
   initialPlayerHero?: HeroInstance;
   initialDeckIds?: string[];
   enemyScale?: EnemyScale;
+  omen?: OmenId | null;
   onExit: () => void;
   onBattleEnd?: (result: Exclude<BattleResult, "ongoing">, finalState: BattleState) => void;
 }
 
-export function BattleScreen({ heroId, enemyId, initialPlayerHero, initialDeckIds, enemyScale, onExit, onBattleEnd }: Props): JSX.Element {
+export function BattleScreen({ heroId, enemyId, initialPlayerHero, initialDeckIds, enemyScale, omen, onExit, onBattleEnd }: Props): JSX.Element {
   return (
     <BattleProvider
       heroId={heroId}
@@ -37,6 +52,7 @@ export function BattleScreen({ heroId, enemyId, initialPlayerHero, initialDeckId
       initialPlayerHero={initialPlayerHero}
       initialDeckIds={initialDeckIds}
       enemyScale={enemyScale}
+      omen={omen}
       onBattleEnd={onBattleEnd}
     >
       <BattleView onExit={onExit} />
@@ -46,7 +62,8 @@ export function BattleScreen({ heroId, enemyId, initialPlayerHero, initialDeckId
 
 type SelectMode =
   | { kind: "none" }
-  | { kind: "playCard"; handIndex: number; needsTarget: boolean; needsSlot: boolean }
+  | { kind: "playCard"; handIndex: number; needsTarget: boolean; needsSlot: boolean; needsRiftSlot?: boolean }
+  | { kind: "playCardNeedsRiftHand"; handIndex: number } // v3.3 S_c_15
   | { kind: "attackWithTroop"; instanceId: string }
   | { kind: "useSkill"; skillId: string; needsTarget: boolean }
   | { kind: "useUltimate"; needsTarget: boolean };
@@ -65,8 +82,9 @@ const RACE_TO_THEME: Record<string, string> = {
 };
 
 const FRAME_THEME = "midnight";
-const GAUGE_MAX_DEFAULT = 100;
 const ATTACK_FX_MS = 760;
+const SCRIPTED_SELF_TROOP_TARGET_CARDS = new Set(["A_h_05"]);
+const SCRIPTED_ENEMY_ANY_TARGET_CARDS = new Set(["A_b_02"]);
 
 interface Point {
   x: number;
@@ -88,10 +106,11 @@ interface AttackFx {
 }
 
 function BattleView({ onExit }: { onExit: () => void }): JSX.Element {
-  const { state, dispatch, reset } = useBattle();
+  const { state, actionState, dispatch, reset, canAct, isAnimating, visualEvents } = useBattle();
+  const battleCtx = useMemo(() => createBattleContext(), []);
   const [select, setSelect] = useState<SelectMode>({ kind: "none" });
   const [indexOpen, setIndexOpen] = useState(false);
-  const [previewCard, setPreviewCard] = useState<Card | null>(null);
+  const [previewCard, setPreviewCard] = useState<{ card: Card; gaugeName?: string } | null>(null);
   const [oathPrompt, setOathPrompt] = useState<{ handIndex: number } | null>(null);
   const [placementPulse, setPlacementPulse] = useState<{ slotIndex: number; nonce: number } | null>(null);
   const [attackFx, setAttackFx] = useState<AttackFx | null>(null);
@@ -174,27 +193,57 @@ function BattleView({ onExit }: { onExit: () => void }): JSX.Element {
   const enemyHero = state.enemy.hero;
   const heroDef = ENEMIES[playerHero.defId]?.heroDef ?? HEROES[playerHero.defId]!;
   const enemyDef = ENEMIES[enemyHero.defId]?.heroDef ?? HEROES[enemyHero.defId]!;
+  const heroRace = getRace(heroDef.raceId);
+  const enemyRace = getRace(enemyDef.raceId);
+  const heroGaugeName = heroDef.gauge.name ?? heroRace.gauge.name;
+  const enemyGaugeName = enemyDef.gauge.name ?? enemyRace.gauge.name;
+  const gaugeMax = heroRace.gauge.max;
+  const fullGaugeReady = isFullGaugeActive(state.player, heroRace);
   const heroTheme = RACE_TO_THEME[heroDef.raceId] ?? "azure";
+  const actionPlayerHero = actionState.player.hero;
 
-  const isPlayerTurn = state.activeSide === "player" && state.result === "ongoing";
+  const isPlayerTurn = canAct;
   const mana = totalAvailableMana(state.player);
   const manaCap = state.player.manaCap;
+  const actionMana = totalAvailableMana(actionState.player);
 
   function clickHandCard(idx: number): void {
-    const inst = state.player.hand[idx];
+    if (!canAct) return;
+    // v3.3 S_c_15 needsRiftHand 模式：此次 click 是目標兵力卡
+    if (select.kind === "playCardNeedsRiftHand") {
+      if (idx === select.handIndex) return; // 不可選自己
+      const target = actionState.player.hand[idx];
+      if (!target) return;
+      const targetCard = getCard(target.cardId);
+      if (targetCard.type !== "troop") return;
+      dispatch({
+        type: "PLAY_SPELL",
+        handIndex: select.handIndex,
+        riftHandIndex: idx,
+      });
+      setSelect({ kind: "none" });
+      return;
+    }
+
+    const inst = actionState.player.hand[idx];
     if (!inst) return;
     const card = getCard(inst.cardId);
-    if (!canPlayCardCheck(state, card)) return;
+    if (!canPlayCardCheck(actionState, battleCtx, card)) return;
 
-    if (card.type === "troop") {
-      setSelect({ kind: "playCard", handIndex: idx, needsTarget: false, needsSlot: true });
+    if (card.type === "troop" || card.type === "device") {
+      // v3.3：rift 開啟且 Open 狀態時，同時可選裂縫位
+      const needsRiftSlot = card.type === "troop" && actionState.rift?.holder === "open";
+      setSelect({ kind: "playCard", handIndex: idx, needsTarget: false, needsSlot: true, needsRiftSlot });
+    } else if (card.id === "S_c_15" && card.type === "spell") {
+      // v3.3 S_c_15 裂痕召喚：進入 needsRiftHand 模式，等待玩家點手牌中兵力
+      setSelect({ kind: "playCardNeedsRiftHand", handIndex: idx });
     } else if (card.type === "spell" || card.type === "action") {
-      if (card.id === "S14" && card.type === "spell") {
+      if (card.id === "S_c_14" && card.type === "spell") {
         setOathPrompt({ handIndex: idx });
         setSelect({ kind: "none" });
         return;
       }
-      const needsTarget = (card.effects ?? []).some((e) => "target" in e && (e.target as { kind?: string }).kind === "single");
+      const needsTarget = cardNeedsTarget(card, actionState);
       if (!needsTarget) {
         dispatch({ type: card.type === "spell" ? "PLAY_SPELL" : "PLAY_ACTION", handIndex: idx });
         setSelect({ kind: "none" });
@@ -210,9 +259,37 @@ function BattleView({ onExit }: { onExit: () => void }): JSX.Element {
     }
   }
 
+  function clickRiftSlot(): void {
+    if (!canAct) return;
+    if (!actionState.rift) return;
+    // 玩家佔據裂縫（兵力卡 + needsRiftSlot + Open）
+    if (select.kind === "playCard" && select.needsRiftSlot && actionState.rift.holder === "open") {
+      dispatch({ type: "PLAY_TROOP_RIFT", handIndex: select.handIndex });
+      setSelect({ kind: "none" });
+      return;
+    }
+    // 攻擊裂縫中的滲透體（敵方佔據 + attackWithTroop）
+    if (select.kind === "attackWithTroop" && actionState.rift.holder === "enemy" && actionState.rift.occupant) {
+      const me = findTroopAnywhere(actionState, select.instanceId);
+      if (!me) {
+        setSelect({ kind: "none" });
+        return;
+      }
+      const check = canTroopAttack(actionState, "player", me, actionState.rift.occupant);
+      if (!check.ok) return;
+      dispatch({
+        type: "TROOP_ATTACK",
+        attackerInstanceId: select.instanceId,
+        targetInstanceId: actionState.rift.occupant.instanceId,
+      });
+      setSelect({ kind: "none" });
+      return;
+    }
+  }
+
   function clickSlot(side: "player" | "enemy", idx: number): void {
-    if (state.activeSide !== "player") return;
-    const slot = (side === "player" ? state.player : state.enemy).troopSlots[idx];
+    if (!canAct) return;
+    const slot = (side === "player" ? actionState.player : actionState.enemy).troopSlots[idx];
 
     if (select.kind === "playCard" && select.needsSlot && side === "player") {
       if (!slot) {
@@ -223,9 +300,10 @@ function BattleView({ onExit }: { onExit: () => void }): JSX.Element {
       return;
     }
     if (select.kind === "playCard" && select.needsTarget && slot) {
-      const inst = state.player.hand[select.handIndex];
+      const inst = actionState.player.hand[select.handIndex];
       if (!inst) return;
       const card = getCard(inst.cardId);
+      if (!canPlayCardTargetTroop(card, side, slot, false)) return;
       dispatch({
         type: card.type === "spell" ? "PLAY_SPELL" : "PLAY_ACTION",
         handIndex: select.handIndex,
@@ -240,38 +318,77 @@ function BattleView({ onExit }: { onExit: () => void }): JSX.Element {
       return;
     }
     if (select.kind === "attackWithTroop" && side === "enemy" && slot) {
-      const me = findTroopAnywhere(state, select.instanceId);
+      const me = findTroopAnywhere(actionState, select.instanceId);
       if (!me) return setSelect({ kind: "none" });
-      const check = canTroopAttack(state, "player", me, slot);
+      const check = canTroopAttack(actionState, "player", me, slot);
       if (!check.ok) return;
       dispatch({ type: "TROOP_ATTACK", attackerInstanceId: select.instanceId, targetInstanceId: slot.instanceId });
       setSelect({ kind: "none" });
       return;
     }
     if (select.kind === "none" && side === "player" && slot) {
-      const heroCheck = canTroopAttack(state, "player", slot, "hero");
-      const anyValid = aliveTroops(state.enemy).some((t) => canTroopAttack(state, "player", slot, t).ok) || heroCheck.ok;
+      const heroCheck = canTroopAttack(actionState, "player", slot, "hero");
+      const anyValid = aliveTroops(actionState.enemy).some((t) => canTroopAttack(actionState, "player", slot, t).ok) || heroCheck.ok;
+      if (anyValid) setSelect({ kind: "attackWithTroop", instanceId: slot.instanceId });
+    }
+  }
+
+  function clickFrontline(side: "player" | "enemy"): void {
+    if (!canAct) return;
+    const slot = (side === "player" ? actionState.player : actionState.enemy).frontlineSlot;
+    if (!slot) return;
+    if (select.kind === "playCard" && select.needsTarget) {
+      const inst = actionState.player.hand[select.handIndex];
+      if (!inst) return;
+      const card = getCard(inst.cardId);
+      if (!canPlayCardTargetTroop(card, side, slot, true)) return;
+      dispatch({
+        type: card.type === "spell" ? "PLAY_SPELL" : "PLAY_ACTION",
+        handIndex: select.handIndex,
+        targetInstanceId: slot.instanceId,
+      });
+      setSelect({ kind: "none" });
+      return;
+    }
+    if (select.kind === "useSkill" && select.needsTarget) {
+      dispatch({ type: "USE_SKILL", skillId: select.skillId, targetInstanceId: slot.instanceId });
+      setSelect({ kind: "none" });
+      return;
+    }
+    if (select.kind === "attackWithTroop" && side === "enemy") {
+      const me = findTroopAnywhere(actionState, select.instanceId);
+      if (!me) return setSelect({ kind: "none" });
+      const check = canTroopAttack(actionState, "player", me, slot);
+      if (!check.ok) return;
+      dispatch({ type: "TROOP_ATTACK", attackerInstanceId: select.instanceId, targetInstanceId: slot.instanceId });
+      setSelect({ kind: "none" });
+      return;
+    }
+    if (select.kind === "none" && side === "player") {
+      const heroCheck = canTroopAttack(actionState, "player", slot, "hero");
+      const anyValid = aliveTroops(actionState.enemy).some((t) => canTroopAttack(actionState, "player", slot, t).ok) || heroCheck.ok;
       if (anyValid) setSelect({ kind: "attackWithTroop", instanceId: slot.instanceId });
     }
   }
 
   function clickEnemyHero(): void {
-    if (state.activeSide !== "player") return;
+    if (!canAct) return;
     if (select.kind === "attackWithTroop") {
-      const me = findTroopAnywhere(state, select.instanceId);
+      const me = findTroopAnywhere(actionState, select.instanceId);
       if (!me) return;
-      const check = canTroopAttack(state, "player", me, "hero");
+      const check = canTroopAttack(actionState, "player", me, "hero");
       if (!check.ok) return;
       dispatch({ type: "TROOP_ATTACK", attackerInstanceId: select.instanceId, targetInstanceId: "H_enemy" });
       setSelect({ kind: "none" });
       return;
     }
     if (select.kind === "playCard" && select.needsTarget) {
-      const inst = state.player.hand[select.handIndex];
+      const inst = actionState.player.hand[select.handIndex];
       if (!inst) return;
       const card = getCard(inst.cardId);
+      if (isScriptedSelfTroopTargetCard(card)) return;
       const ignoreGuard = (card.type === "spell" || card.type === "action") && (card.effects ?? []).some((e) => "ignoreGuard" in e && (e as { ignoreGuard?: boolean }).ignoreGuard);
-      const guardCheck = canActionTarget(state, "player", "hero", ignoreGuard);
+      const guardCheck = canActionTarget(actionState, "player", "hero", ignoreGuard);
       if (!guardCheck.ok) return;
       dispatch({
         type: card.type === "spell" ? "PLAY_SPELL" : "PLAY_ACTION",
@@ -293,10 +410,10 @@ function BattleView({ onExit }: { onExit: () => void }): JSX.Element {
   }
 
   function clickSkill(skillId: string): void {
-    if (state.activeSide !== "player") return;
+    if (!canAct) return;
     const skill = heroDef.actives.find((s) => s.id === skillId);
     if (!skill) return;
-    if (skill.cost.morale && !canAffordMorale(playerHero, skill.cost.morale)) return;
+    if (skill.cost.morale && !canAffordMorale(actionPlayerHero, skill.cost.morale)) return;
     const needsTarget = skill.effects.some((e) => "target" in e && (e.target as { kind?: string }).kind === "single");
     if (!needsTarget) {
       dispatch({ type: "USE_SKILL", skillId });
@@ -307,9 +424,9 @@ function BattleView({ onExit }: { onExit: () => void }): JSX.Element {
   }
 
   function clickUltimate(): void {
-    if (state.activeSide !== "player") return;
-    if (playerHero.flags.ultimateUsed) return;
-    if (playerHero.morale < 100) return;
+    if (!canAct) return;
+    if (actionPlayerHero.flags.ultimateUsed) return;
+    if (actionPlayerHero.morale < 100) return;
     const ult = heroDef.ultimate;
     const needsTarget = ult.effects.some((e) => "target" in e && (e.target as { kind?: string }).kind === "single");
     if (!needsTarget) {
@@ -321,12 +438,14 @@ function BattleView({ onExit }: { onExit: () => void }): JSX.Element {
   }
 
   function endTurn(): void {
+    if (!canAct) return;
     dispatch({ type: "END_TURN" });
     setSelect({ kind: "none" });
     setOathPrompt(null);
   }
 
   function chooseOath(choice: OathChoice): void {
+    if (!canAct) return;
     if (!oathPrompt) return;
     dispatch({ type: "PLAY_SPELL", handIndex: oathPrompt.handIndex, oathChoice: choice });
     setOathPrompt(null);
@@ -338,20 +457,24 @@ function BattleView({ onExit }: { onExit: () => void }): JSX.Element {
   const stabilityScale = Math.max(0, Math.min(100, stability)) / 100;
   const phase = isPlayerTurn ? "主要" : "結束";
 
+  const selectedPlayCard = select.kind === "playCard" ? getHandCard(actionState, select.handIndex) : null;
+
   const enemyTargetable =
     isPlayerTurn && (
       select.kind === "attackWithTroop" ||
-      (select.kind === "playCard" && select.needsTarget) ||
+      (select.kind === "playCard" && select.needsTarget && (!selectedPlayCard || !isScriptedSelfTroopTargetCard(selectedPlayCard))) ||
       select.kind === "useUltimate" ||
       (select.kind === "useSkill" && select.needsTarget)
     );
 
-  const ultReady = playerHero.morale >= 100 && !playerHero.flags.ultimateUsed;
+  const ultReady = actionPlayerHero.morale >= 100 && !actionPlayerHero.flags.ultimateUsed;
   const lastLog = state.log.slice(-1)[0];
   const recentLogs = state.log.slice(-3).reverse();
-
-  function toggleCardPreview(cardId: string): void {
-    setPreviewCard((current) => (current?.id === cardId ? null : getCard(cardId)));
+  const playerFieldCard = state.field.player ? getCard(state.field.player.cardId) : null;
+  const enemyFieldCard = state.field.enemy ? getCard(state.field.enemy.cardId) : null;
+  const currentOmen = state.omen ? OMEN_DEFS[state.omen.id] : null;
+  function toggleCardPreview(cardId: string, gaugeName = heroGaugeName): void {
+    setPreviewCard((current) => (current?.card.id === cardId ? null : { card: getCard(cardId), gaugeName }));
   }
 
   return (
@@ -375,10 +498,32 @@ function BattleView({ onExit }: { onExit: () => void }): JSX.Element {
 
             <div className={styles.divider} />
 
-            {state.field && (
+            <div className={styles.fieldStatus} aria-label="雙方場地槽">
+              <FieldStatusChip
+                label="我方場地"
+                card={playerFieldCard}
+                onPreview={playerFieldCard ? () => toggleCardPreview(playerFieldCard.id, heroGaugeName) : undefined}
+              />
+              <FieldStatusChip
+                label="敵方場地"
+                card={enemyFieldCard}
+                onPreview={enemyFieldCard ? () => toggleCardPreview(enemyFieldCard.id, enemyGaugeName) : undefined}
+              />
+            </div>
+
+            <div className={styles.divider} />
+
+            {currentOmen && state.omen && (
               <>
-                <div className={styles.fieldStatus}>
-                  <div className={styles.fieldStatusCard}>場地：{getCard(state.field.cardId).name}</div>
+                <div className={styles.omenBadge} title={currentOmen.battleEffect}>
+                  <span className={styles.omenKicker}>天象</span>
+                  <span className={styles.omenName}>{currentOmen.name}</span>
+                  <span className={styles.omenTurns}>{state.omen.remainingTurns} 回合</span>
+                  <span className={styles.omenTooltip} role="tooltip">
+                    <span className={styles.omenTooltipTitle}>{currentOmen.name}</span>
+                    <span>{currentOmen.description}</span>
+                    <span>{currentOmen.battleEffect}</span>
+                  </span>
                 </div>
 
                 <div className={styles.divider} />
@@ -394,13 +539,14 @@ function BattleView({ onExit }: { onExit: () => void }): JSX.Element {
             <div className={styles.divider} />
 
             <div className={styles.topBtns}>
+              <LLMTakeoverButton />
               <button className={styles.topBtn} onClick={() => setIndexOpen(true)}>索引</button>
               <button className={styles.topBtn} onClick={onExit}>退出</button>
             </div>
           </div>
 
-          {indexOpen && <GameIndexOverlay onClose={() => setIndexOpen(false)} />}
-          {previewCard && <CardPreviewOverlay card={previewCard} onClose={() => setPreviewCard(null)} />}
+          {indexOpen && <GameIndexOverlay gaugeName={heroGaugeName} onClose={() => setIndexOpen(false)} />}
+          {previewCard && <CardPreviewOverlay card={previewCard.card} gaugeName={previewCard.gaugeName} onClose={() => setPreviewCard(null)} />}
           {oathPrompt && (
             <OathChoiceOverlay
               onChoose={chooseOath}
@@ -430,12 +576,15 @@ function BattleView({ onExit }: { onExit: () => void }): JSX.Element {
               targetable={enemyTargetable}
               onClick={clickEnemyHero}
             />
+            {state.bossGauge && <BossGaugeBar gauge={state.bossGauge} />}
             <MiniHeroCard
               side="player"
               def={heroDef}
               hero={playerHero}
             />
           </div>
+
+          <BossBurstToast log={state.log} />
 
           {/* Right side — resources + skills + end turn */}
           <div className={`${styles.side} ${styles.sideRight}`}>
@@ -460,19 +609,27 @@ function BattleView({ onExit }: { onExit: () => void }): JSX.Element {
 
               <div className={styles.gauge}>
                 <div className={styles.row}>
-                  <div className={styles.lbl}>量表 · {heroDef.name}</div>
-                  <div className={styles.v}>{playerHero.gaugeValue}</div>
+                  <div className={styles.lbl}>{heroGaugeName} · {heroDef.name}</div>
+                  <div className={styles.v}>{playerHero.gaugeValue} / {gaugeMax}</div>
                 </div>
                 <div className={styles.track}>
-                  <div className={styles.fill} style={{ width: `${Math.min(100, (playerHero.gaugeValue / GAUGE_MAX_DEFAULT) * 100)}%` }} />
+                  <div className={`${styles.fill} ${fullGaugeReady ? styles.fillReady : ""}`} style={{ width: `${Math.min(100, (playerHero.gaugeValue / gaugeMax) * 100)}%` }} />
                 </div>
                 <div className={styles.gaugeDesc}>{heroDef.gauge.description}</div>
+                {fullGaugeReady && <div className={styles.gaugeDesc}>{heroRace.fullGaugeBuff.name}：{heroRace.fullGaugeBuff.description}</div>}
               </div>
 
               <div className={styles.skillsList}>
                 {heroDef.actives.map((skill) => {
-                  const moraleOk = !skill.cost.morale || canAffordMorale(playerHero, skill.cost.morale);
-                  const disabled = !isPlayerTurn || !moraleOk;
+                  const moraleOk = !skill.cost.morale || canAffordMorale(actionPlayerHero, skill.cost.morale);
+                  const gaugeOk = !skill.cost.gauge || actionPlayerHero.gaugeValue >= skill.cost.gauge;
+                  const manaOk = !skill.cost.mana || actionMana >= skill.cost.mana;
+                  const disabled = !isPlayerTurn || !moraleOk || !gaugeOk || !manaOk;
+                  const costs = [
+                    skill.cost.morale ? `${skill.cost.morale} 鬥志` : null,
+                    skill.cost.gauge ? `${skill.cost.gauge} ${heroGaugeName}` : null,
+                    skill.cost.mana ? `${skill.cost.mana} 魔力` : null,
+                  ].filter(Boolean).join(" / ") || "0";
                   return (
                     <button
                       key={skill.id}
@@ -482,7 +639,7 @@ function BattleView({ onExit }: { onExit: () => void }): JSX.Element {
                       title={skill.description}
                     >
                       <div>{skill.name}</div>
-                      <div className={styles.skillCost}>{skill.cost.morale ?? 0} 鬥志</div>
+                      <div className={styles.skillCost}>{costs}</div>
                     </button>
                   );
                 })}
@@ -503,10 +660,12 @@ function BattleView({ onExit }: { onExit: () => void }): JSX.Element {
             <button
               className={styles.endTurn}
               data-disabled={!isPlayerTurn ? "true" : "false"}
+              data-busy={isAnimating ? "true" : "false"}
+              aria-busy={isAnimating ? "true" : "false"}
               onClick={endTurn}
               disabled={!isPlayerTurn}
             >
-              結束回合
+              {isAnimating ? "回合結算中..." : "結束回合"}
             </button>
           </div>
 
@@ -516,6 +675,25 @@ function BattleView({ onExit }: { onExit: () => void }): JSX.Element {
               <div className={styles.fieldFloor} data-persp="on">
                 <div className={styles.lanes}>
                   <div className={styles.lane} data-side="enemy">
+                    {state.enemy.frontlineSlot && (
+                      <div className={styles.frontlineSlot}>
+                        <TroopSlotView
+                          slot={state.enemy.frontlineSlot}
+                          side="enemy"
+                          isTargetable={
+                            isPlayerTurn && (
+                              select.kind === "attackWithTroop" ||
+                              ((select.kind === "playCard" && select.needsTarget) && (!selectedPlayCard || canPlayCardTargetTroop(selectedPlayCard, "enemy", state.enemy.frontlineSlot, true))) ||
+                              (select.kind === "useSkill" && select.needsTarget) ||
+                              (select.kind === "useUltimate" && select.needsTarget)
+                            )
+                          }
+                          canAttack={false}
+                          onClick={() => clickFrontline("enemy")}
+                          onPreview={() => toggleCardPreview(state.enemy.frontlineSlot!.cardId, enemyGaugeName)}
+                        />
+                      </div>
+                    )}
                     {state.enemy.troopSlots.map((t, i) => (
                       <TroopSlotView
                         key={i}
@@ -524,14 +702,14 @@ function BattleView({ onExit }: { onExit: () => void }): JSX.Element {
                         isTargetable={
                           isPlayerTurn && t !== null && (
                             select.kind === "attackWithTroop" ||
-                            (select.kind === "playCard" && select.needsTarget) ||
+                            ((select.kind === "playCard" && select.needsTarget) && (!selectedPlayCard || canPlayCardTargetTroop(selectedPlayCard, "enemy", t, false))) ||
                             (select.kind === "useSkill" && select.needsTarget) ||
                             (select.kind === "useUltimate" && select.needsTarget)
                           )
                         }
                         canAttack={false}
                         onClick={() => clickSlot("enemy", i)}
-                        onPreview={t ? () => toggleCardPreview(t.cardId) : undefined}
+                        onPreview={t ? () => toggleCardPreview(t.cardId, enemyGaugeName) : undefined}
                       />
                     ))}
                   </div>
@@ -542,7 +720,40 @@ function BattleView({ onExit }: { onExit: () => void }): JSX.Element {
                       style={{ transform: `scaleX(${stabilityScale})` }}
                     />
                   </div>
+                  {state.rift && (
+                    <RiftSlotView
+                      rift={state.rift}
+                      isTargetable={isPlayerTurn && state.rift.holder === "open" && select.kind === "playCard" && !!select.needsRiftSlot}
+                      isAttackable={isPlayerTurn && state.rift.holder === "enemy" && select.kind === "attackWithTroop"}
+                      onClick={clickRiftSlot}
+                      onPreview={state.rift.occupant ? () => toggleCardPreview(state.rift!.occupant!.cardId, state.rift!.holder === "enemy" ? enemyGaugeName : heroGaugeName) : undefined}
+                    />
+                  )}
                   <div className={styles.lane} data-side="player">
+                    {state.player.frontlineSlot && (
+                      <div className={styles.frontlineSlot}>
+                        <TroopSlotView
+                          slot={state.player.frontlineSlot}
+                          side="player"
+                          isTargetable={
+                            isPlayerTurn &&
+                            select.kind === "playCard" &&
+                            select.needsTarget &&
+                            !!selectedPlayCard &&
+                            canPlayCardTargetTroop(selectedPlayCard, "player", state.player.frontlineSlot, true)
+                          }
+                          canAttack={
+                            isPlayerTurn && select.kind === "none" && (
+                              aliveTroops(state.enemy).some((e) => canTroopAttack(state, "player", state.player.frontlineSlot!, e).ok) ||
+                              canTroopAttack(state, "player", state.player.frontlineSlot, "hero").ok
+                            )
+                          }
+                          isSelected={select.kind === "attackWithTroop" && state.player.frontlineSlot.instanceId === select.instanceId}
+                          onClick={() => clickFrontline("player")}
+                          onPreview={() => toggleCardPreview(state.player.frontlineSlot!.cardId, heroGaugeName)}
+                        />
+                      </div>
+                    )}
                     {state.player.troopSlots.map((t, i) => {
                       const canAttack =
                         isPlayerTurn && t !== null && select.kind === "none" && (
@@ -550,7 +761,10 @@ function BattleView({ onExit }: { onExit: () => void }): JSX.Element {
                           canTroopAttack(state, "player", t, "hero").ok
                         );
                       const isSelected = select.kind === "attackWithTroop" && t?.instanceId === select.instanceId;
-                      const isTargetable = isPlayerTurn && !t && select.kind === "playCard" && select.needsSlot;
+                      const isTargetable = isPlayerTurn && (
+                        (!t && select.kind === "playCard" && select.needsSlot) ||
+                        (!!t && select.kind === "playCard" && select.needsTarget && !!selectedPlayCard && canPlayCardTargetTroop(selectedPlayCard, "player", t, false))
+                      );
                       return (
                         <TroopSlotView
                           key={i}
@@ -561,7 +775,7 @@ function BattleView({ onExit }: { onExit: () => void }): JSX.Element {
                           isSelected={isSelected}
                           placementPulse={placementPulse?.slotIndex === i ? placementPulse.nonce : undefined}
                           onClick={() => clickSlot("player", i)}
-                          onPreview={t ? () => toggleCardPreview(t.cardId) : undefined}
+                          onPreview={t ? () => toggleCardPreview(t.cardId, heroGaugeName) : undefined}
                         />
                       );
                     })}
@@ -571,18 +785,19 @@ function BattleView({ onExit }: { onExit: () => void }): JSX.Element {
             </div>
           </div>
 
+          <VisualEventOverlay events={visualEvents} />
           {attackFx && <AttackEffectOverlay fx={attackFx} />}
 
           {/* Race gauge strip (mirrors right-panel gauge along bottom) */}
           <div className={styles.cmdStrip}>
-            <div className={styles.cmdLabel}>{heroDef.name}·量表</div>
+            <div className={styles.cmdLabel}>{heroDef.name}·{heroGaugeName}</div>
             <div className={styles.segTrack}>
               {Array.from({ length: 20 }).map((_, i) => {
-                const lit = i < Math.round((playerHero.gaugeValue / GAUGE_MAX_DEFAULT) * 20);
+                const lit = i < Math.round((playerHero.gaugeValue / gaugeMax) * 20);
                 return <div key={i} className={`${styles.seg} ${lit ? styles.segLit : ""}`} />;
               })}
             </div>
-            <div className={styles.cmdNum}>{playerHero.gaugeValue} / {GAUGE_MAX_DEFAULT}</div>
+            <div className={styles.cmdNum}>{playerHero.gaugeValue} / {gaugeMax}</div>
           </div>
 
           {/* Deck pile (left) & discard (right) */}
@@ -594,8 +809,15 @@ function BattleView({ onExit }: { onExit: () => void }): JSX.Element {
             <div className={styles.handZone}>
               {state.player.hand.map((inst, i) => {
                 const card = getCard(inst.cardId);
-                const playable = isPlayerTurn && canPlayCardCheck(state, card);
-                const selected = select.kind === "playCard" && select.handIndex === i;
+                // v3.3 S_c_15 needsRiftHand 模式：playable 改為「是否為合法 S_c_15 召喚目標」
+                const inNeedsRiftHand = select.kind === "playCardNeedsRiftHand";
+                const isS_c_15Self = inNeedsRiftHand && select.handIndex === i;
+                const playable = inNeedsRiftHand
+                  ? isPlayerTurn && !isS_c_15Self && card.type === "troop"
+                  : isPlayerTurn && canPlayCardCheck(actionState, battleCtx, card);
+                const selected =
+                  (select.kind === "playCard" && select.handIndex === i) ||
+                  isS_c_15Self;
                 const total = state.player.hand.length;
                 const spread = Math.min(60, total * 11);
                 const step = total > 1 ? spread / (total - 1) : 0;
@@ -621,12 +843,12 @@ function BattleView({ onExit }: { onExit: () => void }): JSX.Element {
                     onClick={() => playable && clickHandCard(i)}
                   >
                     <CardFace
-                      model={buildCardFaceModel(card)}
+                      model={buildCardFaceModel(card, { gaugeName: heroGaugeName })}
                       variant="hand"
                       playable={playable}
                       selected={selected}
                       disabled={!playable}
-                      onPreview={() => toggleCardPreview(inst.cardId)}
+                      onPreview={() => toggleCardPreview(inst.cardId, heroGaugeName)}
                     />
                   </div>
                 );
@@ -660,7 +882,8 @@ function BattleView({ onExit }: { onExit: () => void }): JSX.Element {
 
 function describeSelect(s: SelectMode): string {
   switch (s.kind) {
-    case "playCard": return s.needsSlot ? "選擇空槽位" : "選擇目標";
+    case "playCard": return s.needsRiftSlot && s.needsSlot ? "選擇空槽位或裂縫位" : s.needsSlot ? "選擇空槽位" : "選擇目標";
+    case "playCardNeedsRiftHand": return "選擇手牌中要召喚的兵力（裂痕召喚）";
     case "attackWithTroop": return "選擇攻擊目標";
     case "useSkill": return "選擇技能目標";
     case "useUltimate": return "選擇終極技目標";
@@ -668,26 +891,123 @@ function describeSelect(s: SelectMode): string {
   }
 }
 
-function canPlayCardCheck(state: BattleState, card: Card): boolean {
-  if (state.activeSide !== "player") return false;
-  let cost = card.cost;
-  const heroDef = HEROES[state.player.hero.defId];
-  if (heroDef && card.type === "spell") {
-    const race = (heroDef as { raceId: string }).raceId;
-    if (race === "elf" && state.player.hero.gaugeValue >= 4) cost = 0;
+function getHandCard(state: BattleState, handIndex: number): Card | null {
+  const inst = state.player.hand[handIndex];
+  return inst ? getCard(inst.cardId) : null;
+}
+
+function cardNeedsTarget(card: Card, state?: BattleState): boolean {
+  if (card.id === "S_e_07") return state ? state.player.hero.gaugeValue < 4 : true;
+  if ((card.type === "spell" || card.type === "action") && isScriptedEnemyAnyTargetCard(card)) return true;
+  if ((card.type === "spell" || card.type === "action") && isScriptedSelfTroopTargetCard(card)) return true;
+  if (card.type !== "spell" && card.type !== "action") return false;
+  return card.effects.some((e) => "target" in e && (e.target as { kind?: string }).kind === "single");
+}
+
+function isScriptedSelfTroopTargetCard(card: Card): boolean {
+  return card.type === "action" && SCRIPTED_SELF_TROOP_TARGET_CARDS.has(card.id);
+}
+
+function isScriptedEnemyAnyTargetCard(card: Card): boolean {
+  return card.type === "action" && SCRIPTED_ENEMY_ANY_TARGET_CARDS.has(card.id);
+}
+
+function canPlayCardTargetTroop(card: Card, side: "player" | "enemy", troop: TroopInstance, isFrontline: boolean): boolean {
+  if (isScriptedSelfTroopTargetCard(card)) {
+    return side === "player" && !isFrontline && !troop.isConstruct;
   }
-  if (!canAffordMana(state.player, cost)) return false;
-  if (card.type === "troop") {
-    const free = state.player.troopSlots.some((s) => s === null);
-    if (!free) return false;
+  if (isScriptedEnemyAnyTargetCard(card)) {
+    return side === "enemy";
+  }
+  if (card.id === "S_e_07") {
+    return side === "enemy";
   }
   return true;
+}
+
+function canPlayCardCheck(state: BattleState, ctx: BattleContext, card: Card): boolean {
+  if (state.activeSide !== "player") return false;
+  if (card.type === "field" && !canPlayField(state, "player")) return false;
+  let cost = getEffectiveCardCost(state, ctx, "player", card);
+  const heroDef = ENEMIES[state.player.hero.defId]?.heroDef ?? HEROES[state.player.hero.defId];
+  if (heroDef) {
+    const race = getRace(heroDef.raceId);
+    if (card.type === "spell" && race.gauge.id === "resonance" && state.player.hero.gaugeValue >= 4) cost = 0;
+  }
+  if (!canAffordMana(state.player, cost)) return false;
+  if (card.type === "troop" || card.type === "device") {
+    // v3.3：兵力卡可選兵力欄或裂縫位（後者僅 rift open 時）
+    const free = state.player.troopSlots.some((s) => s === null);
+    const riftOpen = card.type === "troop" && state.rift?.holder === "open";
+    if (!free && !riftOpen) return false;
+  }
+  if (card.id === "A_o_01" && !state.player.troopSlots.some((slot) => slot === null)) return false;
+  if (card.id === "A_o_02" && !state.player.troopSlots.some((slot) => slot?.isConstruct)) return false;
+  if (card.id === "A_o_03") {
+    if (!state.player.troopSlots.some((slot) => slot?.isConstruct)) return false;
+    if (!state.player.hand.some((inst) => getCard(inst.cardId).type === "device")) return false;
+  }
+  // v3.3 次元滲透裂縫條件
+  if (card.id === "S_c_15") {
+    if (!state.rift || state.rift.holder !== "open") return false;
+    if (state.rift.s15UsesPlayer >= 3) return false;
+    // 必須有其他可作為目標的手牌兵力（不能單獨選 S_c_15）
+    const hasOtherTroop = state.player.hand.some((h) => {
+      if (h.cardId === "S_c_15") return false;
+      try {
+        return getCard(h.cardId).type === "troop";
+      } catch {
+        return false;
+      }
+    });
+    if (!hasOtherTroop) return false;
+  }
+  if (card.id === "S_c_16") {
+    if (!state.rift) return false;
+    if (state.rift.s16UsedPlayer) return false;
+  }
+  if (card.id === "F_c_08") {
+    if (!state.rift) return false;
+  }
+  if (card.id === "A_h_05") {
+    const uses = (state.player.hero.flags.frontlineAdvanceUses as number | undefined) ?? 0;
+    if (state.player.frontlineSlot || uses >= 2) return false;
+    if (!state.player.troopSlots.some((t) => t && !t.isConstruct)) return false;
+  }
+  return true;
+}
+
+function FieldStatusChip({ label, card, onPreview }: { label: string; card: Card | null; onPreview?: () => void }): JSX.Element {
+  const content = (
+    <>
+      <span className={styles.fieldStatusLabel}>{label}</span>
+      <span className={styles.fieldStatusName}>{card ? card.name : "空槽"}</span>
+    </>
+  );
+
+  if (!card || !onPreview) {
+    return <div className={styles.fieldStatusCard} data-empty="true">{content}</div>;
+  }
+
+  return (
+    <button
+      type="button"
+      className={styles.fieldStatusCard}
+      data-empty="false"
+      title={`${label}：${card.name}`}
+      onClick={onPreview}
+    >
+      {content}
+    </button>
+  );
 }
 
 function findTroopAnywhere(state: BattleState, instanceId: string): TroopInstance | null {
   for (const side of ["player", "enemy"] as const) {
     const slots = (side === "player" ? state.player : state.enemy).troopSlots;
     for (const t of slots) if (t && t.instanceId === instanceId) return t;
+    const frontline = (side === "player" ? state.player : state.enemy).frontlineSlot;
+    if (frontline?.instanceId === instanceId) return frontline;
   }
   return null;
 }
@@ -808,7 +1128,104 @@ function AttackEffectOverlay({ fx }: { fx: AttackFx }): JSX.Element {
   );
 }
 
-function CardPreviewOverlay({ card, onClose }: { card: Card; onClose: () => void }): JSX.Element {
+function VisualEventOverlay({ events }: { events: BattleVisualEvent[] }): JSX.Element | null {
+  const visible = events.filter((event) => event.type === "cardMove" || event.type === "damage" || event.type === "heal" || event.type === "destroy" || event.type === "summon");
+  if (visible.length === 0) return null;
+  return (
+    <div className={styles.visualEventLayer} aria-hidden="true">
+      {visible.map((event, index) => {
+        if (event.type === "cardMove") return <CardFlightEvent key={`move-${index}-${event.cardInstanceId ?? event.cardId}`} event={event} />;
+        if (event.type === "damage" || event.type === "heal") return <HealthFloatEvent key={`${event.type}-${index}-${event.targetInstanceId ?? event.target.kind}`} event={event} />;
+        if (event.type === "destroy") return <BoardPulseEvent key={`destroy-${index}-${event.instanceId}`} event={event} tone="destroy" />;
+        return <BoardPulseEvent key={`summon-${index}-${event.instanceId}`} event={event} tone="summon" />;
+      })}
+    </div>
+  );
+}
+
+function CardFlightEvent({ event }: { event: Extract<BattleVisualEvent, { type: "cardMove" }> }): JSX.Element {
+  const from = visualZoneCenter(event.from);
+  const to = visualZoneCenter(event.to);
+  let card: Card | null = null;
+  try {
+    card = getCard(event.cardId);
+  } catch {
+    card = null;
+  }
+  const style = {
+    "--move-from-x": `${from.x}px`,
+    "--move-from-y": `${from.y}px`,
+    "--move-to-x": `${to.x}px`,
+    "--move-to-y": `${to.y}px`,
+  } as CSSProperties;
+
+  return (
+    <div className={styles.cardFlight} style={style}>
+      {card ? (
+        <CardFace model={buildCardFaceModel(card)} variant="mini" />
+      ) : (
+        <div className={styles.cardFlightFallback}>{event.cardId}</div>
+      )}
+    </div>
+  );
+}
+
+function HealthFloatEvent({ event }: { event: Extract<BattleVisualEvent, { type: "damage" | "heal" }> }): JSX.Element {
+  const point = visualZoneCenter(event.target);
+  const style = {
+    "--float-x": `${point.x}px`,
+    "--float-y": `${point.y}px`,
+  } as CSSProperties;
+  return (
+    <div className={styles.healthFloat} data-tone={event.type} style={style}>
+      {event.type === "damage" ? "-" : "+"}{event.amount}
+    </div>
+  );
+}
+
+function BoardPulseEvent({
+  event,
+  tone,
+}: {
+  event: Extract<BattleVisualEvent, { type: "destroy" | "summon" }>;
+  tone: "destroy" | "summon";
+}): JSX.Element {
+  const point = visualZoneCenter(event.target);
+  const style = {
+    "--pulse-x": `${point.x}px`,
+    "--pulse-y": `${point.y}px`,
+  } as CSSProperties;
+  return <div className={styles.boardPulse} data-tone={tone} style={style} />;
+}
+
+function visualZoneCenter(zone: BattleVisualZone): Point {
+  switch (zone.kind) {
+    case "hero":
+      return heroCenter(zone.side);
+    case "troopSlot":
+      return troopSlotCenter(zone.side, zone.slotIndex, 5);
+    case "frontline":
+      return { ...troopSlotCenter(zone.side, 2, 5), y: zone.side === "enemy" ? 270 : 614 };
+    case "rift":
+      return { x: 960, y: 442 };
+    case "hand": {
+      const index = zone.index ?? 2;
+      return { x: 820 + index * 74, y: 948 };
+    }
+    case "deck":
+      return zone.side === "player" ? { x: 340, y: 930 } : { x: 146, y: 210 };
+    case "graveyard":
+      return zone.side === "player" ? { x: 1580, y: 930 } : { x: 146, y: 338 };
+    case "equipment":
+      return zone.side === "player" ? { x: 1776, y: 380 } : { x: 146, y: 210 };
+    case "field":
+      return zone.side === "player" ? { x: 780, y: 56 } : { x: 1140, y: 56 };
+    case "unknown":
+      return zone.side ? heroCenter(zone.side) : { x: 960, y: 540 };
+  }
+}
+
+function CardPreviewOverlay({ card, gaugeName, onClose }: { card: Card; gaugeName?: string; onClose: () => void }): JSX.Element {
   function closeOnContextMenu(event: MouseEvent<HTMLDivElement>): void {
     event.preventDefault();
     onClose();
@@ -823,7 +1240,7 @@ function CardPreviewOverlay({ card, onClose }: { card: Card; onClose: () => void
       onContextMenu={closeOnContextMenu}
     >
       <div className={styles.cardPreviewFrame}>
-        <CardFace model={buildCardFaceModel(card)} variant="preview" />
+        <CardFace model={buildCardFaceModel(card, { gaugeName })} variant="preview" />
       </div>
     </div>
   );
@@ -840,7 +1257,7 @@ function OathChoiceOverlay({ onChoose, onClose }: { onChoose: (choice: OathChoic
     <div className={styles.oathBackdrop} role="dialog" aria-modal="true" aria-label="盟約之誓選擇">
       <div className={styles.oathPanel}>
         <div className={styles.oathHeader}>
-          <div className={styles.oathKicker}>S14 · 傳奇法術</div>
+          <div className={styles.oathKicker}>S_c_14 · 傳奇法術</div>
           <h2>盟約之誓</h2>
         </div>
         <div className={styles.oathOptions}>
@@ -868,6 +1285,7 @@ interface MiniHeroCardProps {
 function MiniHeroCard({ side, def, hero, targetable, onClick }: MiniHeroCardProps): JSX.Element {
   const [heroArtFailed, setHeroArtFailed] = useState(false);
   const isEnemy = side === "enemy";
+  const indicators = buildHeroStatusIndicators(hero, resolveIndicatorSourceName);
   const skills = [
     def.passives[0] ? { kind: "被動", name: def.passives[0].name, desc: def.passives[0].description, ult: false } : null,
     { kind: "終極", name: def.ultimate.name, desc: def.ultimate.description, ult: true },
@@ -900,6 +1318,7 @@ function MiniHeroCard({ side, def, hero, targetable, onClick }: MiniHeroCardProp
       <CornerOrn pos="tr" />
       <CornerOrn pos="bl" />
       <CornerOrn pos="br" />
+      <StatusIndicatorRail indicators={indicators} owner="hero" side={side} />
 
       <div className={styles.mhHeader}>
         <div className={styles.mhCost}>
@@ -1073,6 +1492,103 @@ function PileView({ kind, count, label }: { kind: "deck" | "discard"; count: num
   );
 }
 
+// ─────────────────────────────────────────────────────────────
+// Boss 專屬量表進度條（敵方面板下方）
+// ─────────────────────────────────────────────────────────────
+function BossGaugeBar({ gauge }: { gauge: NonNullable<BattleState["bossGauge"]> }): JSX.Element {
+  const pct = Math.min(100, (gauge.value / gauge.spec.max) * 100);
+  const ready = gauge.value >= gauge.spec.max;
+  return (
+    <div
+      title={gauge.spec.description}
+      style={{
+        margin: "8px 4px 4px",
+        padding: "8px 10px",
+        borderRadius: 6,
+        background: "linear-gradient(180deg, rgba(64,8,12,0.85), rgba(28,4,6,0.9))",
+        border: "1px solid rgba(255,120,90,0.45)",
+        boxShadow: ready
+          ? "0 0 12px rgba(255,120,90,0.85), inset 0 0 8px rgba(255,200,160,0.4)"
+          : "inset 0 0 6px rgba(255,90,60,0.15)",
+        color: "#ffd6cc",
+        fontSize: 12,
+      }}
+    >
+      <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 4 }}>
+        <span style={{ fontWeight: 700, letterSpacing: 1 }}>✦ {gauge.spec.name}</span>
+        <span style={{ opacity: 0.9 }}>{Math.floor(gauge.value)} / {gauge.spec.max}</span>
+      </div>
+      <div style={{ height: 8, borderRadius: 4, background: "rgba(0,0,0,0.5)", overflow: "hidden" }}>
+        <div
+          style={{
+            width: `${pct}%`,
+            height: "100%",
+            background: ready
+              ? "linear-gradient(90deg, #ffb070, #ff5030, #ffb070)"
+              : "linear-gradient(90deg, #c84030, #ff7050)",
+            transition: "width 0.4s ease-out",
+          }}
+        />
+      </div>
+      {gauge.burstCount > 0 && (
+        <div style={{ marginTop: 4, fontSize: 10, opacity: 0.75 }}>
+          已釋放 {gauge.burstCount} 次 · 上次 T{gauge.lastBurstTurn ?? "?"}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────
+// Boss Burst 觸發時的浮動 toast
+// ─────────────────────────────────────────────────────────────
+function BossBurstToast({ log }: { log: LogEntry[] }): JSX.Element | null {
+  const [active, setActive] = useState<{ key: number; label: string } | null>(null);
+  useEffect(() => {
+    // 找最近一條 BOSS_BURST log（從尾端往前找；以 length+text 當 key 防重）
+    for (let i = log.length - 1; i >= 0; i--) {
+      const entry = log[i]!;
+      if (entry.kind === "BOSS_BURST") {
+        const label = String(entry.payload?.label ?? entry.text);
+        setActive((prev) => (prev?.key === i ? prev : { key: i, label }));
+        return;
+      }
+    }
+  }, [log]);
+
+  useEffect(() => {
+    if (!active) return;
+    const t = setTimeout(() => setActive(null), 2200);
+    return () => clearTimeout(t);
+  }, [active]);
+
+  if (!active) return null;
+  return (
+    <div
+      style={{
+        position: "absolute",
+        top: "40%",
+        left: "50%",
+        transform: "translate(-50%, -50%)",
+        padding: "14px 28px",
+        fontSize: 28,
+        fontWeight: 900,
+        letterSpacing: 4,
+        color: "#fff2dd",
+        background: "linear-gradient(135deg, rgba(160,20,30,0.95), rgba(80,5,10,0.95))",
+        border: "2px solid rgba(255,180,140,0.85)",
+        borderRadius: 8,
+        textShadow: "0 0 12px rgba(255,160,80,0.95), 0 0 20px rgba(255,40,30,0.65)",
+        boxShadow: "0 0 30px rgba(255,80,40,0.7), 0 0 60px rgba(255,40,30,0.45)",
+        pointerEvents: "none",
+        zIndex: 200,
+      }}
+    >
+      {active.label}
+    </div>
+  );
+}
+
 function CornerOrn({ pos }: { pos: "tl" | "tr" | "bl" | "br" }): JSX.Element {
   return (
     <svg className={styles.cornerOrn} data-pos={pos} viewBox="0 0 28 28">
@@ -1085,7 +1601,7 @@ function CornerOrn({ pos }: { pos: "tl" | "tr" | "bl" | "br" }): JSX.Element {
       </defs>
       <g fill={`url(#co-grad-${pos})`} stroke="#0007" strokeWidth=".4">
         <path d="M0 0 H14 V2 H2 V14 H0 Z" />
-        <path d="M5 5 H10 V6 H6 V10 H5 Z" />
+        <path d="M5 5 E_h_01 V6 H6 V10 H5 Z" />
       </g>
       <circle cx="7" cy="7" r="1.4" fill="var(--metal-c)" stroke="#0007" strokeWidth=".3" />
     </svg>
@@ -1115,6 +1631,7 @@ function TroopSlotView({ slot, side, isTargetable, canAttack, isSelected, placem
     );
   }
   const card = getCard(slot.cardId);
+  const indicators = buildTroopStatusIndicators(slot, resolveIndicatorSourceName);
   const hurtTone: "hurt" | "crit" | undefined =
     slot.hp < slot.maxHp / 2 ? "crit" : slot.hp < slot.maxHp ? "hurt" : undefined;
   const kws = Array.from(slot.keywords);
@@ -1161,13 +1678,141 @@ function TroopSlotView({ slot, side, isTargetable, canAttack, isSelected, placem
           </div>
         )}
       </div>
+      <StatusIndicatorRail indicators={indicators} owner="troop" side={side} />
     </div>
   );
+}
+
+interface StatusIndicatorRailProps {
+  indicators: StatusIndicator[];
+  owner: "hero" | "troop";
+  side: "player" | "enemy";
+}
+
+function StatusIndicatorRail({ indicators, owner, side }: StatusIndicatorRailProps): JSX.Element | null {
+  if (indicators.length === 0) return null;
+  return (
+    <div className={styles.statusRail} data-owner={owner} data-side={side}>
+      {indicators.map((indicator) => (
+        <StatusIndicatorBadge key={indicator.id} indicator={indicator} />
+      ))}
+    </div>
+  );
+}
+
+function StatusIndicatorBadge({ indicator }: { indicator: StatusIndicator }): JSX.Element {
+  function stopClick(event: MouseEvent<HTMLButtonElement>): void {
+    event.stopPropagation();
+  }
+
+  return (
+    <button
+      type="button"
+      className={styles.statusBadge}
+      data-tone={indicator.tone}
+      aria-label={`${indicator.title}，${indicator.details.join("，")}`}
+      onClick={stopClick}
+    >
+      <span className={styles.statusBadgeText}>{indicator.label}</span>
+      <span className={styles.statusTooltip} role="tooltip">
+        <span className={styles.statusTooltipTitle}>{indicator.title}</span>
+        {indicator.details.map((detail) => (
+          <span key={detail} className={styles.statusTooltipLine}>{detail}</span>
+        ))}
+      </span>
+    </button>
+  );
+}
+
+function resolveIndicatorSourceName(source: string): string | undefined {
+  try {
+    return getCard(source).name;
+  } catch {
+    return undefined;
+  }
 }
 
 function keywordTag(k: string): string {
   const map: Record<string, string> = { guard: "守護", rush: "突進", haste: "疾走", lethal: "必殺", lifesteal: "汲取", menace: "威壓", pierce: "穿透" };
   return map[k] ?? k;
+}
+
+// v3.3 次元滲透裂縫位元件
+interface RiftSlotProps {
+  rift: RiftState;
+  isTargetable: boolean;
+  isAttackable: boolean;
+  onClick: () => void;
+  onPreview?: () => void;
+}
+
+function RiftSlotView({ rift, isTargetable, isAttackable, onClick, onPreview }: RiftSlotProps): ReactNode {
+  function handlePreview(event: MouseEvent<HTMLDivElement>): void {
+    if (!onPreview) return;
+    event.preventDefault();
+    onPreview();
+  }
+
+  const occupant = rift.occupant;
+  const occCard = occupant ? getCard(occupant.cardId) : null;
+  const occHurtTone: "hurt" | "crit" | undefined = occupant
+    ? occupant.hp < occupant.maxHp / 2
+      ? "crit"
+      : occupant.hp < occupant.maxHp
+        ? "hurt"
+        : undefined
+    : undefined;
+  const occKws = occupant ? Array.from(occupant.keywords) : [];
+
+  const holderLabel =
+    rift.holder === "open"
+      ? rift.tremorCountdown <= 1
+        ? "震動中・即將滲透"
+        : "裂縫待機"
+      : rift.holder === "player"
+        ? "玩家佔據"
+        : "敵方滲透";
+
+  const countdownText =
+    rift.holder === "open" && rift.tremorCountdown > 0
+      ? `滲透倒數 ${rift.tremorCountdown}`
+      : null;
+
+  return (
+    <div
+      className={styles.riftSlot}
+      data-holder={rift.holder}
+      data-enhanced={rift.enhanced ? "true" : undefined}
+      data-targetable={isTargetable ? "true" : undefined}
+      data-attackable={isAttackable ? "true" : undefined}
+      onClick={onClick}
+      onContextMenu={onPreview ? handlePreview : undefined}
+    >
+      {countdownText && <div className={styles.riftCountdown}>{countdownText}</div>}
+      {!occupant && <div className={styles.riftEmpty}>◇</div>}
+      {occupant && occCard && (
+        <div className={styles.riftOccupant}>
+          <div className={styles.riftOccupantHead}>
+            <span className={styles.riftOccupantCost}>{occCard.cost} 費</span>
+            <div className={styles.riftOccupantName}>{occCard.name}</div>
+            {occKws.length > 0 && (
+              <div className={styles.riftOccupantKw}>
+                {occKws.map((k) => (
+                  <span key={k} className={styles.riftOccupantKwTag}>{keywordTag(k)}</span>
+                ))}
+              </div>
+            )}
+          </div>
+          <div className={styles.riftOccupantStats}>
+            <span data-kind="atk">⚔ {occupant.atk}</span>
+            {occupant.def > 0 && <span data-kind="def">🛡 {occupant.def}</span>}
+            <span data-kind="hp" data-tone={occHurtTone}>♥ {occupant.hp}{occupant.hp !== occupant.maxHp && `/${occupant.maxHp}`}</span>
+          </div>
+        </div>
+      )}
+      <div className={styles.riftHolder}>{rift.enhanced ? "★ 加強裂縫・" : ""}{holderLabel}</div>
+    </div>
+  );
 }
 
 function raceName(id: string): string {

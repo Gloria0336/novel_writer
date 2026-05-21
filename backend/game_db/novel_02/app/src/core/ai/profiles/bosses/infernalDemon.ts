@@ -16,9 +16,12 @@ export const BOSS_INFERNAL_DEMON_PROFILE: EnemyProfile = {
     heroPressure: 0.6,
     gaugeBuildup: 0.4,
     selfSurvival: -0.5,
+    bossGaugeBuildup: 0.3,
   },
   gaugePolicy: {
     saveUntilThreshold: 0.4,
     spendOnUltimateAt: 0.7,
   },
+  summonPool: ["T_de_02", "T_de_05"],
+  summonsPerTurn: { min: 1, max: 1 },
 };

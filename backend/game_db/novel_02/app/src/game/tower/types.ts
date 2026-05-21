@@ -1,17 +1,7 @@
 import type { HeroInstance } from "../../core/types/hero";
+import type { OmenId, OmenInstance } from "../../core/types/omen";
 
-export type OmenId =
-  | "twin_moons"        // 雙月同圓
-  | "minor_eclipse"     // 副月凌主月
-  | "shard_rain"        // 碎片雨
-  | "solar_eclipse"     // 日蝕
-  | "meteor"            // 流星墜
-  | "spirit_surge";     // 靈潮湧動
-
-export interface OmenInstance {
-  id: OmenId;
-  remainingTurns: number;
-}
+export type { OmenId, OmenInstance };
 
 export type TowerReward =
   | { kind: "heal"; amount: number }

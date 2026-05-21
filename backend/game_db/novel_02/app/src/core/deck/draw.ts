@@ -8,7 +8,12 @@ export interface DrawResult {
   drawn: number;
 }
 
-export function drawCards(side: SideState, count: number, rngState: number): DrawResult {
+export interface DrawPredicate {
+  cardIdPrefixes?: string[];
+  cardIdIncludes?: string[];
+}
+
+export function drawCards(side: SideState, count: number, rngState: number, predicate?: DrawPredicate): DrawResult {
   let drawn = 0;
   let s = rngState;
   for (let i = 0; i < count; i++) {
@@ -20,7 +25,9 @@ export function drawCards(side: SideState, count: number, rngState: number): Dra
       side.deck = r.value;
       side.graveyard = [];
     }
-    const card = side.deck.shift();
+    const drawIndex = predicate ? side.deck.findIndex((card) => matchesDrawPredicate(card.cardId, predicate)) : 0;
+    if (drawIndex < 0) break;
+    const [card] = side.deck.splice(drawIndex, 1);
     if (!card) break;
     if (side.hand.length < HAND_LIMIT) {
       side.hand.push(card);
@@ -31,4 +38,11 @@ export function drawCards(side: SideState, count: number, rngState: number): Dra
     }
   }
   return { newRngState: s, drawn };
+}
+
+function matchesDrawPredicate(cardId: string, predicate: DrawPredicate): boolean {
+  return (
+    predicate.cardIdPrefixes?.some((prefix) => cardId.startsWith(prefix)) === true ||
+    predicate.cardIdIncludes?.some((part) => cardId.includes(part)) === true
+  );
 }

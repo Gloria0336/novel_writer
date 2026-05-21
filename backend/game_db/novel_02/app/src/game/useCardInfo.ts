@@ -17,6 +17,7 @@ export function cardTypeLabel(t: Card["type"]): string {
     case "spell": return "法術";
     case "equipment": return "裝備";
     case "field": return "場地";
+    case "device": return "魔導";
   }
 }
 
@@ -27,5 +28,6 @@ export function cardTypeColor(t: Card["type"]): string {
     case "spell": return "#a6c";
     case "equipment": return "#c93";
     case "field": return "#69c";
+    case "device": return "#a8c";
   }
 }

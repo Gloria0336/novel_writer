@@ -40,9 +40,11 @@ export function TowerRunScreen({ onEnterBattle, onAbandon }: Props): JSX.Element
             累計獎勵：{run.rewardsTaken.length} 個
           </p>
           {omen ? (
-            <div style={{ marginTop: 12, padding: 12, background: "#2a1a2a", border: "1px solid #6a3a6a", borderRadius: 6 }}>
+            <div title={omen.battleEffect} style={{ marginTop: 12, padding: 12, background: "#2a1a2a", border: "1px solid #6a3a6a", borderRadius: 6 }}>
               <div style={{ color: "#e0a8e0", fontSize: 14, fontWeight: "bold" }}>天象：{omen.name}</div>
               <div style={{ color: "#bbb", fontSize: 12, marginTop: 4 }}>{omen.description}</div>
+              <div style={{ color: "#d9c6f0", fontSize: 12, marginTop: 6 }}>持續：{omen.durationLabel}</div>
+              <div style={{ color: "#cfc7d8", fontSize: 12, marginTop: 4 }}>戰鬥規則：{omen.battleEffect}</div>
             </div>
           ) : <p style={{ color: "#666", fontSize: 12, marginTop: 12 }}>本層無天象事件。</p>}
         </div>

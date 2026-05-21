@@ -33,11 +33,11 @@ export const HERO_REKA: HeroDefinition = {
     {
       id: "act_heel_breaker",
       name: "破防腿擊",
-      description: "對敵方 1 個兵力造成 ATK +4 傷害，無視 DEF，並凍結 1 回合。（消耗 35 鬥志）",
+      description: "對敵方 1 個兵力造成 ATK +4 傷害，無視 DEF，並凍結-定身 1 回合。（消耗 35 鬥志）",
       cost: { morale: 35 },
       effects: [
         { kind: "damage", target: { kind: "single", filter: { side: "enemy", entity: "troop" } }, amount: { kind: "atk", bonus: 4 }, ignoreDef: true },
-        { kind: "freeze", target: { kind: "single", filter: { side: "enemy", entity: "troop" } }, turns: 1 },
+        { kind: "freeze", target: { kind: "single", filter: { side: "enemy", entity: "troop" } }, turns: 1, displayName: "定身" },
       ],
     },
     {

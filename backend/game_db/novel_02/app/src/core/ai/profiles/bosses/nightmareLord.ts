@@ -15,11 +15,12 @@ export const BOSS_NIGHTMARE_LORD_PROFILE: EnemyProfile = {
   raceBias: {
     boardControl: 0.6,
     stabilityPressure: 0.3,
+    bossGaugeBuildup: 0.6,
   },
   gaugePolicy: {
     saveUntilThreshold: 0.5,
     spendOnUltimateAt: 0.7,
   },
-  summonPool: ["I_PHANTOM_AWE"],
-  summonsPerTurn: { min: 0, max: 1 },
+  summonPool: ["T_s_28"],
+  summonsPerTurn: { min: 1, max: 1 },
 };

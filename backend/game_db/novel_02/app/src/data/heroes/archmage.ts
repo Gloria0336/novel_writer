@@ -25,9 +25,9 @@ export const HERO_ARCHMAGE: HeroDefinition = {
     {
       id: "act_starshackles",
       name: "星辰鎖鏈",
-      description: "凍結敵方 1 個兵力 2 回合。無視守護。（消耗 30 鬥志）",
+      description: "凍結-束縛敵方 1 個兵力 2 回合。無視守護。（消耗 30 鬥志）",
       cost: { morale: 30 },
-      effects: [{ kind: "freeze", target: { kind: "single", filter: { side: "enemy", entity: "troop" } }, turns: 2 }],
+      effects: [{ kind: "freeze", target: { kind: "single", filter: { side: "enemy", entity: "troop" } }, turns: 2, displayName: "束縛" }],
     },
     {
       id: "act_recall_knowledge",

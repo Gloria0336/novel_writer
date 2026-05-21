@@ -1,6 +1,7 @@
 import type { Effect } from "../../core/types/effect";
 import type { HeroDefinition, HeroInstance } from "../../core/types/hero";
 import type { TroopCard } from "../../core/types/card";
+import type { BossGaugeSpec } from "../../core/types/bossGauge";
 import { LAIR_LIST, LAIRS } from "./lairs";
 import { BOSS_LIST, BOSSES } from "./bosses";
 
@@ -14,6 +15,10 @@ export interface EnemyDefinition {
   onBattleStart?: Effect[];
   internalTroops?: TroopCard[];
   auraTags?: { onStart?: string[]; onEnd?: string[] };
+  /** Boss 鏡像牌組（lair 不適用）。 */
+  deckIds?: string[];
+  /** Boss 專屬量表規格（lair 不適用）。 */
+  bossGauge?: BossGaugeSpec;
   description: string;
 }
 
@@ -41,6 +46,8 @@ function bossToEnemy(b: typeof BOSS_LIST[number]): EnemyDefinition {
     profileId: b.profileId,
     onBattleStart: b.onBattleStart,
     internalTroops: b.internalTroops,
+    deckIds: b.deckIds,
+    bossGauge: b.bossGauge,
     description: b.description,
   };
 }

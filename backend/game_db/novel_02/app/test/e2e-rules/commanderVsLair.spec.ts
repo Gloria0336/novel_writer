@@ -68,8 +68,8 @@ describe("E2E：露露 vs 腐植巢穴", () => {
   it("號令加成：場上 4 兵力時行動傷害 ×1.2", () => {
     const s = createBattle({ seed: 99, playerHeroId: "lulu", playerDeckIds: LULU_DECK_IDS });
     // 直接放置 4 隻兵力到場上
-    const t01 = getCard("T01");
-    if (t01.type !== "troop") throw new Error("T01 not troop");
+    const t01 = getCard("T_c_01");
+    if (t01.type !== "troop") throw new Error("T_c_01 not troop");
     for (let i = 0; i < 4; i++) {
       s.player.troopSlots[i] = createTroopInstance(s, t01, { suppressSummonSickness: true });
     }

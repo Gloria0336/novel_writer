@@ -1,4 +1,4 @@
-import { ALL_CARDS, DEMON_CARDS, ENEMY_INTERNAL_CARDS, GENERIC_CARDS, NEUTRAL_CARDS, RACE_CARDS } from "../data/cards";
+import { ALL_CARDS, CLASS_CARDS, DEMON_CARDS, ENEMY_INTERNAL_CARDS, GENERIC_CARDS, NEUTRAL_CARDS, RACE_CARDS } from "../data/cards";
 import { CLASSES } from "../data/classes";
 import { HERO_LIST } from "../data/heroes";
 import { RACES } from "../data/races";
@@ -13,7 +13,7 @@ export type { CardType, Rarity };
 export interface CardPoolGroup {
   id: string;
   label: string;
-  kind: "generic" | "neutral" | "race" | "enemyInternal";
+  kind: "generic" | "neutral" | "race" | "class" | "enemyInternal";
   cards: IndexedCard[];
   total: number;
 }
@@ -27,6 +27,10 @@ export interface IndexedCard {
   rarityLabel: string;
   effectSummary: string[];
   searchableText: string;
+}
+
+export interface CardTextContext {
+  gaugeName?: string;
 }
 
 export interface ImplementedRuleSection {
@@ -69,6 +73,7 @@ export const CARD_TYPE_LABEL: Record<CardType, string> = {
   spell: "法術",
   equipment: "裝備",
   field: "場地",
+  device: "魔導",
 };
 
 export const RARITY_LABEL: Record<Rarity, string> = {
@@ -84,6 +89,7 @@ const EMPTY_TYPE_COUNTS: Record<CardType, number> = {
   spell: 0,
   equipment: 0,
   field: 0,
+  device: 0,
 };
 
 const EMPTY_RARITY_COUNTS: Record<Rarity, number> = {
@@ -96,6 +102,7 @@ const EMPTY_RARITY_COUNTS: Record<Rarity, number> = {
 export function buildGameIndexData(): GameIndexData {
   const groupSpecs = [
     { id: "generic", label: "通用卡", kind: "generic" as const, cards: GENERIC_CARDS },
+    { id: "class", label: "職業限定卡", kind: "class" as const, cards: CLASS_CARDS },
     { id: "neutral", label: "中立傳說", kind: "neutral" as const, cards: NEUTRAL_CARDS },
     ...Object.entries(RACE_CARDS).map(([raceId, cards]) => ({
       id: `race:${raceId}`,
@@ -178,54 +185,83 @@ function countByCost(cards: readonly Card[]): Record<number, number> {
   return Object.fromEntries(Object.entries(counts).sort(([a], [b]) => Number(a) - Number(b))) as Record<number, number>;
 }
 
-export function describeCardEffects(card: Card): string[] {
+export function describeCardEffects(card: Card, context: CardTextContext = {}): string[] {
   const lines: string[] = [];
 
   if (card.type === "troop") {
     lines.push(`體質 ${card.hp}/${card.atk}/${card.def}`);
     if (card.keywords.length > 0) lines.push(`關鍵字：${card.keywords.map((keyword) => KEYWORD_LABEL[keyword]).join("、")}`);
-    appendEffects(lines, "入場", card.onPlay, card);
-    appendEffects(lines, "謝幕", card.onDestroy, card);
-    appendEffects(lines, "回合結束", card.onTurnEnd, card);
-    appendEffects(lines, "被動", card.passive, card);
+    appendEffects(lines, "入場", card.onPlay, card, context);
+    appendEffects(lines, "謝幕", card.onDestroy, card, context);
+    appendEffects(lines, "回合開始", card.onTurnStart, card, context);
+    appendEffects(lines, "回合結束", card.onTurnEnd, card, context);
+    appendEffects(lines, "被動", card.passive, card, context);
+  }
+
+  if (card.type === "device") {
+    lines.push(`體質 ${card.hp}/${card.atk}/${card.def}`);
+    if (card.keywords.length > 0) lines.push(`關鍵字：${card.keywords.map((keyword) => KEYWORD_LABEL[keyword]).join("、")}`);
+    if (card.form) {
+      lines.push(`待機：${card.form.idle.atk}/${card.form.idle.def}${card.form.idle.keywords?.length ? `（${card.form.idle.keywords.map((k) => KEYWORD_LABEL[k]).join("、")}）` : ""}`);
+      lines.push(`啟動：${card.form.active.atk}/${card.form.active.def}${card.form.active.keywords?.length ? `（${card.form.active.keywords.map((k) => KEYWORD_LABEL[k]).join("、")}）` : ""}`);
+    }
+    if (card.upgradeable) {
+      lines.push(`可升級：最多 ${card.upgradeable.maxLevel} 層，每層 ${describeModifiers(card.upgradeable.perLevel) || "—"}`);
+    }
+    appendEffects(lines, "入場", card.onPlay, card, context);
+    appendEffects(lines, "謝幕", card.onDestroy, card, context);
+    appendEffects(lines, "回合開始", card.onTurnStart, card, context);
+    appendEffects(lines, "回合結束", card.onTurnEnd, card, context);
+    appendEffects(lines, "被動", card.passive, card, context);
+    if (card.onReaction && card.onReaction.length > 0) {
+      const labels: Record<string, string> = {
+        enemySpellCast: "敵方施法",
+        enemyHeroAttacked: "敵方攻擊我方英雄",
+        allyTroopDestroyed: "我方兵力陣亡",
+        enemyEquipmentPlayed: "敵方裝備上場",
+      };
+      for (const r of card.onReaction) {
+        appendEffects(lines, `反應（${labels[r.on] ?? r.on}）`, r.effects, card, context);
+      }
+    }
   }
 
   if (card.type === "action") {
-    appendEffects(lines, "效果", card.effects, card);
-    appendEffects(lines, "後續", card.postEffects, card);
+    appendEffects(lines, "效果", card.effects, card, context);
+    appendEffects(lines, "後續", card.postEffects, card, context);
   }
 
   if (card.type === "spell" || card.type === "field") {
-    appendEffects(lines, "效果", card.effects, card);
+    appendEffects(lines, "效果", card.effects, card, context);
   }
 
   if (card.type === "equipment") {
     lines.push(`槽位：${equipmentSlotLabel(card.slot)}`);
     const modifiers = describeModifiers(card.modifiers);
     if (modifiers) lines.push(`修正：${modifiers}`);
-    appendEffects(lines, "入場", card.onPlay, card);
-    appendEffects(lines, "被動", card.passive, card);
+    appendEffects(lines, "入場", card.onPlay, card, context);
+    appendEffects(lines, "被動", card.passive, card, context);
   }
 
   if (card.flavor) lines.push(card.flavor);
   return lines.length > 0 ? lines : ["無額外效果"];
 }
 
-function appendEffects(lines: string[], label: string, effects: readonly Effect[] | undefined, card: Card): void {
+function appendEffects(lines: string[], label: string, effects: readonly Effect[] | undefined, card: Card, context: CardTextContext): void {
   if (!effects || effects.length === 0) return;
-  lines.push(`${label}：${effects.map((effect) => describeEffect(effect, card)).join("；")}`);
+  lines.push(`${label}：${effects.map((effect) => describeEffect(effect, card, context)).join("；")}`);
 }
 
-export function describeEffect(effect: Effect, card?: Card): string {
+export function describeEffect(effect: Effect, card?: Card, context: CardTextContext = {}): string {
   switch (effect.kind) {
     case "damage":
-      return `${describeTarget(effect.target)} ${describeAmount(effect.amount)}傷害${flagText([
+      return `${describeTarget(effect.target)} ${describeAmount(effect.amount, context)}傷害${flagText([
         effect.ignoreDef ? "無視 DEF" : "",
         effect.ignoreGuard ? "無視守護" : "",
         effect.lifesteal ? `汲取 ${effect.lifesteal}` : "",
       ])}`;
     case "heal":
-      return `${describeTarget(effect.target)} 恢復 ${describeAmount(effect.amount)}`;
+      return `${describeTarget(effect.target)} 恢復 ${describeAmount(effect.amount, context)}`;
     case "draw":
       return `抽 ${effect.count} 張`;
     case "discard":
@@ -233,7 +269,7 @@ export function describeEffect(effect: Effect, card?: Card): string {
     case "summon":
       return `召喚 ${cardDisplayName(effect.cardId)} ×${effect.count} 到${sideLabel(effect.side)}`;
     case "gauge":
-      return `${sideLabel(effect.side)}量表 ${signed(effect.delta)}`;
+      return `${sideLabel(effect.side)}${gaugeTerm(context)} ${signed(effect.delta)}`;
     case "morale":
       return `鬥志 ${signed(effect.delta)}`;
     case "mana":
@@ -245,7 +281,9 @@ export function describeEffect(effect: Effect, card?: Card): string {
     case "addKeyword":
       return `${describeTarget(effect.target)}獲得${KEYWORD_LABEL[effect.keyword]}（${describeDuration(effect.duration)}）`;
     case "freeze":
-      return `${describeTarget(effect.target)}凍結 ${effect.turns} 回合`;
+      return `${describeTarget(effect.target)}${effectName("凍結", effect.displayName)} ${effect.turns} 回合`;
+    case "freezeHeroAbility":
+      return `${sideLabel(effect.side ?? "enemy")}英雄能力${effectName("凍結", effect.displayName ?? "封鎖")}：${effect.modes.map((mode) => HERO_ABILITY_FREEZE_TEXT[mode]).join("、")} ${effect.turns} 回合`;
     case "stability":
       return `穩定度 ${signed(effect.delta)}`;
     case "search":
@@ -253,13 +291,13 @@ export function describeEffect(effect: Effect, card?: Card): string {
     case "destroyField":
       return "摧毀場地";
     case "scripted":
-      return describeScriptedEffect(effect.tag, effect.payload, card);
+      return describeScriptedEffect(effect.tag, effect.payload, card, context);
     default:
       return `效果：${(effect as { kind: string }).kind}`;
   }
 }
 
-type ScriptedEffectFormatter = string | ((payload: unknown, card?: Card) => string);
+type ScriptedEffectFormatter = string | ((payload: unknown, card?: Card, context?: CardTextContext) => string);
 
 const SCRIPTED_EFFECT_TEXT: Record<string, ScriptedEffectFormatter> = {
   HEAL_ADJACENT: (payload) => `恢復相鄰兵力 ${payloadNumber(payload, "amount", 3)} HP`,
@@ -269,7 +307,7 @@ const SCRIPTED_EFFECT_TEXT: Record<string, ScriptedEffectFormatter> = {
   MORALE_IF_KILLED: (payload) => `若本次傷害擊殺目標，鬥志 +${payloadNumber(payload, "amount", 20)}`,
   SELF_DAMAGE_FIXED: (payload) => `英雄受到 ${payloadNumber(payload, "amount", 10)} 點不可減免自傷`,
   DISABLE_ACTION_THIS_TURN: "本回合無法再使用行動卡",
-  STARFALL_BLADE: "對敵方英雄造成 ATK×2+20 傷害，無視 DEF 與守護；穩定度 ≤50 時額外 +15",
+  STARFALL_BLADE: "直接對敵方英雄造成 ATK×2+20 傷害，無視 DEF 與守護；穩定度 ≤50 時額外 +15",
   EXTRA_ACTIONS: (payload) => `本回合可額外使用 ${payloadNumber(payload, "count", 2)} 張行動卡`,
   OATH_CHOICE: "三選一：全面恢復（英雄 +30 HP，全兵力 +10 HP）/ 全面強化（全兵力 +5 ATK，持續 3 回合）/ 全面淨化（移除所有負面狀態，免疫 1 回合）",
 
@@ -282,7 +320,7 @@ const SCRIPTED_EFFECT_TEXT: Record<string, ScriptedEffectFormatter> = {
 
   FIELD_MANA_NODE: "場地：每回合雙方額外獲得 1 魔力；法術效果 +10%",
   FIELD_BURN: (_payload, card) =>
-    card?.id === "F_BURN_INFERNO"
+    card?.id === "F_s_01"
       ? "場地：每回合結束時，雙方兵力受到 2 傷害"
       : "場地：每回合所有兵力受到 3 傷害；治療效果 -50%",
   FIELD_RESURRECT: "場地：兵力被摧毀時，30% 機率以 30% HP 原地復活",
@@ -294,7 +332,7 @@ const SCRIPTED_EFFECT_TEXT: Record<string, ScriptedEffectFormatter> = {
   DESTROY_HIGHEST_ATK_BOTH: "雙方各摧毀 ATK 最高的 1 個兵力",
   ENEMY_DRAW: (payload) => `敵方抽 ${payloadNumber(payload, "count", 1)} 張牌`,
   GRANT_IGNORE_GUARD_THIS_TURN: "本回合英雄攻擊與技能無視守護",
-  MOON_RELIC: "每回合開始時，種族量表 +10；致命傷時可消耗 50 量表以 1 HP 存活（每場限 1 次）",
+  MOON_RELIC: (_payload, _card, context) => `每回合開始時，${gaugeTerm(context)} +10；致命傷時可消耗 50 ${gaugeTerm(context)}以 1 HP 存活（每場限 1 次）`,
   DIMENSION_SHARD: "穩定度 +25，抽 1 張；若穩定度已滿，改為對敵方全體造成 15 傷害",
   DOOMSDAY_START: (payload) =>
     `設置末日倒數 ${payloadNumber(payload, "turns", 3)} 回合；結束時對敵方全體造成 ${payloadNumber(payload, "damage", 50)} 傷害`,
@@ -305,20 +343,25 @@ const SCRIPTED_EFFECT_TEXT: Record<string, ScriptedEffectFormatter> = {
   DEPLOY_DISCOUNT_THIS_TURN: (payload) => `本回合兵力部署費用 -${payloadNumber(payload, "amount", 2)}`,
   OATH_BLADE: "每次英雄行動卡攻擊後，隨機 1 個己方兵力永久 +2 ATK；場上兵力 ≥3 時行動卡傷害 +10",
 
-  MOONLIGHT_ARROW: "造成 8 傷害；共鳴 ≥2 時改為 12",
+  MOONLIGHT_ARROW: (_payload, _card, context) => `隨機攻擊敵方任一單位（兵力優先），造成 8 傷害；${gaugeTerm(context, "共鳴")} ≥2 時改為 12`,
   ATK_PER_SPELL_CAST: "己方每施放 1 張法術，此兵力永久 +1 ATK",
   DOUBLE_NEXT_SPELL: "本回合下一張法術效果翻倍",
   FIELD_ELVEN_WARD: "場地：所有法術效果 +25%；兵力部署費用 +1",
   HP_PER_SPELL_CAST: "己方每施放 1 張法術，此兵力 +3 HP",
-  RESONANCE_NO_RESET: "本回合共鳴不會重置，累積至下回合",
-  AENO_FORBIDDEN: "造成 50 魔法傷害；共鳴 ≥4 時改為對敵方全體造成 80 傷害",
+  RESONANCE_NO_RESET: (_payload, _card, context) => `本回合${gaugeTerm(context, "共鳴")}不會重置，累積至下回合`,
+  AENO_FORBIDDEN: (_payload, _card, context) => `指定敵方任意單體造成 40 魔法傷害；${gaugeTerm(context, "共鳴")} ≥4 時改為對敵方全體造成 70 傷害，無視守護`,
+  ELF_STARRY_SKY: (payload) => `隨機敵方目標 ${payloadNumber(payload, "hits", 6)} 次，每次 ${payloadNumber(payload, "damage", 3)} 固定傷害`,
+  ELF_STARVEIN_RETURN: "依本局施放法術數治療英雄並獲得護甲",
+  ELF_MOON_PHASE_TUNE: (_payload, _card, context) => `從牌庫抽 1 張法術，${gaugeTerm(context, "共鳴")} +2`,
+  ELF_SILVERLEAF_SEAL: "隨機凍結 1 個敵方單位 2 回合，並封鎖敵方行動/法術 1 回合",
 
   RAPID_FORGE: "將 1 張手牌轉化為隨機裝備卡",
   ALLOY_RECYCLE: "拆除 1 件裝備或 1 個器具，獲得其費用 ×2 的魔力",
   HERO_DEF_PLUS_2_WHILE_ALIVE: "存活期間英雄 DEF +2",
-  AUTO_TURRET_FIRE: "回合結束時，自動攻擊 ATK 最高的敵方兵力",
+  AUTO_TURRET_FIRE: "每回合開始時，對 ATK 最高的敵方兵力造成 8 傷害；若無敵方兵力則不發動",
+  SANCTION_MECHANISM_STRIKE: "啟動形態：每回合開始時，隨機 1 個敵方兵力受到此器具 ATK 傷害，並凍結 1 回合；若無敵方兵力則不發動",
   IMMUNE_SPELL_DAMAGE: "免疫法術傷害",
-  MINEVEIN_BLAST: "造成（已裝備裝備數 + 場上器具數）×8 傷害",
+  MINEVEIN_BLAST: "對敵方全體造成（已裝備裝備數 + 場上器具數 + 器具升級總層數）×3 傷害",
   DWARF_ALE: "恢復英雄 12 HP；裝備 ≥2 件時額外 +8",
   ANCESTRAL_BLUEPRINT: "永久：所有裝備與器具費用 -1（最低 1）",
   DAMAGE_ENEMY_HERO_FIXED: (payload) => `對敵方英雄造成 ${payloadNumber(payload, "amount", 10)} 固定傷害`,
@@ -326,22 +369,31 @@ const SCRIPTED_EFFECT_TEXT: Record<string, ScriptedEffectFormatter> = {
 
   Y_FOXFIRE: "人形：造成 15 魔法傷害；妖形：造成 10 傷害並灼傷 2 回合",
   Y_SERPENT_GUARD: "人形：此兵力受到的法術傷害減半；妖形：此兵力 ATK +4",
-  Y_ESSENCE_CORE: "靈蘊上限 +50；切換形態時恢復英雄 5 HP",
+  Y_ESSENCE_CORE: (_payload, _card, context) => `${gaugeTerm(context, "靈蘊")}上限 +50；切換形態時恢復英雄 5 HP`,
   Y_FORM_TOGGLE: "立即切換人形 / 妖形",
   Y_DAMAGE_REDUCE_THIS_TURN: (payload) => `英雄本回合受到的傷害 -${payloadNumber(payload, "pct", 50)}%`,
   Y_HUNDRED_GHOSTS: "人形：召喚 2 個幻影；妖形：召喚 1 個妖獸",
   Y_ILLUSION_MAZE: "人形：敵方所有兵力 ATK -4 持續 2 回合；妖形：控制敵方 1 個兵力 2 回合",
   Y_NINETAILS_KEYWORDS: "人形：此兵力獲得威壓；妖形：此兵力獲得疾走與汲取",
   Y_PRIMORDIAL_BLOOD: "進入始祖妖形 2 回合；己方所有兵力 +3 ATK / +3 DEF",
+  Y_PHANTOM_DETONATION: "消滅所有己方幻影；每消滅 1 個幻影，對敵方所有兵力造成 3 傷害",
+  Y_PHANTOM_SHIFT: "消滅 1 個己方幻影；本回合下一次部署兵力或器具費用 -2，最低 0",
+  Y_PHANTOM_TAUNT: "所有己方幻影獲得嘲諷直到下回合開始",
+  Y_PHANTOM_REALIZE: "指定 1 個己方幻影永久 +5 HP / +3 ATK / +2 DEF，移除壽命限制並成為真實兵力",
+  Y_PHANTOM_INFUSION: "消滅 1 個己方幻影；己方英雄恢復 2 HP",
 
-  B_BLOOD_RITE: "對 1 個己方兵力血祭：HP 減半、ATK 翻倍 2 回合；額外 ATK +3，血怒 +1",
+  H_FRONTLINE_ADVANCE: "指定 1 個己方兵力移至前線第六格；永久 +3 ATK / -2 DEF，獲得嘲諷直到陣亡或收回；每場最多 2 次",
+  H_FRONTLINE_ROTATION: "將目前前線單位收回手牌；可立即指定另 1 個己方兵力成為新的前線單位",
+
+  B_BLOOD_RITE: (_payload, _card, context) => `對 1 個己方兵力血祭：HP 減半、ATK 翻倍 2 回合；額外 ATK +3，${gaugeTerm(context, "血怒")} +1`,
   B_SAVAGEFANG_BLOODRITE_X3: "被血祭時 ATK ×3（取代 ATK ×2）",
   B_THORNS_TO_KILLER: (payload) => `對擊殺者造成 ${payloadNumber(payload, "amount", 5)} 傷害`,
-  B_PACK_TACTICS_MARK: "本回合英雄攻擊命中時血怒 +1",
-  B_BRUTE_CHARGE: "英雄造成 ATK 傷害，無視護甲與守護；血怒 ≥5 時額外 +10",
+  B_PACK_TACTICS_MARK: (_payload, _card, context) => `本回合英雄攻擊命中時${gaugeTerm(context, "血怒")} +1`,
+  B_BRUTE_CHARGE: (_payload, _card, context) => `指定敵方任意單體造成 ATK 傷害；${gaugeTerm(context, "血怒")} ≥5 時額外 +10`,
   B_BATTLE_SCAR_MEDAL: "英雄每跨過 10% HP 門檻時，永久 +1 ATK",
-  B_PRIMAL_HOWL: "所有己方兵力進入血祭狀態：HP 減半，ATK 翻倍 2 回合；血怒 +3",
-  B_PRIMORDIAL_BEAST_SOUL: "血怒立即疊至 10；3 回合內不因治療降低；己方兵力血祭但不損 HP",
+  B_PRIMAL_HOWL: (_payload, _card, context) => `所有己方兵力進入血祭狀態：HP 減半，ATK 翻倍 2 回合；${gaugeTerm(context, "血怒")} +3`,
+  B_PRIMORDIAL_BEAST_SOUL: (_payload, _card, context) => `${gaugeTerm(context, "血怒")}立即疊至 10；3 回合內不因治療降低；己方兵力血祭但不損 HP`,
+  B_BLOOD_SACRIFICE_RITUAL: "本回合下次血祭部署時，祭品目前 ATK 會永久轉移到新兵力；每場最多 2 次",
 
   G_ECHO_RESONANCE: "移除 2 層透支；若沒有透支，改為恢復英雄 10 HP",
   G_FOLLOWER_PROXY: "英雄受傷時，此兵力代替承受 5 傷害",
@@ -349,34 +401,50 @@ const SCRIPTED_EFFECT_TEXT: Record<string, ScriptedEffectFormatter> = {
   G_TRANSCEND: "消耗英雄 10% 當前 HP",
   G_OVERDRAFT_ADD: (payload) => `透支 +${payloadNumber(payload, "amount", 1)}`,
   G_DIVINE_HIDE: "本回合英雄受到的下 1 次傷害完全無效",
-  G_DIVINE_WORD_COLLAPSE: "消耗 40 神力殘響；對敵方全體造成 25 固定傷害；己方兵力受 10 傷害；透支 +3",
+  G_DIVINE_WORD_COLLAPSE: (_payload, _card, context) => `消耗 40 ${gaugeTerm(context, "神力殘響")}；對敵方全體造成 25 固定傷害；己方兵力受 10 傷害；透支 +3`,
   G_OVERDRAFT_REMOVE: (payload) => `移除 ${payloadNumber(payload, "amount", 1)} 層透支`,
-  G_GENESIS_FRAGMENT: "消耗所有神力殘響（至少 50）；對敵方英雄造成消耗量 ×1.5 傷害，清除透支並摧毀己方兵力",
+  G_GENESIS_FRAGMENT: (_payload, _card, context) => `消耗所有${gaugeTerm(context, "神力殘響")}（至少 50）；對敵方英雄造成消耗量 ×1.5 傷害，清除透支並摧毀己方兵力`,
+
+  O_FORGE_CONSTRUCT: "在空兵力欄部署 1 個鋼鐵構裝體（10/0/4/守護）；不可治療，不觸發謝幕曲",
+  O_EMERGENCY_DISASSEMBLE: "消滅 1 個己方構裝體；本回合魔力 +2，抽 1 張牌",
+  O_CONSTRUCT_UPGRADE: "指定己方構裝體，將其取代為手牌中 1 張魔導器具；該器具永久 +5 HP / +3 ATK / +3 DEF 並觸發入場",
+  O_TACTICAL_RETREAT: "指定 1 個己方非構裝體兵力收回手牌；本回合下一次部署兵力或器具費用 -1，最低 0",
+  O_FULL_LINE_ROTATION: "將所有己方非構裝體兵力收回手牌；抽 2 張；本回合下一次部署兵力或器具費用 -2，最低 0",
+  O_RESERVE_FORMATION: "本回合若兵力欄滿，下次部署兵力時自動消滅最左側己方兵力騰位；觸發謝幕曲並獲得鬥志 +5",
 
   DM_FLAME_IMMUNE: "免疫燃燒與火焰場地傷害",
-  DM_FREEZE_RANDOM_ENEMY: (payload) => `入場時隨機凍結 1 個敵方兵力 ${payloadNumber(payload, "turns", 2)} 回合`,
-  DM_CORRUPTION_SPREAD: "腐化蔓延：削弱敵方陣線並推進黑暗蝕",
-  DM_ENERGY_CORE_PASSIVE: "英雄造成傷害時黑暗蝕 +5",
-  DM_RIFT_FIELD: "場地：每回合穩定度 -3，黑暗蝕 +5",
+  DM_FREEZE_RANDOM_ENEMY: (payload) => `入場時隨機凍結-冰凍 1 個敵方兵力 ${payloadNumber(payload, "turns", 2)} 回合`,
+  DM_CORRUPTION_SPREAD: (_payload, _card, context) => `腐化蔓延：削弱敵方陣線並推進${gaugeTerm(context, "黑暗蝕")}`,
+  DM_ENERGY_CORE_PASSIVE: (_payload, _card, context) => `英雄造成傷害時${gaugeTerm(context, "黑暗蝕")} +5`,
+  DM_RIFT_FIELD: (_payload, _card, context) => `場地：每回合穩定度 -3，${gaugeTerm(context, "黑暗蝕")} +5`,
   DM_SCORCHED_FIELD: "場地：每回合灼燒敵方兵力，並降低敵方治療效果",
   DM_CURSE_GENERAL_AURA: "光環：敵方兵力 ATK / DEF 下降",
-  DM_DARK_DESCENT: "召喚黑暗軍勢並大幅推進黑暗蝕",
+  DM_DARK_DESCENT: (_payload, _card, context) => `召喚黑暗軍勢並大幅推進${gaugeTerm(context, "黑暗蝕")}`,
   DM_DOOM_GIANT_SPELL_IMMUNE: "免疫法術傷害",
+  DM_DARK_SACRIFICE: "消滅己方 1 個兵力 A；另 1 個己方兵力 B 獲得 A 目前 ATK+DEF 的永久 ATK，並失去等同 A 目前 HP 的 HP",
+  DM_ETERNAL_CONTRACT: "指定己方兵力與敵方兵力建立永恆契約；連結期間任一方受傷時雙方分擔傷害，敵方兵力每回合衰弱",
 
   ELDER_TOUCH: "攻擊命中時穩定度 -1",
   FEY_FORM_SWITCH: "切換人形 / 妖形",
   FEY_ANCESTOR_FORM: (payload) => `同享人形與妖形加成 ${payloadNumber(payload, "turns", 3)} 回合`,
   TOTAL_MOBILIZATION: "立即部署手牌中所有兵力；本回合己方兵力依場上數量獲得 ATK 加成",
-  PRIMAL_AWAKENING: "對敵方英雄造成（ATK + 血怒×5）×2 傷害；血怒歸零，英雄 HP +30%",
+  PRIMAL_AWAKENING: (_payload, _card, context) => `對敵方英雄造成（ATK + ${gaugeTerm(context, "血怒")}×5）×2 傷害；${gaugeTerm(context, "血怒")}歸零，英雄 HP +30%`,
   PRECISION_SUPPORT_GUIDANCE: "敵方所有兵力 DEF 歸零，失去守護與正向增益；抽 2 張牌",
 };
 
-function describeScriptedEffect(tag: string, payload: unknown, card?: Card): string {
+function describeScriptedEffect(tag: string, payload: unknown, card?: Card, context: CardTextContext = {}): string {
   const formatter = SCRIPTED_EFFECT_TEXT[tag];
-  if (typeof formatter === "function") return formatter(payload, card);
+  if (typeof formatter === "function") return formatter(payload, card, context);
   if (formatter) return formatter;
   return "特殊效果待補文字";
 }
+
+const HERO_ABILITY_FREEZE_TEXT = {
+  action: "行動牌",
+  spell: "法術牌",
+  troop: "兵力牌/巢穴生成",
+  manaRegen: "魔力回復",
+} as const;
 
 function payloadNumber(payload: unknown, key: string, fallback: number): number {
   if (!payload || typeof payload !== "object") return fallback;
@@ -393,7 +461,7 @@ function cardDisplayName(cardId: string): string {
   return cardNameIndex.get(cardId) ?? cardId;
 }
 
-function describeAmount(amount: AmountExpr): string {
+function describeAmount(amount: AmountExpr, context: CardTextContext = {}): string {
   switch (amount.kind) {
     case "const":
       return `${amount.value}`;
@@ -406,10 +474,14 @@ function describeAmount(amount: AmountExpr): string {
     case "alliesOnBoard":
       return formatFormula("我方場上兵力數", amount.mult, amount.bonus);
     case "rage":
-      return formatFormula("血怒", amount.mult, amount.bonus);
+      return formatFormula(gaugeTerm(context, "血怒"), amount.mult, amount.bonus);
     case "command":
       return formatFormula("CMD", amount.mult, amount.bonus);
   }
+}
+
+function gaugeTerm(context: CardTextContext | undefined, fallback = "量表"): string {
+  return context?.gaugeName?.trim() || fallback;
 }
 
 function formatFormula(base: string, mult = 1, bonus = 0): string {
@@ -477,6 +549,10 @@ function signed(value: number): string {
 function flagText(flags: string[]): string {
   const active = flags.filter(Boolean);
   return active.length > 0 ? `（${active.join("、")}）` : "";
+}
+
+function effectName(family: string, displayName: string | undefined): string {
+  return displayName ? `${family}-${displayName}` : family;
 }
 
 function sideLabel(side: TargetFilter["side"]): string {

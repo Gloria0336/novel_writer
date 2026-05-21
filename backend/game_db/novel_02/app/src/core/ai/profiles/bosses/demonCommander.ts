@@ -16,9 +16,12 @@ export const BOSS_DEMON_COMMANDER_PROFILE: EnemyProfile = {
     heroPressure: 0.5,
     stabilityPressure: 0.8,
     boardControl: 0.4,
+    bossGaugeBuildup: 0.4,
   },
   gaugePolicy: {
     saveUntilThreshold: 0.4,
     spendOnUltimateAt: 0.7,
   },
+  summonPool: ["T_de_01", "T_de_02"],
+  summonsPerTurn: { min: 1, max: 1 },
 };

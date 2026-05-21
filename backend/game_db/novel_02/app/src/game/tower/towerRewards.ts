@@ -8,10 +8,10 @@ import { nextRng, rngPick } from "../../core/deck/prng";
  * - 另外 2 個從加卡 / 提升上限 / 增傷中隨機抽取
  */
 const ADD_CARD_POOL: string[] = [
-  "T01", "T02", "T03", "T04", "T05",     // 通用兵力
-  "A01", "A02", "A03", "A04",            // 通用行動
-  "S01", "S02", "S03", "S04",            // 通用法術
-  "E03", "E04", "E05",                   // 通用裝備
+  "T_c_01", "T_c_02", "T_c_03", "T_c_04", "T_c_05",     // 通用兵力
+  "A_c_01", "A_c_02", "A_c_03", "A_c_04",            // 通用行動
+  "S_c_01", "S_c_02", "S_c_03", "S_c_04",            // 通用法術
+  "E_c_03", "E_c_04", "E_c_05",                   // 通用裝備
 ];
 
 export function generateRewards(rngState: number, floor: number): { rewards: TowerReward[]; nextRngState: number } {

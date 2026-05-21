@@ -4,13 +4,13 @@ import { buildCardFaceModel } from "./cardPresentation";
 
 describe("card art resolution", () => {
   it("uses the public card-art path by default", () => {
-    expect(defaultCardArtSrc("T01")).toBe("/card-art/cards/T01.webp");
-    expect(resolveCardArt("T01").src).toBe("/card-art/cards/T01.webp");
+    expect(defaultCardArtSrc("T_c_01")).toBe("/card-art/cards/T_c_01.webp");
+    expect(resolveCardArt("T_c_01").src).toBe("/card-art/cards/T_c_01.webp");
   });
 
   it("allows manifest overrides for source, focus, and credit data", () => {
-    const art = resolveCardArt("T01", {
-      T01: {
+    const art = resolveCardArt("T_c_01", {
+      T_c_01: {
         src: "/custom/t01.png",
         objectPosition: "30% 20%",
         artist: "Studio Test",
@@ -59,7 +59,7 @@ describe("card face presentation", () => {
   });
 
   it("shows readable choice text for 盟約之誓 instead of raw script tag", () => {
-    const model = buildCardFaceModel(getCard("S14"));
+    const model = buildCardFaceModel(getCard("S_c_14"));
     const text = model.effectLines.join(" ");
 
     expect(text).toContain("三選一");
@@ -67,6 +67,17 @@ describe("card face presentation", () => {
     expect(text).toContain("全面強化");
     expect(text).toContain("全面淨化");
     expect(text).not.toContain("OATH_CHOICE");
+  });
+
+  it("uses the active hero gauge name in card face text", () => {
+    const gaugeCard = buildCardFaceModel(getCard("T_h_01"), { gaugeName: "軍令" });
+    expect(gaugeCard.effectLines.join(" ")).toContain("我方軍令 +5");
+
+    const neutralCard = buildCardFaceModel(getCard("E_l_01"), { gaugeName: "靈蘊" });
+    const text = neutralCard.effectLines.join(" ");
+    expect(text).toContain("靈蘊 +10");
+    expect(text).toContain("50 靈蘊");
+    expect(text).not.toContain("種族量表");
   });
 
   it("does not expose raw scripted tags or payloads on any card face", () => {
@@ -77,6 +88,25 @@ describe("card face presentation", () => {
       const text = model.effectLines.join(" ");
 
       expect(text, `${card.id} ${card.name}`).not.toMatch(rawScriptPattern);
+    }
+  });
+
+  it("shows explicit effect text for every v3.4 M upgrade card", () => {
+    const upgradeCardIds = [
+      "A_f_07", "A_f_08", "A_f_09", "A_f_10", "A_f_11",
+      "A_h_05", "A_h_06",
+      "A_b_03",
+      "A_o_01", "A_o_02", "A_o_03", "A_o_04", "A_o_05", "A_o_06",
+      "S_de_07", "S_de_08",
+    ];
+
+    for (const cardId of upgradeCardIds) {
+      const model = buildCardFaceModel(getCard(cardId));
+      const text = model.effectLines.join(" ");
+
+      expect(text, cardId).not.toContain("特殊效果待補文字");
+      expect(text, cardId).not.toContain("無額外效果");
+      expect(text.trim().length, cardId).toBeGreaterThan(10);
     }
   });
 });

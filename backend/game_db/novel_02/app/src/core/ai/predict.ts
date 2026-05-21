@@ -7,8 +7,11 @@ import type { BattleContext } from "../types/context";
 import type { CandidateAction } from "./types";
 import type { Card, TroopCard } from "../types/card";
 import type { Effect, TargetSelector } from "../types/effect";
-import { aliveTroops, findTroopBySide, getSide } from "../selectors/battle";
+import { aliveTroops, findTroopBySide, getSide, heroHasStatus, troopHasStatus } from "../selectors/battle";
 import { evalAmount } from "../effects/amount";
+import { fullGaugeOpportunityCost, getEffectiveCardCost, getFullGaugeTroopDamageMultiplier } from "../resource/fullGaugeBuff";
+import { damageAfterDefense } from "../combat/damage";
+import { hasTroopCounteredThisTurn } from "../combat/attack";
 
 export interface Prediction {
   /** 玩家英雄受到的傷害（正值）。 */
@@ -71,7 +74,7 @@ export function troopValue(t: TroopInstance): number {
 }
 
 /** 預測一次兵力攻擊的結果（不 mutate）。 */
-function predictAttack(state: BattleState, attackerId: string, targetRef: "hero" | string): Prediction {
+function predictAttack(state: BattleState, ctx: BattleContext, attackerId: string, targetRef: "hero" | string): Prediction {
   const att = findTroopBySide(state, attackerId);
   if (!att || att.side !== "enemy") return EMPTY;
   const attacker = att.troop;
@@ -80,7 +83,8 @@ function predictAttack(state: BattleState, attackerId: string, targetRef: "hero"
 
   if (targetRef === "hero") {
     const player = state.player.hero;
-    const dmg = aPierce ? attacker.atk : Math.max(0, attacker.atk - player.def);
+    const raw = Math.round(attacker.atk * getFullGaugeTroopDamageMultiplier(state, ctx, "enemy"));
+    const dmg = damageAfterDefense(raw, player.def, { ignoreDef: aPierce, allowZeroAfterDefense: heroHasStatus(player, "invincible") });
     const absorbed = Math.min(player.armor, dmg);
     const finalDmg = dmg - absorbed;
     return {
@@ -96,10 +100,13 @@ function predictAttack(state: BattleState, attackerId: string, targetRef: "hero"
   const dPierce = defender.keywords.has("pierce");
   const dLethal = defender.keywords.has("lethal");
 
-  const dmgToDef = aPierce ? attacker.atk : Math.max(0, attacker.atk - defender.def);
-  const dmgToAtt = dPierce ? defender.atk : Math.max(0, defender.atk - attacker.def);
+  const rawAttackerDamage = Math.round(attacker.atk * getFullGaugeTroopDamageMultiplier(state, ctx, "enemy"));
+  const defenderCanCounter = !hasTroopCounteredThisTurn(state, defender);
+  const rawDefenderDamage = defenderCanCounter ? Math.round(defender.atk * getFullGaugeTroopDamageMultiplier(state, ctx, "player")) : 0;
+  const dmgToDef = damageAfterDefense(rawAttackerDamage, defender.def, { ignoreDef: aPierce, allowZeroAfterDefense: troopHasStatus(defender, "invincible") });
+  const dmgToAtt = defenderCanCounter ? damageAfterDefense(rawDefenderDamage, attacker.def, { ignoreDef: dPierce, allowZeroAfterDefense: troopHasStatus(attacker, "invincible") }) : 0;
   const defKilled = dmgToDef >= defender.hp || (aLethal && dmgToDef > 0);
-  const attKilled = dmgToAtt >= attacker.hp || (dLethal && dmgToAtt > 0);
+  const attKilled = defenderCanCounter && (dmgToAtt >= attacker.hp || (dLethal && dmgToAtt > 0));
 
   return {
     ...EMPTY,
@@ -152,13 +159,13 @@ function accumulateEffects(state: BattleState, effects: readonly Effect[], out: 
         const tgs = resolveTargetsForPredict(state, e.target, sourceSide);
         for (const t of tgs) {
           if (t.kind === "playerHero") {
-            const dmg = e.ignoreDef ? raw : Math.max(0, raw - state.player.hero.def);
+            const dmg = damageAfterDefense(raw, state.player.hero.def, { ignoreDef: e.ignoreDef, allowZeroAfterDefense: heroHasStatus(state.player.hero, "invincible") });
             const absorbed = Math.min(state.player.hero.armor, dmg);
             const finalDmg = dmg - absorbed;
             out.damageToPlayerHero += finalDmg;
             if (finalDmg >= state.player.hero.hp) out.killsPlayerHero = true;
           } else if (t.kind === "playerTroop" && t.troop) {
-            const dmg = e.ignoreDef ? raw : Math.max(0, raw - t.troop.def);
+            const dmg = damageAfterDefense(raw, t.troop.def, { ignoreDef: e.ignoreDef, allowZeroAfterDefense: troopHasStatus(t.troop, "invincible") });
             if (dmg >= t.troop.hp) {
               out.killedPlayerTroops.push({ instanceId: t.troop.instanceId, value: troopValue(t.troop) });
             } else {
@@ -166,7 +173,7 @@ function accumulateEffects(state: BattleState, effects: readonly Effect[], out: 
             }
           } else if (t.kind === "enemyHero") {
             // 對自己造傷（少見：戰嚎 SELF_DAMAGE_FIXED）
-            out.damageToSelfHero += e.ignoreDef ? raw : Math.max(0, raw - state.enemy.hero.def);
+            out.damageToSelfHero += damageAfterDefense(raw, state.enemy.hero.def, { ignoreDef: e.ignoreDef, allowZeroAfterDefense: heroHasStatus(state.enemy.hero, "invincible") });
           }
         }
         break;
@@ -287,13 +294,13 @@ function resolveTargetsForPredict(state: BattleState, sel: TargetSelector, sourc
 export function predictAction(state: BattleState, ctx: BattleContext, action: CandidateAction): Prediction {
   switch (action.kind) {
     case "attack":
-      return predictAttack(state, action.attackerInstanceId, action.target);
+      return predictAttack(state, ctx, action.attackerInstanceId, action.target);
 
     case "deployFromHand": {
       const inst = state.enemy.hand.find((c) => c.instanceId === action.cardInstanceId);
       if (!inst) return EMPTY;
       const card = ctx.getCard(inst.cardId);
-      const cost = (card as Card).cost ?? 0;
+      const cost = getEffectiveCardCost(state, ctx, "enemy", card as Card);
       return predictDeploy(state, ctx, inst.cardId, cost);
     }
     case "deployFromPool":
@@ -304,20 +311,45 @@ export function predictAction(state: BattleState, ctx: BattleContext, action: Ca
       if (!inst) return EMPTY;
       const card = ctx.getCard(inst.cardId);
       if (card.type !== "spell") return EMPTY;
-      return predictSkillLike(state, card.effects, { mana: card.cost });
+      return predictSkillLike(state, card.effects, { mana: getEffectiveCardCost(state, ctx, "enemy", card) });
+    }
+
+    case "action": {
+      const inst = state.enemy.hand.find((c) => c.instanceId === action.cardInstanceId);
+      if (!inst) return EMPTY;
+      const card = ctx.getCard(inst.cardId);
+      if (card.type !== "action") return EMPTY;
+      return predictSkillLike(state, card.effects, { mana: getEffectiveCardCost(state, ctx, "enemy", card) });
+    }
+
+    case "equipment": {
+      const inst = state.enemy.hand.find((c) => c.instanceId === action.cardInstanceId);
+      if (!inst) return EMPTY;
+      const card = ctx.getCard(inst.cardId);
+      if (card.type !== "equipment") return EMPTY;
+      // 裝備主要是被動加成，無立即傷害；以成本記入即可
+      return { ...EMPTY, manaCost: getEffectiveCardCost(state, ctx, "enemy", card) };
+    }
+
+    case "field": {
+      const inst = state.enemy.hand.find((c) => c.instanceId === action.cardInstanceId);
+      if (!inst) return EMPTY;
+      const card = ctx.getCard(inst.cardId);
+      if (card.type !== "field") return EMPTY;
+      return predictSkillLike(state, card.effects, { mana: getEffectiveCardCost(state, ctx, "enemy", card) });
     }
 
     case "skill": {
       const heroDef = ctx.getHero(state.enemy.hero.defId);
       const skill = heroDef.actives.find((s) => s.id === action.skillId);
       if (!skill) return EMPTY;
-      return predictSkillLike(state, skill.effects, skill.cost);
+      return predictSkillLike(state, skill.effects, { ...skill.cost, gauge: (skill.cost.gauge ?? 0) + fullGaugeOpportunityCost(state, ctx, "enemy", skill.cost.gauge) });
     }
 
     case "ultimate": {
       const heroDef = ctx.getHero(state.enemy.hero.defId);
       if (heroDef.ultimate.id !== action.skillId) return EMPTY;
-      return predictSkillLike(state, heroDef.ultimate.effects, heroDef.ultimate.cost);
+      return predictSkillLike(state, heroDef.ultimate.effects, { ...heroDef.ultimate.cost, gauge: (heroDef.ultimate.cost.gauge ?? 0) + fullGaugeOpportunityCost(state, ctx, "enemy", heroDef.ultimate.cost.gauge) });
     }
 
     case "endTurn":

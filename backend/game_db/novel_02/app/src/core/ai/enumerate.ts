@@ -3,22 +3,28 @@
  */
 import type { BattleState } from "../types/battle";
 import type { BattleContext } from "../types/context";
-import { aliveTroops, freeSlotIndex, hasGuardTroop } from "../selectors/battle";
-import { canTroopAttack } from "../combat/attack";
+import { aliveTroops, freeSlotIndex } from "../selectors/battle";
+import { canActionTarget, canTroopAttack } from "../combat/attack";
 import type { CandidateAction, EnemyProfile } from "./types";
 import type { Effect, TargetSelector } from "../types/effect";
+import { isHeroAbilityFrozen } from "../effects/heroAbilityFreeze";
+import { getEffectiveCardCost } from "../resource/fullGaugeBuff";
 
 export function enumerateActions(state: BattleState, ctx: BattleContext, profile: EnemyProfile): CandidateAction[] {
   const out: CandidateAction[] = [];
   const enemy = state.enemy;
+  const troopFrozen = isHeroAbilityFrozen(enemy.hero, "troop");
+  const spellFrozen = isHeroAbilityFrozen(enemy.hero, "spell");
 
   // — 部署 —
   const slot = freeSlotIndex(enemy);
   if (slot >= 0) {
     if (profile.kind === "lair") {
       // 巢穴：直接從 summonPool（不消耗 mana / 不出手牌）
-      for (const cardId of profile.summonPool ?? []) {
-        out.push({ kind: "deployFromPool", cardId, slotIdx: slot });
+      if (!troopFrozen) {
+        for (const cardId of profile.summonPool ?? []) {
+          out.push({ kind: "deployFromPool", cardId, slotIdx: slot });
+        }
       }
     } else {
       // Boss / 內戰：手牌部署 + 可選召喚池
@@ -26,26 +32,69 @@ export function enumerateActions(state: BattleState, ctx: BattleContext, profile
       for (const inst of enemy.hand) {
         if (seenCards.has(inst.cardId)) continue; // 同 cardId 只 enumerate 一次
         const card = ctx.getCard(inst.cardId);
-        if (card.cost > enemy.manaCurrent + enemy.tempMana) continue;
+        if (getEffectiveCardCost(state, ctx, "enemy", card) > enemy.manaCurrent + enemy.tempMana) continue;
         if (card.type === "troop") {
+          if (troopFrozen) continue;
           out.push({ kind: "deployFromHand", cardInstanceId: inst.instanceId, slotIdx: slot });
           seenCards.add(inst.cardId);
         } else if (card.type === "spell") {
+          if (spellFrozen) continue;
           for (const targetRef of enumerateEffectTargets(state, card.effects)) {
             out.push({ kind: "spell", cardInstanceId: inst.instanceId, targetRef });
           }
           seenCards.add(inst.cardId);
+        } else if (card.type === "action") {
+          // 行動牌：需要場上有自方兵力才有效；多數行動帶 buff/dmg 一目標
+          for (const targetRef of enumerateEffectTargets(state, card.effects)) {
+            out.push({ kind: "action", cardInstanceId: inst.instanceId, targetRef });
+          }
+          seenCards.add(inst.cardId);
+        } else if (card.type === "equipment") {
+          out.push({ kind: "equipment", cardInstanceId: inst.instanceId });
+          seenCards.add(inst.cardId);
+        } else if (card.type === "field") {
+          out.push({ kind: "field", cardInstanceId: inst.instanceId });
+          seenCards.add(inst.cardId);
         }
       }
       // Boss 召喚池（如夢魔宗主的夢幻體、古魔的孳生體）— 不消耗 mana / 手牌
-      for (const cardId of profile.summonPool ?? []) {
-        out.push({ kind: "deployFromPool", cardId, slotIdx: slot });
+      if (!troopFrozen) {
+        for (const cardId of profile.summonPool ?? []) {
+          out.push({ kind: "deployFromPool", cardId, slotIdx: slot });
+        }
+      }
+    }
+  } else {
+    // 沒有空槽位也可打非部署型卡：spell / action / equipment / field
+    if (profile.kind !== "lair") {
+      const seenCards = new Set<string>();
+      for (const inst of enemy.hand) {
+        if (seenCards.has(inst.cardId)) continue;
+        const card = ctx.getCard(inst.cardId);
+        if (getEffectiveCardCost(state, ctx, "enemy", card) > enemy.manaCurrent + enemy.tempMana) continue;
+        if (card.type === "spell") {
+          if (spellFrozen) continue;
+          for (const targetRef of enumerateEffectTargets(state, card.effects)) {
+            out.push({ kind: "spell", cardInstanceId: inst.instanceId, targetRef });
+          }
+          seenCards.add(inst.cardId);
+        } else if (card.type === "action") {
+          for (const targetRef of enumerateEffectTargets(state, card.effects)) {
+            out.push({ kind: "action", cardInstanceId: inst.instanceId, targetRef });
+          }
+          seenCards.add(inst.cardId);
+        } else if (card.type === "equipment") {
+          out.push({ kind: "equipment", cardInstanceId: inst.instanceId });
+          seenCards.add(inst.cardId);
+        } else if (card.type === "field") {
+          out.push({ kind: "field", cardInstanceId: inst.instanceId });
+          seenCards.add(inst.cardId);
+        }
       }
     }
   }
 
   // — 攻擊 —
-  const playerHasGuard = hasGuardTroop(state.player);
   for (const attacker of aliveTroops(enemy)) {
     // 對每個玩家方兵力嘗試
     for (const t of aliveTroops(state.player)) {
@@ -56,7 +105,7 @@ export function enumerateActions(state: BattleState, ctx: BattleContext, profile
     }
     // 對英雄（兵力優先制 + 守護由 canTroopAttack 處理）
     const checkHero = canTroopAttack(state, "enemy", attacker, "hero");
-    if (checkHero.ok && !playerHasGuard) {
+    if (checkHero.ok) {
       out.push({ kind: "attack", attackerInstanceId: attacker.instanceId, target: "hero" });
     }
   }
@@ -115,9 +164,11 @@ function collectSingleTargets(state: BattleState, sel: TargetSelector & { kind: 
   const wantPlayer = !sel.filter.side || sel.filter.side === "enemy" || sel.filter.side === "all";
   const wantEnemy = sel.filter.side === "self" || sel.filter.side === "all";
   const out: (string | undefined)[] = [];
-  if (wantHero && wantPlayer) out.push("H_player");
+  if (wantHero && wantPlayer && canActionTarget(state, "enemy", "hero").ok) out.push("H_player");
   if (wantHero && wantEnemy) out.push("H_enemy");
-  if (wantTroop && wantPlayer) for (const t of aliveTroops(state.player)) out.push(t.instanceId);
+  if (wantTroop && wantPlayer) for (const t of aliveTroops(state.player)) {
+    if (canActionTarget(state, "enemy", t).ok) out.push(t.instanceId);
+  }
   if (wantTroop && wantEnemy) for (const t of aliveTroops(state.enemy)) out.push(t.instanceId);
   if (out.length === 0) out.push(undefined);
   return out;

@@ -4,7 +4,8 @@ import type { LairDefinition } from "./types";
 
 /**
  * 腐化神殿 — §E.2
- * HP 200 / DEF 3 / 每 2 回合 1 / 祭司存活時巢穴 +5 HP/回合。
+ * HP 200 / DEF 3 / 每 2 回合 1 / 祭司存活時巢穴 +5 HP/回合
+ * 機制：以死為食、獻祭強化、越殺越強
  */
 export const LAIR_CORRUPTED_TEMPLE_ID = "corrupted_temple";
 
@@ -35,26 +36,49 @@ function createInstance(): HeroInstance {
 
 export const LAIR_CORRUPTED_TROOPS: TroopCard[] = [
   {
-    id: "I_TEMPLE_PRIEST", type: "troop", name: "腐化祭司",
-    cost: 0, rarity: "uncommon",
+    id: "T_s_24", name: "腐化祭司",
+    type: "troop", rarity: "uncommon", cost: 0,
     hp: 12, atk: 2, def: 2,
     keywords: ["guard"],
-    flavor: "誦經之聲不絕，神殿每回合 +5 HP。",
+    // 存活時神殿每回合+5 HP（由TEMPLE_PRIEST_HEAL aura驅動）
+    // 殉道：死亡時治癒神殿8 HP
+    onDestroy: [{ kind: "heal", target: { kind: "enemyHero" }, amount: { kind: "const", value: 8 } }],
+    flavor: "誦經之聲不絕，死亡時以最後祈禱滋養神殿。",
   },
   {
-    id: "I_TEMPLE_FOLLOWER", type: "troop", name: "腐化信徒",
-    cost: 0, rarity: "common",
+    id: "T_s_25", name: "腐化信徒",
+    type: "troop", rarity: "common", cost: 0,
     hp: 8, atk: 4, def: 1,
     keywords: [],
-    flavor: "犧牲自我以滋養神殿。",
+    // 獻祭：死亡時治癒神殿3 HP並消耗現實穩定度
+    onDestroy: [
+      { kind: "heal", target: { kind: "enemyHero" }, amount: { kind: "const", value: 3 } },
+      { kind: "stability", delta: -2 },
+    ],
+    flavor: "犧牲自我以滋養神殿，每一次死亡都是奉獻。",
   },
   {
-    id: "I_CORRUPT_RELIC", type: "troop", name: "腐爛聖物",
-    cost: 0, rarity: "rare",
+    id: "T_s_26", name: "腐爛聖物",
+    type: "troop", rarity: "rare", cost: 0,
     hp: 18, atk: 5, def: 3,
     keywords: [],
+    // 每回合腐化：對隨機玩家兵力造成2傷害
+    onTurnEnd: [{
+      kind: "damage",
+      target: { kind: "random", filter: { side: "player", entity: "troop" }, count: 1 },
+      amount: { kind: "const", value: 2 },
+    }],
     onDestroy: [{ kind: "stability", delta: -4 }],
-    flavor: "曾經神聖，如今滴落腐液。",
+    flavor: "曾經神聖，如今滴落腐液，持續侵蝕一切。",
+  },
+  {
+    id: "T_s_27", name: "腐化魔神",
+    type: "troop", rarity: "rare", cost: 0,
+    hp: 22, atk: 8, def: 2,
+    keywords: ["lethal", "menace"],
+    // 降臨時神殿回血6；必殺+威壓令玩家極難處理
+    onPlay: [{ kind: "heal", target: { kind: "enemyHero" }, amount: { kind: "const", value: 6 } }],
+    flavor: "殿中儀式累積的腐化精華凝成此形，任何觸碰皆是終結。",
   },
 ];
 
@@ -65,6 +89,8 @@ export const LAIR_CORRUPTED_TEMPLE: LairDefinition = {
   createInstance,
   profileId: "lair_corrupted_temple",
   internalTroops: LAIR_CORRUPTED_TROOPS,
-  auraTags: { onEnd: ["TEMPLE_PRIEST_HEAL"] },
-  description: "HP 200 / DEF 3；每 2 回合召喚 1 隻。場上有腐化祭司時，巢穴每回合回復 5 HP。",
+  auraTags: {
+    onEnd: ["TEMPLE_PRIEST_HEAL", "TEMPLE_SACRIFICE"],
+  },
+  description: "HP 200 / DEF 3；每 2 回合召喚 1 隻。祭司在場時神殿每回合 +5 HP；祭司死亡額外 +8 HP。信徒死亡治癒神殿 3 HP 並降穩定度 -2。腐爛聖物每回合對隨機玩家兵力造成 2 傷害。腐化魔神具必殺+威壓，出場治癒神殿 6 HP。每個兵力死亡累積獻祭計數，滿5觸發強化（TEMPLE_SACRIFICE）。",
 };

@@ -20,11 +20,12 @@ function makeSessionId(): string {
   return globalThis.crypto?.randomUUID?.() ?? `${Date.now()}-${Math.random().toString(36).slice(2)}`;
 }
 
-function createSession(): RecordingSession {
+function createSession(override?: { sessionId?: string; startTime?: number; startedAt?: string }): RecordingSession {
+  const startTime = override?.startTime ?? Date.now();
   return {
-    sessionId: makeSessionId(),
-    startTime: Date.now(),
-    startedAt: new Date().toISOString(),
+    sessionId: override?.sessionId ?? makeSessionId(),
+    startTime,
+    startedAt: override?.startedAt ?? new Date(startTime).toISOString(),
     started: false,
     finalized: false,
   };
@@ -70,20 +71,32 @@ function gameLogBridge(): Window["gameLog"] | undefined {
   return window.gameLog;
 }
 
-export function useBattleAutoRecorder(state: BattleState): void {
+export interface AutoRecorderOptions {
+  sessionId?: string;
+  startTime?: number;
+  startedAt?: string;
+}
+
+export function useBattleAutoRecorder(state: BattleState, opts?: AutoRecorderOptions): void {
   const sessionRef = useRef<RecordingSession | null>(null);
   const latestStateRef = useRef(state);
+  const abandonedTimerRef = useRef<number | undefined>(undefined);
 
   latestStateRef.current = state;
 
   useEffect(() => {
+    if (abandonedTimerRef.current !== undefined) {
+      window.clearTimeout(abandonedTimerRef.current);
+      abandonedTimerRef.current = undefined;
+    }
+
     const bridge = gameLogBridge();
     if (!bridge) return;
 
     const profile = resolveEnemyProfile(state);
     if (!profile) return;
 
-    const session = sessionRef.current ?? createSession();
+    const session = sessionRef.current ?? createSession(opts);
     sessionRef.current = session;
     if (session.finalized) return;
 
@@ -105,7 +118,14 @@ export function useBattleAutoRecorder(state: BattleState): void {
   }, [state]);
 
   useEffect(() => {
+    const clearAbandonedTimer = (): void => {
+      if (abandonedTimerRef.current === undefined) return;
+      window.clearTimeout(abandonedTimerRef.current);
+      abandonedTimerRef.current = undefined;
+    };
+
     const finishAbandoned = (reason: string): void => {
+      clearAbandonedTimer();
       const bridge = gameLogBridge();
       const session = sessionRef.current;
       if (!bridge || !session || session.finalized) return;
@@ -119,6 +139,11 @@ export function useBattleAutoRecorder(state: BattleState): void {
       sendGameLog(() => bridge.finish(session.sessionId, "abandoned", reason, doc));
     };
 
+    const scheduleFinishAbandoned = (reason: string): void => {
+      clearAbandonedTimer();
+      abandonedTimerRef.current = window.setTimeout(() => finishAbandoned(reason), 0);
+    };
+
     const onPageHide = (): void => finishAbandoned("pagehide");
     const onBeforeUnload = (): void => finishAbandoned("beforeunload");
 
@@ -128,7 +153,7 @@ export function useBattleAutoRecorder(state: BattleState): void {
     return () => {
       window.removeEventListener("pagehide", onPageHide);
       window.removeEventListener("beforeunload", onBeforeUnload);
-      finishAbandoned("battle view unmounted");
+      scheduleFinishAbandoned("battle view unmounted");
     };
   }, []);
 }
