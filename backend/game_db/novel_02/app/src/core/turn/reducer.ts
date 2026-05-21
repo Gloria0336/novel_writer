@@ -11,6 +11,7 @@ import { addGauge, gaugeOnEquipmentPlay, gaugeOnForge, gaugeOnSpellCast } from "
 import { DEVICE_POOL } from "../../data/cards/devices";
 import { triggerReactionsBySide } from "../effects/reactions";
 import { applyCorruptionStageEffects, applyStabilityDelta } from "../resource/stability";
+import { notifyBossGauge } from "../resource/bossGauge";
 import { tryPlayerOccupy } from "../resource/rift";
 import { aliveTroops, freeSlotIndex, getSide, otherSide } from "../selectors/battle";
 import { advanceToNextSide, checkVictory, endTurnFor, startTurnFor } from "./phases";
@@ -118,6 +119,8 @@ function playTroop(state: BattleState, sideKey: Side, side: BattleState["player"
   }
 
   reapDeadTroops(state, ctx, sideKey);
+  // BossGauge：敵方部署兵力/器具
+  if (sideKey === "enemy") notifyBossGauge(state, ctx, { kind: "onSummon", cardId: lookup.card.id });
   checkVictory(state);
   return { ok: true };
 }
@@ -297,6 +300,8 @@ function playSpell(state: BattleState, sideKey: Side, side: BattleState["player"
   // 自動反應：對立面器具對「敵方施法」反應
   triggerReactionsBySide(state, ctx, "enemySpellCast", sideKey);
   reapDeadTroops(state, ctx, sideKey);
+  // BossGauge：敵方施放法術
+  if (sideKey === "enemy") notifyBossGauge(state, ctx, { kind: "onSpellCast" });
   checkVictory(state);
   return { ok: true };
 }
@@ -364,7 +369,7 @@ function playActionCard(state: BattleState, sideKey: Side, side: BattleState["pl
   // 守護優先檢查（若效果有 single 目標且未 ignoreGuard）
   const targetCheck = validateSingleTargetEffects(state, sideKey, lookup.card.effects, targetInstanceId, ctx, "action");
   if (!targetCheck.ok) return targetCheck;
-  const scriptedTargetCheck = validateScriptedActionTargetRequirements(state, sideKey, lookup.card, targetInstanceId);
+  const scriptedTargetCheck = validateScriptedActionTargetRequirements(state, sideKey, lookup.card, targetInstanceId, ctx);
   if (!scriptedTargetCheck.ok) return scriptedTargetCheck;
 
   spendMana(side, cost);
@@ -380,6 +385,8 @@ function playActionCard(state: BattleState, sideKey: Side, side: BattleState["pl
   flags.actionCardsPlayedThisTurn += 1;
 
   reapDeadTroops(state, ctx, sideKey);
+  // BossGauge：敵方打出行動牌
+  if (sideKey === "enemy") notifyBossGauge(state, ctx, { kind: "onActionPlay" });
   checkVictory(state);
   return { ok: true };
 }
@@ -420,7 +427,7 @@ function validateScriptedSpellTargetRequirements(state: BattleState, sideKey: Si
   return check.ok ? { ok: true } : { ok: false, reason: check.reason };
 }
 
-function validateScriptedActionTargetRequirements(state: BattleState, sideKey: Side, card: Card, targetInstanceId: string | undefined): ApplyResult {
+function validateScriptedActionTargetRequirements(state: BattleState, sideKey: Side, card: Card, targetInstanceId: string | undefined, ctx: BattleContext): ApplyResult {
   if (card.id === "A_b_02") {
     if (!targetInstanceId) return { ok: false, reason: "brute charge requires target" };
     const enemySide = otherSide(sideKey);
@@ -432,6 +439,38 @@ function validateScriptedActionTargetRequirements(state: BattleState, sideKey: S
     if (!target || target.side !== enemySide) return { ok: false, reason: "invalid brute charge target" };
     const check = canActionTarget(state, sideKey, target.troop);
     return check.ok ? { ok: true } : { ok: false, reason: check.reason };
+  }
+
+  if (card.id === "A_o_01") {
+    const side = getSide(state, sideKey);
+    return freeSlotIndex(side) >= 0 ? { ok: true } : { ok: false, reason: "no troop slot for construct" };
+  }
+
+  if (card.id === "A_o_02") {
+    const side = getSide(state, sideKey);
+    const target = targetInstanceId ? findTroopBySide(state, targetInstanceId) : null;
+    if (targetInstanceId && (!target || target.side !== sideKey || !target.troop.isConstruct)) {
+      return { ok: false, reason: "emergency disassemble requires own construct" };
+    }
+    if (!targetInstanceId && !aliveTroops(side).some((t) => t.isConstruct)) {
+      return { ok: false, reason: "emergency disassemble requires construct" };
+    }
+    return { ok: true };
+  }
+
+  if (card.id === "A_o_03") {
+    const side = getSide(state, sideKey);
+    const target = targetInstanceId ? findTroopBySide(state, targetInstanceId) : null;
+    if (targetInstanceId && (!target || target.side !== sideKey || !target.troop.isConstruct || target.slotIndex < 0)) {
+      return { ok: false, reason: "construct upgrade requires own board construct" };
+    }
+    if (!targetInstanceId && !side.troopSlots.some((t) => t?.isConstruct)) {
+      return { ok: false, reason: "construct upgrade requires construct" };
+    }
+    if (!side.hand.some((inst) => ctx.getCard(inst.cardId).type === "device")) {
+      return { ok: false, reason: "construct upgrade requires device in hand" };
+    }
+    return { ok: true };
   }
 
   if (card.id !== "A_h_05") return { ok: true };
@@ -606,11 +645,15 @@ function troopAttack(state: BattleState, sideKey: Side, attackerId: string, targ
     });
   }
   if (attackResult.defenderDamage > 0 && troopHasPassiveTag(ctx, attacker.troop, "ELDER_TOUCH")) {
-    const r = applyStabilityDelta(state, -1);
+    const r = applyStabilityDelta(state, -1, ctx);
     applyCorruptionStageEffects(state, r.stageJustReached);
   }
 
   reapDeadTroops(state, ctx, sideKey);
+  // BossGauge：敵方兵力攻擊命中（含對英雄）
+  if (sideKey === "enemy" && attackResult.defenderDamage > 0) {
+    notifyBossGauge(state, ctx, { kind: "onAttackHit", toHero: targetEntity === "hero" });
+  }
   checkVictory(state);
   return { ok: true };
 }

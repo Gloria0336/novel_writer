@@ -88,6 +88,81 @@ export function scoreStabilityPressure(_state: BattleState, p: Prediction): numb
   return clamp01(p.stabilityDrain / NORM_STABILITY);
 }
 
+/**
+ * Boss 量表累積評分：粗估該動作會對 state.bossGauge 累積多少 delta，
+ * 並依「距離 max 的近度」加權，鼓勵 AI 在臨界時主動補刀。
+ *
+ * 非 Boss 戰（無 bossGauge）→ 0。
+ */
+export function scoreBossGaugeBuildup(
+  state: BattleState,
+  ctx: BattleContext,
+  action: CandidateAction,
+  p: Prediction,
+): number {
+  if (!state.bossGauge) return 0;
+  const { spec, value } = state.bossGauge;
+  const max = Math.max(1, spec.max);
+
+  // 估算該動作會貢獻的 BossGauge delta（粗略：只比對 trigger.kind 與 action.kind）
+  let estimated = 0;
+  for (const trig of spec.triggers) {
+    switch (trig.kind) {
+      case "onSpellCast":
+        if (action.kind === "spell") estimated += trig.amount ?? 0;
+        break;
+      case "onActionPlay":
+        if (action.kind === "action") estimated += trig.amount ?? 0;
+        break;
+      case "onSummon":
+        if (action.kind === "deployFromHand" || action.kind === "deployFromPool") {
+          // troopTag/cardId 比對在 runtime 才精準；此處假設多數兵力都命中
+          estimated += trig.amount ?? 0;
+        }
+        // spell/action 也可能召喚（如 S_de_01 召喚 3 個腐蟲）→ 由 prediction 無法精確估算，給小常數
+        if (action.kind === "spell") estimated += (trig.amount ?? 0) * 0.3;
+        break;
+      case "onAttackHit":
+        if (action.kind === "attack" && p.damageToPlayerHero + p.damageToPlayerTroopsNonLethal + (p.killedPlayerTroops?.length ? 1 : 0) > 0) {
+          estimated += trig.amount ?? 0;
+        }
+        if ((action.kind === "skill" || action.kind === "ultimate") && p.damageToPlayerHero > 0) {
+          estimated += (trig.amount ?? 0) * 0.5;
+        }
+        break;
+      case "onPlayerTroopKilled":
+        if (p.killedPlayerTroops && p.killedPlayerTroops.length > 0) {
+          estimated += (trig.amount ?? 0) * p.killedPlayerTroops.length;
+        }
+        break;
+      case "onFreezeEnemy":
+        if (action.kind === "spell" || action.kind === "skill" || action.kind === "ultimate") {
+          // 凍結估算困難，給保守常數
+          estimated += (trig.amount ?? 0) * 0.3;
+        }
+        break;
+      case "onFormSwitch":
+        // 形態切換靠主動技；先不在這估算
+        break;
+      case "onTroopSurvivePerTurn":
+      case "onTurnStart":
+      case "onHeroDamaged":
+      case "onHeroDamagedPct":
+      case "onStabilityDelta":
+      case "onFieldBurnTick":
+        // 這些 trigger 屬於環境/被動，不由單一動作驅動
+        break;
+    }
+  }
+
+  if (estimated <= 0) return 0;
+
+  // 越接近 max 越鼓勵：closenessBoost = 1 + ratio
+  const ratio = value / max;
+  const boost = 1 + ratio;
+  return clamp01((estimated / max) * boost);
+}
+
 /** 結束回合的固定 baseline（resilience 高的人格更傾向結束）。 */
 export function scoreEndTurn(resilience: number): number {
   return 0.25 + 0.1 * resilience;
@@ -109,6 +184,7 @@ export function scoreAllConsiderations(
     resourceEfficiency: scoreResourceEfficiency(state, p, action),
     gaugeBuildup:       scoreGaugeBuildup(state, ctx, p),
     stabilityPressure:  scoreStabilityPressure(state, p),
+    bossGaugeBuildup:   scoreBossGaugeBuildup(state, ctx, action, p),
   };
 }
 

@@ -11,7 +11,8 @@ export type ConsiderationId =
   | "selfSurvival"
   | "resourceEfficiency"
   | "gaugeBuildup"
-  | "stabilityPressure";
+  | "stabilityPressure"
+  | "bossGaugeBuildup";
 
 export const ALL_CONSIDERATIONS: readonly ConsiderationId[] = [
   "damageDealt",
@@ -22,6 +23,7 @@ export const ALL_CONSIDERATIONS: readonly ConsiderationId[] = [
   "resourceEfficiency",
   "gaugeBuildup",
   "stabilityPressure",
+  "bossGaugeBuildup",
 ];
 
 /** 0~1 的六軸性格向量。 */
@@ -64,6 +66,9 @@ export type CandidateAction =
   | { kind: "deployFromPool"; cardId: string; slotIdx: number }
   | { kind: "attack"; attackerInstanceId: string; target: "hero" | string /* troopInstanceId */ }
   | { kind: "spell"; cardInstanceId: string; targetRef?: string }
+  | { kind: "action"; cardInstanceId: string; targetRef?: string }
+  | { kind: "equipment"; cardInstanceId: string }
+  | { kind: "field"; cardInstanceId: string }
   | { kind: "skill"; skillId: string; targetRef?: string }
   | { kind: "ultimate"; skillId: string; targetRef?: string }
   | { kind: "endTurn" };

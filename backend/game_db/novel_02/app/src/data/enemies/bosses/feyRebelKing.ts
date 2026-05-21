@@ -1,5 +1,7 @@
 import type { HeroDefinition, HeroInstance } from "../../../core/types/hero";
+import type { BossGaugeSpec } from "../../../core/types/bossGauge";
 import type { BossDefinition } from "./types";
+import { BOSS_FEY_REBEL_KING_DECK_IDS } from "../../decks/bosses";
 
 /**
  * 妖族叛王 — §E.1 鏡像模式
@@ -79,11 +81,37 @@ function createInstance(): HeroInstance {
   };
 }
 
+const BOSS_GAUGE: BossGaugeSpec = {
+  id: "dual_resonance",
+  name: "雙形共鳴",
+  description: "每形態切換 +20；每召喚妖族/幻影兵力 +10；每行動卡 +7。滿值釋放祖靈降臨。",
+  max: 100,
+  triggers: [
+    { kind: "onFormSwitch", amount: 20 },
+    { kind: "onSummon", amount: 10, troopTag: "fey" },
+    { kind: "onSummon", amount: 10, troopTag: "phantom" },
+    { kind: "onActionPlay", amount: 7 },
+  ],
+  burstLabel: "祖靈降臨！",
+  burstEffects: [
+    {
+      kind: "buff",
+      target: { kind: "self" },
+      mod: { atk: 2, def: 2 },
+      duration: { kind: "turns", count: 3 },
+    },
+    { kind: "summon", cardId: "T_s_32", count: 1, side: "self" },
+    { kind: "scripted", tag: "FEY_FORM_SWITCH" },
+  ],
+};
+
 export const BOSS_FEY_REBEL_KING: BossDefinition = {
   id: BOSS_FEY_REBEL_KING_ID,
   name: "妖族叛王",
   heroDef: HERO_DEF,
   createInstance,
   profileId: "boss_fey_rebel_king",
+  deckIds: BOSS_FEY_REBEL_KING_DECK_IDS,
+  bossGauge: BOSS_GAUGE,
   description: "HP 100 / ATK 13 / DEF 6 / CMD 5。幻術型 Boss，完整妖族雙形態切換。",
 };

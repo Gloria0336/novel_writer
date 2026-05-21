@@ -286,6 +286,71 @@ function registerElf(): void {
       if (target?.side === otherSide(ec.sourceSide)) applyTroopDamage(target.troop, 40);
     }
   });
+
+  registerScripted("ELF_STARRY_SKY", (payload, ec) => {
+    const hits = (payload as { hits?: number } | undefined)?.hits ?? 6;
+    const damage = (payload as { damage?: number } | undefined)?.damage ?? 3;
+    const enemy = getSide(ec.state, otherSide(ec.sourceSide));
+    let total = 0;
+
+    for (let i = 0; i < hits; i++) {
+      const targets = [
+        { kind: "hero" as const },
+        ...aliveTroops(enemy).map((troop) => ({ kind: "troop" as const, troop })),
+      ];
+      const pick = rngPick(ec.state.rngState, targets);
+      ec.state.rngState = pick.state;
+
+      if (pick.value.kind === "hero") {
+        total += applyHeroDamage(enemy.hero, damage, { fixed: true }).finalAmount;
+      } else {
+        total += applyTroopDamage(pick.value.troop, damage, { fixed: true }).finalAmount;
+      }
+    }
+
+    ec.state.log.push({ turn: ec.state.turn, side: ec.sourceSide, kind: "ELF_STARRY_SKY", text: `漫天星光落下 ${hits} 次，總計 ${total} 傷害`, payload: { hits, damage, total } });
+  });
+
+  registerScripted("ELF_STARVEIN_RETURN", (_payload, ec) => {
+    const me = getSide(ec.state, ec.sourceSide);
+    const spells = Math.max(1, me.spellsCastThisGame);
+    const heal = Math.min(18, 4 + spells * 2);
+    const armor = Math.min(10, Math.floor(spells / 2) * 2);
+    me.hero.hp = Math.min(me.hero.maxHp, me.hero.hp + heal);
+    me.hero.armor += armor;
+    ec.state.log.push({ turn: ec.state.turn, side: ec.sourceSide, kind: "ELF_STARVEIN_RETURN", text: `星脈回流治療 ${heal} HP，護甲 +${armor}`, payload: { spells, heal, armor } });
+  });
+
+  registerScripted("ELF_MOON_PHASE_TUNE", (_payload, ec) => {
+    const me = getSide(ec.state, ec.sourceSide);
+    for (let i = 0; i < me.deck.length && me.hand.length < 9; i++) {
+      const inst = me.deck[i];
+      if (!inst) continue;
+      if (ec.ctx.getCard(inst.cardId).type !== "spell") continue;
+      const [picked] = me.deck.splice(i, 1);
+      if (picked) me.hand.push(picked);
+      break;
+    }
+    const heroDef = ec.ctx.getHero(me.hero.defId);
+    const race = ec.ctx.getRace(heroDef.raceId);
+    addGauge(me.hero, race.gauge.max, 2);
+    syncFullGaugeBuffs(ec.state, ec.ctx);
+  });
+
+  registerScripted("ELF_SILVERLEAF_SEAL", (_payload, ec) => {
+    const enemySide = otherSide(ec.sourceSide);
+    const enemy = getSide(ec.state, enemySide);
+    const targets = aliveTroops(enemy);
+    if (targets.length > 0) {
+      const pick = rngPick(ec.state.rngState, targets);
+      ec.state.rngState = pick.state;
+      const target = pick.value;
+      const prev = target.frozenTurns;
+      target.frozenTurns = Math.max(prev, 2);
+      if (2 >= prev) delete target.frozenDisplayName;
+    }
+    executeEffects([{ kind: "freezeHeroAbility", side: "enemy", modes: ["spell", "action"], turns: 1 }], ec);
+  });
 }
 
 // ============================================================
@@ -866,7 +931,7 @@ function registerDemon(): void {
   });
 
   registerScripted("DM_RIFT_FIELD", (_payload, ec) => {
-    const r = applyStabilityDelta(ec.state, -3);
+    const r = applyStabilityDelta(ec.state, -3, ec.ctx);
     applyCorruptionStageEffects(ec.state, r.stageJustReached);
     const me = getSide(ec.state, ec.sourceSide);
     const heroDef = ec.ctx.getHero(me.hero.defId);
@@ -886,7 +951,7 @@ function registerDemon(): void {
     const heroDef = ec.ctx.getHero(me.hero.defId);
     const race = ec.ctx.getRace(heroDef.raceId);
     addGauge(me.hero, race.gauge.max, 40);
-    applyStabilityDelta(ec.state, -10);
+    applyStabilityDelta(ec.state, -10, ec.ctx);
   });
 
   registerScripted("DM_DARK_SACRIFICE", (_payload, ec) => {

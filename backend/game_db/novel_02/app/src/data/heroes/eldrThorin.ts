@@ -45,10 +45,10 @@ export const HERO_ELDR_THORIN: HeroDefinition = {
     {
       id: "act_forging_rhythm",
       name: "鍛造節奏",
-      description: "抽 1 張牌，所有我方兵力本回合 DEF +2。（消耗 35 鬥志）",
-      cost: { morale: 35 },
+      description: "抽 1 張 E.x.xx 系列或 x.m.xx 系列牌，所有我方兵力本回合 DEF +2。（消耗 20 爐火）",
+      cost: { gauge: 20 },
       effects: [
-        { kind: "draw", count: 1 },
+        { kind: "draw", count: 1, predicate: { cardIdPrefixes: ["E_"], cardIdIncludes: ["_m_"] } },
         { kind: "buff", target: { kind: "all", filter: { side: "self", entity: "troop" } }, mod: { def: 2 }, duration: { kind: "thisTurn" } },
       ],
     },

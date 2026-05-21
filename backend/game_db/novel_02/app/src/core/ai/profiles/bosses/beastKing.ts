@@ -16,6 +16,7 @@ export const BOSS_BEAST_KING_PROFILE: EnemyProfile = {
     heroPressure: 0.5,
     gaugeBuildup: 0.3,
     selfSurvival: -0.5,
+    bossGaugeBuildup: 0.8,
   },
   gaugePolicy: {
     saveUntilThreshold: 0.5,

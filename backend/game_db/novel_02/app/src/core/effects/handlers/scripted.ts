@@ -5,6 +5,7 @@ import { applyHeroDamage, applyTroopDamage } from "../../combat/damage";
 import { addMorale } from "../../resource/morale";
 import { addTempMana } from "../../resource/mana";
 import { applyStabilityDelta, applyCorruptionStageEffects } from "../../resource/stability";
+import { notifyBossGauge } from "../../resource/bossGauge";
 import { openRiftIfNeeded, applyRiftBuff } from "../../resource/rift";
 import { drawCards } from "../../deck/draw";
 import { createTroopInstance } from "../../turn/factories";
@@ -357,6 +358,8 @@ export function registerCoreScripted(): void {
       }
     }
     ec.state.log.push({ turn: ec.state.turn, side: ec.sourceSide, kind: "FEY_FORM", text: `妖族叛王切換為${next === "fey" ? "妖形" : "人形"}。` });
+    // BossGauge：形態切換（妖族叛王雙形共鳴）
+    if (ec.sourceSide === "enemy") notifyBossGauge(ec.state, ec.ctx, { kind: "onFormSwitch" });
   });
 
   // §E.1 妖族叛王 ult：祖靈降臨（3 回合內同享雙形態）— MVP 加雙形態 buff。

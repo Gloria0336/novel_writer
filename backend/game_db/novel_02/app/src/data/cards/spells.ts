@@ -82,4 +82,41 @@ export const SPELLS: SpellCard[] = [
     effects: [{ kind: "scripted", tag: "SALVAGE" }],
     flavor: "把已穿在身上的東西拆回零件——只有真正信任工匠的英雄敢這麼做。",
   },
+  {
+    id: "S_c_18", type: "spell", name: "雷霆長槍", cost: 4, rarity: "rare",
+    effects: [{ kind: "damage", target: { kind: "single", filter: { side: "enemy", entity: "any" } }, amount: { kind: "const", value: 18 }, ignoreDef: true }],
+    flavor: "壓縮成槍形的雷光只閃一下，盔甲、鱗片與護符都來不及反應。",
+  },
+  {
+    id: "S_c_19", type: "spell", name: "劇毒之霧", cost: 3, rarity: "uncommon",
+    effects: [
+      { kind: "damage", target: { kind: "all", filter: { side: "enemy", entity: "troop" } }, amount: { kind: "const", value: 4 }, ignoreDef: true },
+      { kind: "buff", target: { kind: "all", filter: { side: "enemy", entity: "troop" } }, mod: { atk: -2, def: -2 }, duration: { kind: "turns", count: 2 } },
+    ],
+    flavor: "綠黑色霧氣沿著地面貼行，鑽進關節、肺葉與每一道沒封好的甲縫。",
+  },
+  {
+    id: "S_c_20", type: "spell", name: "秘術聚焦", cost: 1, rarity: "common",
+    effects: [
+      { kind: "draw", count: 1 },
+      { kind: "mana", delta: 1, temporary: true },
+    ],
+    flavor: "把發散的魔力收成一條細線，下一個咒式便會順著線自己找到出口。",
+  },
+  {
+    id: "S_c_21", type: "spell", name: "戰場急救", cost: 2, rarity: "common",
+    effects: [
+      { kind: "heal", target: { kind: "self" }, amount: { kind: "const", value: 8 } },
+      { kind: "armor", amount: 4 },
+    ],
+    flavor: "繃帶、止血粉與臨時護盾一起落下，粗糙得要命，但有效。",
+  },
+  {
+    id: "S_c_22", type: "spell", name: "破甲符文", cost: 2, rarity: "uncommon",
+    effects: [
+      { kind: "buff", target: { kind: "single", filter: { side: "enemy", entity: "troop" } }, mod: { def: -4 }, duration: { kind: "turns", count: 2 } },
+      { kind: "addStatus", target: { kind: "single", filter: { side: "enemy", entity: "troop" } }, status: "marked", duration: { kind: "turns", count: 1 } },
+    ],
+    flavor: "符文像燒紅的釘子釘進護甲紋路，下一擊會知道該往哪裡裂開。",
+  },
 ];

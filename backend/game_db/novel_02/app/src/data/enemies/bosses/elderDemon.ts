@@ -1,7 +1,9 @@
 import type { HeroDefinition, HeroInstance } from "../../../core/types/hero";
 import type { TroopCard } from "../../../core/types/card";
+import type { BossGaugeSpec } from "../../../core/types/bossGauge";
 import type { BossDefinition } from "./types";
 import { HERO_ARCHMAGE } from "../../heroes/archmage";
+import { BOSS_ELDER_DEMON_DECK_IDS } from "../../decks/bosses";
 
 /**
  * 古魔 — §E.1 鏡像模式
@@ -55,6 +57,24 @@ const ELDER_TROOPS: TroopCard[] = [
   },
 ];
 
+const BOSS_GAUGE: BossGaugeSpec = {
+  id: "dimensional_rift",
+  name: "次元滲透",
+  description: "每施放法術 +10；自方兵力攻擊命中 +7；穩定度每跌 5 點 +3。滿值釋放次元裂變。",
+  max: 100,
+  triggers: [
+    { kind: "onSpellCast", amount: 10 },
+    { kind: "onAttackHit", amount: 7 },
+    { kind: "onStabilityDelta", per5: 3 },
+  ],
+  burstLabel: "次元裂變！",
+  burstEffects: [
+    { kind: "stability", delta: -6 },
+    { kind: "draw", count: 1 },
+    { kind: "summon", cardId: "T_s_29", count: 1, side: "self" },
+  ],
+};
+
 export const BOSS_ELDER_DEMON: BossDefinition = {
   id: BOSS_ELDER_DEMON_ID,
   name: "古魔",
@@ -62,5 +82,7 @@ export const BOSS_ELDER_DEMON: BossDefinition = {
   createInstance,
   profileId: "boss_elder_demon",
   internalTroops: ELDER_TROOPS,
+  deckIds: BOSS_ELDER_DEMON_DECK_IDS,
+  bossGauge: BOSS_GAUGE,
   description: "HP 180 / ATK 16 / DEF 5 / CMD 6。法師型 Boss，兵力攻擊命中即穩定度 -1。",
 };

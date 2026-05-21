@@ -16,6 +16,7 @@ export const BOSS_ELDER_DEMON_PROFILE: EnemyProfile = {
     gaugeBuildup: 0.4,
     stabilityPressure: 0.6,
     boardControl: 0.3,
+    bossGaugeBuildup: 0.5,
   },
   gaugePolicy: {
     saveUntilThreshold: 0.5,

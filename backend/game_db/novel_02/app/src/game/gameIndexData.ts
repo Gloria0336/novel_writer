@@ -350,6 +350,10 @@ const SCRIPTED_EFFECT_TEXT: Record<string, ScriptedEffectFormatter> = {
   HP_PER_SPELL_CAST: "己方每施放 1 張法術，此兵力 +3 HP",
   RESONANCE_NO_RESET: (_payload, _card, context) => `本回合${gaugeTerm(context, "共鳴")}不會重置，累積至下回合`,
   AENO_FORBIDDEN: (_payload, _card, context) => `指定敵方任意單體造成 40 魔法傷害；${gaugeTerm(context, "共鳴")} ≥4 時改為對敵方全體造成 70 傷害，無視守護`,
+  ELF_STARRY_SKY: (payload) => `隨機敵方目標 ${payloadNumber(payload, "hits", 6)} 次，每次 ${payloadNumber(payload, "damage", 3)} 固定傷害`,
+  ELF_STARVEIN_RETURN: "依本局施放法術數治療英雄並獲得護甲",
+  ELF_MOON_PHASE_TUNE: (_payload, _card, context) => `從牌庫抽 1 張法術，${gaugeTerm(context, "共鳴")} +2`,
+  ELF_SILVERLEAF_SEAL: "隨機凍結 1 個敵方單位 2 回合，並封鎖敵方行動/法術 1 回合",
 
   RAPID_FORGE: "將 1 張手牌轉化為隨機裝備卡",
   ALLOY_RECYCLE: "拆除 1 件裝備或 1 個器具，獲得其費用 ×2 的魔力",

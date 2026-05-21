@@ -43,12 +43,52 @@ export function enumerateActions(state: BattleState, ctx: BattleContext, profile
             out.push({ kind: "spell", cardInstanceId: inst.instanceId, targetRef });
           }
           seenCards.add(inst.cardId);
+        } else if (card.type === "action") {
+          // 行動牌：需要場上有自方兵力才有效；多數行動帶 buff/dmg 一目標
+          for (const targetRef of enumerateEffectTargets(state, card.effects)) {
+            out.push({ kind: "action", cardInstanceId: inst.instanceId, targetRef });
+          }
+          seenCards.add(inst.cardId);
+        } else if (card.type === "equipment") {
+          out.push({ kind: "equipment", cardInstanceId: inst.instanceId });
+          seenCards.add(inst.cardId);
+        } else if (card.type === "field") {
+          out.push({ kind: "field", cardInstanceId: inst.instanceId });
+          seenCards.add(inst.cardId);
         }
       }
       // Boss 召喚池（如夢魔宗主的夢幻體、古魔的孳生體）— 不消耗 mana / 手牌
       if (!troopFrozen) {
         for (const cardId of profile.summonPool ?? []) {
           out.push({ kind: "deployFromPool", cardId, slotIdx: slot });
+        }
+      }
+    }
+  } else {
+    // 沒有空槽位也可打非部署型卡：spell / action / equipment / field
+    if (profile.kind !== "lair") {
+      const seenCards = new Set<string>();
+      for (const inst of enemy.hand) {
+        if (seenCards.has(inst.cardId)) continue;
+        const card = ctx.getCard(inst.cardId);
+        if (getEffectiveCardCost(state, ctx, "enemy", card) > enemy.manaCurrent + enemy.tempMana) continue;
+        if (card.type === "spell") {
+          if (spellFrozen) continue;
+          for (const targetRef of enumerateEffectTargets(state, card.effects)) {
+            out.push({ kind: "spell", cardInstanceId: inst.instanceId, targetRef });
+          }
+          seenCards.add(inst.cardId);
+        } else if (card.type === "action") {
+          for (const targetRef of enumerateEffectTargets(state, card.effects)) {
+            out.push({ kind: "action", cardInstanceId: inst.instanceId, targetRef });
+          }
+          seenCards.add(inst.cardId);
+        } else if (card.type === "equipment") {
+          out.push({ kind: "equipment", cardInstanceId: inst.instanceId });
+          seenCards.add(inst.cardId);
+        } else if (card.type === "field") {
+          out.push({ kind: "field", cardInstanceId: inst.instanceId });
+          seenCards.add(inst.cardId);
         }
       }
     }

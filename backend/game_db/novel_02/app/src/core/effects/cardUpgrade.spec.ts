@@ -139,6 +139,40 @@ describe("v3.4 M 卡牌升級包", () => {
     expect(s.player.manaCurrent + s.player.tempMana).toBeGreaterThanOrEqual(manaBefore);
   });
 
+  it("A_o_02 沒有己方鋼鐵構裝體時不會扣費或棄牌", () => {
+    const s = state("eldr-thorin");
+    s.player.hand = [{ instanceId: "ao02", cardId: "A_o_02" }];
+    const manaBefore = s.player.manaCurrent + s.player.tempMana;
+
+    expect(applyAction(s, { type: "PLAY_ACTION", handIndex: 0 }, ctx)).toMatchObject({
+      ok: false,
+      reason: "emergency disassemble requires construct",
+    });
+    expect(s.player.hand[0]?.cardId).toBe("A_o_02");
+    expect(s.player.manaCurrent + s.player.tempMana).toBe(manaBefore);
+  });
+
+  it("A_o_03 沒有己方鋼鐵構裝體或手牌魔導時不會浪費卡牌", () => {
+    const s = state("eldr-thorin");
+    s.player.hand = [{ instanceId: "ao03", cardId: "A_o_03" }];
+    const manaBefore = s.player.manaCurrent + s.player.tempMana;
+
+    expect(applyAction(s, { type: "PLAY_ACTION", handIndex: 0 }, ctx)).toMatchObject({
+      ok: false,
+      reason: "construct upgrade requires construct",
+    });
+    expect(s.player.hand[0]?.cardId).toBe("A_o_03");
+    expect(s.player.manaCurrent + s.player.tempMana).toBe(manaBefore);
+
+    s.player.troopSlots[0] = troop(s, "T_s_41");
+    expect(applyAction(s, { type: "PLAY_ACTION", handIndex: 0 }, ctx)).toMatchObject({
+      ok: false,
+      reason: "construct upgrade requires device in hand",
+    });
+    expect(s.player.hand[0]?.cardId).toBe("A_o_03");
+    expect(s.player.manaCurrent + s.player.tempMana).toBe(manaBefore);
+  });
+
   it("獸族滿格可血祭部署，A_b_03 轉移祭品 ATK", () => {
     const s = state("reka");
     s.player.hand = [

@@ -16,6 +16,7 @@ export const BOSS_INFERNAL_DEMON_PROFILE: EnemyProfile = {
     heroPressure: 0.6,
     gaugeBuildup: 0.4,
     selfSurvival: -0.5,
+    bossGaugeBuildup: 0.3,
   },
   gaugePolicy: {
     saveUntilThreshold: 0.4,

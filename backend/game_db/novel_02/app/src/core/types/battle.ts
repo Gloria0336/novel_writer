@@ -5,6 +5,7 @@ import type { FreezeEffectName, Side } from "./effect";
 import type { RiftState } from "./rift";
 import type { ActiveStatusBuff } from "./status";
 import type { OmenInstance } from "./omen";
+import type { BossGaugeState } from "./bossGauge";
 
 export interface ActiveKeywordBuff {
   id: string;
@@ -103,6 +104,8 @@ export interface BattleState {
   corruptionStage: 0 | 1 | 2 | 3 | 4;
   /** v3.3 次元滲透裂縫；undefined 表示尚未開啟（穩定度首次 < 50 時初始化）。 */
   rift?: RiftState;
+  /** Boss 專屬量表（僅 Boss 戰存在）；滿值自動釋放 burst 並歸零。 */
+  bossGauge?: BossGaugeState;
   log: LogEntry[];
   result: BattleResult;
   endgameReason?: string;

@@ -23,6 +23,7 @@ import styles from "../styles/battle.module.css";
 import { GameIndexOverlay } from "./GameIndexOverlay";
 import { buildCardFaceModel } from "../../game/cardPresentation";
 import { CardFace } from "../components/CardFace";
+import { LLMTakeoverButton } from "../components/LLMTakeoverButton";
 import { getEffectiveCardCost, isFullGaugeActive } from "../../core/resource/fullGaugeBuff";
 import { canPlayField } from "../../core/effects/omenHooks";
 import { OMEN_DEFS } from "../../game/tower/towerData";
@@ -229,9 +230,9 @@ function BattleView({ onExit }: { onExit: () => void }): JSX.Element {
     const card = getCard(inst.cardId);
     if (!canPlayCardCheck(actionState, battleCtx, card)) return;
 
-    if (card.type === "troop") {
+    if (card.type === "troop" || card.type === "device") {
       // v3.3：rift 開啟且 Open 狀態時，同時可選裂縫位
-      const needsRiftSlot = actionState.rift?.holder === "open";
+      const needsRiftSlot = card.type === "troop" && actionState.rift?.holder === "open";
       setSelect({ kind: "playCard", handIndex: idx, needsTarget: false, needsSlot: true, needsRiftSlot });
     } else if (card.id === "S_c_15" && card.type === "spell") {
       // v3.3 S_c_15 裂痕召喚：進入 needsRiftHand 模式，等待玩家點手牌中兵力
@@ -538,6 +539,7 @@ function BattleView({ onExit }: { onExit: () => void }): JSX.Element {
             <div className={styles.divider} />
 
             <div className={styles.topBtns}>
+              <LLMTakeoverButton />
               <button className={styles.topBtn} onClick={() => setIndexOpen(true)}>索引</button>
               <button className={styles.topBtn} onClick={onExit}>退出</button>
             </div>
@@ -574,12 +576,15 @@ function BattleView({ onExit }: { onExit: () => void }): JSX.Element {
               targetable={enemyTargetable}
               onClick={clickEnemyHero}
             />
+            {state.bossGauge && <BossGaugeBar gauge={state.bossGauge} />}
             <MiniHeroCard
               side="player"
               def={heroDef}
               hero={playerHero}
             />
           </div>
+
+          <BossBurstToast log={state.log} />
 
           {/* Right side — resources + skills + end turn */}
           <div className={`${styles.side} ${styles.sideRight}`}>
@@ -930,11 +935,17 @@ function canPlayCardCheck(state: BattleState, ctx: BattleContext, card: Card): b
     if (card.type === "spell" && race.gauge.id === "resonance" && state.player.hero.gaugeValue >= 4) cost = 0;
   }
   if (!canAffordMana(state.player, cost)) return false;
-  if (card.type === "troop") {
+  if (card.type === "troop" || card.type === "device") {
     // v3.3：兵力卡可選兵力欄或裂縫位（後者僅 rift open 時）
     const free = state.player.troopSlots.some((s) => s === null);
-    const riftOpen = state.rift?.holder === "open";
+    const riftOpen = card.type === "troop" && state.rift?.holder === "open";
     if (!free && !riftOpen) return false;
+  }
+  if (card.id === "A_o_01" && !state.player.troopSlots.some((slot) => slot === null)) return false;
+  if (card.id === "A_o_02" && !state.player.troopSlots.some((slot) => slot?.isConstruct)) return false;
+  if (card.id === "A_o_03") {
+    if (!state.player.troopSlots.some((slot) => slot?.isConstruct)) return false;
+    if (!state.player.hand.some((inst) => getCard(inst.cardId).type === "device")) return false;
   }
   // v3.3 次元滲透裂縫條件
   if (card.id === "S_c_15") {
@@ -1477,6 +1488,103 @@ function PileView({ kind, count, label }: { kind: "deck" | "discard"; count: num
       <div className={styles.pileCount}>
         <span className={styles.pileCountNum}>{count}</span> {label}
       </div>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────
+// Boss 專屬量表進度條（敵方面板下方）
+// ─────────────────────────────────────────────────────────────
+function BossGaugeBar({ gauge }: { gauge: NonNullable<BattleState["bossGauge"]> }): JSX.Element {
+  const pct = Math.min(100, (gauge.value / gauge.spec.max) * 100);
+  const ready = gauge.value >= gauge.spec.max;
+  return (
+    <div
+      title={gauge.spec.description}
+      style={{
+        margin: "8px 4px 4px",
+        padding: "8px 10px",
+        borderRadius: 6,
+        background: "linear-gradient(180deg, rgba(64,8,12,0.85), rgba(28,4,6,0.9))",
+        border: "1px solid rgba(255,120,90,0.45)",
+        boxShadow: ready
+          ? "0 0 12px rgba(255,120,90,0.85), inset 0 0 8px rgba(255,200,160,0.4)"
+          : "inset 0 0 6px rgba(255,90,60,0.15)",
+        color: "#ffd6cc",
+        fontSize: 12,
+      }}
+    >
+      <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 4 }}>
+        <span style={{ fontWeight: 700, letterSpacing: 1 }}>✦ {gauge.spec.name}</span>
+        <span style={{ opacity: 0.9 }}>{Math.floor(gauge.value)} / {gauge.spec.max}</span>
+      </div>
+      <div style={{ height: 8, borderRadius: 4, background: "rgba(0,0,0,0.5)", overflow: "hidden" }}>
+        <div
+          style={{
+            width: `${pct}%`,
+            height: "100%",
+            background: ready
+              ? "linear-gradient(90deg, #ffb070, #ff5030, #ffb070)"
+              : "linear-gradient(90deg, #c84030, #ff7050)",
+            transition: "width 0.4s ease-out",
+          }}
+        />
+      </div>
+      {gauge.burstCount > 0 && (
+        <div style={{ marginTop: 4, fontSize: 10, opacity: 0.75 }}>
+          已釋放 {gauge.burstCount} 次 · 上次 T{gauge.lastBurstTurn ?? "?"}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────
+// Boss Burst 觸發時的浮動 toast
+// ─────────────────────────────────────────────────────────────
+function BossBurstToast({ log }: { log: LogEntry[] }): JSX.Element | null {
+  const [active, setActive] = useState<{ key: number; label: string } | null>(null);
+  useEffect(() => {
+    // 找最近一條 BOSS_BURST log（從尾端往前找；以 length+text 當 key 防重）
+    for (let i = log.length - 1; i >= 0; i--) {
+      const entry = log[i]!;
+      if (entry.kind === "BOSS_BURST") {
+        const label = String(entry.payload?.label ?? entry.text);
+        setActive((prev) => (prev?.key === i ? prev : { key: i, label }));
+        return;
+      }
+    }
+  }, [log]);
+
+  useEffect(() => {
+    if (!active) return;
+    const t = setTimeout(() => setActive(null), 2200);
+    return () => clearTimeout(t);
+  }, [active]);
+
+  if (!active) return null;
+  return (
+    <div
+      style={{
+        position: "absolute",
+        top: "40%",
+        left: "50%",
+        transform: "translate(-50%, -50%)",
+        padding: "14px 28px",
+        fontSize: 28,
+        fontWeight: 900,
+        letterSpacing: 4,
+        color: "#fff2dd",
+        background: "linear-gradient(135deg, rgba(160,20,30,0.95), rgba(80,5,10,0.95))",
+        border: "2px solid rgba(255,180,140,0.85)",
+        borderRadius: 8,
+        textShadow: "0 0 12px rgba(255,160,80,0.95), 0 0 20px rgba(255,40,30,0.65)",
+        boxShadow: "0 0 30px rgba(255,80,40,0.7), 0 0 60px rgba(255,40,30,0.45)",
+        pointerEvents: "none",
+        zIndex: 200,
+      }}
+    >
+      {active.label}
     </div>
   );
 }

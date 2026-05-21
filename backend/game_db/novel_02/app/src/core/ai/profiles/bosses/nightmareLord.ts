@@ -15,6 +15,7 @@ export const BOSS_NIGHTMARE_LORD_PROFILE: EnemyProfile = {
   raceBias: {
     boardControl: 0.6,
     stabilityPressure: 0.3,
+    bossGaugeBuildup: 0.6,
   },
   gaugePolicy: {
     saveUntilThreshold: 0.5,

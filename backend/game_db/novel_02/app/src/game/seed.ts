@@ -133,11 +133,22 @@ export function createBattle(opts: CreateBattleOpts): BattleState {
 
   // 敵方建構
   const enemyHero = applyEnemyScale(enemyDef.createInstance(), opts.enemyScale);
-  const enemySide = buildSide([], enemyHero, 10);
+  const enemyRace = getRace(enemyDef.heroDef.raceId);
+  // Boss 戰：用 Boss 專屬牌組做鏡像；其他敵人（lair）維持空牌庫（純召喚池運作）。
+  const enemyDeckIds = enemyDef.kind === "boss" && enemyDef.deckIds ? enemyDef.deckIds : [];
+  const enemySide = buildSide(enemyDeckIds, enemyHero, enemyRace.manaCap ?? 10);
+
+  // 敵方牌庫洗牌（用 player 洗牌後的 rng state 繼續推進，確保 deterministic）
+  let rngStateAfter = sh.state;
+  if (enemySide.deck.length > 0) {
+    const sh2 = rngShuffle(rngStateAfter, enemySide.deck);
+    enemySide.deck = sh2.value;
+    rngStateAfter = sh2.state;
+  }
 
   let state: BattleState = {
     seed: opts.seed,
-    rngState: sh.state,
+    rngState: rngStateAfter,
     nextInstanceId: 1000,
     turn: 1,
     activeSide: "player",
@@ -152,11 +163,27 @@ export function createBattle(opts: CreateBattleOpts): BattleState {
     result: "ongoing",
   };
 
+  // Boss 戰：初始化 BossGauge state
+  if (enemyDef.kind === "boss" && enemyDef.bossGauge) {
+    state.bossGauge = {
+      value: 0,
+      spec: enemyDef.bossGauge,
+      burstCount: 0,
+    };
+  }
+
   // 起手 N 張（預設 3）
   const initialHandSize = opts.initialHand ?? 3;
   for (let i = 0; i < initialHandSize; i++) {
     const c = state.player.deck.shift();
     if (c) state.player.hand.push(c);
+  }
+  // Boss 戰：敵方也抽相同起手張數，達成手牌鏡像
+  if (enemyDef.kind === "boss") {
+    for (let i = 0; i < initialHandSize; i++) {
+      const c = state.enemy.deck.shift();
+      if (c) state.enemy.hand.push(c);
+    }
   }
 
   // §E.1 Boss onBattleStart（如炎魔獄火場地）—— 在天象進場前先決定 Boss 場地。

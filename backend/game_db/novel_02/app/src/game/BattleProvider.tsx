@@ -7,8 +7,16 @@ import type { BattleVisualEvent, BattleVisualStep } from "../core/types/visual";
 import { createBattle, createBattleContext, DEFAULT_ENEMY_ID, applyPlayerActionWithTimeline, type EnemyScale } from "./seed";
 import { getStarterDeckIds } from "../data/decks";
 import { useBattleAutoRecorder } from "../logger/useBattleAutoRecorder";
+import { ENEMIES } from "../data/enemies";
 
-interface BattleStore {
+export interface BattleSessionMeta {
+  sessionId: string;
+  startedAt: string;
+  /** for makeGameLogFilename — same shape as logger SessionMeta */
+  filenameMeta: { timestamp: string; seed: number; profileId: string };
+}
+
+export interface BattleStore {
   state: BattleState;
   actionState: BattleState;
   dispatch: (action: GameAction) => void;
@@ -16,6 +24,11 @@ interface BattleStore {
   canAct: boolean;
   isAnimating: boolean;
   visualEvents: BattleVisualEvent[];
+  meta: BattleSessionMeta;
+}
+
+function makeSessionId(): string {
+  return globalThis.crypto?.randomUUID?.() ?? `${Date.now()}-${Math.random().toString(36).slice(2)}`;
 }
 
 function deepClone<T>(v: T): T {
@@ -70,6 +83,19 @@ export function BattleProvider({
   const playbackIdRef = useRef(0);
   const playbackTimeoutRef = useRef<number | undefined>(undefined);
 
+  // 每場戰鬥獨立的 sessionId；reset 時連同 initial 一起更新（透過 heroId/enemyId/seed 依賴）。
+  const meta = useMemo<BattleSessionMeta>(() => {
+    const startTime = Date.now();
+    const startedAt = new Date(startTime).toISOString();
+    const profileId = ENEMIES[enemyId]?.profileId ?? "lair_putrefactive";
+    return {
+      sessionId: makeSessionId(),
+      startedAt,
+      filenameMeta: { timestamp: startedAt, seed: initial.seed, profileId },
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [heroId, enemyId, seed]);
+
   useEffect(() => {
     settledRef.current = settledState;
   }, [settledState]);
@@ -78,7 +104,11 @@ export function BattleProvider({
     animatingRef.current = isAnimating;
   }, [isAnimating]);
 
-  useBattleAutoRecorder(settledState);
+  useBattleAutoRecorder(settledState, {
+    sessionId: meta.sessionId,
+    startedAt: meta.startedAt,
+    startTime: Date.parse(meta.startedAt),
+  });
 
   const endedRef = useRef(false);
   useEffect(() => {
@@ -175,8 +205,8 @@ export function BattleProvider({
 
   const canAct = !isAnimating && settledState.activeSide === "player" && settledState.result === "ongoing";
   const store = useMemo<BattleStore>(
-    () => ({ state: displayState, actionState: settledState, dispatch: dispatchGame, reset, canAct, isAnimating, visualEvents: activeStep?.events ?? [] }),
-    [displayState, settledState, dispatchGame, reset, canAct, isAnimating, activeStep],
+    () => ({ state: displayState, actionState: settledState, dispatch: dispatchGame, reset, canAct, isAnimating, visualEvents: activeStep?.events ?? [], meta }),
+    [displayState, settledState, dispatchGame, reset, canAct, isAnimating, activeStep, meta],
   );
 
   return <StoreContext.Provider value={store}>{children}</StoreContext.Provider>;

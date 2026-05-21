@@ -1,6 +1,7 @@
 import { beforeAll, describe, expect, it } from "vitest";
 import { createBattle, createBattleContext, ensureScriptedRegistered } from "../../game/seed";
 import { createTroopInstance } from "../../core/turn/factories";
+import { applyAction } from "../../core/turn/reducer";
 import { startTurnFor } from "../../core/turn/phases";
 import { executeEffects } from "../../core/effects/registry";
 import { triggerReactionsBySide } from "../../core/effects/reactions";
@@ -17,6 +18,20 @@ describe("魔導器具系統 — Stage 1~6 機制驗證", () => {
     for (const d of DEVICES) {
       expect(d.type).toBe("device");
       expect(d.occupiesTroopSlot).toBe(true);
+    }
+  });
+
+  it("T_m_01–T_m_07 都可透過 PLAY_TROOP 放進兵力欄", () => {
+    const ctx = createBattleContext();
+    for (const device of DEVICES) {
+      const s = createBattle({ seed: 120, playerHeroId: "eldr-thorin", playerDeckIds: [] });
+      s.player.manaCurrent = 10;
+      s.player.hand = [{ instanceId: `hand_${device.id}`, cardId: device.id }];
+
+      expect(applyAction(s, { type: "PLAY_TROOP", handIndex: 0, slotIndex: 0 }, ctx)).toMatchObject({ ok: true });
+      expect(s.player.troopSlots[0]?.cardId).toBe(device.id);
+      expect(s.player.troopSlots[0]?.isDevice).toBe(true);
+      expect(s.player.hand).toHaveLength(0);
     }
   });
 

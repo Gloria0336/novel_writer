@@ -15,6 +15,8 @@ export function computeWeights(p: Personality): Weights {
     resourceEfficiency: 0.3 + 0.4 * p.calculation,
     gaugeBuildup:       0.2 + 0.8 * p.greed,
     stabilityPressure:  0.2,
+    // BossGauge 累積：greed 高的人格更想觸發 burst；calculation 提供少量 baseline。
+    bossGaugeBuildup:   0.3 + 0.6 * p.greed + 0.2 * p.calculation,
   };
 }
 

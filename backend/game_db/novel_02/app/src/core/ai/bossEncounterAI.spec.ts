@@ -38,3 +38,22 @@ describe("Boss encounter AI", () => {
     });
   }
 });
+
+describe("Boss 鏡像化：牌庫/手牌/魔力上限", () => {
+  for (const boss of BOSS_LIST) {
+    it(`${boss.id} 開戰時 enemy.deck 非空、有起手手牌、manaCap 使用種族上限`, () => {
+      const state = createBattle({
+        seed: 42,
+        playerHeroId: "lulu",
+        playerDeckIds: LULU_DECK_IDS,
+        enemyId: boss.id,
+        initialHand: 3,
+      });
+      // Boss 牌組起手 3 張已抽；玩家先手 startTurnFor 不影響敵方
+      expect(state.enemy.deck.length).toBe(boss.deckIds.length - 3);
+      expect(state.enemy.hand.length).toBe(3);
+      // 魔力上限取種族 manaCap（demon/fey/beast 皆 10），玩家若為人類也是 10
+      expect(state.enemy.manaCapAbsolute).toBe(10);
+    });
+  }
+});

@@ -1,6 +1,8 @@
 import type { HeroDefinition, HeroInstance } from "../../../core/types/hero";
 import type { TroopCard } from "../../../core/types/card";
+import type { BossGaugeSpec } from "../../../core/types/bossGauge";
 import type { BossDefinition } from "./types";
+import { BOSS_NIGHTMARE_LORD_DECK_IDS } from "../../decks/bosses";
 
 /**
  * 夢魔宗主 — §E.1 鏡像模式
@@ -95,6 +97,34 @@ const NIGHTMARE_TROOPS: TroopCard[] = [
   },
 ];
 
+const BOSS_GAUGE: BossGaugeSpec = {
+  id: "endless_nightmare",
+  name: "永夢蝕骨",
+  description: "每召喚夢幻體 +20；每凍結敵方兵力 +15；每施放法術 +8。滿值釋放夢境吞噬。",
+  max: 100,
+  triggers: [
+    { kind: "onSummon", amount: 20, cardId: "T_s_28" },
+    { kind: "onFreezeEnemy", amount: 15 },
+    { kind: "onSpellCast", amount: 8 },
+  ],
+  burstLabel: "夢境吞噬！",
+  burstEffects: [
+    {
+      kind: "freeze",
+      target: { kind: "all", filter: { side: "enemy", entity: "troop" } },
+      turns: 1,
+      displayName: "束縛",
+    },
+    { kind: "draw", count: 2 },
+    {
+      kind: "damage",
+      target: { kind: "enemyHero" },
+      amount: { kind: "const", value: 8 },
+      ignoreGuard: true,
+    },
+  ],
+};
+
 export const BOSS_NIGHTMARE_LORD: BossDefinition = {
   id: BOSS_NIGHTMARE_LORD_ID,
   name: "夢魔宗主",
@@ -102,5 +132,7 @@ export const BOSS_NIGHTMARE_LORD: BossDefinition = {
   createInstance,
   profileId: "boss_nightmare_lord",
   internalTroops: NIGHTMARE_TROOPS,
+  deckIds: BOSS_NIGHTMARE_LORD_DECK_IDS,
+  bossGauge: BOSS_GAUGE,
   description: "HP 90 / ATK 10 / DEF 4 / CMD 4。幻術型 Boss，召喚帶威壓的夢幻體。",
 };

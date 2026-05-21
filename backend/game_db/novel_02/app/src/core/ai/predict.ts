@@ -314,6 +314,31 @@ export function predictAction(state: BattleState, ctx: BattleContext, action: Ca
       return predictSkillLike(state, card.effects, { mana: getEffectiveCardCost(state, ctx, "enemy", card) });
     }
 
+    case "action": {
+      const inst = state.enemy.hand.find((c) => c.instanceId === action.cardInstanceId);
+      if (!inst) return EMPTY;
+      const card = ctx.getCard(inst.cardId);
+      if (card.type !== "action") return EMPTY;
+      return predictSkillLike(state, card.effects, { mana: getEffectiveCardCost(state, ctx, "enemy", card) });
+    }
+
+    case "equipment": {
+      const inst = state.enemy.hand.find((c) => c.instanceId === action.cardInstanceId);
+      if (!inst) return EMPTY;
+      const card = ctx.getCard(inst.cardId);
+      if (card.type !== "equipment") return EMPTY;
+      // 裝備主要是被動加成，無立即傷害；以成本記入即可
+      return { ...EMPTY, manaCost: getEffectiveCardCost(state, ctx, "enemy", card) };
+    }
+
+    case "field": {
+      const inst = state.enemy.hand.find((c) => c.instanceId === action.cardInstanceId);
+      if (!inst) return EMPTY;
+      const card = ctx.getCard(inst.cardId);
+      if (card.type !== "field") return EMPTY;
+      return predictSkillLike(state, card.effects, { mana: getEffectiveCardCost(state, ctx, "enemy", card) });
+    }
+
     case "skill": {
       const heroDef = ctx.getHero(state.enemy.hero.defId);
       const skill = heroDef.actives.find((s) => s.id === action.skillId);

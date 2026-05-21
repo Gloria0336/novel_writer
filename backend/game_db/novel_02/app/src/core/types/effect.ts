@@ -50,7 +50,7 @@ export type FreezeEffectName = "冰凍" | "定身" | "束縛" | "暈眩" | "封�
 export type Effect =
   | { kind: "damage"; target: TargetSelector; amount: AmountExpr; ignoreDef?: boolean; ignoreGuard?: boolean; lifesteal?: number }
   | { kind: "heal"; target: TargetSelector; amount: AmountExpr }
-  | { kind: "draw"; count: number }
+  | { kind: "draw"; count: number; predicate?: { cardIdPrefixes?: string[]; cardIdIncludes?: string[] } }
   | { kind: "discard"; count: number }
   | { kind: "summon"; cardId: string; count: number; side: TargetSide }
   | { kind: "gauge"; delta: number; side: TargetSide }

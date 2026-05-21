@@ -19,6 +19,7 @@ import { resetTurnFlags } from "./turnFlags";
 import { syncDynamicPassiveAuras, isDynamicPassiveSource } from "../effects/dynamicPassives";
 import { applyCorruptionStageEffects, applyStabilityDelta } from "../resource/stability";
 import { applyOmenFieldDamageModifier, applyOmenOnTurnEnd, applyOmenOnTurnStart, omenFieldStartTurnTriggerCount } from "../effects/omenHooks";
+import { notifyBossGauge } from "../resource/bossGauge";
 
 export function checkVictory(state: BattleState): void {
   if (state.result !== "ongoing") return;
@@ -84,6 +85,23 @@ export function startTurnFor(state: BattleState, side: Side, ctx: BattleContext)
   gaugeOnTroopSurvivePerTurn(sideState.hero, race.gauge.max, heroDef.gauge, aliveCount);
   gaugeOnTurnStart(sideState.hero, race.gauge.max, heroDef.gauge);
   syncFullGaugeBuffs(state, ctx);
+
+  // BossGauge：敵方回合開始時累積（onTurnStart + onTroopSurvivePerTurn）
+  if (side === "enemy" && state.bossGauge) {
+    const aliveList = aliveTroops(sideState);
+    let berserkerCount = 0, feyCount = 0, phantomCount = 0;
+    for (const t of aliveList) {
+      if (t.cardId.startsWith("T_b_")) berserkerCount++;
+      if (t.cardId.startsWith("T_f_") || t.cardId === "T_s_32") feyCount++;
+      if (t.cardId === "T_s_31" || t.cardId === "T_s_28" || t.isPhantom) phantomCount++;
+    }
+    notifyBossGauge(state, ctx, { kind: "onTurnStart" });
+    notifyBossGauge(state, ctx, {
+      kind: "onTroopSurvivePerTurn",
+      aliveCount: aliveList.length,
+      berserkerCount, feyCount, phantomCount,
+    });
+  }
 
   // 幻術師職業關鍵字：每個己方回合開始，若有空欄，生成 1 個幻影。
   const cls = ctx.getClass(heroDef.classId);
@@ -258,7 +276,7 @@ function runFieldStartTurnEffectsOnce(state: BattleState, ctx: BattleContext, si
 
   // F_de_01 黑暗次元裂縫：穩定度 -3、量表 +5。
   if (cardId === "F_de_01") {
-    const r = applyStabilityDelta(state, -3);
+    const r = applyStabilityDelta(state, -3, ctx);
     applyCorruptionStageEffects(state, r.stageJustReached);
     const heroDef = ctx.getHero(active.hero.defId);
     const race = ctx.getRace(heroDef.raceId);

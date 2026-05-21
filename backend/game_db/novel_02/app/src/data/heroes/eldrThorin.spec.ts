@@ -50,6 +50,27 @@ describe("艾德 · 圖林 — 矮人鍛造師 runtime", () => {
     expect(enemyTroop.hp).toBeLessThan(hpBefore);
   });
 
+  it("鍛造節奏：消耗 20 爐火，只抽 E.x.xx 或 x.m.xx 系列牌", () => {
+    const s = createBattle({ seed: 15, playerHeroId: "eldr-thorin", playerDeckIds: ELDR_THORIN_DECK_IDS });
+    const ctx = createBattleContext();
+
+    s.player.hero.morale = 0;
+    s.player.hero.gaugeValue = 20;
+    s.player.hand = [];
+    s.player.deck = [
+      { instanceId: "deck_spell", cardId: "S_c_01" },
+      { instanceId: "deck_action", cardId: "A_dw_01" },
+      { instanceId: "deck_equipment", cardId: "E_c_01" },
+      { instanceId: "deck_device", cardId: "T_m_02" },
+    ];
+
+    expect(applyAction(s, { type: "USE_SKILL", skillId: "act_forging_rhythm" }, ctx)).toMatchObject({ ok: true });
+    expect(s.player.hero.gaugeValue).toBe(0);
+    expect(s.player.hero.morale).toBe(0);
+    expect(s.player.hand.map((card) => card.cardId)).toEqual(["E_c_01"]);
+    expect(s.player.deck.map((card) => card.cardId)).toEqual(["S_c_01", "A_dw_01", "T_m_02"]);
+  });
+
   it("氏族戰錘高舉：終極技對敵方英雄造成傷害並永久 +3 ATK", () => {
     const s = createBattle({ seed: 14, playerHeroId: "eldr-thorin", playerDeckIds: ELDR_THORIN_DECK_IDS });
     const ctx = createBattleContext();

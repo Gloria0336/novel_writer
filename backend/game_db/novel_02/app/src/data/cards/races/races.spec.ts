@@ -10,7 +10,7 @@ const CARD_ID_PATTERN = /^(A|F|T|S|E)_(c|h|e|dw|f|b|de|g|m|l|s|o)_\d{2}$/;
 describe("種族卡與中立傳說擴展", () => {
   it("M 章升級後種族卡數量正確", () => {
     expect(HUMAN_CARDS).toHaveLength(12);
-    expect(ELF_CARDS).toHaveLength(10);
+    expect(ELF_CARDS).toHaveLength(14);
     expect(DWARF_CARDS).toHaveLength(10);
     expect(FEY_CARDS).toHaveLength(15);
     expect(BEAST_CARDS).toHaveLength(11);
@@ -22,8 +22,8 @@ describe("種族卡與中立傳說擴展", () => {
   });
 
   it("總卡池 = 通用 104 + 種族 68 + 職業 6 + 中立 6 = 184 張（v3.4 M）", () => {
-    expect(GENERIC_CARDS).toHaveLength(104);
-    expect(ALL_CARDS).toHaveLength(184);
+    expect(GENERIC_CARDS).toHaveLength(109);
+    expect(ALL_CARDS).toHaveLength(193);
   });
 
   it("所有卡 id 唯一且符合命名規則", () => {

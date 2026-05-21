@@ -1,6 +1,7 @@
 import type { Effect } from "../../../core/types/effect";
 import type { HeroDefinition, HeroInstance } from "../../../core/types/hero";
 import type { TroopCard } from "../../../core/types/card";
+import type { BossGaugeSpec } from "../../../core/types/bossGauge";
 
 /**
  * Boss 定義 — §E.1 鏡像模式專用敵人。
@@ -24,6 +25,10 @@ export interface BossDefinition {
   onBattleStart?: Effect[];
   /** Boss 專屬召喚池（用於 deployFromPool 行為）。 */
   internalTroops?: TroopCard[];
+  /** Boss 鏡像牌組：開戰時洗牌進 enemy.deck，與玩家相同流程。 */
+  deckIds: string[];
+  /** Boss 專屬量表：滿值時自動釋放 burstEffects 並歸零，可重複觸發。 */
+  bossGauge: BossGaugeSpec;
   /** 階段定義 — v1 僅 phase 0。 */
   phases?: BossPhaseSpec[];
   description: string;

@@ -1,7 +1,8 @@
-import { act } from "react";
+import { StrictMode, act } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { BattleScreen } from "../ui/screens/BattleScreen";
+import type { GameLogBridge } from "../types/gameLog";
 
 (globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 
@@ -20,8 +21,50 @@ describe("BattleProvider UI action playback", () => {
     act(() => {
       root.unmount();
     });
+    delete window.gameLog;
     container.remove();
     vi.useRealTimers();
+  });
+
+  it("keeps auto recording alive through React StrictMode remount checks", async () => {
+    const gameLog: GameLogBridge = {
+      start: vi.fn(() => Promise.resolve({})),
+      update: vi.fn(() => Promise.resolve({})),
+      finish: vi.fn(() => Promise.resolve({})),
+    };
+    window.gameLog = gameLog;
+
+    await act(async () => {
+      root.render(
+        <StrictMode>
+          <BattleScreen
+            heroId="lulu"
+            enemyId="putrefactive_lair"
+            initialDeckIds={[]}
+            onExit={() => {}}
+          />
+        </StrictMode>,
+      );
+    });
+
+    act(() => {
+      vi.runOnlyPendingTimers();
+    });
+
+    expect(gameLog.start).toHaveBeenCalled();
+    expect(gameLog.finish).not.toHaveBeenCalled();
+
+    act(() => {
+      root.unmount();
+      vi.runOnlyPendingTimers();
+    });
+
+    expect(gameLog.finish).toHaveBeenCalledWith(
+      expect.any(String),
+      "abandoned",
+      "battle view unmounted",
+      expect.objectContaining({ schemaVersion: 1 }),
+    );
   });
 
   it("lets the end-turn button dispatch, animate, and unlock again", async () => {
@@ -91,6 +134,44 @@ describe("BattleProvider UI action playback", () => {
 
     expect(container.querySelector('[class*="logItem"]')).not.toBeNull();
     expect(container.querySelector('[class*="visualEventLayer"]')).not.toBeNull();
+  });
+
+  it("lets a playable device card select a player slot and deploy", async () => {
+    await act(async () => {
+      root.render(
+        <BattleScreen
+          heroId="eldr-thorin"
+          enemyId="putrefactive_lair"
+          initialDeckIds={["T_m_01", "T_m_01", "T_m_01", "T_m_01"]}
+          onExit={() => {}}
+        />,
+      );
+    });
+
+    const endTurnButton = container.querySelector('button[class*="endTurn"]') as HTMLButtonElement | null;
+    expect(endTurnButton).not.toBeNull();
+
+    act(() => {
+      endTurnButton!.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+      vi.runAllTimers();
+    });
+
+    const firstHandCard = container.querySelector('[class*="handCard"]') as HTMLElement | null;
+    expect(firstHandCard).not.toBeNull();
+    expect(firstHandCard!.dataset.playable).toBe("true");
+
+    act(() => {
+      firstHandCard!.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+    });
+
+    const targetSlot = container.querySelector('[class*="unitSlot"][data-targetable="true"]') as HTMLElement | null;
+    expect(targetSlot).not.toBeNull();
+
+    act(() => {
+      targetSlot!.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+    });
+
+    expect(container.querySelector('[class*="logItem"]')).not.toBeNull();
   });
 
   it("lets a playable no-target spell dispatch from hand", async () => {

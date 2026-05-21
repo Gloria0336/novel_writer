@@ -9,6 +9,7 @@ import { applyLifesteal } from "../combat/damage";
 import { canActionTarget } from "../combat/attack";
 import { addMorale, MORALE_ACTION_HIT, MORALE_ALLY_TROOP_DESTROYED, MORALE_KILL_TROOP } from "../resource/morale";
 import { addGauge, gaugeOnHeroDamaged } from "../resource/gauge";
+import { notifyBossGauge } from "../resource/bossGauge";
 import { applyCorruptionStageEffects, applyStabilityDelta, healingMultiplier } from "../resource/stability";
 import { openRiftIfNeeded, vacateRiftIfOccupantDead, MORALE_KILL_RIFT_INFILTRATOR } from "../resource/rift";
 import { drawCards } from "../deck/draw";
@@ -148,6 +149,11 @@ function executeEffect(e: Effect, ec: EffectContext): void {
             gaugeOnHeroDamaged(tg.hero, tgRace.gauge.max, tgHeroDef.gauge.onHeroDamaged, prevHp, tg.hero.hp);
             syncFullGaugeBuffs(state, ctx);
           }
+          // BossGauge：Boss 自身受傷（onHeroDamaged / onHeroDamagedPct，炎魔/獸王）
+          if (tg.side === "enemy" && r.finalAmount > 0) {
+            const lostPct = tg.hero.maxHp > 0 ? (r.finalAmount / tg.hero.maxHp) * 100 : 0;
+            notifyBossGauge(state, ctx, { kind: "onHeroDamaged", amount: r.finalAmount, lostHpPct: lostPct });
+          }
           state.log.push({ turn: state.turn, side: sourceSide, kind: "DAMAGE_HERO", text: `${tg.side === "player" ? "玩家" : "敵方"}英雄受到 ${r.finalAmount} 傷害`, payload: { side: tg.side, amount: r.finalAmount } });
         } else if (tg.kind === "troop" && tg.troop) {
           const r = applyTroopDamageWithPassives(state, ctx, tg.side, tg.troop, amount, { ignoreDef: e.ignoreDef, sourceKind: toPassiveDamageSource(ec.sourceKind) });
@@ -212,7 +218,7 @@ function executeEffect(e: Effect, ec: EffectContext): void {
       break;
     }
     case "draw": {
-      const r = drawCards(sourceState, e.count, state.rngState);
+      const r = drawCards(sourceState, e.count, state.rngState, e.predicate);
       state.rngState = r.newRngState;
       state.log.push({ turn: state.turn, side: sourceSide, kind: "DRAW", text: `抽 ${r.drawn} 張牌`, payload: { count: r.drawn } });
       break;
@@ -245,6 +251,8 @@ function executeEffect(e: Effect, ec: EffectContext): void {
         if (heroDef.gauge.onTroopEnter) addGauge(target.hero, race.gauge.max, heroDef.gauge.onTroopEnter);
         syncFullGaugeBuffs(state, ctx);
         state.log.push({ turn: state.turn, side: summonSide, kind: "SUMMON", text: `召喚 ${card.name}`, payload: { cardId: card.id, instanceId: inst.instanceId } });
+        // BossGauge：敵方召喚（含 spell summon 與其他 effect summon）
+        if (summonSide === "enemy") notifyBossGauge(state, ctx, { kind: "onSummon", cardId: card.id });
         // onPlay 不在召喚時觸發（區分「部署」與「召喚」）
       }
       break;
@@ -371,6 +379,10 @@ function executeEffect(e: Effect, ec: EffectContext): void {
             if (displayName) tg.troop.frozenDisplayName = displayName;
             else delete tg.troop.frozenDisplayName;
           }
+          // BossGauge：Boss 凍結玩家方兵力（夢魔宗主永夢蝕骨）
+          if (sourceSide === "enemy" && tg.side === "player") {
+            notifyBossGauge(state, ctx, { kind: "onFreezeEnemy" });
+          }
         }
       }
       break;
@@ -396,7 +408,7 @@ function executeEffect(e: Effect, ec: EffectContext): void {
       break;
     }
     case "stability": {
-      const r = applyStabilityDelta(state, e.delta);
+      const r = applyStabilityDelta(state, e.delta, ctx);
       applyCorruptionStageEffects(state, r.stageJustReached);
       state.log.push({ turn: state.turn, side: sourceSide, kind: "STABILITY", text: `次元壁穩定度 ${e.delta > 0 ? "+" : ""}${e.delta} → ${r.newValue}`, payload: { delta: e.delta, newValue: r.newValue } });
       // v3.3：穩定度跌破 50 時開啟次元滲透裂縫（不可逆，至多 1 個）
@@ -519,6 +531,10 @@ function reapHandleDeath(state: BattleState, ctx: BattleContext, side: Side, sou
     addMorale(killerSide.hero, killReward);
     if (sideHasEquipmentPassive(ctx, killerSide, "MANA_ON_KILL")) addTempMana(killerSide, 1);
     maybeHealHeroFromFullGaugeTroopKill(state, ctx, sourceSide);
+    // BossGauge：Boss 擊殺玩家方兵力（獸王血祭暴怒）
+    if (side === "player" && sourceSide === "enemy") {
+      notifyBossGauge(state, ctx, { kind: "onPlayerTroopKilled" });
+    }
   } else {
     // 我方兵力被殺：自己的鬥志 +5
     addMorale(getSide(state, side).hero, MORALE_ALLY_TROOP_DESTROYED);

@@ -204,6 +204,9 @@ function describeAction(a: CandidateAction): string {
     case "deployFromHand": return `部署手牌 ${a.cardInstanceId}`;
     case "deployFromPool": return `召喚 ${a.cardId}`;
     case "spell": return `施法 ${a.cardInstanceId}`;
+    case "action": return `行動牌 ${a.cardInstanceId}`;
+    case "equipment": return `裝備 ${a.cardInstanceId}`;
+    case "field": return `場地 ${a.cardInstanceId}`;
     case "skill": return `主動技 ${a.skillId}`;
     case "ultimate": return `終極技 ${a.skillId}`;
   }
