@@ -28,7 +28,10 @@
   - `current_status.md`: 最新世界狀態快照。
   - `daily/`: 按劇中日期歸檔的每日動態。
 - `factions/`: 勢力狀態與權力關係。
-- `private/`: 作者後台秘密與未揭露真相。
+- `context/`: 寫作前 AI 注入摘要、上一章摘要、作者後台秘密。
+  - `CONTEXT.md`: 長篇連貫性核心摘要。
+  - `last-chapter-summary.md`: 最近章節壓縮摘要。
+  - `secrets-lockbox.md`: 作者後台秘密與未揭露真相。
 
 ## 維護規則
 
@@ -36,14 +39,16 @@
 - `bible/worldbuilding.md` 只放公開且穩定的世界觀總覽。
 - `bible/character.md` 集中管理角色定位、狀態、目標與秘密引用。
 - `regions/` 記區域長期設定，`updates/` 記日期變動。
-- 未揭露真相、深淵核心秘密、勢力黑箱與角色不知道的情報放入 `private/secrets_lockbox.md`。
+- 未揭露真相、深淵核心秘密、勢力黑箱與角色不知道的情報放入 `context/secrets-lockbox.md`。
 - 公開檔可引用秘密編號，但不要直接寫出後台真相。
 
 ## 寫作前建議閱讀順序
 
 1. `updates/current_status.md`
-2. `bible/character.md`
-3. `regions/region_index.md`
-4. `bible/worldbuilding.md`
-5. 必要時回查 `fantasy_world_master_outline.md`
+2. `context/CONTEXT.md`
+3. `context/last-chapter-summary.md`
+4. `bible/character.md`
+5. `regions/region_index.md`
+6. `bible/worldbuilding.md`
+7. 必要時回查 `fantasy_world_master_outline.md`
 

@@ -30,7 +30,7 @@ schema_notes:
   harvest_notes: 採集、狩獵、封存或運輸注意事項
   market_value: 市場價值，例如 none、low、medium、high、strategic、unknown
   public_notes: 可公開呈現的描述
-  secret_refs: 若涉及未揭露真相，僅引用 private/secrets_lockbox.md 內的秘密編號
+  secret_refs: 若涉及未揭露真相，僅引用 context/secrets-lockbox.md 內的秘密編號
 
 layers:
   shallow:
@@ -237,7 +237,7 @@ entries:
       - 深層謎團
       - 秘密遠征
       - 長線伏筆
-    harvest_notes: 未公開；若涉及深層真相，請寫入 private/secrets_lockbox.md。
+    harvest_notes: 未公開；若涉及深層真相，請寫入 context/secrets-lockbox.md。
     market_value: unknown
     public_notes: 對外僅能描述為深層未公開樣本或管制情報。
     secret_refs:

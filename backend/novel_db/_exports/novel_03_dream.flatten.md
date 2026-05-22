@@ -6,7 +6,7 @@ This file is generated from a novel directory so AI tools can read the project a
 - Source: `backend/novel_db/novel_03_dream`
 - Files included: 19
 - Included extensions: .md, .yaml, .yml, .json, .txt, plus .cursorrules
-- Excluded directories: private, temp, _exports
+- Excluded directories: private, temp, temps, _exports
 - Excluded filenames: (none)
 
 ## Secret Handling
