@@ -1,0 +1,244 @@
+meta:
+  title: 深淵生態與產物目錄
+  purpose: 收納深淵中的動物、植物、菌類、怪物、靈獸、共生物質、礦物與可採集產物資訊
+  scope: 長期世界設定，不記錄每日探索變動
+  disclosure_level: mixed
+  source_files:
+    - regions/abyss_overview.md
+    - abbis_outline.md
+    - fantasy_world_master_outline.md
+  id_rule: 層次_群系_三位數序號
+  id_examples:
+    - shallow_limestone_cavern_001
+    - middle_spirit_crystal_mine_001
+    - deep_unknown_001
+
+schema_notes:
+  id: 依照「層次_群系_三位數序號」命名，方便排序與統一管理
+  name: 條目名稱，可為正式名稱、俗稱或暫定名
+  category: 條目類型，例如 animal、plant、fungus、monster、spirit_beast、mineral、symbiotic_substance、processed_product、unknown
+  layer: 所屬層次，使用 shallow、middle、deep
+  biome: 所屬群系代碼
+  isSecret: 是否屬於不可對外公開資訊；true 代表作者端或管制情報，false 代表公開或可被一般資料收錄
+  appearance: 外觀描述
+  ecology_notes: 生態、棲息、繁殖、共生或環境互動筆記
+  rarity: 常見度，例如 common、uncommon、rare、very_rare、unknown
+  danger_level: 危險度，例如 none、low、low_to_medium、medium、high、extreme、unknown
+  combat_ability: 戰鬥能力；無戰鬥力請填 None
+  products: 可取得產物或素材
+  uses: 城市、工坊、藥材、研究或劇情用途
+  harvest_notes: 採集、狩獵、封存或運輸注意事項
+  market_value: 市場價值，例如 none、low、medium、high、strategic、unknown
+  public_notes: 可公開呈現的描述
+  secret_refs: 若涉及未揭露真相，僅引用 context/secrets-lockbox.md 內的秘密編號
+
+layers:
+  shallow:
+    name: 淺層區
+    depth_range: 海平面至地下約 100 公尺
+    role: 民生資源、生態資源、低威脅採集與初階探索區
+    biome_refs:
+      - limestone_cavern
+      - canyon_grassland
+      - sanzu_river
+  middle:
+    name: 中層區
+    depth_range: 地下約 100 公尺至地下約 2 公里
+    role: 大型洞穴系統、戰略資源、高風險高收益探索區
+    biome_refs:
+      - giant_cavern
+      - spirit_crystal_mine
+      - mineral_cave
+      - volcanic_cave
+      - toxic_ecology
+      - underground_lake
+  deep:
+    name: 深層區
+    depth_range: 地下約 2 公里以下
+    role: 極少數人獲准進入、內容保密、死亡率極高的未知區域
+    biome_refs:
+      - unknown
+
+biomes:
+  limestone_cavern:
+    name: 入口溶洞群
+    layer: shallow
+    description: 進入深淵後最先抵達的普通溶洞地形，為新手冒險者、登記採集者與公會巡邏最常接觸的區域。
+  canyon_grassland:
+    name: 地下大峽谷草原
+    layer: shallow
+    description: 淺層最具代表性的生態域，具有地下牧野、採集場與民生資源帶的性質。
+  sanzu_river:
+    name: 三途川地下河系
+    layer: shallow
+    description: 淺層與中層之間的重要過渡水域，兼具藥材、水產與路線風險。
+  giant_cavern:
+    name: 大型溶洞系統
+    layer: middle
+    description: 中層的基礎地形與主要通道，規模、靈氣濃度與地形複雜度皆高於淺層溶洞。
+  spirit_crystal_mine:
+    name: 靈晶礦坑
+    layer: middle
+    description: 中層最重要的戰略資源區之一，常牽動商會、公會、研究機構與冒險隊利益。
+  mineral_cave:
+    name: 礦產洞穴
+    layer: middle
+    description: 產出不同用途礦物的洞穴群，可支撐工坊、裝備、陣法與城市設施。
+  volcanic_cave:
+    name: 火山洞穴
+    layer: middle
+    description: 高溫、熔岩、火山氣體與火屬性靈氣集中的高危區。
+  toxic_ecology:
+    name: 劇毒生態域
+    layer: middle
+    description: 以毒性植被、菌類、氣體、黏液或共生物質構成的危險生態區。
+  underground_lake:
+    name: 地下大型湖泊
+    layer: middle
+    description: 中層重要的大型水域環境，適合承載神秘感、稀有水產與水下異常。
+  unknown:
+    name: 未公開深層生態
+    layer: deep
+    description: 公開資料不足，不應被簡化為更強怪物區；具體內容依劇情與秘密檔管理。
+
+entries:
+  - id: shallow_limestone_cavern_001
+    name: 發光苔
+    category: plant
+    layer: shallow
+    biome: limestone_cavern
+    isSecret: false
+    appearance: 附著於潮濕岩壁與地面的淡綠色苔蘚，在低光環境中會散發穩定冷光。
+    ecology_notes: 常出現在水氣穩定、低階生物活動較少的溶洞區，可作為新手辨識路線與休息點的參考。
+    rarity: common
+    danger_level: none
+    combat_ability: None
+    products:
+      - 發光苔束
+      - 初階照明材料
+    uses:
+      - 照明
+      - 初階藥材
+      - 路線標記
+    harvest_notes: 可由登記採集者採收；若整片刮除，局部再生速度會下降。
+    market_value: low
+    public_notes: 淺層最常見的可採集植物之一，常被用於新手採集任務。
+    secret_refs: []
+
+  - id: shallow_canyon_grassland_001
+    name: 峽谷水牛
+    category: animal
+    layer: shallow
+    biome: canyon_grassland
+    isSecret: false
+    appearance: 體型近似一般水牛，背部有貼近岩色的灰褐斑紋，角短而鈍，蹄部適合在碎石坡與草地間移動。
+    ecology_notes: 群居於地下大峽谷草原，主要啃食高靈氣草類與苔衣，是淺層肉品、皮革與骨角素材的重要來源。
+    rarity: common
+    danger_level: low_to_medium
+    combat_ability: 單體攻擊性低，但受驚時會集體奔逃，可能造成踩踏或引來掠食者。
+    products:
+      - 峽谷牛肉
+      - 灰斑牛皮
+      - 短角
+      - 獸骨
+    uses:
+      - 食物供應
+      - 皮革加工
+      - 初階骨材
+    harvest_notes: 狩獵需遵守公會配額；過度捕獵會影響草原生態與城市肉品供應。
+    market_value: low
+    public_notes: 地下大峽谷草原常見草食動物，也是淺層民生供應鏈的一部分。
+    secret_refs: []
+
+  - id: shallow_sanzu_river_001
+    name: 冷光河藻
+    category: plant
+    layer: shallow
+    biome: sanzu_river
+    isSecret: false
+    appearance: 細長半透明的水生藻類，漂浮時像一縷縷淡藍色絲線，離水後光芒會逐漸變暗。
+    ecology_notes: 生長於三途川水流較緩、礦物質含量穩定的河段，可吸附微量靈氣與水中礦質。
+    rarity: uncommon
+    danger_level: low
+    combat_ability: None
+    products:
+      - 冷光河藻
+      - 水系藥材基底
+    uses:
+      - 水系藥劑
+      - 食品加工
+      - 研究樣本
+    harvest_notes: 採集時需避免攪動河床；三途川水域有中層生物上竄風險。
+    market_value: medium
+    public_notes: 三途川代表性水生採集物，價值高於一般淺層植物。
+    secret_refs: []
+
+  - id: middle_spirit_crystal_mine_001
+    name: 伴晶甲蟲
+    category: monster
+    layer: middle
+    biome: spirit_crystal_mine
+    isSecret: false
+    appearance: 甲殼表面嵌有細碎晶片，體型約成人手臂長，行動時會發出輕微晶體摩擦聲。
+    ecology_notes: 棲息於靈晶礦坑外圍，會啃食碎裂靈晶與含靈礦粉，群體活動常被視為礦脈變動的前兆。
+    rarity: uncommon
+    danger_level: medium
+    combat_ability: 甲殼堅硬，可用晶化前肢切割皮甲；受驚時會群聚衝撞。
+    products:
+      - 伴晶甲殼
+      - 微晶粉
+      - 甲蟲前肢
+    uses:
+      - 工坊研磨材料
+      - 低階護具補強
+      - 靈晶礦坑研究
+    harvest_notes: 捕捉時需避免破壞附近礦脈；死亡後甲殼靈性會快速流失，需盡快封存。
+    market_value: medium
+    public_notes: 中層靈晶礦坑常見危險生物之一，具採樣與礦脈判讀價值。
+    secret_refs: []
+
+  - id: middle_toxic_ecology_001
+    name: 麻痺孢囊菇
+    category: fungus
+    layer: middle
+    biome: toxic_ecology
+    isSecret: false
+    appearance: 傘面呈暗紫色，邊緣有白色絨毛狀孢囊，成熟時會像呼吸般緩慢鼓脹。
+    ecology_notes: 聚生於潮濕毒霧區與腐殖層，受震動或熱源刺激時會釋放麻痺性孢子。
+    rarity: uncommon
+    danger_level: high
+    combat_ability: 可釋放麻痺孢子，使未防護者肢體僵硬、呼吸困難並失去方向感。
+    products:
+      - 麻痺孢囊
+      - 毒霧菇柄
+      - 孢子粉
+    uses:
+      - 麻痺藥劑
+      - 解毒研究
+      - 毒性樣本
+    harvest_notes: 必須使用密封容器與防毒符籙採集；破損樣本不可帶入普通市場。
+    market_value: high
+    public_notes: 劇毒生態域代表性危險菌類，商會與研究機構皆有收購需求。
+    secret_refs: []
+
+  - id: deep_unknown_001
+    name: 深層未公開生態樣本
+    category: unknown
+    layer: deep
+    biome: unknown
+    isSecret: true
+    appearance: 未公開
+    ecology_notes: 公開資料不足。任何具體描述需依作者端設定或秘密檔確認。
+    rarity: unknown
+    danger_level: unknown
+    combat_ability: 未公開
+    products: []
+    uses:
+      - 深層謎團
+      - 秘密遠征
+      - 長線伏筆
+    harvest_notes: 未公開；若涉及深層真相，請寫入 context/secrets-lockbox.md。
+    market_value: unknown
+    public_notes: 對外僅能描述為深層未公開樣本或管制情報。
+    secret_refs:
+      - secret-abyss-001

@@ -1,5 +1,15 @@
 import { createServer } from "node:http";
 import { URL } from "node:url";
+import {
+  campaignDelete,
+  campaignExport,
+  campaignList,
+  campaignNew,
+  campaignStatus,
+  previewBlob,
+  routeBlob,
+  taxonomyDoc,
+} from "./classifierBridge.js";
 import { BRIDGE_PORT, GITHUB_TOKEN, OPENROUTER_API_KEY } from "./config.js";
 import { OpenRouterBridgeClient } from "./openRouterClient.js";
 import { exportNovelToOpera, getOperaStatus } from "./operaIntegration.js";
@@ -144,6 +154,77 @@ const server = createServer(async (request, response) => {
     if (request.method === "POST" && url.pathname === "/api/integrations/opera/export") {
       const payload = await readJson<OperaExportRequest>(request);
       const result = await exportNovelToOpera(payload);
+      sendJson(response, 200, result);
+      return;
+    }
+
+    // ── classifier 橋接：永遠 shell-out 到 Python CLI（保證 novel_db 唯讀 guard 一致） ──
+
+    if (request.method === "POST" && url.pathname === "/api/classifier/preview") {
+      const payload = await readJson<{
+        rawText: string;
+        novelId?: string;
+        campaignId?: string;
+      }>(request);
+      const result = await previewBlob(payload);
+      sendJson(response, 200, result);
+      return;
+    }
+
+    if (request.method === "POST" && url.pathname === "/api/classifier/route") {
+      const payload = await readJson<{
+        rawText: string;
+        novelId?: string;
+        campaignId?: string;
+        apply?: boolean;
+        allowNsfw?: boolean;
+        useLlm?: boolean;
+      }>(request);
+      const result = await routeBlob(payload);
+      sendJson(response, 200, result);
+      return;
+    }
+
+    if (request.method === "GET" && url.pathname === "/api/classifier/taxonomy") {
+      const result = await taxonomyDoc();
+      sendJson(response, 200, result);
+      return;
+    }
+
+    if (request.method === "GET" && url.pathname === "/api/classifier/campaigns") {
+      const result = await campaignList();
+      sendJson(response, 200, result);
+      return;
+    }
+
+    if (request.method === "POST" && url.pathname === "/api/classifier/campaigns/new") {
+      const payload = await readJson<{
+        campaignId: string;
+        novelId: string;
+        overwrite?: boolean;
+      }>(request);
+      const result = await campaignNew(payload.campaignId, payload.novelId, payload.overwrite);
+      sendJson(response, 200, result);
+      return;
+    }
+
+    if (request.method === "GET" && url.pathname === "/api/classifier/campaigns/status") {
+      const campaignId = requireQueryValue(url, "campaignId");
+      const result = await campaignStatus(campaignId);
+      sendJson(response, 200, result);
+      return;
+    }
+
+    if (request.method === "POST" && url.pathname === "/api/classifier/campaigns/export") {
+      const payload = await readJson<{ campaignId: string; timestamp?: string }>(request);
+      const result = await campaignExport(payload.campaignId, payload.timestamp);
+      sendJson(response, 200, result);
+      return;
+    }
+
+    if (request.method === "POST" && url.pathname === "/api/classifier/campaigns/delete") {
+      const payload = await readJson<{ campaignId: string }>(request);
+      const result = await campaignDelete(payload.campaignId);
       sendJson(response, 200, result);
       return;
     }

@@ -1,0 +1,27 @@
+[build-system]
+requires = ["setuptools>=69", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "novel-db-classifier"
+version = "0.1.0"
+description = "Spatial + cognitive content router between novel_db and game_db/opera."
+requires-python = ">=3.11"
+dependencies = [
+  "pydantic>=2.12.0,<3.0.0",
+  "pyyaml>=6.0.0,<7.0.0",
+]
+
+[project.optional-dependencies]
+llm = ["anthropic>=0.40.0,<1.0.0"]
+dev = ["pytest>=8.0.0,<9.0.0"]
+
+[project.scripts]
+classifier = "classifier.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["classifier*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
