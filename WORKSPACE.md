@@ -7,12 +7,16 @@ This repository can host `Novel Writer` and `Opera` in one shell while keeping b
 ```text
 novel_writer/
   backend/
+    game_db/
+      opera/
   frontend/
   external/
     opera/
 ```
 
-`external/opera` is expected to be a Git submodule.
+`backend/game_db/opera` is the integrated Opera copy used by the launcher. It contains the NovelDB-aware backend routes and React console.
+
+`external/opera` may exist as an upstream Git submodule, but the one-click workspace does not launch it.
 
 ## One-click startup
 
@@ -55,4 +59,4 @@ Important keys:
 
 - Novel Writer embeds Opera with an iframe-based `Opera` view in the top bar.
 - Novel Writer still talks to Opera through the bridge API.
-- Opera keeps its own backend, frontend, database, and Git history.
+- Opera runs from `backend/game_db/opera` so it can read `backend/novel_db` for the NovelDB script/worldview picker.

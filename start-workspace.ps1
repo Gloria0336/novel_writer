@@ -143,12 +143,12 @@ if (-not $config["OPERA_CORS_ORIGINS"]) {
 
 $novelWriterFrontendPath = Join-Path $repoRoot "frontend"
 $bridgePath = Join-Path $repoRoot "backend\mcp_bridge"
-$operaRoot = Join-Path $repoRoot "external\opera"
+$operaRoot = Join-Path $repoRoot "backend\game_db\opera"
 $operaFrontendPath = Join-Path $operaRoot "frontend"
 
 Assert-PathExists -Path $novelWriterFrontendPath -Message "Novel Writer frontend was not found."
 Assert-PathExists -Path $bridgePath -Message "Novel Writer bridge was not found."
-Assert-PathExists -Path $operaRoot -Message "Opera submodule was not found at external\opera. Initialize the submodule first."
+Assert-PathExists -Path $operaRoot -Message "Integrated Opera was not found at backend\game_db\opera."
 Assert-PathExists -Path $operaFrontendPath -Message "Opera frontend was not found."
 
 if (-not (Test-Path -LiteralPath (Join-Path $novelWriterFrontendPath "node_modules"))) {
@@ -158,7 +158,7 @@ if (-not (Test-Path -LiteralPath (Join-Path $bridgePath "node_modules"))) {
   Write-Warning "backend/mcp_bridge/node_modules is missing. Run npm install in backend/mcp_bridge if the bridge window fails to start."
 }
 if (-not (Test-Path -LiteralPath (Join-Path $operaFrontendPath "node_modules"))) {
-  Write-Warning "external/opera/frontend/node_modules is missing. Run npm install in external/opera/frontend if the Opera window fails to start."
+  Write-Warning "backend/game_db/opera/frontend/node_modules is missing. Run npm install in backend/game_db/opera/frontend if the Opera window fails to start."
 }
 
 Start-WorkspaceProcess -Title "Opera Backend" -WorkingDirectory $operaRoot -Environment @{
@@ -182,7 +182,7 @@ Start-WorkspaceProcess -Title "Opera Frontend" -WorkingDirectory $operaFrontendP
   VITE_API_BASE = $config["NOVEL_WRITER_OPERA_BASE_URL"]
   OPERA_FRONTEND_PORT = $config["OPERA_FRONTEND_PORT"]
 } -Commands @(
-  'npm run dev -- --host 127.0.0.1 --port $env:OPERA_FRONTEND_PORT'
+  'npm.cmd run dev -- --host 127.0.0.1 --port $env:OPERA_FRONTEND_PORT'
 )
 
 Start-Sleep -Milliseconds 400
@@ -193,9 +193,9 @@ Start-WorkspaceProcess -Title "Novel Writer Bridge" -WorkingDirectory $bridgePat
   NOVEL_WRITER_BRIDGE_PORT = $config["NOVEL_WRITER_BRIDGE_PORT"]
   NOVEL_WRITER_OPERA_BASE_URL = $config["NOVEL_WRITER_OPERA_BASE_URL"]
 } -Commands @(
-  'npm run build'
+  'npm.cmd run build'
   'if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }'
-  'npm start'
+  'npm.cmd start'
 )
 
 Start-Sleep -Milliseconds 400
@@ -205,7 +205,7 @@ Start-WorkspaceProcess -Title "Novel Writer Frontend" -WorkingDirectory $novelWr
   VITE_BRIDGE_BASE_URL = $config["VITE_BRIDGE_BASE_URL"]
   VITE_OPERA_FRONTEND_URL = $config["VITE_OPERA_FRONTEND_URL"]
 } -Commands @(
-  'npm run dev -- --host 127.0.0.1 --port $env:NOVEL_WRITER_FRONTEND_PORT'
+  'npm.cmd run dev -- --host 127.0.0.1 --port $env:NOVEL_WRITER_FRONTEND_PORT'
 )
 
 Write-Host ""
