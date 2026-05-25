@@ -1,0 +1,857 @@
+locations:
+  # ──────────────────────────────────────────────
+  # 特殊 / 跨國地點
+  # ──────────────────────────────────────────────
+  - id: teyvat-origin
+    name: 提瓦特起源地
+    type: mythological_site
+    region: teyvat（敘事用，非具體地圖）
+    first_appearance: 序章
+    summary: >
+      提瓦特大地的神話起源場景，天理降臨並與最初的七執政簽立契約之地。
+      非玩家可探索的具體地圖地點，僅以劇情閃回或夢境形式呈現。
+      代表「天理體系建立前」的太初狀態，是揭示提瓦特本質的最深層隱喻。
+    atmosphere:
+      - 空洞而神聖，帶有不可觸及的神意壓迫感
+      - 現實與神話交界，光源不明、邊際模糊
+      - 靜謐中蘊含宇宙尺度的意志流動
+    narrative_functions:
+      - 神話序幕、遠古回憶閃回的舞台
+      - 揭示天理與七執政體系起源的場景
+      - 旅行者與手足分離的最初場景
+    access_constraints:
+      - 僅以劇情閃回或記憶潛入形式出現
+      - 玩家無法以一般探索方式進入
+    linked_people_or_factions:
+      - traveler（旅行者）
+      - sibling（空，深淵雙子）
+      - 天理（Heavenly Principles）
+    continuity_notes:
+      - 與 secrets-lockbox.md「提瓦特模擬論」高度相關，正文中應避免明確揭示其本質
+      - 旅行者在此被天理阻攔並封印，為全篇動機起點
+
+  - id: khaenriah-ruins
+    name: 坎瑞亞遺址
+    type: ruins
+    region: khaenriah（提瓦特地下）
+    first_appearance: 間章：深境螺旋周邊劇情
+    summary: >
+      500年前被天理毀滅的無神之國坎瑞亞廢墟，深境螺旋最深層附近。
+      曾是提瓦特唯一不受神明庇護、以人類科技與魔法自立的文明。
+      滅國後倖存者被詛咒為不死或變異怪物，深淵教團在此活動。
+    atmosphere:
+      - 黑暗、冰冷，詛咒能量如腐爛氣息滲透石縫
+      - 時光在此停滯，廢墟建築保有500年前的樣貌
+      - 偶有深淵軍隊的迴響，以及戴恩斯利夫淡然的回憶氣息
+    narrative_functions:
+      - 揭露坎瑞亞滅國真相的核心場景
+      - 戴恩斯利夫身份與「天誅」使命的背景
+      - 深淵教團與深淵雙子的活動中心
+    access_constraints:
+      - 深境螺旋深處，極少人能到達
+      - 深淵能量對普通人有腐蝕效果
+    linked_people_or_factions:
+      - dainsleif（戴恩斯利夫）
+      - sibling（空，深淵雙子）
+      - dottore（博士，曾研究坎瑞亞技術）
+      - pierro（彼埃羅，坎瑞亞貴族出身）
+      - 深淵教團
+    continuity_notes:
+      - 坎瑞亞五賢者的具體命運屬 secrets-lockbox.md 保護內容
+      - rhinedottir（金）的實驗室在此附近，創造了阿貝多與散兵原型
+
+  - id: spiral-abyss
+    name: 深境螺旋
+    type: dungeon_realm
+    region: khaenriah（連通地帶）
+    first_appearance: 序章（機制）；第二章（達達利亞背景）
+    summary: >
+      連接提瓦特表層與坎瑞亞廢墟深處的螺旋空間，充滿深淵能量的試煉場。
+      時間流速異於提瓦特——達達利亞在此滯留三月，提瓦特僅過三天。
+      深淵生物盤踞其中，越往深層越接近坎瑞亞遺址核心。
+    atmosphere:
+      - 扭曲、壓迫，以元素共鳴維持的試煉秩序
+      - 越深越暗，深淵能量腐蝕感越強烈
+      - 達達利亞在此覺醒深淵能力後留下的能量殘跡
+    narrative_functions:
+      - 機制性試煉場，暗示通往坎瑞亞的路徑
+      - 達達利亞深淵能力覺醒之地
+      - 深淵雙子偶爾在此現身的場景
+    access_constraints:
+      - 12層結構，需達到特定戰力才能深入
+      - 深淵能量對意志薄弱者有侵蝕效果
+    linked_people_or_factions:
+      - sibling（空，深淵雙子）
+      - tartaglia（達達利亞，曾在此被Skirk訓練）
+      - skirk（斯科克，深淵教師）
+    continuity_notes:
+      - 深境螺旋最底部是否真正連通坎瑞亞遺址為 secrets-lockbox.md 議題
+      - 達達利亞在第二章後的神之心能力與深淵能力仍同時存在
+
+  # ──────────────────────────────────────────────
+  # 蒙德（Mondstadt）
+  # ──────────────────────────────────────────────
+  - id: mondstadt-city
+    name: 蒙德城
+    type: city
+    region: mondstadt
+    first_appearance: 序章：捕風的異鄉人
+    summary: >
+      風之國蒙德的首都，座落於蘋果酒湖（Cider Lake）中央島嶼上，由芭芭托斯守護。
+      以自由為最高信仰，無城牆亦無明確國王，由蒙德騎士團維持秩序。
+      城中有風神像、嘉明圖書館、天空詩社等地標。
+    atmosphere:
+      - 開闊，充滿風元素流動感，四時皆有微風
+      - 磚石建築搭配花卉香氣，節日氣氛濃厚
+      - 風神的自由意志滲透城市文化，少有壓迫感
+    narrative_functions:
+      - 旅行者進入提瓦特後的首個主要據點
+      - 溫迪（芭芭托斯）事件的核心舞台
+      - 迪盧克與凱亞勢力角力的背景
+    access_constraints:
+      - 開放進入，騎士團管理秩序
+      - 蒙德城島嶼四面環水，主入口有橋梁
+    linked_people_or_factions:
+      - venti（溫迪）
+      - diluc（迪盧克）
+      - kaeya（凱亞）
+      - traveler（旅行者）
+      - paimon（派蒙）
+      - 蒙德騎士團
+    continuity_notes:
+      - 風龍廢墟為舊蒙德城，現城是芭芭托斯推翻風暴神後遷建
+      - 第一章劇情後達瓦林（風龍）淨化，不再威脅城市
+
+  - id: stormterror-lair
+    name: 風龍廢墟（舊蒙德）
+    type: ruins
+    region: mondstadt
+    first_appearance: 第一章：風與自由之詩
+    summary: >
+      古代風暴神狄卡拉比安（Decarabian）統治時代的舊都廢墟，位於明冕山地區。
+      芭芭托斯主導推翻狄卡拉比安後，人民遷建現蒙德城。
+      500年前被詛咒、從沉眠中甦醒的龍達瓦林（Dvalin）在此棲居，
+      因誤解而被稱為「暴風龍」，後由旅行者與溫迪共同淨化。
+    atmosphere:
+      - 廢墟殘垣，強風呼嘯，透出被遺忘的神話感
+      - 古代神明意志的殘跡保存於石縫中
+      - 達瓦林淨化後氣氛轉為沉靜守護
+    narrative_functions:
+      - 芭芭托斯創世故事的舞台
+      - 旅行者與風龍達瓦林的最終對決地
+      - 溫迪神力恢復的象徵場景
+    access_constraints:
+      - 廢墟地形複雜，達瓦林仍駐守
+      - 劇情後恢復為守護之龍的棲息地
+    linked_people_or_factions:
+      - venti（溫迪）
+      - traveler（旅行者）
+    continuity_notes:
+      - 達瓦林在第一章劇情中完成淨化，此後不再是威脅
+      - 廢墟下層有古代機關殘留
+
+  - id: dragonspine
+    name: 龍脊雪山
+    type: mountain_region
+    region: mondstadt
+    first_appearance: 版本1.2：霜雪問仙蹤
+    summary: >
+      蒙德南方的永凍雪山，古代王國薩爾溫達格尼爾（Sal Vindagnyr）的遺址。
+      山頂插有天外飛落的「天霜之釘」（Skyfrost Nail），帶來了永恆嚴寒，毀滅了古代冰河文明。
+      西北的Wyrmrest谷是邪龍杜林（Durin）的最終安息地，
+      杜林是萊因多蒂爾（金）的造物，由芭芭托斯與達瓦林合力擊敗。
+    atmosphere:
+      - 酷寒、蒼茫，落雪無聲，古代詛咒能量留存
+      - 失落文明的神秘感，遺跡在冰層中若隱若現
+      - 天霜之釘散發異常的冰元素輻射
+    narrative_functions:
+      - 杜林（Durin）故事與萊因多蒂爾的間接線索
+      - 古代冰河文明探索場景
+      - 提示天降神器（天霜之釘）的更大謎題
+    access_constraints:
+      - 嚴寒環境對普通旅行者有持續傷害
+      - 需要特殊御寒措施才能深入核心區域
+    linked_people_or_factions:
+      - rhinedottir（萊因多蒂爾，造物者）
+      - venti（溫迪，擊敗杜林的參與者）
+    continuity_notes:
+      - 天霜之釘究竟是Celestia武器還是隕石，正文中暫不揭示
+      - 杜林的血液仍污染著部分山地，影響當地生態
+
+  - id: dawn-winery
+    name: 晨曦酒莊
+    type: estate
+    region: mondstadt
+    first_appearance: 第一章：風與自由之詩
+    summary: >
+      迪盧克家族世代傳承的葡萄酒莊，蒙德最知名的莊園，也是迪盧克秘密活動的根據地。
+      父親克雷帕特里克（Crepus）在此逝世——因騎士團長達西倒行逆施之事，
+      迪盧克與騎士團決裂，成為獨立行動的暗夜英雄。
+    atmosphere:
+      - 溫暖，葡萄香氣與橡木桶氣息瀰漫
+      - 表面安逸，實則暗藏守護者的緊繃感
+      - 日落時分金色光線映在葡萄藤上，美麗而憂鬱
+    narrative_functions:
+      - 迪盧克家族歷史與性格背景的舞台
+      - 旅行者與迪盧克達成合作的據點
+    access_constraints:
+      - 私人產業，但對訪客相對開放
+      - 迪盧克對闖入者戒備性強
+    linked_people_or_factions:
+      - diluc（迪盧克）
+    continuity_notes:
+      - 父親之死埋下迪盧克對騎士團積怨的伏筆
+      - 凱亞與迪盧克的兄弟關係緊張，但凱亞仍偶爾出現於此
+
+  # ──────────────────────────────────────────────
+  # 璃月（Liyue）
+  # ──────────────────────────────────────────────
+  - id: liyue-harbor
+    name: 璃月港
+    type: city
+    region: liyue
+    first_appearance: 第二章：岩之心
+    summary: >
+      璃月最大的港口城市，由「七師」商業聯合體與摩拉克斯（鍾離）的契約體系共同維繫。
+      以貿易繁盛聞名，璃月的財富以「堆砌如山的摩拉」為象徵。
+      旅行者在此捲入摩拉克斯假死事件，揭露神之心與法提米的陰謀。
+    atmosphere:
+      - 繁榮喧囂，燈火通明，以石材建築為主
+      - 石柱與紅燈籠共構視覺，充滿契約感與商業氣息
+      - 夜晚的海港燈光映在水面，既壯麗又蘊含政治張力
+    narrative_functions:
+      - 鍾離退位（假死）事件的核心舞台
+      - 旅行者與璃月各勢力的交匯點
+      - 法提米（達達利亞）奪取神之心的陰謀地
+    access_constraints:
+      - 自由進出，七師與凝光等統治精英掌控商業秩序
+      - 港口設有海關，外來勢力需謹慎
+    linked_people_or_factions:
+      - zhongli（鍾離）
+      - ningguang（凝光）
+      - keqing（刻晴）
+      - yelan（夜蘭）
+      - hu-tao（胡桃）
+      - tartaglia（達達利亞）
+      - 七師
+    continuity_notes:
+      - 鍾離已確認交出神之心、退位為凡人，但璃月仍在其隱性守護之下
+      - 凝光的天衡在第二章被達達利亞摧毀，後重建
+
+  - id: liyue-sea-area
+    name: 璃月海域（孤雲石林）
+    type: sea_area
+    region: liyue
+    first_appearance: 第二章：岩之心
+    summary: >
+      璃月南方海域，孤雲石林（Guyun Stone Forest）散布其中。
+      相傳是魔神大戰末期，摩拉克斯以石矛斬殺深海惡神歐西爾（Osial）後，
+      石矛化為矗立海面的石柱，成為封印歐西爾的天然牢籠。
+      第二章劇情中，達達利亞試圖以七師奉獻的玉衡器喚醒歐西爾，
+      最終被鍾離以神明之力再次封印。
+    atmosphere:
+      - 壯闊，海風呼嘯，巨石聳立如神話戰場的回聲
+      - 封印之力隱隱流動，偶有餘震般的岩元素波動
+      - 夕陽映在石柱上，既壯美又帶有古代戰場的肅殺感
+    narrative_functions:
+      - 歐西爾封印事件的劇情舞台
+      - 展示鍾離神明之力與魔神大戰規模
+      - 凝光奉獻天衡器的政治犧牲場景
+    access_constraints:
+      - 船隻可至，但歐西爾封印區域危險
+      - 深海部分無法探索
+    linked_people_or_factions:
+      - zhongli（鍾離）
+      - ningguang（凝光）
+      - tartaglia（達達利亞）
+    continuity_notes:
+      - 歐西爾封印以七師的天衡器為代價完成，凝光為此付出重大政治資本
+      - 此事件後，達達利亞神之心被剝奪，凝光天衡器被毀
+
+  - id: liyue-chasm-underground
+    name: 層岩巨淵地下
+    type: underground_cavern
+    region: liyue
+    first_appearance: 版本2.6：層岩巨淵（地下區域）
+    summary: >
+      璃月與須彌邊界的巨大礦洞地下區域，地層深處與須彌沙漠相連。
+      充滿「幽石」（Lumenstone）能量，有古代文明遺跡與深淵活動痕跡。
+      旅行者在此探索時發現深淵軍隊的秘密行動，以及與坎瑞亞技術相關的線索。
+    atmosphere:
+      - 深邃、黑暗，幽石發出蒼藍微光照亮廢棄礦道
+      - 廢棄礦道與古代機關雜陳，空氣中有礦石氣息
+      - 深淵活動留下的腐蝕痕跡增添危機感
+    narrative_functions:
+      - 連接璃月與須彌的地下走廊
+      - 深淵教團秘密行動的場所
+      - 旅行者探索前坎瑞亞遺留技術的線索地
+    access_constraints:
+      - 需要特殊照明道具（幽石調節器）才能深入
+      - 深淵軍隊在此巡邏，危險性高
+    linked_people_or_factions:
+      - sibling（空，深淵雙子）
+      - dainsleif（戴恩斯利夫）
+      - 深淵教團
+    continuity_notes:
+      - 地下層部分構造暗示與坎瑞亞技術有所關聯
+      - 層岩巨淵地上區域在v2.6同步開放，有採礦相關民間故事
+
+  - id: jueyun-karst
+    name: 絕雲間
+    type: mountain_karst
+    region: liyue
+    first_appearance: 第二章：岩之心
+    summary: >
+      璃月北方雲霧繚繞的喀斯特山地，傳說為仙人聚居之處。
+      璃月契約體系之外的「仙人」在此隱居，人煙稀少。
+      申鶴等角色曾在此修行；山中氣流特殊，常有雲霧橫亙懸崖。
+    atmosphere:
+      - 縹緲、雲霧環繞，有脫離世俗的仙境感
+      - 竹林與溪流點綴，偶有仙人留下的術法痕跡
+      - 靜謐壓倒一切，城市喧囂聲絕對傳不到此地
+    narrative_functions:
+      - 仙人與璃月凡人文明的邊界地帶
+      - 璃月神話（岩神崇拜/仙人體系）的具現化場景
+    access_constraints:
+      - 地形險峻，常人難以到達
+      - 仙人守護，擅入者受到自然力量排斥
+    linked_people_or_factions:
+      - zhongli（鍾離，曾以仙人形態活動於此）
+    continuity_notes:
+      - 璃月仙人不直接效命於七師，有自己的道德體系
+
+  # ──────────────────────────────────────────────
+  # 稻妻（Inazuma）
+  # ──────────────────────────────────────────────
+  - id: inazuma-city
+    name: 稻妻城
+    type: city
+    region: inazuma
+    first_appearance: 第三章：雷電與永恆
+    summary: >
+      稻妻幕府首府，雷電影（貝爾澤布爾）親自統治的「永恆」之城。
+      以嚴苛的「神之眼收繳令」聞名，鎖國政令曾使外人無法進入。
+      稻妻城是幕府政治中心，稻妻騎士團（天領奉行）在此維持秩序。
+    atmosphere:
+      - 肅穆、傳統日式建築，雷電壓迫感隱隱瀰漫
+      - 市民在敬畏與服從間掙扎，表面平靜下潛藏抵抗情緒
+      - 神聖的電元素能量在城市各處流動
+    narrative_functions:
+      - 雷電影神之眼收繳政令的核心舞台
+      - 旅行者與幕府、抵抗軍的多方衝突地
+      - 雷電影真實身份（Ei / 貝爾澤布爾分裂）的揭露地
+    access_constraints:
+      - 鎖國解除後開放，但幕府仍掌控入城秩序
+      - 神之眼持有者曾受到特殊監視
+    linked_people_or_factions:
+      - raiden-ei（雷電影）
+      - yae-miko（八重神子）
+      - ayaka（神里綾華）
+      - 稻妻幕府
+    continuity_notes:
+      - 鎖國已在第三章劇情結束後解除，雷電影恢復對外交流
+      - 八重神子在城中以人間形態管理鳴神大社事務
+
+  - id: grand-narukami-shrine
+    name: 鳴神大社
+    type: shrine
+    region: inazuma
+    first_appearance: 第三章：雷電與永恆
+    summary: >
+      位於鳴神島山頂的神聖神社，稻妻最高神域。
+      神樹（Sacred Sakura，神聖鳴神樹）在此生長，根系延伸連通稻妻各島。
+      八重神子（宮司）在此管理稻妻信仰事務，是雷電影與人界的中介。
+    atmosphere:
+      - 莊嚴神聖，粉色神樹花瓣四季飄散
+      - 靜謐而充滿神格威嚴，俗世的紛爭到此減半
+      - 神樹根系流動的電元素能量在地面留下發光紋路
+    narrative_functions:
+      - 旅行者與八重神子合作的據點
+      - 揭示雷電影/Ei與貝爾澤布爾分裂身份的關鍵地
+    access_constraints:
+      - 一般人可前往，但神社深處需要資歷
+      - 神樹封印深處有Ei的「寂滅之境」入口
+    linked_people_or_factions:
+      - raiden-ei（雷電影 / Ei）
+      - yae-miko（八重神子）
+    continuity_notes:
+      - 神樹根系連通稻妻各島，是電元素能量網的核心
+      - 八重神子在神社擁有絕對權威，即便幕府也不輕易干預
+
+  - id: watatsumi-island
+    name: 海祇島
+    type: island
+    region: inazuma
+    first_appearance: 第三章：雷電與永恆
+    summary: >
+      信仰大蛇神歐若巴希（Orobashi）的獨立島嶼，與幕府持對立立場。
+      珊瑚宮心海在此領導抵抗軍（珊瑚宮）。
+      歐若巴希的遺骸傳說橫臥在八重神子島（矢島）的山嶺之下，
+      其死亡是幕府與珊瑚宮對立的歷史根源。
+      淵下宮（Enkanomiya）的入口位於珊瑚宮深處。
+    atmosphere:
+      - 水藍、靜謐，珊瑚宮建築充滿水下宮殿意象
+      - 與稻妻本島的肅穆形成鮮明對比，帶有哀傷的神聖感
+      - 海浪聲與珊瑚宮鐘聲形成特有的島嶼韻律
+    narrative_functions:
+      - 抵抗軍（珊瑚宮）的大本營
+      - 歐若巴希故事的展開地
+      - 淵下宮（Enkanomiya）的進入點
+    access_constraints:
+      - 幕府鎖國時期曾封鎖往來
+      - 第三章後抵抗軍解散，島嶼對外開放
+    linked_people_or_factions:
+      - raiden-ei（雷電影，間接相關）
+      - 珊瑚宮心海（島嶼領袖，非主要角色清單內）
+    continuity_notes:
+      - 第三章劇情結束後幕府與海祇島達成和解
+      - 淵下宮入口需要通過珊瑚宮深處的特殊機關解鎖
+
+  - id: enkanomiya
+    name: 淵下宮
+    type: underground_realm
+    region: inazuma
+    first_appearance: 版本2.4：飛彩踏花節
+    summary: >
+      位於稻妻海祇島深海之下的古代文明遺跡，大蛇神歐若巴希帶著追隨者逃入的地下世界。
+      無日光，以特殊的「白夜」與「黑夜」交替系統（日光幕）替代。
+      充滿前稻妻時代古文明（Enkanomiya / Watatsumi先民）的痕跡。
+      其石板刻文蘊含提瓦特宇宙觀的深層線索。
+    atmosphere:
+      - 幽深、無日光，白夜模式下瀰漫詭異磷光
+      - 古代石板文字隱含失落文明的哀愁
+      - 靜謐中有古老神明意志的殘響
+    narrative_functions:
+      - 提瓦特遠古歷史（天理控制前的世界形貌）的線索地
+      - 暗示天理建立前提瓦特的不同生態
+    access_constraints:
+      - 只能從海祇島珊瑚宮深處進入
+      - 日光幕切換機制需要特定道具操作
+    linked_people_or_factions:
+      - raiden-ei（雷電影，知曉歷史但未深入）
+    continuity_notes:
+      - 淵下宮刻文中的宇宙觀暗示提瓦特模擬論，屬 secrets-lockbox.md 議題
+      - 歐若巴希被幕府設計殺死的真相在第三章中揭露
+
+  - id: tsurumi-island
+    name: 鶴觀島
+    type: island
+    region: inazuma
+    first_appearance: 版本2.2：隱秘逸聞
+    summary: >
+      稻妻最偏遠的島嶼，常年籠罩在迷霧中，幾乎與外界隔絕。
+      古代雷鳥（Thunderbird / Kanna Kapatcir）曾棲居於此，保護島上居民。
+      雷鳥在一次災難中犧牲後，島嶼陷入永恆迷霧與時間循環，
+      居民在記憶喪失中反覆重演相同的日子，不知道外界的存在。
+    atmosphere:
+      - 迷霧瀰漫、壓抑，能見度極低
+      - 時間凝滯感極強，落葉不腐、石像不老
+      - 雷鳥能量殘留在特定石像中，散發悲傷的神聖感
+    narrative_functions:
+      - 提瓦特遠古雷鳥文明與天理之前歷史的線索地
+      - 記憶與永恆主題的象徵場景
+    access_constraints:
+      - 迷霧使外來者迷路，需要島民引導或特殊能力
+      - 島嶼時間循環對長期停留者有記憶影響
+    linked_people_or_factions:
+      - raiden-ei（雷電影，知曉雷鳥歷史）
+    continuity_notes:
+      - 雷鳥故事暗示稻妻之前有更古老的神明存在
+      - 時間循環在玩家完成世界任務後解除，島民恢復正常生活
+
+  # ──────────────────────────────────────────────
+  # 須彌（Sumeru）
+  # ──────────────────────────────────────────────
+  - id: sumeru-city
+    name: 須彌城
+    type: city
+    region: sumeru
+    first_appearance: 第四章：赤沙之夢
+    summary: >
+      智慧之國須彌的首都，提瓦特最著名的學術聖地，教令院（Akademiya）就位於此。
+      城市以樹屋和水系著稱，草元素能量在城中流動。
+      Lesser Lord Kusanali（納西妲）被軟禁於教令院500年，
+      教令院五賢者實際掌控政治，以「神明不存在」的謊言愚弄民眾。
+    atmosphere:
+      - 學術氛圍，翠綠藤蔓攀爬建築，學者辯論聲不絕
+      - 草木元素能量使空氣帶有清新植物氣息
+      - 表面開明，實則暗藏學術壟斷與政治壓迫
+    narrative_functions:
+      - 納西妲被囚禁與解放的核心地
+      - 五賢者（Sages）政治陰謀的舞台
+      - 旅行者與提納里、艾爾海森合作的起點
+    access_constraints:
+      - 開放城市，但教令院深處有嚴格管制
+      - 外來者被Akasha Terminal系統監控
+    linked_people_or_factions:
+      - nahida（納西妲）
+      - tighnari（提納里）
+      - alhaitham（艾爾海森）
+      - 教令院五賢者（已在第四章劇情中瓦解）
+    continuity_notes:
+      - 五賢者（Greater Lord Rukkhadevata時代的遺留機構）已在第四章劇情後瓦解
+      - Akasha Terminal系統已關閉，須彌人不再依賴外掛記憶
+
+  - id: sumeru-desert
+    name: 須彌沙漠（沙漠王陵地區）
+    type: desert_region
+    region: sumeru
+    first_appearance: 版本3.4：沙漠之狐
+    summary: >
+      須彌西部廣袤沙漠，以古代沙漠王Deshret的文明遺跡為中心。
+      古代金字塔式陵墓散布沙漠，阿如村（Aaru Village）是其中的人類聚落。
+      深淵在此有秘密行動，試圖喚醒Deshret時代的力量。
+    atmosphere:
+      - 酷熱、蒼茫，金色沙丘與廢墟殘柱構成末世感
+      - 日落時分如血色滿天，強烈的荒涼美感
+      - 沙漠詛咒能量在特定區域有腐蝕效果
+    narrative_functions:
+      - 古代沙漠文明與Deshret故事的舞台
+      - 深淵在沙漠的秘密行動場景
+    access_constraints:
+      - 沙漠環境惡劣，特定區域有沙漠詛咒持續傷害效果
+      - 部分陵墓入口有古代機關封鎖
+    linked_people_or_factions:
+      - nahida（納西妲，透過Irminsul知曉此地歷史）
+    continuity_notes:
+      - 阿如村倖存者保有古代沙漠文明語言，是追查Deshret真相的線索持有者
+
+  - id: irminsul-tree
+    name: 伊爾敏蘇爾（Irminsul）
+    type: world_tree
+    region: sumeru
+    first_appearance: 第四章：赤沙之夢
+    summary: >
+      須彌草元素的根源，也是提瓦特的「記憶樹」——所有提瓦特生命的記憶都儲存其中。
+      前草神Greater Lord Rukkhadevata犧牲自身淨化了被博士汙染的聖樹。
+      納西妲繼承其位後，透過Irminsul掌握全提瓦特的知識，亦能直接進入他人夢境記憶。
+    atmosphere:
+      - 神聖、龐大，根系延伸至整個提瓦特深層地底
+      - 從上方看如參天巨樹覆蓋須彌，葉片散發金綠色微光
+      - 內部是記憶的海洋，充滿各種時代的情感殘影
+    narrative_functions:
+      - 提瓦特集體記憶的儲存庫
+      - 旅行者進入Akasha（記憶網絡）的通道
+      - 博士竊取與篡改記憶的場景
+    access_constraints:
+      - 普通人不可進入，需要草神或特殊能力引導
+      - 直接接觸者會陷入記憶過載狀態
+    linked_people_or_factions:
+      - nahida（納西妲）
+      - dottore（博士，曾試圖利用此樹）
+    continuity_notes:
+      - 博士曾試圖利用聖樹進行記憶篡改實驗，納西妲最終保護了聖樹完整性
+      - 旅行者在此過程中部分記憶被聖樹儲存，為後續劇情埋下伏筆
+
+  # ──────────────────────────────────────────────
+  # 楓丹（Fontaine）
+  # ──────────────────────────────────────────────
+  - id: fontaine-court
+    name: 楓丹廷
+    type: city
+    region: fontaine
+    first_appearance: 第五章：浮生若夢，皆成泡影
+    summary: >
+      司法之國楓丹的首都，審判文化深入人心，Opera Epiclese（歌劇院式法庭）是其地標。
+      楓丹廷下方有廣闊水下世界，楓丹科學院亦在此研究水元素奧秘。
+      芙寧娜以「福卡洛斯」神明身份統治此地500年，
+      最終由那維萊特（真正的水龍王）吸收全民水化詛咒，芙寧娜回歸凡人。
+    atmosphere:
+      - 優雅、戲劇化，法庭審判氣氛常駐
+      - 水元素滲透城市各處，噴泉與運河構成城市景觀
+      - 居民熱衷觀看審判如同觀賞歌劇，帶有荒誕的文明感
+    narrative_functions:
+      - 芙寧娜500年秘密的揭露舞台
+      - 那維萊特收回福卡洛斯神之心的核心地
+      - 楓丹全民「水化」詛咒的解除地點
+    access_constraints:
+      - 開放城市，特定法庭需要司法許可
+      - 水下區域需要楓丹特有的水下行動能力
+    linked_people_or_factions:
+      - furina（芙寧娜）
+      - neuvillette（那維萊特）
+      - lyney（林尼）
+    continuity_notes:
+      - 福卡洛斯神之心已讓渡給那維萊特，芙寧娜以凡人身份繼續生活
+      - 全民水化詛咒（若楓丹廷之水乾涸則全民化水）由那維萊特吸收，詛咒解除
+
+  - id: fontaine-underwater
+    name: 楓丹水下世界
+    type: underwater_realm
+    region: fontaine
+    first_appearance: 版本4.0：天衡巡廻
+    summary: >
+      楓丹廷下方及周邊廣闊的水下區域，充滿美露賽尼（Melusine）聚落。
+      前身是被水淹沒的古楓丹文明遺跡（Elton Trench、Salacia Plain等）。
+      楓丹元素使用者無需呼吸道具即可水下行動，為提瓦特獨特現象。
+      美露賽尼是艾利納斯巨龍血液汙染河流後誕生的種族。
+    atmosphere:
+      - 蔚藍、靜謐、幽深，美露賽尼的發光身軀在黑暗中點亮
+      - 遺跡石柱覆滿水草，古代楓丹文明在水中沉睡
+      - 光線折射形成夢幻般的藍綠色光芒
+    narrative_functions:
+      - 美露賽尼種族起源故事的舞台
+      - 古楓丹文明被水淹沒秘史的線索地
+    access_constraints:
+      - 水下區域，非楓丹居民需要特殊能力或道具
+      - 部分深海區域有Fontemer Aberrant（水怪）盤據
+    linked_people_or_factions:
+      - furina（芙寧娜，知曉美露賽尼秘密）
+      - neuvillette（那維萊特，水龍王，與水下世界天然親近）
+    continuity_notes:
+      - 美露賽尼是艾利納斯（Elynas，倒下的龍）血液汙染河流後誕生的種族
+      - 此設定在第五章劇情中正式揭露
+
+  - id: fortress-of-meropide
+    name: 梅洛庇得要塞
+    type: prison_fortress
+    region: fontaine
+    first_appearance: 版本4.3：沉眠者的古國
+    summary: >
+      楓丹廷以北利弗（Liffey）地區的水下監獄要塞，囚禁重刑犯的場所。
+      有自己的微型社會生態，囚犯在此從事勞動以贖罪。
+      林尼（Lyney）在此完成關鍵任務，揭露與芙寧娜相關的陰謀。
+    atmosphere:
+      - 幽暗、壓迫，水下鋼鐵建築與囚犯社會複雜生態交織
+      - 帶有楓丹式的荒誕黑色幽默：即使在監獄裡，審判精神仍存在
+    narrative_functions:
+      - 楓丹黑暗司法面的具現化場景
+      - 林尼劇情任務的舞台
+    access_constraints:
+      - 司法機關控制，需要特定許可或以囚犯身份進入
+      - 水下環境增加逃脫難度
+    linked_people_or_factions:
+      - lyney（林尼）
+      - furina（芙寧娜）
+    continuity_notes: null
+
+  # ──────────────────────────────────────────────
+  # 納塔（Natlan）
+  # ──────────────────────────────────────────────
+  - id: natlan-sacred-mountain
+    name: 納塔聖山（科亞特佩克）
+    type: volcano_mountain
+    region: natlan
+    first_appearance: 第六章：熔火之心
+    summary: >
+      納塔（火之國）的神聖火山，古代城市托蘭聖城所在地。
+      科亞特佩克（Coatepec）是納塔各部落的精神核心，火之神瑪薇卡在此駐守。
+      「無名之焰盆地」（Basin of Unnumbered Flames）等危險地形位於其中。
+      版本5.5（2025-03）擴展了古代聖山的探索範圍。
+    atmosphere:
+      - 熾熱、壯烈，充滿原始力量感
+      - 熔岩河流與部落鼓聲構成野性的神聖感
+      - 夜魂（Night Soul）能量如藍焰在岩石縫隙中流動
+    narrative_functions:
+      - 瑪薇卡與納塔各部落的精神象徵
+      - 夜魂系統（Night Soul）的能量來源地
+      - 卡比坦諾最終戰的舞台
+    access_constraints:
+      - 火山環境極端危險，需要夜魂或火元素防護
+      - 部落聖地有信任限制
+    linked_people_or_factions:
+      - mavuika（瑪薇卡）
+      - capitano（卡比坦諾，在此犧牲）
+      - kinich（奇尼奇）
+    continuity_notes:
+      - 托蘭聖城建於古代Sacred Mountain之上，瑪薇卡以此為火之神的駐地
+      - 卡比坦諾在第六章主線中在此犧牲，換取對抗夜魂威脅的勝利
+
+  - id: tollan-sacred-city
+    name: 托蘭聖城
+    type: sacred_city
+    region: natlan
+    first_appearance: 第六章：熔火之心
+    summary: >
+      納塔各部落的精神聖地，建於科亞特佩克巨山內部的古代城市。
+      以夜魂（Night Soul）能量維持，各部落代表在此聚集議事。
+      托蘭是納塔文明的起源地，也是夜魂技術最高度發展的場所。
+    atmosphere:
+      - 莊嚴、古老、充滿儀式感，石柱刻滿部落圖騰
+      - 夜魂能量如藍焰在建築間流動，夜晚時分尤為壯觀
+      - 部落鼓聲與祭祀儀式的低鳴貫穿空間
+    narrative_functions:
+      - 納塔主線的核心政治與精神空間
+      - 夜魂起源故事的揭露地
+      - 各部落聯盟決策的場所
+    access_constraints:
+      - 各部落信任者方能入城，外來者需要引薦
+      - 城內某些區域為祭司禁地
+    linked_people_or_factions:
+      - mavuika（瑪薇卡）
+      - kinich（奇尼奇）
+    continuity_notes:
+      - 夜魂（Night Soul）的本質與夜王國（Night Kingdom）的關係屬 secrets-lockbox.md 議題
+      - 第六章主線後托蘭聖城的政治格局有重大變化
+
+  - id: scions-of-the-canopy-ground
+    name: 天棚子嗣部落地區
+    type: tribal_territory
+    region: natlan
+    first_appearance: 第六章：熔火之心（v5.0初期）
+    summary: >
+      科亞特佩克山高處林冠層中的部落聚居地，Huitztlan（天棚子嗣）部落的家園，
+      以夥伴生物Yumkasaurus著稱。是納塔三個初始開放部落之一（另外兩個為泉之子民、回響之子）。
+      奇尼奇（Kinich）的活動背景。
+    atmosphere:
+      - 高空綠意，雲霧繚繞的林冠棧道
+      - Yumkasaurus奔跑其中，充滿活力與部落共生氣息
+      - 鳥鳴與風聲形成與山下截然不同的清新感
+    narrative_functions:
+      - 展示納塔部落文化多樣性
+      - 奇尼奇角色背景的舞台
+    access_constraints:
+      - 部落內部路徑，外人需引薦
+      - 高空地形有墜落風險
+    linked_people_or_factions:
+      - kinich（奇尼奇）
+    continuity_notes:
+      - v5.5（2025-03）新增「豐饒聚合」部落地區為第四個部落
+      - v5.8（2025-07）新增輕風假日度假村，帶有休閒探索風格
+
+  # ──────────────────────────────────────────────
+  # 挪德·卡萊（Nod-Krai）
+  # ──────────────────────────────────────────────
+  - id: nod-krai-nashgorod
+    name: 挪德·卡萊（主城：納斯哥羅德）
+    type: autonomous_region
+    region: nod_krai
+    first_appearance: 版本6.0：Luna I（2025-09-10）
+    summary: >
+      位於提瓦特南端、斯涅茲奈亞邊緣的自治地區，以三月（Three Moons）信仰為核心。
+      各地人士匯聚於此，被稱為「提瓦特的樂土」。
+      月霜子嗣（Frostmoon Scions）是其原住民，崇拜月神Kuutar（即前法提米科倫比婭）。
+      法提米在此設立庫瓦奇實驗設計局，由博士主導月光能量研究。
+      主要港口納沙鎮（Nasha Town）是探索者的集散地。
+    atmosphere:
+      - 寒冷、月光瀰漫，藍白色調
+      - 月神崇拜儀式在靜謐雪夜中進行，神聖而憂鬱
+      - 表面的「樂土」繁榮下暗藏法提米的陰謀
+    narrative_functions:
+      - 科倫比婭真實身份（月神Kuutar）的揭露舞台
+      - 庫瓦奇（Kuuvahki，月光力量）系統的引入地
+      - 博士實驗陰謀的前線基地
+    access_constraints:
+      - v6.0後開放，需完成納塔主線
+      - 法提米控制區域有嚴密警戒
+    linked_people_or_factions:
+      - columbina（科倫比婭，月神Kuutar的人間化身）
+      - dottore（博士）
+      - pierro（彼埃羅）
+      - traveler（旅行者）
+    continuity_notes:
+      - v6.0主線為第一階段，v6.5預計延伸至Hyperborea地區
+      - 庫瓦奇能量是七元素之前就存在的月光力量，屬 secrets-lockbox.md 相關議題
+
+  - id: nasha-town
+    name: 納夏鎮
+    type: port_town
+    region: nod_krai
+    first_appearance: 版本6.0：Luna I（2025-09-10）
+    summary: >
+      挪德·卡萊最繁榮的貿易港，各地探險者與商人的匯聚地。
+      表面繁榮熱鬧，是旅行者進入挪德·卡萊的主要入口。
+      法提米在此有情報滲透，多方勢力在此交換資訊。
+    atmosphere:
+      - 熱鬧多元，各地文化在雪地港口交融
+      - 碼頭市集與酒館林立，雪地中升起的炊煙帶來暖意
+      - 表面歡快背後流動著各方勢力的緊張監視
+    narrative_functions:
+      - 旅行者進入挪德·卡萊的主要入口
+      - 各路勢力情報交換的地點
+    access_constraints:
+      - 開放進入，但法提米有深度滲透
+      - 陌生人受到相對友好的對待，但秘密調查有風險
+    linked_people_or_factions:
+      - dottore（博士）
+      - traveler（旅行者）
+    continuity_notes: null
+
+  - id: paha-isle
+    name: 帕哈島（法提米實驗基地）
+    type: island_base
+    region: nod_krai
+    first_appearance: 版本6.0：Luna I（2025-09-10）
+    summary: >
+      諾德·克萊海域中的島嶼，法提米在此設立庫瓦奇實驗設計局（Kuuvahki Experimental Design Bureau），
+      由博士主導月光能量研究。是法提米在諾德·克萊最主要的軍事與科研據點。
+    atmosphere:
+      - 冷峻、科技感與月光神秘交織
+      - 法提米旗幟在雪風中獵獵作響，研究設施冒出蒸氣
+      - 封鎖感強烈，外人進入有強烈的壓迫感
+    narrative_functions:
+      - 博士月光能量研究陰謀的前線基地
+      - 旅行者滲透法提米組織的場景
+    access_constraints:
+      - 法提米嚴密控制，需要滲透或武力突破
+      - 海域有法提米巡邏船
+    linked_people_or_factions:
+      - dottore（博士）
+      - columbina（科倫比婭）
+    continuity_notes:
+      - 博士在此的實驗目的（截至v6.x）尚未完全揭露，屬開放劇情議題
+
+  - id: hiisi-island
+    name: 希伊西島
+    type: island
+    region: nod_krai
+    first_appearance: 版本6.0：Luna I（2025-09-10）
+    summary: >
+      月霜子嗣（Frostmoon Scions）的傳統聚居島嶼，保有古老的月神Kuutar崇拜儀式。
+      是諾德·克萊最具文化原真性的地區，遠離法提米的商業與軍事影響。
+      科倫比婭與月神Kuutar連結的最直接線索地。
+    atmosphere:
+      - 靜謐、聖潔，月光在雪地上映出銀色光芒
+      - 古老月神石像守望島嶼，儀式鐘聲在寒夜中迴盪
+      - 遠離紛爭，帶有一種接近消逝的純粹神聖感
+    narrative_functions:
+      - 月霜子嗣文化與科倫比婭真實身份的線索地
+      - 庫瓦奇能量的自然發生地（未被法提米汙染的原始狀態）
+    access_constraints:
+      - 月霜子嗣的傳統領地，外人需尊重其習俗
+      - 島嶼位置較偏遠，需要嚮導
+    linked_people_or_factions:
+      - columbina（科倫比婭，此地月神崇拜的對象）
+    continuity_notes:
+      - Kuutar崇拜所揭示的科倫比婭月神身份屬 secrets-lockbox.md 高可信推測
+      - v6.x劇情中尚未對科倫比婭身份做出百分之百明確的官方確認
+
+  # ──────────────────────────────────────────────
+  # 斯涅茲奈亞（Snezhnaya，部分揭露）
+  # ──────────────────────────────────────────────
+  - id: zapolyarny-palace
+    name: 扎波利亞尼宮
+    type: palace
+    region: snezhnaya
+    first_appearance: 劇情對話提及（v6.0前）；未直接開放
+    summary: >
+      斯涅茲奈亞的中央宮殿，冰女王（Tsaritsa）的統治中心。
+      法提米執行官在此接受任命，整個法提米組織的最高指揮中心。
+      目前在遊戲地圖中尚未開放探索。
+    atmosphere:
+      - 冰冷、威嚴，冰元素力量貫穿整座宮殿
+      - 所有溫暖與情感被刻意壓制，顯示Tsaritsa的自我隔絕
+      - 充滿法提米符號學，執行官的任命儀式在此舉行
+    narrative_functions:
+      - 法提米最終陰謀（對抗Celestia）的指揮中心
+      - Tsaritsa神之心與感情放棄的象徵空間
+    access_constraints:
+      - 目前地圖未開放，預計v7.0 Snezhnaya主線開放
+      - 極少人能接近，僅法提米高層可入內
+    linked_people_or_factions:
+      - tsaritsa（冰女王）
+      - pierro（彼埃羅，法提米總監）
+      - 法提米執行官全體
+    continuity_notes:
+      - 斯涅茲奈亞地圖預計v7.0（約2026-09）正式開放
+      - Tsaritsa的真實目的與Celestia的關係屬 secrets-lockbox.md 保護內容
+
+# ──────────────────────────────────────────────
+# 版本基準：v6.x（2026-05）
+# 地點總數：30
+# Phase A 預訂 ID 核對：全部覆蓋
+#   teyvat-origin ✓  mondstadt-city ✓  liyue-harbor ✓
+#   liyue-sea-area ✓  liyue-chasm-underground ✓  inazuma-city ✓
+#   sumeru-city ✓  fontaine-court ✓  natlan-sacred-mountain ✓
+#   khaenriah-ruins ✓  nod-krai-nashgorod ✓
+# ──────────────────────────────────────────────

@@ -1,0 +1,57 @@
+relationships:
+  - id: tokyo-vs-kyoto-schools
+    parties:
+      - 東京咒術高專
+      - 京都咒術高專
+    type: 姊妹校 / 競爭 / 任務協作
+    summary: >
+      兩校同為術師培育支柱，但教育風格、教師立場與政治氣味不同。
+      新故事可利用兩校差異製造競爭、協作或價值觀衝突。
+    continuity_notes:
+      - 不綁定原作交流賽事件。
+
+  - id: jujutsu-headquarters-and-schools
+    parties:
+      - 咒術總監部
+      - 東京咒術高專
+      - 京都咒術高專
+    type: 上層行政 / 任務調度 / 政治壓力
+    summary: >
+      總監部掌握咒術界行政、裁決與保守秩序；高專則在教育與現場任務中承受其決策壓力。
+    continuity_notes:
+      - 可作新故事制度壓迫與任務命令來源。
+
+  - id: big-three-families
+    parties:
+      - 禪院家
+      - 五條家
+      - 加茂家
+    type: 名門家系 / 血統政治
+    summary: >
+      御三家重視血統、相傳術式與家族權威，是咒術界傳統權力的核心。
+    continuity_notes:
+      - 原創角色若出身名門，需記錄家族位置與術式繼承規則。
+
+  - id: disaster-curses
+    parties:
+      - 漏瑚
+      - 花御
+      - 陀艮
+    type: 特級咒靈群 / 災害恐懼意象
+    summary: >
+      三者皆可作高智慧特級咒靈 NPC，分別承載火山大地、森林自然與海洋恐懼等主題。
+    continuity_notes:
+      - 真人不建 NPC，只能在咒靈群備註或世界觀中提及。
+
+  - id: freelance-sorcerers
+    parties:
+      - 七海建人
+      - 冥冥
+      - 高專
+      - 咒術總監部
+    type: 自由術師 / 委託關係
+    summary: >
+      自由術師可接受任務、支援高專或以個人利益判斷行動，是新故事中靈活介入的成人 NPC 類型。
+    continuity_notes:
+      - 七海偏責任與理性，冥冥偏報酬與收益。
+

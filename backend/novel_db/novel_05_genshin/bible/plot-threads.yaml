@@ -1,0 +1,99 @@
+open_threads:
+  - id: traveler-find-sibling
+    hook: >
+      旅行者（瑩）在提瓦特被未知神祇強制分離後，正在詢問七位魔神、尋找失散手足（空）的下落。
+      手足已知身處深淵，以「深淵教團」領袖身分行動，原因不明。
+    introduced_in: Prologue
+    status: open
+    stakes: >
+      若無法找回手足，旅行者的主要旅途動機將失去焦點；
+      若手足真的投向深淵、決意毀滅諸神，旅行者將被迫在親情與正義之間做出抉擇。
+      此線是整個主線的情感核心。
+    likely_payoff_window: 至冬章或之後（v7.0+）
+
+  - id: tsaritsa-gnosis-collection
+    hook: >
+      至冬沙皇透過法提米教團系統性地從七位魔神手中奪取神之心，目標是集齊七個神之心後向天理發起挑戰。
+      已收集：風、岩、雷、草、水（五個）。火之神之心被卡比坦諾拒絕奪取，仍由瑪薇卡保管。
+      冰之神之心在沙皇自身手中。
+    introduced_in: Prologue
+    status: partially_resolved
+    stakes: >
+      若沙皇成功集齊並使用七個神之心，天理的統治將被顛覆。
+      這可能是提瓦特解放——也可能是新的更大災難。
+      目前火之神之心（一個）仍未入手，成為計畫的最後障礙。
+    likely_payoff_window: 至冬章（v7.0）
+
+  - id: heavenly-principles-truth
+    hook: >
+      天理（法尼斯）是什麼？提瓦特的「天空」是真實的嗎？納西妲、散兵、博士都以知曉這個秘密為籌碼。
+      已揭露線索：天理是第一降臨者、目前沉睡；天空疑似是仿製品；
+      神之心是用第三降臨者遺骸製成的枷鎖。
+    introduced_in: ch03-sumeru
+    status: open
+    stakes: >
+      若天理的本質被完整揭露，七執政制度的合法性、提瓦特七元素世界的本質都將受到根本質疑。
+      這是全作最大的宏觀謎題之一。
+    likely_payoff_window: 至冬章至後（v7.0+）
+
+  - id: abyss-order-loom-of-fate
+    hook: >
+      深淵教團的旅行者手足（空）正在構築「命運之機」（Loom of Fate）：
+      以舊雷神雕像為基底、融入古神歐西爾的殘肢，並尋找遠古田修士（Field Tiller）的眼睛，
+      藉此打造一個能「震動天理寶座」的機械神。
+    introduced_in: ch01-liyue
+    status: partially_resolved
+    stakes: >
+      若命運之機完成，深淵將獲得挑戰天理的武器——這可能是解放坎瑞亞遺民、也可能引發毀滅性的戰爭。
+      旅行者必須在理解手足苦衷的同時阻止可能的屠殺。
+    likely_payoff_window: 深淵章（至冬前後）
+
+  - id: fatui-harbingers-agenda
+    hook: >
+      11 位法提米執行官各有秘密目的，並非全然唯沙皇之命是從。
+      博士（Dottore/Zandik）把持兩個神之心、進行各種危險實驗；
+      科倫比娜（Columbina）具有未知的強大力量，v6.3 正式登場並可能引發關鍵衝突；
+      阿萊奇諾（Arlecchino）持有水之神之心，以「父母之家」暗中培養孤兒情報網；
+      彼埃羅（Pierro）是教團總監，出身坎瑞亞，動機最為隱晦。
+    introduced_in: Prologue
+    status: open
+    stakes: >
+      執行官內部若因利益分歧爆發衝突，整個至冬計畫可能提前崩解或失控。
+      科倫比娜的實際能力若超越其他執行官，可能成為比沙皇更危險的變數。
+    likely_payoff_window: 諾德·克萊至至冬章（v6.x-7.0）
+
+  - id: khaenriah-curse-resolution
+    hook: >
+      坎瑞亞倖存者受到詛咒：貴族永生不死（戴恩斯利夫、凱亞均有坎瑞亞血統）、平民化為魔物。
+      丘丘人是被詛咒的坎瑞亞平民，保有殘存的民族記憶（蒙斯塔德特舞曲）。
+      這個詛咒能否被解除，是坎瑞亞遺民（包含深淵教團）的核心訴求。
+    introduced_in: ch01-liyue-interlude
+    status: open
+    stakes: >
+      若詛咒無法解除，丘丘人與坎瑞亞遺民將永遠是悲劇的存在；
+      若解除詛咒的代價是需要摧毀天理或提瓦特的現行秩序，旅行者將面臨道德困境。
+    likely_payoff_window: 至冬章或後（v7.0+）
+
+  - id: descender-mystery
+    hook: >
+      「降臨者」是一個遊走於天理管轄之外的特殊存在。已知：
+      第一降臨者是天理（法尼斯）本身；第四降臨者是旅行者；
+      第三降臨者是「薩雷萊寧」，其遺骸用於製造七個神之心；
+      第二、第五降臨者身分不明；
+      只有坎瑞亞五罪人之一的蘇爾塔洛吉知道第三降臨者的真相。
+    introduced_in: ch04-fontaine
+    status: open
+    stakes: >
+      若旅行者是被天理當作工具的存在，其自由意志與天理計畫的衝突將成為新的危機；
+      若有更多降臨者存在且尚在世，他們可能是意想不到的盟友或威脅。
+    likely_payoff_window: 至冬章或後（v7.0+）
+
+  - id: nod-krai-moon-power
+    hook: >
+      諾德·克萊擁有比七元素更古老的「月之力量」，與現行天理秩序的起源有所關聯。
+      旅行者與瓦爾卡正在調查當地秘密；科倫比娜已出現在此地區。
+    introduced_in: ch06-nod-krai
+    status: open
+    stakes: >
+      若月之力量的秘密揭露，可能重新定義七元素的來源、天理的本質，以及至冬計畫的真正意圖。
+    likely_payoff_window: 諾德·克萊弧後期至至冬章（v6.5-7.0）

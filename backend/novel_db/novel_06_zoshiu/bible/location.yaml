@@ -1,0 +1,388 @@
+locations:
+  - id: tokyo-jujutsu-high
+    name: 東京都立咒術高等專門學校
+    type: 教育機構 / 任務據點 / 咒術設施
+    region: 日本・東京近郊山區
+    first_appearance: reference_only
+    summary: >
+      東京校是日本兩所咒術教育機構之一，負責培育術師、派遣任務、保管部分咒具與咒物，
+      同時也是新故事中最穩定的任務起點與情報樞紐。
+    atmosphere:
+      - 山林深處的古老校地，鳥居、階梯、木造建築與現代教室並存。
+      - 表面像偏僻私校，內部則是訓練、封印、醫療與任務調度混合的咒術基地。
+    narrative_functions:
+      - 新人術師訓練
+      - 任務派遣
+      - NPC 會面
+      - 咒具保管
+      - 術式測試
+    access_constraints:
+      - 校地由結界保護，普通人難以察覺真實用途。
+      - 高危設施需要教師、總監部或特定權限許可。
+    linked_people_or_factions:
+      - 東京校學生
+      - 東京校教師
+      - 輔助監督
+      - 咒術總監部
+    continuity_notes:
+      - 可作原創主角入學、受訓、接任務的主要據點；不要綁定原作事件。
+
+  - id: mount-mushiro-foothills
+    name: 筵山山麓入口
+    type: 隱蔽入口 / 結界邊界
+    region: 東京校外圍
+    first_appearance: reference_only
+    summary: >
+      東京校入口位於筵山山麓一帶，深林與結界形成天然遮蔽，是普通社會與咒術校地的過渡地帶。
+    atmosphere:
+      - 潮濕山氣、石階青苔、鳥居朱漆與樹影壓低天光。
+    narrative_functions:
+      - 入學儀式
+      - 追蹤與伏擊
+      - 結界異常事件
+    access_constraints:
+      - 需通過校方結界與路徑辨識。
+    linked_people_or_factions:
+      - 東京咒術高專
+    continuity_notes:
+      - 適合寫成新角色第一次踏入咒術世界的門檻場景。
+
+  - id: torii-stairway
+    name: 鳥居階梯
+    type: 校地通道 / 儀式性地標
+    region: 東京校外圍至校地內部
+    first_appearance: reference_only
+    summary: >
+      成排鳥居與長階連接山林入口和高專校地，具有強烈的邊界感與咒術儀式感。
+    atmosphere:
+      - 風穿過鳥居縫隙，木牌輕響，雨後石階有泥土和濕木味。
+    narrative_functions:
+      - 迎接新生
+      - 夜間巡邏
+      - 帳或結界破口
+    access_constraints:
+      - 受校方結界影響，路徑可被隱藏或改變。
+    linked_people_or_factions:
+      - 東京咒術高專
+    continuity_notes:
+      - 可作反覆出現的視覺錨點。
+
+  - id: tokyo-classrooms
+    name: 東京校教室群
+    type: 教學空間
+    region: 東京咒術高專
+    first_appearance: reference_only
+    summary: >
+      小班制教室，用於普通課程、術式理論、任務簡報與戰後檢討。
+    atmosphere:
+      - 粉筆灰、舊木桌、窗外蟬聲與遠處訓練場的撞擊聲混在一起。
+    narrative_functions:
+      - 任務說明
+      - 術式講解
+      - 角色關係建立
+    access_constraints:
+      - 校內人員可使用，外部術師需報備。
+    linked_people_or_factions:
+      - 東京校學生
+      - 東京校教師
+    continuity_notes:
+      - 適合承載規則說明，但避免讓角色長篇百科式對話。
+
+  - id: tokyo-dormitory
+    name: 東京校學生宿舍
+    type: 生活區 / 休息區
+    region: 東京咒術高專
+    first_appearance: reference_only
+    summary: >
+      學生搬離原本住處後多住在校內宿舍，房間數量相對寬裕，能反映個人習慣與心理狀態。
+    atmosphere:
+      - 洗衣粉、泡麵湯味、木地板和訓練後汗水的氣味。
+    narrative_functions:
+      - 私下談話
+      - 角色恢復
+      - 任務前後對照
+    access_constraints:
+      - 學生生活區，外人不應任意進入。
+    linked_people_or_factions:
+      - 東京校學生
+    continuity_notes:
+      - 可用來建立原創學生角色的日常質感。
+
+  - id: isolation-chamber
+    name: 隔離室
+    type: 拘束設施 / 高危封鎖空間
+    region: 東京咒術高專
+    first_appearance: reference_only
+    summary: >
+      牆面覆滿符札的封鎖空間，用於拘束高危人物、受詛咒者或待判定個案。
+    atmosphere:
+      - 紙符乾澀、冷光燈、消毒水與封閉空氣裡的霉味。
+    narrative_functions:
+      - 審問
+      - 保護性隔離
+      - 危險咒物反應
+    access_constraints:
+      - 需要高層或教師權限。
+    linked_people_or_factions:
+      - 東京咒術高專
+      - 咒術總監部
+    continuity_notes:
+      - 適合處理新故事中的危險主角或原創詛咒案件。
+
+  - id: tokyo-morgue
+    name: 東京校停屍間
+    type: 醫療後勤 / 遺體處理
+    region: 東京咒術高專
+    first_appearance: reference_only
+    summary: >
+      術師任務死亡後可能被送回此處，由校方進行確認、處置與悼念。
+    atmosphere:
+      - 不鏽鋼冷櫃、漂白水、乳膠手套與低溫機械聲。
+    narrative_functions:
+      - 任務代價呈現
+      - 驗屍與咒力殘穢檢查
+      - 情緒轉折
+    access_constraints:
+      - 醫療人員、教師或指定術師可進入。
+    linked_people_or_factions:
+      - 家入硝子
+      - 東京咒術高專
+    continuity_notes:
+      - 不綁定原作死亡事件。
+
+  - id: hidden-room
+    name: 校內隱藏房間
+    type: 隱蔽據點 / 非正式會議室
+    region: 東京咒術高專
+    first_appearance: reference_only
+    summary: >
+      校內存在可避開常規監視的隱藏空間，適合訓練、藏匿、密談或臨時避難。
+    atmosphere:
+      - 老舊榻榻米、甜點包裝紙、積灰櫃子和結界殘留的乾冷感。
+    narrative_functions:
+      - 秘密訓練
+      - 反總監部密談
+      - 保護 NPC
+    access_constraints:
+      - 只有知情者能找到或開啟。
+    linked_people_or_factions:
+      - 東京校教師
+      - 東京校學生
+    continuity_notes:
+      - 可作原創支線的安全屋。
+
+  - id: cursed-warehouse
+    name: 忌庫
+    type: 咒具咒物倉庫 / 高危保管設施
+    region: 東京咒術高專至薨星宮路徑
+    first_appearance: reference_only
+    summary: >
+      用於存放咒具與咒物的小型倉庫，因保管物危險，適合引發偷竊、封印破損或權限爭議。
+    atmosphere:
+      - 乾木、鐵鏽、封印紙墨、舊血與冷石地面的氣味。
+    narrative_functions:
+      - 咒具取得
+      - 咒物失竊
+      - 封印事故
+    access_constraints:
+      - 結界保護，需校方或高層許可。
+    linked_people_or_factions:
+      - 東京咒術高專
+      - 咒術總監部
+      - 御三家
+    continuity_notes:
+      - 可放置原創咒物，但需記錄等級與封印條件。
+
+  - id: tombs-of-the-star
+    name: 薨星宮
+    type: 聖域 / 地下結界設施
+    region: 東京咒術高專地下深處
+    first_appearance: reference_only
+    summary: >
+      受複雜結界保護的深層空間，包含通往天元所在區域的通道、室內森林般的中間地帶與地下主廳。
+    atmosphere:
+      - 無葉巨木、濕土、古建築木香、深井般的空氣壓力。
+    narrative_functions:
+      - 高階結界設定
+      - 聖地防衛
+      - 作者層級秘密入口
+    access_constraints:
+      - 入口、門扉與內部空間受多重結界限制；未被允許者可能無法抵達真實核心。
+    linked_people_or_factions:
+      - 天元
+      - 東京咒術高專
+    continuity_notes:
+      - 可作新故事深層世界觀舞台，但避免直接搬用原作事件。
+
+  - id: kyoto-jujutsu-high
+    name: 京都府立咒術高等專門學校
+    type: 教育機構 / 任務據點
+    region: 日本・京都
+    first_appearance: reference_only
+    summary: >
+      京都校是東京校的姊妹校，位於被視為咒術聖地的京都，與東京校共同培育術師並承擔任務。
+    atmosphere:
+      - 古都濕冷、寺社木香、石板路與保守派咒術禮法並存。
+    narrative_functions:
+      - 姊妹校交流
+      - 保守派政治
+      - 關西任務
+      - 角色競爭
+    access_constraints:
+      - 校地由天元系結界保護，外部人員需許可。
+    linked_people_or_factions:
+      - 京都校學生
+      - 京都校教師
+      - 咒術總監部
+    continuity_notes:
+      - 適合讓新故事呈現與東京校不同的教育風格與政治氣味。
+
+  - id: kyoto-sacred-land
+    name: 京都咒術聖地
+    type: 城市 / 咒術文化核心
+    region: 日本・京都
+    first_appearance: reference_only
+    summary: >
+      京都承載古老咒術傳統、家系政治與宗教地景，是保守秩序和術師歷史感最強的城市。
+    atmosphere:
+      - 線香、雨水、檜木、老旅館榻榻米與觀光街甜食味互相交疊。
+    narrative_functions:
+      - 家族談判
+      - 古老咒物調查
+      - 儀式與結界研究
+    access_constraints:
+      - 普通城市與咒術聖地重疊，需要帳與情報管控。
+    linked_people_or_factions:
+      - 京都咒術高專
+      - 御三家
+      - 咒術總監部
+    continuity_notes:
+      - 可作原創古咒術、寺社詛咒與家系衝突舞台。
+
+  - id: tokyo-city
+    name: 東京
+    type: 都市 / 任務區域
+    region: 日本・關東
+    first_appearance: reference_only
+    summary: >
+      大量人口、壓力、慾望與恐懼使東京成為咒靈事件高發地，可承載校園、商辦、地鐵、醫院、住宅與娛樂區任務。
+    atmosphere:
+      - 便利商店炸物、地鐵熱風、雨傘塑膠味、加班後的廉價酒精。
+    narrative_functions:
+      - 都市怪談
+      - 連續失蹤
+      - 大型帳事件
+      - 原創咒靈誕生地
+    access_constraints:
+      - 普通人密度高，任務必須重視遮蔽與疏散。
+    linked_people_or_factions:
+      - 東京咒術高專
+      - 輔助監督
+    continuity_notes:
+      - 新故事最靈活的現代都市舞台。
+
+  - id: shibuya
+    name: 澀谷
+    type: 都市核心 / 交通商業區
+    region: 東京
+    first_appearance: reference_only
+    summary: >
+      人潮、車站、地下通道、商場與大型螢幕構成高密度都市場域，適合群眾恐懼、帳與多點任務。
+    atmosphere:
+      - 柏油熱氣、香水、汗味、速食油煙與雨後排水溝味。
+    narrative_functions:
+      - 人群遮蔽
+      - 多咒靈事件
+      - 地下空間追逐
+    access_constraints:
+      - 普通人過多，任何咒術異常都需要快速封鎖。
+    linked_people_or_factions:
+      - 東京咒術高專
+      - 輔助監督
+    continuity_notes:
+      - 不使用原作同名事件；只作地理錨點。
+
+  - id: shinjuku
+    name: 新宿
+    type: 都市核心 / 夜間任務區
+    region: 東京
+    first_appearance: reference_only
+    summary: >
+      辦公樓、夜生活、車站迷宮與後巷形成複雜任務場，可承載咒靈、咒詛師與情報交易。
+    atmosphere:
+      - 菸味、霓虹燈熱、拉麵湯頭、酒吧清潔劑與凌晨垃圾袋氣味。
+    narrative_functions:
+      - 情報交易
+      - 咒詛師接觸
+      - 高樓戰鬥
+    access_constraints:
+      - 夜間人流仍高，帳的覆蓋範圍需精準。
+    linked_people_or_factions:
+      - 自由術師
+      - 輔助監督
+    continuity_notes:
+      - 可作都市黑市或自由術師活動點。
+
+  - id: sendai
+    name: 仙台
+    type: 地方都市 / 任務區域
+    region: 日本・東北
+    first_appearance: reference_only
+    summary: >
+      東北地方城市，可用於遠離高專日常的地方詛咒、醫院、學校、舊宅與災害記憶相關故事。
+    atmosphere:
+      - 冷雨、牛舌炭香、車站便當、醫院消毒水與海風殘味。
+    narrative_functions:
+      - 外派任務
+      - 地方咒靈
+      - 原創角色故鄉
+    access_constraints:
+      - 高專支援距離較遠，任務需提前安排後勤。
+    linked_people_or_factions:
+      - 東京咒術高專
+      - 地方輔助監督
+    continuity_notes:
+      - 可作與東京節奏不同的原創篇章舞台。
+
+  - id: kawasaki
+    name: 川崎
+    type: 工業都市 / 任務區域
+    region: 神奈川
+    first_appearance: reference_only
+    summary: >
+      工業地帶、住宅區與通勤帶混雜，適合工廠事故、污染恐懼、勞動壓力與都市邊界感咒靈。
+    atmosphere:
+      - 機油、金屬粉塵、河風、便當店油煙和夜班咖啡。
+    narrative_functions:
+      - 工業詛咒
+      - 失蹤調查
+      - 工廠結界
+    access_constraints:
+      - 現場可能有監視器、警衛與工安限制。
+    linked_people_or_factions:
+      - 東京咒術高專
+      - 輔助監督
+    continuity_notes:
+      - 適合硬質、現代、工業感的咒靈案件。
+
+  - id: okinawa
+    name: 沖繩
+    type: 離島地區 / 任務區域
+    region: 日本・沖繩
+    first_appearance: reference_only
+    summary: >
+      海島文化、觀光、人潮與遠離本州高專的距離感，使沖繩適合海洋、祖靈、觀光事故與孤立任務。
+    atmosphere:
+      - 鹽風、防曬乳、濕熱石牆、海藻與夜市烤肉味。
+    narrative_functions:
+      - 離島任務
+      - 海洋咒靈
+      - 後援延遲
+    access_constraints:
+      - 交通與支援時間較長，帳的設置需考慮觀光人潮。
+    linked_people_or_factions:
+      - 東京咒術高專
+      - 自由術師
+    continuity_notes:
+      - 可與陀艮類海洋恐懼設定產生主題呼應，但不需搬用原作情節。
+

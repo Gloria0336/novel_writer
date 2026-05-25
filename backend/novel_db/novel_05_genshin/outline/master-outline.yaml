@@ -1,0 +1,156 @@
+canon_outline:
+  project_status: ongoing
+  current_chapter: ch06-nod-krai
+  current_endpoint: v6.x 諾德·克萊弧進行中（2026-05 基準）
+  canon_scope:
+    covered_chapters:
+      - Prologue（蒙德序章）
+      - Chapter-I（璃月）
+      - Chapter-II（稻妻）
+      - Chapter-III（須彌）
+      - Chapter-IV（楓丹）
+      - Chapter-V（納塔）
+      - Chapter-VI（諾德·克萊，進行中）
+    note: 記錄已完成的官方魔神任務章節，以旅行者（瑩）為主要視角。
+
+  chapter_beats:
+    - chapter: Prologue
+      title: 捕風的異鄉人（Visions of the Past, Reflections in the Mirror）
+      nation: 蒙德（Mondstadt）
+      beat: >
+        旅行者在提瓦特各地詢問魔神，從石像得知需要元素力量才能開口。
+        在蒙德，史諾娜（La Signora）找上門；龍王道瓦林作亂；
+        溫迪以昔日友誼召回道瓦林，揭示自己是芭芭托斯；
+        史諾娜強取溫迪神之心，宣告沙皇的計畫。
+      outcome: >
+        蒙德危機解除；風之神之心被奪走；執行官陰謀正式浮現；
+        旅行者明確了「找手足」的方向需靠詢問各國魔神。
+
+    - chapter: Chapter-I
+      title: 塵世羈絆的詠嘆調（Of the Land Amidst Monoliths）
+      nation: 璃月（Liyue）
+      beat: >
+        達達利亞借助歐西爾印章召喚古海神，意圖奪取岩之神之心。
+        鍾離以「需要帶走的人」之名主動現身，與達達利亞完成其早已設計好的契約：
+        岩之神之心換取「從天理中獨立」的自由。
+        寧威犧牲仙庭壓制歐西爾；旅行者揭開鍾離真實身分。
+      outcome: >
+        岩之神之心易手沙皇；鍾離正式卸任；
+        達達利亞的目的達成，卻也因此與旅行者形成奇妙共識；
+        璃月確認以「契約精神」自立，通過岩神的考驗。
+
+    - chapter: Chapter-II
+      title: 驚雷與罰罰（Omnipresence Over Mortals）
+      nation: 稻妻（Inazuma）
+      beat: >
+        「元神戒令」將稻妻封鎖，強制沒收神之眼。
+        旅行者潛入稻妻，加入抵抗組織「一心傳」，與草薙千早、宵宮、神里綾人合作。
+        揭露 Ei 的真相（傀儡「雷電將軍」vs 本體 Ei），正面挑戰 Ei。
+        Ei 反省「永恆」的意義，廢除元神戒令，重新向外世界開放。
+        散兵（執行官）藉機取走雷之神之心。
+      outcome: >
+        稻妻重新開放；元神戒令廢除；雷之神之心被博士拿走；
+        散兵與博士的矛盾埋下伏筆。
+
+    - chapter: Chapter-III
+      title: 愚人眾的邊緣（The Arrogation of Mankind Ends Now）
+      nation: 須彌（Sumeru）
+      beat: >
+        教令院六賢者以「學問術」終端（Akasha System）操控須彌民眾；
+        納西妲被囚淨心之壺 500 年，無人知曉她的存在。
+        旅行者進入循環夢境，協助納西妲逃脫；賢者們的陰謀被揭露。
+        阿普普（草之龍 Apep）的故事：被禁忌知識污染的古龍得到解脫。
+        納西妲以草之神之心換取博士手中的「天空真相」線索。
+        須彌沙漠篇：前任草神盧克薩蒂被抹去 Irminsul 記憶，旅行者成為唯一見證者。
+      outcome: >
+        納西妲正式掌握須彌；草之神之心易手博士；
+        「天空是假的」線索浮現；Irminsul 歷史被改寫。
+
+    - chapter: Chapter-IV
+      title: 楓丹，水天之境（Masquerade of the Guilty）
+      nation: 楓丹（Fontaine）
+      beat: >
+        旅行者抵達楓丹，陷入一系列法庭審判案件中，並協助那維萊特釐清「楓丹人皆有罪」預言的真相。
+        福卡洛斯將「神性」藏入裁決之器 500 年，以芙寧娜（人性化身）在外表演神格；
+        計畫在預言洪水到來時將水之神格轉還給那維萊特。
+        旅行者見證福卡洛斯自我處決，洪水如期而至；那維萊特以龍族古老力量赦免楓丹人的「原罪」。
+        芙寧娜重獲自由；水之神之心交給阿萊奇諾。
+      outcome: >
+        那維萊特繼承水之權能；水之神之心易手沙皇（透過阿萊奇諾）；
+        楓丹人倖存，預言以非預期方式應驗；芙寧娜轉型為普通人。
+
+    - chapter: Chapter-V
+      title: 火之民族的壯詩（Incandescent Ode of Resurrection）
+      nation: 納塔（Natlan）
+      beat: >
+        深淵大軍大規模入侵納塔，聖火瀕臨熄滅。
+        旅行者加入部落聯合防禦，親歷各部落的「原能」（Phlogiston）戰鬥文化。
+        執行官第一席卡比坦諾登場，挑戰瑪薇卡；敗於瑪薇卡後尊重其勝利。
+        深淵最後衝鋒時，卡比坦諾以生命力量與夜王國力量融合，拯救聖地並犧牲，
+        攜帶的坎瑞亞亡靈得到安息。
+        旅行者確認火之神之心仍由瑪薇卡保管，深淵暫退。
+      outcome: >
+        卡比坦諾犧牲；聖火保住；火之神之心未被奪走；
+        夜王國的古老秘密更加清晰；深淵的下一步行動更趨緊迫。
+
+    - chapter: Chapter-VI
+      title: 諾德·克萊、月之力（Luna Cycle，v6.0-6.x，進行中）
+      nation: 諾德·克萊（Nod-Krai）
+      beat: >
+        旅行者與瓦爾卡進入諾德·克萊，調查比七元素更古老的月之力量。
+        v6.3：科倫比娜正式亮相，引發新衝突。
+        v6.5：超冰原（Hyperborea）子地區開放。
+        至冬本篇（v7.0）尚未開啟。
+      outcome: 進行中，尚未完結。
+
+  character_state_snapshot:
+    traveler: >
+      正在諾德·克萊探索，持有七元素全部解鎖後的力量。手足仍在深淵；尚未完成尋親目標。
+    paimon: 伴隨旅行者。
+    sibling: 深淵教團領袖，仍在深淵活動，下一步計畫未明。
+    venti: 無神之心，以吟遊詩人身分在蒙德生活。
+    zhongli: 卸任神格，以鍾離身分在璃月生活，偶爾協助。
+    raiden-ei: 重新開放稻妻，積極向外學習。
+    nahida: 正式執掌須彌，學問術已廢除。
+    furina: 普通人，在楓丹重建自我。
+    neuvillette: 繼承水之權能，楓丹最高仲裁者。
+    mavuika: 火之神，持有火之神之心，率部落持續防禦深淵。
+    tsaritsa: 持有五個神之心（風、岩、雷、草、水），計畫倒數中。
+
+  near_term_next_steps:
+    - 諾德·克萊月之力量的真相揭露
+    - 科倫比娜的完整目的與能力展示
+    - 超冰原（Hyperborea）區域開放
+    - 至冬本篇（v7.0）——面對沙皇、揭露天理終極真相
+
+  continuity_flags:
+    - 卡比坦諾已死，執行官空缺席位尚未補上
+    - 散兵已轉為「流浪者」，不再是執行官成員
+    - 史諾娜已死（被雷電影處決），不再是執行官成員
+    - 那維萊特的龍族權能確立，但其與「第三降臨者」的關聯仍需追蹤
+    - 博士同時持有雷之神之心與草之神之心（已轉交沙皇或自行保管？）
+
+speculative_long_arc:
+  editable: true
+  status: author_adjustable_projection
+  note: >
+    這一區是根據目前方向做的長線推演，非既定 canon，可自由修改。
+    以下內容為官方尚未揭露的推測性敘事方向。
+  central_questions:
+    - 旅行者能否讓手足回頭？還是最終不得不以某種方式對抗？
+    - 天理（法尼斯）的真實意圖是什麼？覆滅後提瓦特會如何？
+    - 沙皇的「革命」成功後，七元素秩序會消失嗎？
+    - 第三降臨者（薩雷萊寧）的秘密何時揭曉？
+  projected_arc:
+    - phase: 至冬章（v7.0）
+      function: 面對沙皇、揭露天理終極真相、手足命運決定性轉折。
+      likely_material:
+        - 旅行者進入至冬國，與沙皇/彼埃羅正面交鋒
+        - 神之心集齊後的「天理挑戰」事件
+        - 深淵手足的最終選擇
+    - phase: 終章（v8.0+）
+      function: 提瓦特新秩序建立或崩潰；旅行者最終選擇。
+      likely_material:
+        - 降臨者秘密全數揭曉
+        - 坎瑞亞詛咒命運決定
+        - 旅行者是否能回到提瓦特以外的世界
