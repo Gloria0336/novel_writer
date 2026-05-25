@@ -6,9 +6,12 @@ frontend/test-results/
 backend/mcp_bridge/node_modules/
 backend/mcp_bridge/dist/
 backend/mcp_bridge/.env
+backend/classifier/**/__pycache__/
+backend/classifier/**/*.pyc
 backend/game_db/opera/.venv/
 backend/game_db/opera/__pycache__/
 backend/game_db/opera/**/*.pyc
+backend/game_db/opera/backend.codex.*.log
 backend/game_db/opera/.pytest_cache/
 backend/game_db/opera/backend/.pytest_cache/
 backend/game_db/opera/backend/.ruff_cache/

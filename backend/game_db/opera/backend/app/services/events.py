@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import asyncio
 from collections import defaultdict
-from datetime import UTC, datetime
+from datetime import datetime, timezone
 
 
 class EventBroker:
@@ -24,7 +24,7 @@ class EventBroker:
     def publish(self, campaign_id: str, event_type: str, payload: dict) -> None:
         envelope = {
             "event": event_type,
-            "timestamp": datetime.now(UTC).isoformat(),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
             "payload": payload,
         }
         for queue in list(self._queues.get(campaign_id, [])):

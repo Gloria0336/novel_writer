@@ -18,6 +18,15 @@
 - `backend/tests`：單元測試與整合測試
 - `frontend`：Vite/React 控制台
 
+## 全域啟動
+若要從 `novel_writer` 工作區根目錄一次啟動整合環境，執行：
+
+```powershell
+.\start-workspace.ps1
+```
+
+也可以直接雙擊根目錄的 `start-workspace.cmd`；啟動後 Opera 後端預設位於 `http://127.0.0.1:8000/api`，Opera 前端預設位於 `http://127.0.0.1:5173`。若根目錄的 `workspace.env` 覆寫了 `OPERA_BACKEND_PORT` 或 `NOVEL_WRITER_OPERA_BASE_URL`，請以該檔案中的設定為準。
+
 ## 後端
 在專案根目錄執行 API：
 

@@ -8,7 +8,7 @@
 
 from __future__ import annotations
 
-from datetime import UTC, datetime
+from datetime import datetime, timezone
 from pathlib import Path
 
 from classifier.core import ClassifierOutput
@@ -44,7 +44,7 @@ def append_entry(
     log_path = target_root / CHANGELOG_REL_PATH
     _ensure_header(log_path)
 
-    ts = datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%SZ")
+    ts = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
     try:
         rel = str(target_path.relative_to(target_root)).replace("\\", "/")
     except ValueError:

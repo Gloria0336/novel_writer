@@ -199,10 +199,10 @@ def sync_run(
                 stats["errors"].append({"opera_id": inp.hints.get("opera_id"), "kind": "changelog_failed", "msg": str(exc)})
 
     # 更新 campaign.metadata_json.last_staging_sync_at（dry_run 也記）
-    from datetime import UTC, datetime
+    from datetime import datetime, timezone
 
     meta = dict(campaign.metadata_json or {})
-    meta["last_staging_sync_at"] = datetime.now(UTC).isoformat()
+    meta["last_staging_sync_at"] = datetime.now(timezone.utc).isoformat()
     meta["last_staging_sync_stats"] = {
         k: v for k, v in stats.items()
         if k in {"applied", "noop", "skipped", "leak_blocked", "total_inputs", "dry_run", "date_tag"}

@@ -23,7 +23,7 @@ import difflib
 import json
 import shutil
 from dataclasses import dataclass, field
-from datetime import UTC, datetime
+from datetime import datetime, timezone
 from pathlib import Path
 
 from classifier.config import STAGING_ROOT, is_under_novel_db, resolve_novel_root
@@ -89,7 +89,7 @@ def bootstrap_staging(
         "campaign_id": campaign_id,
         "novel_id": novel_id,
         "novel_source_path": str(novel_root),
-        "bootstrapped_at": datetime.now(UTC).isoformat(),
+        "bootstrapped_at": datetime.now(timezone.utc).isoformat(),
         "status": "active",
     }
     paths.meta_file.write_text(
@@ -128,7 +128,7 @@ def load_meta(campaign_id: str) -> dict:
 def update_status(campaign_id: str, status: str) -> None:
     meta = load_meta(campaign_id)
     meta["status"] = status
-    meta["updated_at"] = datetime.now(UTC).isoformat()
+    meta["updated_at"] = datetime.now(timezone.utc).isoformat()
     paths = get_staging_paths(campaign_id)
     paths.meta_file.write_text(
         json.dumps(meta, ensure_ascii=False, indent=2), encoding="utf-8"
@@ -193,7 +193,7 @@ def export_campaign(campaign_id: str, *, ts: str | None = None) -> ExportBundle:
     if not paths.working.is_dir():
         raise FileNotFoundError(f"Campaign '{campaign_id}' staging 不存在")
 
-    timestamp = ts or datetime.now(UTC).strftime("%Y-%m-%dT%H-%M-%SZ")
+    timestamp = ts or datetime.now(timezone.utc).strftime("%Y-%m-%dT%H-%M-%SZ")
     export_dir = paths.exports_dir / timestamp
     export_dir.mkdir(parents=True, exist_ok=True)
     changed_files_dir = export_dir / "changed_files"
