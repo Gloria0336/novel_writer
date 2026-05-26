@@ -247,6 +247,100 @@ pre {
   white-space: nowrap;
 }
 
+.runtime-row {
+  display: flex;
+  max-width: 100%;
+  gap: 0.35rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.runtime-chip {
+  display: inline-flex;
+  min-width: 0;
+  max-width: 100%;
+  gap: 0.35rem;
+  align-items: center;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface-muted);
+  padding: 0.12rem 0.52rem;
+  color: var(--muted);
+  font-size: 0.76rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.runtime-chip i {
+  width: 0.48rem;
+  height: 0.48rem;
+  flex: none;
+  border-radius: 50%;
+  background: #8a9791;
+}
+
+.runtime-chip.is-connected,
+.runtime-chip.is-idle {
+  border-color: #9dc9ae;
+  background: #edf8f0;
+  color: #22683c;
+}
+
+.runtime-chip.is-connected i,
+.runtime-chip.is-idle i {
+  background: #20a455;
+}
+
+.runtime-chip.is-connecting,
+.runtime-chip.is-submitting,
+.runtime-chip.is-queued,
+.runtime-chip.is-generating {
+  border-color: #dfc27c;
+  background: #fff7df;
+  color: #7d5a13;
+}
+
+.runtime-chip.is-connecting i,
+.runtime-chip.is-submitting i,
+.runtime-chip.is-queued i,
+.runtime-chip.is-generating i {
+  background: #d28a1f;
+}
+
+.runtime-chip.is-disconnected,
+.runtime-chip.is-error {
+  border-color: #e7aaa3;
+  background: #fff0ee;
+  color: #9b2f27;
+}
+
+.runtime-chip.is-disconnected i,
+.runtime-chip.is-error i {
+  background: #d54035;
+}
+
+.runtime-chip.is-muted {
+  color: var(--muted);
+}
+
+.runtime-chip.is-muted::before {
+  content: "";
+  width: 0.48rem;
+  height: 0.48rem;
+  flex: none;
+  border-radius: 50%;
+  background: #8a9791;
+}
+
+.runtime-error {
+  display: block;
+  max-width: 100%;
+  overflow: hidden;
+  color: #9b2f27;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .brand-block small,
 .top-controls span,
 .panel-heading span,

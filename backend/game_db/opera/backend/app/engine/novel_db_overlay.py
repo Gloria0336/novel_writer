@@ -17,6 +17,8 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
+import yaml
+
 
 def _resolve_backend_root() -> Path:
     """從本檔位置（opera/backend/app/engine/）往上找到 backend/。"""
@@ -116,6 +118,95 @@ def parse_character_md(path: Path) -> list[CharacterSection]:
     return sections
 
 
+def _stringify_character_value(value: Any) -> str:
+    if value is None:
+        return ""
+    if isinstance(value, str):
+        return value.strip()
+    if isinstance(value, list):
+        lines: list[str] = []
+        for item in value:
+            rendered = _stringify_character_value(item)
+            if rendered:
+                lines.append(f"- {rendered}")
+        return "\n".join(lines)
+    if isinstance(value, dict):
+        lines: list[str] = []
+        for key, item in value.items():
+            rendered = _stringify_character_value(item)
+            if rendered:
+                if "\n" in rendered:
+                    lines.append(f"- {key}:\n{rendered}")
+                else:
+                    lines.append(f"- {key}: {rendered}")
+        return "\n".join(lines)
+    return str(value).strip()
+
+
+def _character_yaml_body(character: dict[str, Any]) -> str:
+    field_labels = [
+        ("role", "Role"),
+        ("canon_role", "Canon Role"),
+        ("usable_as_npc", "Usable As NPC"),
+        ("age", "Age"),
+        ("birthdate", "Birthdate"),
+        ("occupation", "Occupation"),
+        ("aliases", "Aliases"),
+        ("appearance_public", "Appearance Public"),
+        ("appearance_current", "Appearance Current"),
+        ("personality", "Personality"),
+        ("speech_style", "Speech Style"),
+        ("abilities", "Abilities"),
+        ("combat_profile", "Combat Profile"),
+        ("current_status", "Current Status"),
+        ("progressions", "Progressions"),
+        ("goals", "Goals"),
+        ("known_secrets", "Known Secrets"),
+        ("secrets", "Secrets"),
+        ("relationships", "Relationships"),
+        ("representative_quotes", "Representative Quotes"),
+        ("first_appearance", "First Appearance"),
+        ("source_notes", "Source Notes"),
+        ("supplemental", "Supplemental"),
+    ]
+    parts: list[str] = []
+    for key, label in field_labels:
+        rendered = _stringify_character_value(character.get(key))
+        if rendered:
+            parts.extend([f"### {label}", rendered, ""])
+    return "\n".join(parts).strip()
+
+
+def parse_characters_yaml(path: Path) -> list[CharacterSection]:
+    """Parse bible/characters.yaml into CharacterSection records."""
+    if not path.exists():
+        return []
+    raw = yaml.safe_load(path.read_text(encoding="utf-8")) or {}
+    if not isinstance(raw, dict):
+        return []
+    characters = raw.get("characters", [])
+    if not isinstance(characters, list):
+        return []
+
+    sections: list[CharacterSection] = []
+    for index, character in enumerate(characters, start=1):
+        if not isinstance(character, dict):
+            continue
+        char_id = str(character.get("id") or character.get("name") or f"character-{index}").strip()
+        title = str(character.get("name") or char_id).strip()
+        if not char_id or not title:
+            continue
+        sections.append(
+            CharacterSection(
+                char_id=char_id,
+                title=title,
+                body_md=_character_yaml_body(character),
+                frontmatter={"source_file": str(path), "source_format": "yaml"},
+            )
+        )
+    return sections
+
+
 def parse_worldbuilding_md(path: Path) -> list[WorldSection]:
     """把 bible/worldbuilding.md 拆成 WorldSection list。"""
     if not path.exists():
@@ -137,11 +228,15 @@ def load_bible_bundle(novel_id: str) -> BibleBundle:
     root = resolve_novel_root(novel_id)
     if not root.is_dir():
         raise FileNotFoundError(f"novel '{novel_id}' not found at {root}")
+    bible_root = root / "bible"
+    characters = parse_character_md(bible_root / "character.md")
+    if not characters:
+        characters = parse_characters_yaml(bible_root / "characters.yaml")
 
     return BibleBundle(
         novel_id=novel_id,
-        characters=parse_character_md(root / "bible" / "character.md"),
-        world_sections=parse_worldbuilding_md(root / "bible" / "worldbuilding.md"),
+        characters=characters,
+        world_sections=parse_worldbuilding_md(bible_root / "worldbuilding.md"),
         context_current=_read_or_empty(root / "context" / "CONTEXT.md"),
         last_chapter_summary=_read_or_empty(root / "context" / "last-chapter-summary.md"),
         secrets_lockbox=_read_or_empty(root / "context" / "secrets-lockbox.md"),

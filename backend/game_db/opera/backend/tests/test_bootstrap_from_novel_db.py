@@ -26,6 +26,17 @@ def test_bootstrap_player_flag_assigns_player_role() -> None:
     assert player_actors[0]["metadata"]["char_id"] == "mengling"
 
 
+def test_bootstrap_yaml_novel_returns_player_and_npcs() -> None:
+    payload = defaults.bootstrap_from_novel_db(
+        "novel_05_genshin", "premise", player_char_id="traveler"
+    )
+    player_actors = [actor for actor in payload["actors"] if actor["role"] == "player"]
+    npc_actors = [actor for actor in payload["actors"] if actor["role"] == "npc"]
+    assert player_actors
+    assert player_actors[0]["metadata"]["char_id"] == "traveler"
+    assert len(npc_actors) >= 30
+
+
 def test_bootstrap_initial_story_state_carries_novel_id() -> None:
     payload = defaults.bootstrap_from_novel_db("novel_04_dungen", "premise")
     assert payload["initial_story_state"]["raw_state"]["novel_id"] == "novel_04_dungen"

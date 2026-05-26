@@ -38,6 +38,17 @@ def test_parse_character_md_body_content() -> None:
     assert mengling.body_md.startswith("### 基本資料") or "### 基本資料" in mengling.body_md
 
 
+def test_parse_characters_yaml_returns_known_chars() -> None:
+    path = overlay.resolve_novel_root("novel_05_genshin") / "bible" / "characters.yaml"
+    sections = overlay.parse_characters_yaml(path)
+    assert sections
+    traveler = next((s for s in sections if s.char_id == "traveler"), None)
+    assert traveler is not None
+    assert traveler.title == "旅行者（瑩）"
+    assert "### Role" in traveler.body_md
+    assert traveler.frontmatter["source_format"] == "yaml"
+
+
 def test_parse_worldbuilding_md() -> None:
     path = overlay.resolve_novel_root("novel_04_dungen") / "bible" / "worldbuilding.md"
     if not path.exists():
@@ -53,6 +64,13 @@ def test_load_bible_bundle_for_novel_04() -> None:
     # context/CONTEXT.md 可能存在也可能不存在；只驗證型別正確
     assert isinstance(bundle.context_current, str)
     assert isinstance(bundle.secrets_lockbox, str)
+
+
+def test_load_bible_bundle_falls_back_to_characters_yaml() -> None:
+    bundle = overlay.load_bible_bundle("novel_05_genshin")
+    char_ids = {character.char_id for character in bundle.characters}
+    assert "traveler" in char_ids
+    assert len(bundle.characters) >= 30
 
 
 def test_load_bible_bundle_missing_novel_raises() -> None:

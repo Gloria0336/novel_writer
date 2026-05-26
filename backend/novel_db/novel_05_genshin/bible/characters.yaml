@@ -1138,3 +1138,2305 @@ characters:
     secrets:
       - 她知道第三降臨者秘密的線索（透過師父蘇爾塔洛吉）
     first_appearance: ch04-fontaine（達達利亞故事揭露）
+
+  # ══════════════════════════════════════════════════════
+  # 蒙德補充角色（Mondstadt Additional Characters）
+  # ══════════════════════════════════════════════════════
+
+  - id: amber
+    name: 安柏
+    aliases:
+      - Amber
+      - 飛翔的騎士
+    role: 配角 / 蒙德騎士外勤
+    age: "18"
+    occupation: 蒙德騎士團外勤偵察騎士（唯一在任的外勤騎士）
+    appearance_public: 棕紅色雙馬尾，橘紅色騎士制服，背負大弓；隨身攜帶火焰傀儡男爵邦尼（Baron Bunny）
+    appearance_current: 與序章相同，始終活力充沛
+    personality:
+      - 熱情外向，充滿正能量，是蒙德對外的第一張臉
+      - 對任務認真負責，衝動行事但出發點良善
+      - 偶爾對自己的箭術過度自信
+    speech_style:
+      baseline: 直接開朗，語調上揚，慣用感嘆號，充滿行動力
+      under_stress: 大聲宣告計劃，即使計劃不完整也先說再想
+      humor: 邦尼相關的自嘲笑話，以及對箭術的過度自信
+    abilities:
+      - 火元素弓箭手，男爵邦尼可引爆誘敵
+    current_status: 繼續在騎士團服役；旅行者進入蒙德城的第一個引導角色
+    progressions: []
+    goals:
+      - 成為真正令蒙德人驕傲的外勤騎士
+      - 尋找失蹤已久的祖父的線索
+    secrets:
+      - 祖父曾是傑出外勤騎士，卻因某些原因離開蒙德，安柏在暗中尋找線索
+    first_appearance: 序章：捕風的異鄉人
+
+  - id: barbara
+    name: 芭芭拉
+    aliases:
+      - Barbara
+      - 偶像助祭
+    role: 配角 / 蒙德教會治療師
+    age: "17"
+    occupation: 蒙德教化院助祭，業餘偶像歌手
+    appearance_public: 金色雙馬尾，藍白色修女服，頭帶花飾；甜美可愛
+    appearance_current: 與首次出現相同；偶爾持麥克風演出
+    personality:
+      - 活潑善良，視治療他人為最大幸福
+      - 崇拜姐姐琴，以她為努力目標
+      - 有時過度熱心，讓人受寵若驚
+    speech_style:
+      baseline: 溫柔活潑，語帶關懷，偶爾使用偶像式宣言
+      under_stress: 緊張時用偶像口吻鼓勵自己
+      humor: 偶像台詞與治療語境結合產生的反差感
+    abilities:
+      - 水元素法器，強力持續治療術
+    current_status: 在蒙德教會繼續服務；旅行者早期的醫療支援
+    progressions: []
+    goals:
+      - 成為像琴一樣強大且受人尊敬的人
+      - 透過音樂與治療讓蒙德人幸福
+    secrets:
+      - 曾被歌迷的過度期待壓得喘不過氣，但從未在他人面前表現出來
+    first_appearance: 序章：捕風的異鄉人
+
+  - id: jean
+    name: 琴
+    aliases:
+      - Jean
+      - 代理團長
+      - 蒲公英騎士
+    role: 重要配角 / 蒙德騎士首領
+    age: "20"
+    occupation: 蒙德騎士團代理團長（真正的團長范卡外征中）
+    appearance_public: 金色長髮盤於腦後，白色騎士服，佩劍；沉穩而有威嚴
+    appearance_current: 與首次出現相同；因過勞偶爾顯露疲態
+    personality:
+      - 責任感極強，習慣自我犧牲
+      - 溫柔而有決斷力，對部下真誠關心
+      - 常為工作廢寢忘食
+    speech_style:
+      baseline: 正式有禮，措辭精確，透出安撫人心的穩定感
+      under_stress: 平靜而更加簡短，用行動代替言語
+      humor: 對自己工作量的苦笑式自我吐槽
+    abilities:
+      - 風元素劍士，強大的治療與擊飛能力
+      - 蒲公英劍術：以風元素環繞劍刃
+    current_status: 繼續代理團長職務；旅行者在蒙德的最高後援
+    progressions: []
+    goals:
+      - 守護蒙德城市的安全與自由
+      - 等待范卡歸來，交接真正的領導權
+    secrets:
+      - 有時懷疑自己是否真的適任代理團長，但選擇不向任何人透露
+    first_appearance: 序章：捕風的異鄉人
+
+  - id: klee
+    name: 可莉
+    aliases:
+      - Klee
+      - 蹦蹦炸彈
+      - Spark Knight
+    role: 配角 / 蒙德孩童騎士
+    age: 外表約 8-10 歲（實際不詳）
+    occupation: 蒙德騎士團火花騎士；旅人傳說愛麗絲（Alice）之女
+    appearance_public: 紅色雙馬尾，紅帽子，紅色騎士服；永遠精力充沛的孩童
+    appearance_current: 與首次出現相同；常處於剛從禁閉室逃出或被關進去的狀態
+    personality:
+      - 天真無邪，對炸彈有莫名熱愛
+      - 充滿好奇心，對世界充滿熱忱
+      - 炸到不應該炸的東西時完全無惡意
+    speech_style:
+      baseline: 兒童天真語氣，語句簡短，喜歡說「嘭！」
+      under_stress: 以大哭或炸彈解決問題
+      humor: 對爆炸的純粹熱愛製造出的反差喜劇
+    abilities:
+      - 火元素法器，召喚爆炸性火焰炸彈
+    current_status: 騎士團重要火力擔當；常被琴關進禁閉室
+    progressions: []
+    goals:
+      - 製作最厲害的炸彈
+      - 等媽媽愛麗絲回來
+    secrets:
+      - 可莉的父親從未在劇情中被明確提及
+    first_appearance: 版本1.0（第一章蒙德）
+
+  - id: lisa
+    name: 麗莎
+    aliases:
+      - Lisa
+      - 學者
+      - 鎔鑄的雷電
+    role: 配角 / 蒙德圖書管理員
+    age: 外表 20 多歲（因魔法使用，實際壽命縮短）
+    occupation: 蒙德騎士團圖書館管理員；前須彌教令院首席學員
+    appearance_public: 紫色長髮，綠色法袍，胸口有閃電符文；神態懶散卻透露智慧
+    appearance_current: 與首次出現相同；永遠拿著書或茶
+    personality:
+      - 聰慧懶散，看穿一切卻選擇不動聲色
+      - 待人溫柔，帶有調情式的親暱感
+      - 對大量使用魔法的壽命代價有深刻認識
+    speech_style:
+      baseline: 慵懶優雅，帶暗示性語調，常以「親愛的」稱呼對方
+      under_stress: 少見地正色，語氣轉為精準
+      humor: 知識性雙關語，以及對他人倉皇的優雅嘲弄
+    abilities:
+      - 雷元素法器，召喚連鎖雷擊
+    current_status: 繼續管理圖書館；旅行者的情報顧問之一
+    progressions: []
+    goals:
+      - 在不過度消耗壽命的前提下，享受蒙德的平靜生活
+    secrets:
+      - 因擔憂魔法消耗壽命，主動從須彌教令院首席退下，這個選擇讓她至今仍有遺憾
+    first_appearance: 序章：捕風的異鄉人
+
+  - id: noelle
+    name: 諾艾爾
+    aliases:
+      - Noelle
+      - 女僕騎士
+    role: 配角 / 蒙德騎士見習生
+    age: 16-17
+    occupation: 蒙德騎士團見習騎士（正式入團考試屢次未通過）
+    appearance_public: 棕色短髮，白色盔甲式女僕服；高大結實，持雙手劍
+    appearance_current: 與首次出現相同
+    personality:
+      - 認真努力，以服務他人為榮
+      - 外表溫柔，實際力大無比
+      - 完美主義，對自己要求嚴苛
+    speech_style:
+      baseline: 正式有禮，女僕式措辭，常說「交給我！」
+      under_stress: 更加振作，以「保護他人」為咒語
+      humor: 對自身力量估算錯誤導致的意外事故
+    abilities:
+      - 岩元素雙手劍，防禦性盾牌與近戰攻擊
+    current_status: 繼續在騎士團服務；實際已是重要戰力
+    progressions: []
+    goals:
+      - 正式通過騎士入團考試
+    secrets:
+      - 騎士考試屢屢落選或許源於審查官的刻板印象，而非能力不足
+    first_appearance: 序章：捕風的異鄉人
+
+  - id: fischl
+    name: 菲謝爾
+    aliases:
+      - Fischl
+      - Prinzessin der Verurteilung（審判的公主殿下）
+      - 艾米（真實姓名 Amy）
+    role: 配角 / 冒險家協會調查員
+    age: "16"
+    occupation: 冒險家協會異常現象調查員
+    appearance_public: 金銀雙色長髮，哥德式黑色禮服，單眼遮眼布；肩上有烏鴉伙伴奧茲（Oz）
+    appearance_current: 與首次出現相同
+    personality:
+      - 以華麗中二語言說話，角色扮演永不間斷
+      - 奧茲擔任翻譯，說出她真正的意思
+      - 內心有著普通少女的夢想，但絕不允許自己露出
+    speech_style:
+      baseline: 中二式中古歐洲貴族語體，充滿「本公主」、「汝等」
+      under_stress: 奧茲代替她說出冷靜的分析
+      humor: 誇張宣言與現實之間的落差，以及奧茲的冷靜翻譯
+    abilities:
+      - 雷元素弓箭手，通過奧茲持續輸出雷電傷害
+    current_status: 繼續在冒險家協會工作
+    progressions: []
+    goals:
+      - 維持「審判公主」的人設完整性
+      - 保護奧茲（她最在乎的夥伴）
+    secrets:
+      - 「菲謝爾」是她創造的幻想人格，真名艾米，是一個普通少女
+    first_appearance: 版本1.1（蒙德世界任務）
+
+  - id: bennett
+    name: 班尼特
+    aliases:
+      - Bennett
+      - 最幸運的倒楣鬼
+    role: 配角 / 冒險家
+    age: "17"
+    occupation: 冒險家協會冒險家（最高等的倒楣等級）；探險隊唯一成員
+    appearance_public: 橘色短髮，綠色背包，劍士裝束；臉上偶有繃帶或傷
+    appearance_current: 與首次出現相同
+    personality:
+      - 熱情樂觀，始終不放棄，即使遭遇無數意外
+      - 希望別人不因他的「厄運」而遠離他
+      - 真誠善良，是最佳輔助隊友
+    speech_style:
+      baseline: 元氣十足，語速快，充滿「我沒問題！」的精神
+      under_stress: 歪打正著地用意外解決問題
+      humor: 倒楣頻率與樂觀態度的反差
+    abilities:
+      - 火元素劍士，Q技能提供治療與攻擊力加成
+    current_status: 繼續以冒險家身份活動
+    progressions: []
+    goals:
+      - 打破「厄運」標籤，在冒險界出人頭地
+    secrets:
+      - 他的「厄運」可能與元素體質有關，而非真的厄運
+    first_appearance: 版本1.1（蒙德冒險家任務）
+
+  - id: razor
+    name: 雷澤
+    aliases:
+      - Razor
+      - 狼孩
+    role: 配角 / 狼群成員
+    age: 16-17（外表）
+    occupation: 無固定職業；由「Lupical」狼群撫養長大
+    appearance_public: 灰色短髮，蓬亂獸耳造型，破舊衣物；神情野性而純粹
+    appearance_current: 與首次出現相同
+    personality:
+      - 語言簡單直接（由狼撫養，語言能力有限）
+      - 忠誠，保護性強，視狼群為家人
+      - 對人類社會保持距離，但在旅行者身上找到聯繫
+    speech_style:
+      baseline: 語句短促，詞彙簡單，大量與狼相關的比喻
+      under_stress: 以行動代替言語
+      humor: 對人類習俗的誤解造成的反差
+    abilities:
+      - 雷元素雙手劍，召喚狼魂強化自身
+    current_status: 繼續在蒙德森林生活，與狼群同在
+    progressions: []
+    goals:
+      - 守護 Lupical（狼群家人）
+    secrets:
+      - 雷澤有人類血緣，其父母何以消失未完全揭露
+    first_appearance: 版本1.0（蒙德區域）
+
+  - id: sucrose
+    name: 砂糖
+    aliases:
+      - Sucrose
+      - 生物鍊金術研究員
+    role: 配角 / 阿貝多的助手
+    age: 18-20（推測）
+    occupation: 騎士團生物鍊金術研究員，阿貝多的助理
+    appearance_public: 黑色長辮，圓形眼鏡，綠色研究服；說話輕聲細語
+    appearance_current: 與首次出現相同
+    personality:
+      - 害羞內斂，沉浸於研究
+      - 對生物鍊金術的熱情掩蓋了社交焦慮
+      - 在阿貝多面前會格外努力
+    speech_style:
+      baseline: 輕柔略帶緊張，研究術語頻繁出現
+      under_stress: 語速加快，思路轉向實驗分析
+      humor: 生物鍊金術語境的意外雙關
+    abilities:
+      - 風元素法器，強力聚風與擴散反應
+    current_status: 繼續在騎士團研究部工作
+    progressions: []
+    goals:
+      - 複製並超越阿貝多的鍊金術成就
+    secrets:
+      - 對阿貝多的崇拜已超出純粹師徒關係，但她自己否認
+    first_appearance: 版本1.3（蒙德活動）
+
+  - id: diona
+    name: 迪奧娜
+    aliases:
+      - Diona
+      - 貓耳酒保
+    role: 配角 / 調酒師
+    age: 10-12（外表，貓人種族）
+    occupation: 蒙德「貓尾酒館」調酒師
+    appearance_public: 粉色貓耳、貓尾，粉色圍裙；嬌小可愛
+    appearance_current: 與首次出現相同
+    personality:
+      - 討厭酒，但天生有調出絕世美酒的才能
+      - 立志用難喝雞尾酒讓人厭惡酒精，反而適得其反
+      - 對客人真心但執拗
+    speech_style:
+      baseline: 抱怨式直白，充滿對酒的抵制宣言
+      under_stress: 以「這次一定能讓你討厭喝酒」鼓勵自己
+      humor: 使命失敗的自我吐槽
+    abilities:
+      - 冰元素弓箭手，提供護盾與治療
+    current_status: 繼續在貓尾酒館服務
+    progressions: []
+    goals:
+      - 讓提瓦特人停止喝酒（永遠不會成功的目標）
+    secrets:
+      - 其父親是有名的獵人德拉芙，她繼承了父親的才能卻拒絕承認
+    first_appearance: 版本1.1（蒙德）
+
+  - id: rosaria
+    name: 羅莎莉亞
+    aliases:
+      - Rosaria
+      - 暗夜修女
+    role: 配角 / 教會修女（表面）
+    age: 20 多歲
+    occupation: 蒙德教化院修女（名義）；實際從事夜間情報工作
+    appearance_public: 黑白修女服，酒紅色長髮，眼神銳利；氣質陰冷
+    appearance_current: 與首次出現相同
+    personality:
+      - 冷漠不耐，直接說出想法
+      - 對宗教儀式興趣不大，但做事高效
+      - 有自己的道德標準，不受教條束縛
+    speech_style:
+      baseline: 簡短低沉，帶刺，少廢話
+      under_stress: 更安靜，行動取代言語
+      humor: 冷笑話，對他人行為的嘲諷評論
+    abilities:
+      - 冰元素長槍，夜間突刺與冰凍攻擊
+    current_status: 繼續以修女身份駐守蒙德
+    progressions: []
+    goals:
+      - 以自己的方式守護蒙德
+    secrets:
+      - 夜間活動的真實性質未完全在主線揭露
+    first_appearance: 版本1.4（蒙德）
+
+  - id: mika
+    name: 米卡
+    aliases:
+      - Mika
+      - 地圖繪製員
+    role: 配角 / 騎士團地圖員
+    age: 15-17
+    occupation: 蒙德騎士團偵察兵兼地圖繪製員，隸屬優菈小隊
+    appearance_public: 淺藍色頭髮，藍色騎士制服，手持測量儀；內斂溫和
+    appearance_current: 與首次出現相同
+    personality:
+      - 認真謹慎，對數據細節執著
+      - 在優菈的強勢帶領下略顯忐忑，但全力配合
+      - 真誠可靠的後勤支援
+    speech_style:
+      baseline: 輕聲正式，喜歡引用測量數據
+      under_stress: 快速確認數據，嘗試冷靜分析
+      humor: 把日常情況量化為測量術語的意外喜劇
+    abilities:
+      - 冰元素長槍，提升隊伍物理傷害與移速
+    current_status: 繼續跟隨優菈執行偵察任務
+    progressions: []
+    goals:
+      - 製作最精確的提瓦特地圖
+    secrets: []
+    first_appearance: 版本3.4（蒙德）
+
+  - id: mona
+    name: 莫娜
+    aliases:
+      - Mona
+      - Mona Megistus
+      - 一文不名的占星家
+    role: 配角 / 占星術士
+    age: 20 多歲
+    occupation: 流浪占星家
+    appearance_public: 黑色長髮束於高馬尾，深藍色占星禮服，頭戴星座帽；氣質神秘高傲
+    appearance_current: 與首次出現相同；財物拮据是日常
+    personality:
+      - 自尊心極高，視占星術為科學而非玄學
+      - 容易被金錢困境動搖，但嘴硬不承認
+      - 關鍵時刻願意付出
+    speech_style:
+      baseline: 傲嬌式宣言，占星術語混入日常對話
+      under_stress: 堅持「本占星家早已預見」的硬撐
+      humor: 財務窘境對比高傲姿態的反差
+    abilities:
+      - 水元素法器，利用占星映像欺敵與攻擊
+    current_status: 繼續流浪各地從事占星工作
+    progressions: []
+    goals:
+      - 成為提瓦特最偉大的占星術士
+      - 還清債務（無限循環）
+    secrets:
+      - 她離開老師的原因與老師的某種禁忌研究有關
+    first_appearance: 版本1.1（蒙德）
+
+  - id: eula
+    name: 優菈
+    aliases:
+      - Eula
+      - 暴風雪特遣隊隊長
+      - 冷霜的艾貴
+    role: 配角 / 騎士隊長
+    age: 20 歲出頭
+    occupation: 蒙德騎士團暴風雪特遣隊隊長；勞倫斯家族（Lawrence Clan）後裔
+    appearance_public: 金色長馬尾，藍白色騎士服，持雙手劍；貴族風範帶冷氣
+    appearance_current: 與首次出現相同
+    personality:
+      - 外表冷漠嚴苛，實際心地善良
+      - 因家族對蒙德歷史的罪行而背負原罪感，努力彌補
+      - 誇張宣揚「復仇」，但復仇對象通常是言語冒犯
+    speech_style:
+      baseline: 貴族式正式用語，充滿「本人將銘記此仇」宣言（不認真）
+      under_stress: 更加沉著，切換成軍事化指揮語言
+      humor: 嚴肅宣誓復仇後什麼事都沒發生的反差喜劇
+    abilities:
+      - 冰元素雙手劍，蓄積爆發性物理攻擊
+    current_status: 繼續指揮暴風雪特遣隊
+    progressions: []
+    goals:
+      - 以行動洗刷勞倫斯家族對蒙德犯下的罪行
+    secrets:
+      - 家族中仍有成員持有舊時代貴族觀念，與她的改革立場衝突
+    first_appearance: 版本1.5（蒙德）
+
+  - id: albedo
+    name: 阿貝多
+    aliases:
+      - Albedo
+      - 首席鍊金術士
+      - Kreideprinz（白堊王子）
+    role: 重要配角 / 騎士團鍊金術士
+    age: 外表 18 左右；實際年齡不詳（人工造物）
+    occupation: 蒙德騎士團首席鍊金術士兼調查隊隊長；藝術家
+    appearance_public: 白金短髮，淡綠色眼睛，蒼白完美面容，白色研究服；頸部有星形印記
+    appearance_current: 與首次出現相同
+    personality:
+      - 沉靜、分析性，對一切保持科學觀察距離
+      - 藝術創作與科學研究同等重要
+      - 對自身「人工造物」身份淡然，偶爾流露深層疑惑
+    speech_style:
+      baseline: 學術性簡潔，語句精確如論文，偶爾詩意
+      under_stress: 更加安靜，轉向內部計算
+      humor: 對他人情感反應做出純粹科學分析（製造尷尬）
+    abilities:
+      - 岩元素劍士，創造岩元素花（Transient Blossom）持續輸出
+    current_status: 繼續在騎士團研究部及龍脊雪山基地工作
+    progressions: []
+    goals:
+      - 研究生命與鍊金術的本質
+      - 理解「造物」是否能擁有真正的自由意志
+    secrets:
+      - 阿貝多是萊因多蒂爾（金）創造的人工生命體，星形印記是其造物標誌
+      - 存在一個「偽阿貝多」的可能性（龍脊雪山謎題）
+    first_appearance: 版本1.2（龍脊雪山）
+
+  - id: aloy
+    name: 埃洛伊
+    aliases:
+      - Aloy
+      - 禁忌荒野的獵人
+    role: 客座角色 / 異界旅者
+    age: "19"
+    occupation: 機械獸獵人（Horizon Zero Dawn 跨界角色，來自另一個世界）
+    appearance_public: 橘紅色厚辮，皮革獵人服，弓箭裝備；面容勇毅
+    appearance_current: 以迷路者形式出現在提瓦特
+    personality:
+      - 獨立堅強，習慣獨自面對未知
+      - 同理心強，對生命尊重
+      - 對提瓦特的元素體系感到困惑
+    speech_style:
+      baseline: 務實直接，機械學和狩獵術語偶爾混入
+      under_stress: 冷靜分析威脅，快速制定計劃
+      humor: 對提瓦特魔法的困惑反應
+    abilities:
+      - 冰元素弓箭手，凍結與冰元素範圍攻擊
+    current_status: 劇情整合最小化；以限定角色形式出現
+    progressions: []
+    goals:
+      - 在陌生世界（提瓦特）中生存
+    secrets:
+      - 從何而來的具體故事未在提瓦特主線充分揭露
+    first_appearance: 版本2.1（跨界活動）
+
+  # ══════════════════════════════════════════════════════
+  # 璃月補充角色（Liyue Additional Characters）
+  # ══════════════════════════════════════════════════════
+
+  - id: beidou
+    name: 北斗
+    aliases:
+      - Beidou
+      - 嗚神的雷
+      - 璃月第一船長
+    role: 配角 / 船長
+    age: 20 多歲
+    occupation: 「赤角」克魯斯船隊（The Crux）船長；璃月知名鬥士
+    appearance_public: 棕色長髮，眼罩遮左眼，紅黑色船長服，持雙手劍；豪爽颯爽
+    appearance_current: 與首次出現相同
+    personality:
+      - 豪爽大方，喝酒豪飲，視危險為家常便飯
+      - 對部下真誠，有強烈的保護欲
+      - 以力量贏得尊重，不依賴任何神明庇護
+    speech_style:
+      baseline: 豪邁直接，帶海洋氣息，常用船員黑話
+      under_stress: 大笑迎敵，以氣勢壓制對方
+      humor: 對危險的輕描淡寫，用喝酒化解一切
+    abilities:
+      - 雷元素雙手劍，蓄力後可反彈傷害
+    current_status: 繼續統領克魯斯船隊，往來璃月各海域
+    progressions: []
+    goals:
+      - 保護船隊成員，稱霸海上
+    secrets:
+      - 左眼失明的真實原因從未正式揭露
+    first_appearance: 第二章（璃月海域）
+
+  - id: chongyun
+    name: 重雲
+    aliases:
+      - Chongyun
+      - 驅邪少年
+    role: 配角 / 驅邪師
+    age: "17"
+    occupation: 璃月驅邪師，行走提瓦特各地
+    appearance_public: 淺藍色頭髮，藍白色道士服；臉蛋圓潤可愛
+    appearance_current: 與首次出現相同
+    personality:
+      - 認真嚴肅，執著於驅邪使命
+      - 因天生陽氣過盛（evil spirits flee），從未見過真正的邪靈而苦惱
+      - 吃冰就失控放出冰元素
+    speech_style:
+      baseline: 正式莊重，驅邪術語頻繁出現
+      under_stress: 更加嚴肅，嘗試維持道士形象
+      humor: 遭遇冰食後失控發冰的尷尬場面
+    abilities:
+      - 冰元素雙手劍，以冰元素劍氣覆蓋隊友攻擊
+    current_status: 繼續在各地尋找邪靈蹤跡
+    progressions: []
+    goals:
+      - 遇到真正的邪靈並成功驅除
+    secrets:
+      - 他的陽氣過剩體質實際上是非常罕見的祝福，而非詛咒
+    first_appearance: 版本1.1（璃月）
+
+  - id: xiangling
+    name: 香菱
+    aliases:
+      - Xiangling
+      - 璃月廚神之女
+    role: 配角 / 廚師
+    age: "14"
+    occupation: 璃月「璃月廚神」之女；旅行廚師
+    appearance_public: 橘色雙辮，廚師圍裙，腰間帶著熊貓伙伴胡桃（Guoba）；充滿活力
+    appearance_current: 與首次出現相同
+    personality:
+      - 對烹飪有近乎瘋狂的熱情，任何食材都願意嘗試
+      - 充滿好奇心，毫不畏懼危險食材
+      - 對食物的執著超過對危險的恐懼
+    speech_style:
+      baseline: 熱情洋溢，廚師術語與食材描述充斥，充滿感嘆
+      under_stress: 以「這很好吃！」轉移注意力
+      humor: 對危險食材的純粹烹飪興趣
+    abilities:
+      - 火元素長槍，胡桃噴火輔助，Q技能旋轉噴火
+    current_status: 繼續在璃月和提瓦特各地尋找食材與靈感
+    progressions: []
+    goals:
+      - 嘗遍提瓦特所有食材，創作終極料理
+    secrets: []
+    first_appearance: 序章（璃月關聯）
+
+  - id: xingqiu
+    name: 行秋
+    aliases:
+      - Xingqiu
+      - 飛雲商會二公子
+    role: 配角 / 商會公子
+    age: "17"
+    occupation: 璃月飛雲商會二公子；業餘小說家與劍士
+    appearance_public: 深藍色短髮，藍色精緻服裝，佩細劍；氣質儒雅
+    appearance_current: 與首次出現相同
+    personality:
+      - 表面溫文爾雅，骨子裡對武俠小說有極大熱情
+      - 聰慧，喜歡以書中智慧應對現實
+      - 對友情真摯，但常以書中角色比喻現實
+    speech_style:
+      baseline: 溫雅有禮，喜歡引用文學典故
+      under_stress: 以書中英雄的台詞激勵自己
+      humor: 把平凡情況用武俠語境描述的反差
+    abilities:
+      - 水元素劍士，水劍護持隊友並觸發水元素反應
+    current_status: 繼續在璃月經商與寫作
+    progressions: []
+    goals:
+      - 寫出一部傳世的武俠小說
+    secrets: []
+    first_appearance: 版本1.1（璃月）
+
+  - id: ganyu
+    name: 甘雨
+    aliases:
+      - Ganyu
+      - 璃月七師秘書
+      - 半仙人
+    role: 重要配角 / 璃月七師秘書
+    age: 外表 20 多歲（實際約 3000+ 歲，半麒麟血統）
+    occupation: 璃月七師秘書；半仙人（半人半麒麟）
+    appearance_public: 淺藍色長髮，藍色仙人服，頭上有小犄角（常被頭飾遮住）；溫柔靜謐
+    appearance_current: 與首次出現相同
+    personality:
+      - 勤勉盡職，工作量龐大卻從不抱怨
+      - 自我意識複雜：半人半神的身份讓她常感不被接受
+      - 喜歡吃仙草，對蘿蔔有特殊喜好
+    speech_style:
+      baseline: 溫柔平靜，措辭謹慎，帶有古代文明的語感
+      under_stress: 更加安靜，埋首工作
+      humor: 對自己仙人體質帶來的不便（需要吃仙草）的苦笑
+    abilities:
+      - 冰元素弓箭手，蓄力冰箭（Frostflake Arrow）超強輸出
+    current_status: 繼續擔任七師秘書；是璃月少數橫跨「神界」與「人界」的存在
+    progressions: []
+    goals:
+      - 在仙人與人類之間找到自己的位置
+    secrets:
+      - 與摩拉克斯（鍾離）的深厚歷史連結，她是他最信任的秘書之一
+    first_appearance: 版本1.2（璃月）
+
+  - id: xiao
+    name: 魈
+    aliases:
+      - Xiao
+      - 護法夜叉
+      - Alatus（飛越者）
+    role: 重要配角 / 璃月守護夜叉
+    age: 外表 20 歲以下（實際 2000+ 歲）
+    occupation: 璃月五護法夜叉之一（唯一存活者）；岩元素契約守護者
+    appearance_public: 深綠色短髮，深色緊身衣，面具常別於腰間；眼神銳利，氣質疏離
+    appearance_current: 與首次出現相同
+    personality:
+      - 孤傲寡言，拒絕親近關係（認為靠近他會帶來危險）
+      - 背負幾千年的業障（弒神業力），偶爾承受痛苦發作
+      - 在旅行者面前偶爾流露出孤獨
+    speech_style:
+      baseline: 冷漠簡短，非必要不說話，語帶警告
+      under_stress: 深陷業障時只剩戰鬥本能
+      humor: 對人類習俗的不理解製造的無意喜劇
+    abilities:
+      - 風元素長槍，躍空後大範圍攻擊（Q技能戴面具持續輸出）
+    current_status: 繼續守護璃月，駐於「望舒客棧」附近
+    progressions: []
+    goals:
+      - 在業障完全吞噬自己前繼續守護璃月
+    secrets:
+      - 他曾被惡神奴役，用自己的雙手做了無數可怕的事，業障源於此
+    first_appearance: 版本1.3（璃月燈節）
+
+  - id: qiqi
+    name: 七七
+    aliases:
+      - Qiqi
+      - 不死殭屍
+    role: 配角 / 璃月藥鋪助手
+    age: 外表 9-10 歲（實際已死亡多年）
+    occupation: 璃月「不卜廬」藥店助手；由仙人以術法復活的殭屍
+    appearance_public: 白色長辮，仙人風格服裝，臉色蒼白，額頭有符籙；表情木然
+    appearance_current: 與首次出現相同
+    personality:
+      - 情緒平板，說話不帶感情（殭屍特性）
+      - 記憶極差，需要把所有事情記在小本子上
+      - 對仙人有本能性的服從
+    speech_style:
+      baseline: 單調平板，語句簡短，常說「……的確如此」
+      under_stress: 更加沉默，機械式重複指令
+      humor: 忘記剛發生的事情的記憶失效笑點
+    abilities:
+      - 冰元素劍士，治療能力超強
+    current_status: 繼續在不卜廬工作；記憶依然極差
+    progressions: []
+    goals:
+      - 記住對自己重要的事情
+    secrets:
+      - 她死亡和復活的完整故事仍未完全在主線揭露
+    first_appearance: 序章（角色池）
+
+  - id: shenhe
+    name: 申鶴
+    aliases:
+      - Shenhe
+      - 仙人弟子
+    role: 配角 / 仙人門徒
+    age: 外表 20 多歲（由仙人撫養，實際年齡略長）
+    occupation: 閒雲（仙人）的人類弟子，雲海仙姑
+    appearance_public: 白色長髮，紅繩束身（抑制情緒），冰藍色長衣；清冷的仙人氣質
+    appearance_current: 與首次出現相同
+    personality:
+      - 克制情緒，但並非無情
+      - 對世俗人類充滿好奇與不適應
+      - 在旅行者身上看到人類溫暖
+    speech_style:
+      baseline: 冷靜平淡，仙人式語氣，偶爾對凡人習俗感到困惑
+      under_stress: 情緒抑制強化，更加安靜
+      humor: 對人類習慣的字面理解導致的誤解
+    abilities:
+      - 冰元素長槍，提升隊伍冰元素傷害加成
+    current_status: 繼續在仙人與人類社會之間活動
+    progressions: []
+    goals:
+      - 找到情感與使命之間的平衡
+    secrets:
+      - 紅繩是仙人為抑制她強大的冰元素力量所施的封印
+    first_appearance: 版本2.4（璃月）
+
+  - id: yanfei
+    name: 煙緋
+    aliases:
+      - Yanfei
+      - 法律顧問
+    role: 配角 / 法律顧問
+    age: 外表 20 多歲（半仙人血統）
+    occupation: 璃月知名法律顧問；半仙人（半人半仙人）
+    appearance_public: 粉紅色雙辮，粉紅色服裝，頭上有小角；活潑聰明
+    appearance_current: 與首次出現相同
+    personality:
+      - 對璃月律法瞭如指掌，對法律充滿熱情
+      - 機靈外向，說話快速，愛引用法條
+      - 作為半仙人，比純粹人類更長壽
+    speech_style:
+      baseline: 快速精確，法律術語頻繁，充滿對「條文第X條」的引用
+      under_stress: 更快速地分析法律漏洞
+      humor: 把日常糾紛用法律語言描述的反差
+    abilities:
+      - 火元素法器，火焰標記積累後爆發
+    current_status: 繼續在璃月港提供法律服務
+    progressions: []
+    goals:
+      - 確保璃月的法律被公正執行
+    secrets: []
+    first_appearance: 版本1.5（璃月）
+
+  - id: yun-jin
+    name: 雲堇
+    aliases:
+      - Yun Jin
+      - 雲韻劇社社長
+    role: 配角 / 戲曲演員
+    age: "20"
+    occupation: 璃月「雲韻劇社」社長兼主角演員；傳統戲曲的守護者
+    appearance_public: 深色頭髮，精緻傳統戲服，臉上有舞台妝容；優雅端莊
+    appearance_current: 與首次出現相同
+    personality:
+      - 對傳統璃月戲曲有深深的愛護與執著
+      - 對外儒雅得體，有藝術家的固執
+      - 在舞台上與生活中截然不同的氣場
+    speech_style:
+      baseline: 典雅，帶戲曲韻律，引用古典唱詞
+      under_stress: 以戲曲台詞作為心理支撐
+      humor: 以戲劇化方式描述普通日常
+    abilities:
+      - 岩元素長槍，提升隊伍普通攻擊傷害
+    current_status: 繼續維持劇社運作，傳承璃月戲曲
+    progressions: []
+    goals:
+      - 讓傳統璃月戲曲在現代繼續傳承
+    secrets: []
+    first_appearance: 版本2.4（璃月）
+
+  - id: xinyan
+    name: 辛焱
+    aliases:
+      - Xinyan
+      - 璃月搖滾第一人
+    role: 配角 / 搖滾音樂家
+    age: "16"
+    occupation: 璃月搖滾音樂人
+    appearance_public: 金色長髮，黑色搖滾服，持吉他形雙手劍；充滿搖滾氣場
+    appearance_current: 與首次出現相同
+    personality:
+      - 熱情奔放，對搖滾音樂充滿信念
+      - 不在乎他人眼光，活在音樂中
+      - 為了讓璃月人接受搖滾而努力
+    speech_style:
+      baseline: 豪邁有力，搖滾術語，偶爾用吉他節奏比喻
+      under_stress: 把壓力轉化為演出能量
+      humor: 傳統璃月文化遇上搖滾的衝突
+    abilities:
+      - 火元素雙手劍，護盾加火焰搖滾攻擊
+    current_status: 繼續在璃月各地演出
+    progressions: []
+    goals:
+      - 讓搖滾音樂在璃月生根
+    secrets: []
+    first_appearance: 版本1.1（璃月）
+
+  - id: baizhu
+    name: 白术
+    aliases:
+      - Baizhu
+      - 不卜廬大夫
+    role: 配角 / 醫生
+    age: 30 多歲（外表）；實際略長
+    occupation: 璃月「不卜廬」藥鋪老闆兼主治醫生
+    appearance_public: 白色長髮，醫師服，肩上常纏著白蛇常璃（Changsheng）；氣質精明
+    appearance_current: 與首次出現相同
+    personality:
+      - 表面精明算計，實際上對病人真心
+      - 有絕症（未明確），正研究長生不老的秘方
+      - 照料七七（殭屍）如同親女
+    speech_style:
+      baseline: 醫師式精確，帶著商人的計算感
+      under_stress: 更加理性，以醫學分析代替情緒
+      humor: 以健康建議回應任何情況的職業病
+    abilities:
+      - 草元素法器，提供治療護盾
+    current_status: 繼續在不卜廬診治病人，秘密研究長生術
+    progressions: []
+    goals:
+      - 研究出治癒自身絕症的方法
+    secrets:
+      - 他患有某種絕症，使用常璃的特殊能力延長生命
+    first_appearance: 第二章（NPC）；版本3.6（可玩）
+
+  - id: yaoyao
+    name: 瑤瑤
+    aliases:
+      - Yaoyao
+      - 仙人門徒（小）
+    role: 配角 / 仙人弟子
+    age: "15"
+    occupation: 閒雲（仙人）的小弟子；香菱的廚藝助手
+    appearance_public: 綠色雙髻，仙人見習服；臉蛋圓潤可愛，懷抱玉桂（Yuegui，月桂兔）
+    appearance_current: 與首次出現相同
+    personality:
+      - 開朗善良，充滿孩子氣的溫暖
+      - 認真學習仙術，常因不夠靈巧而苦惱
+      - 對食物充滿熱情（受香菱影響）
+    speech_style:
+      baseline: 孩子氣的歡快，語句簡單
+      under_stress: 召喚玉桂（月桂兔）幫忙解決問題
+      humor: 仙術失敗的可愛笑點
+    abilities:
+      - 草元素長槍，玉桂投擲草元素胡蘿蔔（治療）
+    current_status: 繼續跟隨閒雲學習，同時幫助香菱
+    progressions: []
+    goals:
+      - 成為出色的仙人弟子
+    secrets: []
+    first_appearance: 版本3.4（璃月）
+
+  - id: xianyun
+    name: 閒雲
+    aliases:
+      - Xianyun
+      - 雲留仙人（Cloud Retainer）
+      - 仙人人間化身
+    role: 重要配角 / 岩神契約仙人
+    age: 數千歲（仙人）
+    occupation: 璃月契約仙人「雲留仙人」的人間化身；申鶴與瑤瑤的師傅
+    appearance_public: 白髮，白色仙衣，優雅而帶傲氣；人間化身後外表為成年女性
+    appearance_current: 以人間化身「閒雲」的形象活動
+    personality:
+      - 驕傲自負，但藏著對徒弟的深厚情感
+      - 對人類習俗有自己獨特的理解方式
+      - 有類似嚴厲祖母的保護欲
+    speech_style:
+      baseline: 仙人式典雅，偶爾透出驕傲
+      under_stress: 以仙人威嚴壓制局面
+      humor: 對人間飲食的過度競爭性評價
+    abilities:
+      - 風元素法器，在空中浮游並大幅提升隊伍跳躍攻擊
+    current_status: 以人間化身繼續在璃月活動
+    progressions: []
+    goals:
+      - 確保徒弟（申鶴、瑤瑤）健康成長
+    secrets:
+      - 雲留仙人的人間化身能力源於對岩神鍾離深厚的信任與契約
+    first_appearance: 版本4.4（璃月）
+
+  - id: gaming
+    name: 嘉明
+    aliases:
+      - Gaming
+      - 武術表演者
+    role: 配角 / 武術演員
+    age: "19"
+    occupation: 璃月武術表演藝術家；「嘉明武術班」創始人
+    appearance_public: 橘色短髮，武術服飾，精力充沛的身姿
+    appearance_current: 與首次出現相同
+    personality:
+      - 熱情開朗，對武術表演充滿熱愛
+      - 想超越父親的期望，走出自己的路
+      - 對獅子舞和傳統武術充滿尊重
+    speech_style:
+      baseline: 活力十足，武術術語，充滿「準備好了嗎？」的感召力
+      under_stress: 以武術訓練的決心克服困難
+      humor: 表演失誤的自嘲
+    abilities:
+      - 火元素雙手劍，騰空重擊與火焰打擊
+    current_status: 繼續在璃月各地進行武術表演
+    progressions: []
+    goals:
+      - 建立屬於自己的武術表演品牌
+    secrets: []
+    first_appearance: 版本4.4（璃月）
+
+  # ══════════════════════════════════════════════════════
+  # 稻妻補充角色（Inazuma Additional Characters）
+  # ══════════════════════════════════════════════════════
+
+  - id: ayato
+    name: 神里綾人
+    aliases:
+      - Kamisato Ayato
+      - 社奉行大人
+    role: 重要配角 / 社奉行長
+    age: "26"
+    occupation: 稻妻社奉行（Yashiro Commission）首長；神里家家主
+    appearance_public: 深藍色長髮，貴族服裝，佩細劍；儒雅而透出算計的氣質
+    appearance_current: 與首次出現相同
+    personality:
+      - 冷靜、策略性，以謀略代替正面衝突
+      - 對妹妹綾華有深厚的保護欲
+      - 表面淡然，實際上計算縝密
+    speech_style:
+      baseline: 典雅正式，話語中暗藏試探
+      under_stress: 更加安靜，說更少的話做更多的事
+      humor: 以禮貌方式拒絕一切干擾的委婉藝術
+    abilities:
+      - 水元素劍士，分身幻術混合水劍攻擊
+    current_status: 繼續管理社奉行，幕後操控稻妻政局
+    progressions: []
+    goals:
+      - 守護神里家族與稻妻的穩定
+    secrets:
+      - 他所有的謀略都是為了保護綾華免受政治波及
+    first_appearance: 版本2.6（稻妻）
+
+  - id: kazuha
+    name: 楓原萬葉
+    aliases:
+      - Kaedehara Kazuha
+      - 旅行浪人
+    role: 重要配角 / 浪人劍士
+    age: "18"
+    occupation: 浪人（Ronin）；北斗船隊成員
+    appearance_public: 紅白色長髮，日式武士服，持細劍；風雅詩意
+    appearance_current: 在北斗船隊上活動，偶爾四處旅行
+    personality:
+      - 詩意溫柔，以詩詞感受世界
+      - 背負故友之死的悲傷，以旅行和詩歌化解
+      - 溫和卻不退縮，有自己的信念
+    speech_style:
+      baseline: 詩意優美，常用自然意象（風、葉）描述感情
+      under_stress: 更加安靜，以行動表達情感
+      humor: 對自己漂泊生活的淡然詩意描述
+    abilities:
+      - 風元素劍士，漩渦聚攏周圍元素後爆發
+    current_status: 繼續在北斗船隊服務，旅行各地
+    progressions: []
+    goals:
+      - 以詩詞見證提瓦特的美麗，替故友而活
+    secrets:
+      - 逃出稻妻前，摯友在他面前被殺，他的旅途是逃避這份悲傷的方式
+    first_appearance: 版本1.6（稻妻前夕）
+
+  - id: kokomi
+    name: 珊瑚宮心海
+    aliases:
+      - Sangonomiya Kokomi
+      - 人魚公主
+      - 神里軍師
+    role: 重要配角 / 海祇島統領
+    age: "20"
+    occupation: 海祇島最高統領（Divine Priestess）；抵抗軍軍師
+    appearance_public: 粉紅色長捲髮，珊瑚宮禮服，以水元素水球漂浮移動；外表柔弱實則睿智
+    appearance_current: 與首次出現相同
+    personality:
+      - 沉穩智慧，是出色的戰略家
+      - 私下痴迷於武俠小說，與公眾形象大相徑庭
+      - 為了大義能做出艱難決定
+    speech_style:
+      baseline: 溫柔而精確，政治和軍事術語
+      under_stress: 更加簡短，戰略分析取代情緒
+      humor: 對武俠小說的偷偷引用
+    abilities:
+      - 水元素法器，大範圍治療
+    current_status: 繼續管理海祇島，幕後維持稻妻的和平
+    progressions: []
+    goals:
+      - 守護海祇島人民，保持與幕府的和平關係
+    secrets:
+      - 熱愛武俠小說且對自己的天命感到疲倦
+    first_appearance: 版本2.1（稻妻）
+
+  - id: kujou-sara
+    name: 九條裟羅
+    aliases:
+      - Kujou Sara
+      - 天領奉行將軍
+    role: 重要配角 / 幕府將軍
+    age: 20 多歲
+    occupation: 稻妻天領奉行（Tenryou Commission）總帥；雷電影的忠實下屬
+    appearance_public: 黑色長髮，黑色武者鎧甲，翅膀狀頭飾（天狗血統）；嚴肅英武
+    appearance_current: 與首次出現相同
+    personality:
+      - 嚴格忠誠，視雷電影的命令為絕對
+      - 對自己的天狗血統（半天狗）有複雜感情
+      - 在職責與個人信念衝突時承受巨大壓力
+    speech_style:
+      baseline: 軍事化精確，命令式語氣，少有廢話
+      under_stress: 以職責優先，壓制個人情感
+      humor: 對下屬的嚴格要求製造緊張場面
+    abilities:
+      - 雷元素弓箭手，天狗の業火
+    current_status: 繼續擔任天領奉行總帥，協助雷電影統治稻妻
+    progressions: []
+    goals:
+      - 以行動報答雷電影的提拔之恩
+    secrets:
+      - 對雷電影的某些政策有個人保留意見，但選擇服從
+    first_appearance: 版本2.1（稻妻）
+
+  - id: gorou
+    name: 五郎
+    aliases:
+      - Gorou
+      - 水月島將軍
+    role: 配角 / 抵抗軍將軍
+    age: 18-20
+    occupation: 海祇島抵抗軍（水月島）將軍；效忠珊瑚宮心海
+    appearance_public: 棕色短髮，狗耳（犬神血統），軍服；忠誠熱血
+    appearance_current: 與首次出現相同
+    personality:
+      - 忠誠熱血，將心海的命令視為最高優先
+      - 對戰友充滿責任感
+      - 有時過於衝動，需心海平衡
+    speech_style:
+      baseline: 軍事化直接，充滿對心海的敬稱
+      under_stress: 大聲激勵部隊，以士氣面對困境
+      humor: 犬神本能（搖尾巴等）不自覺流露的萌點
+    abilities:
+      - 岩元素弓箭手，提供岩元素結晶護盾
+    current_status: 繼續在海祇島服務，幕後支援心海的政治工作
+    progressions: []
+    goals:
+      - 守護心海和海祇島的人民
+    secrets: []
+    first_appearance: 版本2.3（稻妻）
+
+  - id: itto
+    name: 荒瀧一斗
+    aliases:
+      - Arataki Itto
+      - 鬼之首領
+      - 荒瀧幫老大
+    role: 配角 / 幫派老大
+    age: "22"
+    occupation: 荒瀧幫幫主；鍬形蟲大賽常勝軍；鬼族血統
+    appearance_public: 白色長角，黑白鬼紋身，豪爽巨漢，持牛角形雙手劍；充滿鬼氣
+    appearance_current: 與首次出現相同
+    personality:
+      - 豪氣衝天，大嘴巴，自尊心旺盛
+      - 熱愛鍬形蟲，對摩拉有特殊執著
+      - 核心是善良的，對幫派兄弟真心
+    speech_style:
+      baseline: 豪邁誇張，充滿「老子天下第一」的宣言
+      under_stress: 更大聲更誇張，以氣勢嚇退對手
+      humor: 誇口後被現實打臉的喜劇
+    abilities:
+      - 岩元素雙手劍，鬼紋強化後超強輸出
+    current_status: 繼續帶領荒瀧幫在稻妻活動
+    progressions: []
+    goals:
+      - 讓荒瀧幫成為稻妻最有名的幫派
+    secrets:
+      - 鬼族血統讓他受到部分社會歧視，但他選擇以強大化解偏見
+    first_appearance: 版本2.3（稻妻）
+
+  - id: kuki-shinobu
+    name: 久岐忍
+    aliases:
+      - Kuki Shinobu
+      - 荒瀧幫副老大
+    role: 配角 / 幫派副首領
+    age: "22"
+    occupation: 荒瀧幫副幫主（兼處理一切實務工作）；持執照律師
+    appearance_public: 綠色短髮，面罩，忍者式服裝；實際上是全幫最清醒的人
+    appearance_current: 與首次出現相同
+    personality:
+      - 務實冷靜，承受一斗所有荒唐決定的後果
+      - 有律師執照，卻選擇留在幫派（合約未到期）
+      - 其實對一斗真心，只是方式是長嘆氣
+    speech_style:
+      baseline: 疲憊的冷靜，處理問題的務實語言
+      under_stress: 快速分析如何最大限度降低損失
+      humor: 對一斗每次惹禍的嘆氣成為喜劇節奏
+    abilities:
+      - 雷元素劍士，提供治療與雷元素持續輸出
+    current_status: 繼續在荒瀧幫工作，管理一切實務
+    progressions: []
+    goals:
+      - 等待合約到期後做自己想做的事（可能）
+    secrets:
+      - 她留在荒瀧幫的真正原因比「合約」更複雜
+    first_appearance: 版本2.7（稻妻）
+
+  - id: sayu
+    name: 早柚
+    aliases:
+      - Sayu
+      - 忍者少女
+    role: 配角 / 忍者
+    age: 外表 10-12 歲（實際略長）
+    occupation: 社奉行下轄「終末磐」（Shuumatsuban）忍者
+    appearance_public: 淺褐色短髮，忍者服，抱著達磨（旋轉武器）；平時縮在達磨裡睡覺
+    appearance_current: 到處找地方睡覺
+    personality:
+      - 極度貪睡，把一切任務轉化為盡快完成就能睡覺的理由
+      - 忍術實力真實，只是不想用
+      - 擔心自己不長高，避免「用力」
+    speech_style:
+      baseline: 睡意充沛，語句簡短，以最少的話傳達資訊
+      under_stress: 快速完成任務就去睡
+      humor: 忍術高超但本人只想睡覺的反差
+    abilities:
+      - 風元素雙手劍，達磨旋轉攻擊，治療副效果
+    current_status: 繼續在社奉行執行任務（在大量打盹之間）
+    progressions: []
+    goals:
+      - 完成任務然後睡覺
+    secrets:
+      - 她控制長高的習慣（避免消耗長高的能量）可能源於不願意長大的心態
+    first_appearance: 版本2.0（稻妻）
+
+  - id: heizou
+    name: 鹿野院平藏
+    aliases:
+      - Shikanoin Heizou
+      - 天領奉行偵探
+    role: 配角 / 偵探
+    age: "20"
+    occupation: 稻妻天領奉行偵探；以非正統方式解決案件
+    appearance_public: 紅色髮帶，休閒偵探服；充滿活力的不羁氣質
+    appearance_current: 與首次出現相同
+    personality:
+      - 聰明、充滿好奇，以自己的方式做事
+      - 不按規矩出牌，上司頭痛的部屬
+      - 對謎題有近乎成癮的熱情
+    speech_style:
+      baseline: 輕鬆活潑，常用謎語式提問引導對方
+      under_stress: 思維更快，語言更跳脫
+      humor: 以反常識方式解決問題的自得其樂
+    abilities:
+      - 風元素法器，近戰拳擊配合風元素衝擊
+    current_status: 繼續在天領奉行以自己的方式工作
+    progressions: []
+    goals:
+      - 解開提瓦特所有未解之謎
+    secrets: []
+    first_appearance: 版本2.8（稻妻）
+
+  - id: thoma
+    name: 托馬
+    aliases:
+      - Thoma
+      - 神里家管家
+    role: 配角 / 管家
+    age: "25"
+    occupation: 神里家管家兼聯絡員；蒙德出身的稻妻長駐外籍人士
+    appearance_public: 金色短髮，半正式和服；友善開朗的笑容
+    appearance_current: 與首次出現相同
+    personality:
+      - 極度人際關係高手，幾乎認識稻妻所有重要人物
+      - 真誠友善，把管家工作做成了「全稻妻社交達人」
+      - 在保護神里家和外籍社群間找到平衡
+    speech_style:
+      baseline: 溫暖親切，充滿對對方的關心
+      under_stress: 仍然保持親切，以人際關係化解困境
+      humor: 「我認識那個人，我來幫你安排」的萬能回答
+    abilities:
+      - 火元素長槍，護盾生成與火元素攻擊
+    current_status: 繼續在神里家服務，維持廣大人脈
+    progressions: []
+    goals:
+      - 讓在稻妻的外籍人士生活得更好
+    secrets: []
+    first_appearance: 版本2.2（NPC）；版本2.6（可玩）
+
+  - id: yoimiya
+    name: 宵宮
+    aliases:
+      - Yoimiya
+      - 夏祭女王
+      - 那珂原煙火
+    role: 配角 / 煙火師
+    age: "21"
+    occupation: 那珂原煙火舖主人；稻妻最出名的煙火師
+    appearance_public: 金色長辮，橘紅色節日服裝；笑容如陽光燦爛
+    appearance_current: 與首次出現相同
+    personality:
+      - 開朗熱情，以讓他人快樂為人生使命
+      - 對煙火有藝術家的執著
+      - 對每個人都真誠，讓人如沐春風
+    speech_style:
+      baseline: 陽光開朗，充滿感嘆，煙火相關比喻頻繁
+      under_stress: 以「一定有辦法讓大家快樂」為信念支撐
+      humor: 把日常比喻成煙火表演
+    abilities:
+      - 火元素弓箭手，連續火箭射擊
+    current_status: 繼續在稻妻製作煙火，維繫夏祭傳統
+    progressions: []
+    goals:
+      - 用煙火讓稻妻每個人都能笑著抬頭
+    secrets: []
+    first_appearance: 版本2.0（稻妻）
+
+  - id: chiori
+    name: 千織
+    aliases:
+      - Chiori
+      - 千織精品創辦人
+    role: 配角 / 設計師
+    age: 20 多歲
+    occupation: 楓丹「千織精品」（Chioriya Boutique）創辦人；稻妻出身的時裝設計師
+    appearance_public: 黑白棋盤格服裝，俐落短髮；完美主義的美感
+    appearance_current: 在楓丹經營精品店
+    personality:
+      - 完美主義，對設計一絲不苟
+      - 自信，偶爾傲慢
+      - 離開稻妻的原因涉及一段沉重往事
+    speech_style:
+      baseline: 精準優雅，設計術語，對「品味」有嚴格標準
+      under_stress: 以對美的堅持轉化壓力
+      humor: 以時尚眼光評論非時尚情況的反差
+    abilities:
+      - 岩元素劍士，傀儡輸出與立體攻擊
+    current_status: 在楓丹經營精品店
+    progressions: []
+    goals:
+      - 將千織精品打造為提瓦特頂級品牌
+    secrets:
+      - 離開稻妻與一段未能完成的師徒情感有關
+    first_appearance: 版本4.5（楓丹）
+
+  - id: kirara
+    name: 綺良良
+    aliases:
+      - Kirara
+      - 貓娘快遞
+    role: 配角 / 快遞員
+    age: 18-20
+    occupation: 稻妻「駒屋快遞」（Komaniya Express）快遞員；貓又血統
+    appearance_public: 貓耳、貓尾，快遞制服；圓臉可愛
+    appearance_current: 與首次出現相同
+    personality:
+      - 勤勉誠信，對每次快遞任務認真負責
+      - 本能的貓科動物反應（追球等）
+      - 對客人真誠，超時完成也要送到
+    speech_style:
+      baseline: 禮貌服務業語調，偶爾貓科動詞漏出
+      under_stress: 更認真，把每件快遞視為神聖任務
+      humor: 貓科本能在不恰當場合觸發的反差
+    abilities:
+      - 草元素劍士，變身貓形態衝撞攻擊
+    current_status: 繼續在稻妻各地執行快遞任務
+    progressions: []
+    goals:
+      - 做到「準時到達，無論距離」的快遞理想
+    secrets: []
+    first_appearance: 版本3.7（稻妻）
+
+  # ══════════════════════════════════════════════════════
+  # 須彌補充角色（Sumeru Additional Characters）
+  # ══════════════════════════════════════════════════════
+
+  - id: collei
+    name: 柯萊
+    aliases:
+      - Collei
+      - 護林隊見習
+    role: 配角 / 護林隊
+    age: "16"
+    occupation: 須彌教令院外圍護林隊見習員；提納里的徒弟
+    appearance_public: 棕色短髮，護林隊服，頭戴葉片裝飾；態度謹慎卻充滿善意
+    appearance_current: 與首次出現相同
+    personality:
+      - 緊張不安，仍在克服童年創傷（被法提米實驗過）
+      - 在提納里的引導下逐漸開朗
+      - 對自然和草元素有深厚情感
+    speech_style:
+      baseline: 輕聲謹慎，偶爾發抖，真誠但不自信
+      under_stress: 默默用行動代替言語
+      humor: 誤觸提納里雷點後驚慌失措的反差
+    abilities:
+      - 草元素弓箭手，飛天偶人（Cuilein-Anbar）攻擊
+    current_status: 繼續跟隨提納里在須彌雨林護林
+    progressions: []
+    goals:
+      - 成為真正的護林隊員，擺脫過去的陰影
+    secrets:
+      - 她是法提米（博士）實驗的受害者，身體留有當時的創傷
+    first_appearance: 版本3.0（須彌）
+
+  - id: cyno
+    name: 賽諾
+    aliases:
+      - Cyno
+      - 大學術執法官
+    role: 配角 / 教令院執法官
+    age: "22"
+    occupation: 教令院「大學術執法官」（General Mahamatra）；調查學術不正腐敗
+    appearance_public: 淺色短髮，黑色執法官服，胡狼面具（頭飾）；嚴肅冷峻
+    appearance_current: 與首次出現相同
+    personality:
+      - 嚴格，辦案一絲不苟
+      - 私下是卡牌遊戲（TCG）的狂熱愛好者，且愛說冷笑話
+      - 公私分明的雙重性格
+    speech_style:
+      baseline: 執法式簡潔，無感情語調
+      under_stress: 更加冷靜，以職責為唯一考量
+      humor: 冷笑話（通常只有他自己覺得好笑），以及卡牌術語混入日常
+    abilities:
+      - 雷元素長槍，Q技能轉換高輸出神判形態
+    current_status: 繼續擔任大學術執法官
+    progressions: []
+    goals:
+      - 清除教令院內的學術腐敗
+    secrets:
+      - 他的叔叔賽索斯（Sethos）與沙漠古代文明有關聯，影響了賽諾的調查視角
+    first_appearance: 版本3.1（須彌）
+
+  - id: nilou
+    name: 妮露
+    aliases:
+      - Nilou
+      - 奧爾瑪茲廷舞者
+    role: 配角 / 神廟舞者
+    age: "18"
+    occupation: 須彌城「奧爾瑪茲廷」神廟的傳統舞蹈演員
+    appearance_public: 紅色長髮，藍色舞蹈服；舞姿如水波流動
+    appearance_current: 與首次出現相同
+    personality:
+      - 純粹善良，以舞蹈傳達對神明的崇敬
+      - 溫柔勇敢，在重要時刻勇於捍衛信仰
+      - 對教令院的管制有自己的溫和抵抗
+    speech_style:
+      baseline: 溫柔流暢，舞蹈韻律感滲透語言
+      under_stress: 以舞蹈的節奏平靜心情
+      humor: 把日常情況比喻成舞步的詩意表達
+    abilities:
+      - 水元素劍士，水之旋轉舞攻擊，草水反應特化
+    current_status: 繼續在奧爾瑪茲廷演出
+    progressions: []
+    goals:
+      - 讓須彌的傳統舞蹈文化得到更多尊重
+    secrets: []
+    first_appearance: 版本3.1（須彌）
+
+  - id: kaveh
+    name: 卡維
+    aliases:
+      - Kaveh
+      - 建築師
+      - 艾爾海森的室友
+    role: 配角 / 建築師
+    age: "25"
+    occupation: 須彌著名建築師；目前因巨額債務與艾爾海森同住
+    appearance_public: 金色長髮，橘紅色建築師服；長相帥氣但常帶疲憊
+    appearance_current: 與艾爾海森同住的落魄狀態
+    personality:
+      - 理想主義，為了建造完美的建築不惜傾家蕩產
+      - 對美有極高追求，無法接受妥協
+      - 與艾爾海森是表面上的歡喜冤家
+    speech_style:
+      baseline: 充滿熱情的理想主義語言，建築術語
+      under_stress: 發現現實不如理想後的痛苦自言自語
+      humor: 與艾爾海森的日常鬥嘴
+    abilities:
+      - 草元素雙手劍，反射傷害
+    current_status: 繼續接建築案並努力還債
+    progressions: []
+    goals:
+      - 建造出一座完美無缺的建築
+    secrets:
+      - 他的代表作（宮殿建築）讓他傾家蕩產，卻沒有後悔
+    first_appearance: 版本3.6（須彌）
+
+  - id: dehya
+    name: 迪希雅
+    aliases:
+      - Dehya
+      - 沙漠僱傭兵
+    role: 配角 / 僱傭兵
+    age: "26"
+    occupation: 須彌沙漠地區「游牧雇傭兵」（Eremite）；保鏢
+    appearance_public: 紅棕色短髮，沙漠式皮甲，身材高挑強健；眼神直率
+    appearance_current: 與首次出現相同
+    personality:
+      - 直率豪爽，保護心強
+      - 有強烈的正義感，為弱者出頭
+      - 表面粗獷，實際上心思細膩
+    speech_style:
+      baseline: 直接有力，沙漠生存哲學
+      under_stress: 更加果斷，身體語言優先
+      humor: 把複雜情況簡化為「我打就對了」
+    abilities:
+      - 火元素雙手劍，吸收傷害為隊友護盾
+    current_status: 繼續在須彌沙漠地區活動
+    progressions: []
+    goals:
+      - 保護無力自保的人
+    secrets:
+      - 她效忠的對象背後有更深的個人情感動機
+    first_appearance: 版本3.5（須彌）
+
+  - id: faruzan
+    name: 珐露珊
+    aliases:
+      - Faruzan
+      - 古代研究員
+    role: 配角 / 研究員
+    age: 外表 20 多歲（實際 100+ 歲，被困廢墟中）
+    occupation: 教令院哈拉瓦塔學院研究員；古代巧術研究者
+    appearance_public: 深棕色鬢角，古風研究服；氣質老派卻精明
+    appearance_current: 重新融入現代須彌，適應中
+    personality:
+      - 知識豐富，但很多知識已過時
+      - 對現代技術感到困惑
+      - 認真負責，把古代智慧應用於現代
+    speech_style:
+      baseline: 帶著舊時代學術腔，偶爾用過時詞彙
+      under_stress: 切換到古代典籍中的智慧
+      humor: 用100年前的知識解決現代問題的時差感
+    abilities:
+      - 風元素弓箭手，提升風元素傷害加成
+    current_status: 重新適應現代須彌的學術環境
+    progressions: []
+    goals:
+      - 將古代巧術知識傳承給現代
+    secrets:
+      - 被困廢墟的100年間，她以研究作為精神支柱
+    first_appearance: 版本3.3（須彌）
+
+  - id: layla
+    name: 萊依拉
+    aliases:
+      - Layla
+      - 夢遊學生
+    role: 配角 / 教令院學生
+    age: "18"
+    occupation: 教令院學生（大量過勞導致的夢遊症）
+    appearance_public: 深藍色長髮，學生服；臉上常帶睡意，偶爾夢遊
+    appearance_current: 永遠看起來快睡著
+    personality:
+      - 認真努力到過勞的極端
+      - 夢遊時反而比清醒時更有效率（釋放壓抑的力量）
+      - 自我要求嚴苛，不懂得休息
+    speech_style:
+      baseline: 疲憊、緩慢，常打哈欠
+      under_stress: 夢遊狀態下語無倫次但充滿力量
+      humor: 夢遊中做出大事後完全不記得的反差
+    abilities:
+      - 冰元素劍士，星座護盾
+    current_status: 繼續在教令院就讀，仍然夢遊中
+    progressions: []
+    goals:
+      - 完成所有的學術任務（需要無限睡眠）
+    secrets: []
+    first_appearance: 版本3.2（須彌）
+
+  - id: dori
+    name: 多莉
+    aliases:
+      - Dori
+      - 魔法商人
+    role: 配角 / 商人
+    age: 20 多歲
+    occupation: 須彌魔法商人，專門出售各類奇特物品
+    appearance_public: 金色長髮，華麗商人服，背著大包；商人笑容
+    appearance_current: 與首次出現相同
+    personality:
+      - 利益至上，有求必應（但價格不菲）
+      - 做生意圓滑，但底線是不賣真正有害的東西
+      - 本質善良只是不說
+    speech_style:
+      baseline: 商人腔，每句話都帶著「成本計算」的思維
+      under_stress: 把危機轉化為商業機會
+      humor: 以報價方式回應任何請求
+    abilities:
+      - 雷元素雙手劍，靈燈召喚
+    current_status: 繼續在須彌（和提瓦特各地）做生意
+    progressions: []
+    goals:
+      - 積累提瓦特最多的財富
+    secrets: []
+    first_appearance: 版本3.0（須彌）
+
+  - id: candace
+    name: 坎蒂絲
+    aliases:
+      - Candace
+      - 阿如村守護者
+    role: 配角 / 村莊守護者
+    age: "27"
+    occupation: 阿如村（Aaru Village）守護者；古代沙漠文明後裔
+    appearance_public: 紅棕色長髮，金色異瞳（遺傳自Deshret血統），沙漠戰士服裝；英武沉穩
+    appearance_current: 與首次出現相同
+    personality:
+      - 沉穩寡言，責任感極強
+      - 對村民有深厚的守護欲
+      - 偶爾流露對古代血統的複雜情感
+    speech_style:
+      baseline: 沉靜有力，守護者的凝重語氣
+      under_stress: 以行動守護，少說話
+      humor: 對村民孩子的偶爾溫柔
+    abilities:
+      - 水元素長槍，金色神之眼持護盾
+    current_status: 繼續守護阿如村
+    progressions: []
+    goals:
+      - 保護阿如村不受古代詛咒和外來威脅
+    secrets:
+      - 她的金色眼睛來自Deshret的神明血統，意義比她自己知道的更深
+    first_appearance: 版本3.0（須彌）
+
+  - id: sethos
+    name: 賽索斯
+    aliases:
+      - Sethos
+      - 沙漠的斧頭
+    role: 配角 / 神廟警衛
+    age: 20 多歲
+    occupation: 古代王陵的警衛；賽諾的叔叔（舅舅）
+    appearance_public: 深色短髮，沙漠神廟服飾，眼睛有古代神廟紋飾
+    appearance_current: 在沙漠地區活動
+    personality:
+      - 神秘低調，行事有古代傳統的謹慎
+      - 與賽諾的關係複雜，有深厚的家族情感
+      - 對古代王陵的秘密有深入了解
+    speech_style:
+      baseline: 沉穩神秘，措辭帶古代文化色彩
+      under_stress: 更加神秘，以古代智慧應對
+      humor: 與賽諾之間的叔侄式玩笑
+    abilities:
+      - 雷元素弓箭手，蓄力特殊箭矢
+    current_status: 繼續在沙漠地區執行任務
+    progressions: []
+    goals:
+      - 守護古代沙漠文明的秘密
+    secrets:
+      - 他知道的沙漠秘密比任何人以為的都多
+    first_appearance: 版本4.7（須彌）
+
+  # ══════════════════════════════════════════════════════
+  # 楓丹補充角色（Fontaine Additional Characters）
+  # ══════════════════════════════════════════════════════
+
+  - id: wriothesley
+    name: 萊歐斯利
+    aliases:
+      - Wriothesley
+      - 梅洛庇得公爵
+    role: 重要配角 / 監獄公爵
+    age: "32"
+    occupation: 楓丹梅洛庇得要塞「公爵」（Duke）兼最高管理者
+    appearance_public: 銀灰短髮，貴族式管理服，拳擊手套；冷峻自信
+    appearance_current: 在梅洛庇得要塞管理工作
+    personality:
+      - 公正嚴格，以規則治理要塞
+      - 從底層（囚犯）爬到頂層的自我實現者
+      - 對旅行者少見地坦誠
+    speech_style:
+      baseline: 精確冷靜，帶有管理者的距離感
+      under_stress: 更加專注，行動效率最大化
+      humor: 以體制內的黑色幽默描述要塞生態
+    abilities:
+      - 冰元素法器，冰霜拳法近戰
+    current_status: 繼續管理梅洛庇得要塞
+    progressions: []
+    goals:
+      - 讓梅洛庇得成為真正的改過贖罪之地，而非純粹的懲罰場所
+    secrets:
+      - 他在成為公爵之前的過去有不光彩的部分，但他選擇直面而非逃避
+    first_appearance: 版本4.1（楓丹）
+
+  - id: navia
+    name: 娜維婭
+    aliases:
+      - Navia
+      - 玫瑰荊棘社社長
+    role: 重要配角 / 秘密組織領袖
+    age: "24"
+    occupation: 楓丹「玫瑰荊棘社」（Spina di Rosula）社長；前任社長（父親）的繼承者
+    appearance_public: 金色捲髮，優雅粉色禮服，持霰彈槍型武器；貴族氣質配行動力
+    appearance_current: 繼續在楓丹各地維護正義
+    personality:
+      - 為父申冤的決心驅動一切行動
+      - 外表優雅，內在強韌果決
+      - 對夥伴重情義
+    speech_style:
+      baseline: 大方優雅，透出貴族教育，偶爾直白
+      under_stress: 以對父親的承諾驅動
+      humor: 優雅外表做出意料之外的實際行動
+    abilities:
+      - 岩元素雙手劍，結晶彈幕攻擊
+    current_status: 繼續領導玫瑰荊棘社
+    progressions: []
+    goals:
+      - 揭露父親案件的真相，恢復家族名譽
+    secrets:
+      - 父親被定罪的真正原因涉及更高層的政治陰謀
+    first_appearance: 版本4.2（楓丹）
+
+  - id: charlotte
+    name: 夏洛特
+    aliases:
+      - Charlotte
+      - 蒸汽鳥記者
+    role: 配角 / 記者
+    age: "20"
+    occupation: 楓丹《蒸汽鳥》（The Steambird）報社記者
+    appearance_public: 藍白色短髮，記者服裝，相機；充滿好奇的大眼睛
+    appearance_current: 與首次出現相同
+    personality:
+      - 充滿好奇心，鍥而不捨地追蹤新聞
+      - 為了獨家新聞不畏任何困難
+      - 有新聞倫理，不惡意刊登傷害他人的資訊
+    speech_style:
+      baseline: 敏銳快速，採訪式問句，記者本能
+      under_stress: 把危機轉化為新聞素材
+      humor: 以「頭版！頭版！」回應任何驚人發現
+    abilities:
+      - 冰元素法器，相機拍照式攻擊（冰凍效果）
+    current_status: 繼續在楓丹各地採訪
+    progressions: []
+    goals:
+      - 寫出改變楓丹的頭版新聞
+    secrets: []
+    first_appearance: 版本4.0（楓丹）
+
+  - id: clorinde
+    name: 克洛琳德
+    aliases:
+      - Clorinde
+      - 楓丹冠軍決鬥者
+    role: 重要配角 / 決鬥者
+    age: 20 多歲
+    occupation: 楓丹「冠軍決鬥者」（Champion Duelist）；守護弱者的獵手
+    appearance_public: 深色長髮，紫色決鬥服，佩劍；冷靜英武
+    appearance_current: 與首次出現相同
+    personality:
+      - 冷靜自持，以決鬥為守護正義的方式
+      - 有深沉的過去（魔契）
+      - 對自己的責任有嚴格要求
+    speech_style:
+      baseline: 精確冷靜，帶決鬥者的節制感
+      under_stress: 更加安靜，以劍說話
+      humor: 對他人誇張行為的冷靜評論
+    abilities:
+      - 雷元素劍士，高速連突刺
+    current_status: 繼續以冠軍決鬥者身份保護楓丹市民
+    progressions: []
+    goals:
+      - 以劍守護無力自保的人
+    secrets:
+      - 她的左眼有與惡魔的契約，是她力量的來源也是代價
+    first_appearance: 版本4.7（楓丹）
+
+  - id: freminet
+    name: 菲米尼
+    aliases:
+      - Freminet
+      - 深海潛水員
+    role: 配角 / 潛水員
+    age: "19"
+    occupation: 楓丹深海潛水員；林尼與琳妮特的義弟
+    appearance_public: 淡藍色短髮，潛水服裝，背負潛水設備；內向安靜
+    appearance_current: 在梅洛庇得要塞周邊潛水工作
+    personality:
+      - 內向靦腆，在水下比在陸地更自在
+      - 對哥哥姐姐（林尼、琳妮特）充滿感激
+      - 以靜默的行動表達關心
+    speech_style:
+      baseline: 輕聲謹慎，語句簡短，水下環境比喻
+      under_stress: 更加沉默，轉向水下作業
+      humor: 在水下遇到各種意外情況的淡然反應
+    abilities:
+      - 冰元素雙手劍，潛水鐘錶機關攻擊
+    current_status: 繼續在楓丹深海地區工作
+    progressions: []
+    goals:
+      - 探索楓丹水下世界的所有角落
+    secrets:
+      - 他被林尼的師父收留前的經歷相當艱難
+    first_appearance: 版本4.0（楓丹）
+
+  - id: lynette
+    name: 琳妮特
+    aliases:
+      - Lynette
+      - 林尼的搭檔
+      - Grim（舞台角色名）
+    role: 配角 / 魔術師助手
+    age: "22"
+    occupation: 林尼的魔術表演搭檔；「嚴肅的助手」角色
+    appearance_public: 深灰色短髮，貓耳貓尾（Melusine特徵），黑色助手服；表情永遠面無表情
+    appearance_current: 與首次出現相同
+    personality:
+      - 外表冷淡，但對林尼有深厚的情感聯繫
+      - 行動能力強，在舞台外比舞台上更活躍
+      - 對外人有防備，對信任的人完全開放
+    speech_style:
+      baseline: 簡短直接，不廢話
+      under_stress: 以行動代替言語
+      humor: 面無表情說出意外溫柔的話的反差
+    abilities:
+      - 風元素劍士，隱身和位移攻擊
+    current_status: 繼續與林尼一起表演，也參與玫瑰荊棘社活動
+    progressions: []
+    goals:
+      - 守護林尼
+    secrets:
+      - 她的貓耳和尾巴源於Melusine血統，這層身份對她有特殊意義
+    first_appearance: 版本4.0（楓丹）
+
+  - id: sigewinne
+    name: 希格雯
+    aliases:
+      - Sigewinne
+      - 小護士長
+    role: 配角 / 護士
+    age: 外表 10-12 歲（Melusine種族，實際年齡不確定）
+    occupation: 梅洛庇得要塞首席護士；Melusine
+    appearance_public: 粉紅色短髮，護士服，超短身材；讓人想保護的外表
+    appearance_current: 在梅洛庇得要塞的醫療室工作
+    personality:
+      - 親切熱心，對護理工作充滿熱情
+      - 以「給你打一針！」回應一切問題
+      - Melusine的天真與醫療知識的奇特組合
+    speech_style:
+      baseline: 活潑甜美，充滿醫療術語
+      under_stress: 以護理步驟冷靜處理一切
+      humor: 主動提出注射作為解決方案的萬能做法
+    abilities:
+      - 水元素弓箭手，治療與水元素支援
+    current_status: 繼續在梅洛庇得擔任護士
+    progressions: []
+    goals:
+      - 治好每一個來到醫療室的人
+    secrets: []
+    first_appearance: 版本4.7（楓丹）
+
+  - id: emilie
+    name: 艾梅莉埃
+    aliases:
+      - Emilie
+      - 楓丹調香師
+    role: 配角 / 調香師
+    age: 20 多歲
+    occupation: 楓丹知名調香師，以草元素能量融入香水
+    appearance_public: 金棕色長髮，優雅調香師服，攜帶香水瓶；氣質精緻
+    appearance_current: 與首次出現相同
+    personality:
+      - 對香氣有極高的感知與執著
+      - 優雅自持，有藝術家的堅持
+      - 以氣味理解世界和情感
+    speech_style:
+      baseline: 典雅，以香氣比喻一切事物
+      under_stress: 以創作新香水轉化壓力
+      humor: 把人的性格描述為香調的獨特分析方式
+    abilities:
+      - 草元素長槍，香水揮發傷害持續輸出
+    current_status: 繼續在楓丹創作並販售香水
+    progressions: []
+    goals:
+      - 創作出捕捉提瓦特最深層情感的香水
+    secrets: []
+    first_appearance: 版本4.8（楓丹）
+
+  # ══════════════════════════════════════════════════════
+  # 納塔補充角色（Natlan Additional Characters）
+  # ══════════════════════════════════════════════════════
+
+  - id: mualani
+    name: 穆拉妮
+    aliases:
+      - Mualani
+      - 泉之子民嚮導
+    role: 重要配角 / 納塔嚮導
+    age: "20"
+    occupation: 納塔「泉之子民」（People of the Springs）部落的旅遊嚮導
+    appearance_public: 深色卷髮，衝浪式水上服裝；外向熱情的笑容
+    appearance_current: 與首次出現相同
+    personality:
+      - 開朗外向，充滿活力
+      - 以引導旅人探索納塔為榮
+      - 對朋友真誠，對危險毫不畏懼
+    speech_style:
+      baseline: 熱情洋溢，充滿衝浪和水上運動術語
+      under_stress: 轉化為衝破浪頭的決心
+      humor: 把嚴肅情況比喻成衝浪技巧
+    abilities:
+      - 水元素法器，鯊魚衝浪板高速衝擊
+    current_status: 繼續在納塔擔任嚮導，旅行者的引導者
+    progressions: []
+    goals:
+      - 讓每個來到納塔的旅人都能體驗到這片土地的魅力
+    secrets: []
+    first_appearance: 版本5.0（納塔）
+
+  - id: kachina
+    name: 卡奇娜
+    aliases:
+      - Kachina
+      - 小武士
+    role: 配角 / 年輕戰士
+    age: "16"
+    occupation: 納塔部落年輕戰士（見習）
+    appearance_public: 深棕色短髮，部落戰士服，持長槍；外表稚嫩但眼神堅定
+    appearance_current: 與首次出現相同
+    personality:
+      - 努力認真，渴望被認可為真正的戰士
+      - 對自己信心不足，但決心彌補
+      - 對前輩充滿崇拜（尤其是瑪薇卡）
+    speech_style:
+      baseline: 認真嚴肅，帶著努力的緊張感
+      under_stress: 以「我能做到！」的自我鼓勵克服
+      humor: 把訓練失誤轉化為學習機會的認真過頭
+    abilities:
+      - 冰元素長槍，旋轉攻擊
+    current_status: 繼續在納塔接受戰士訓練
+    progressions: []
+    goals:
+      - 成為配得上納塔精神的真正戰士
+    secrets: []
+    first_appearance: 版本5.0（納塔）
+
+  - id: xilonen
+    name: 席諾寧
+    aliases:
+      - Xilonen
+      - 納塔鍛造大師
+    role: 重要配角 / 鍛造師
+    age: "25"
+    occupation: 納塔最著名的鍛造師兼武器製作人
+    appearance_public: 鮮豔的紅棕色長髮，鍛造師皮革護甲，多刃刀輪武器；充滿創意的工匠氣質
+    appearance_current: 與首次出現相同
+    personality:
+      - 對鍛造充滿熱情，技術精湛
+      - 直率，對品質有嚴格標準
+      - 對使用她武器的人有特殊情感牽繫
+    speech_style:
+      baseline: 充滿鍛造術語，直率評估任何東西的品質
+      under_stress: 以製作更好的武器解決問題
+      humor: 把所有事情都評估成「可以改良」
+    abilities:
+      - 岩元素劍士，元素轉換輔助隊伍
+    current_status: 繼續在納塔製作並改良武器裝備
+    progressions: []
+    goals:
+      - 製造出能對抗任何威脅的完美武器
+    secrets: []
+    first_appearance: 版本5.1（納塔）
+
+  - id: chasca
+    name: 恰斯卡
+    aliases:
+      - Chasca
+      - 天空仲裁者
+    role: 重要配角 / 部落和平使
+    age: "22"
+    occupation: 納塔「花羽部落」（Flower-Feather Clan）的和平使（Peacemaker）
+    appearance_public: 深紫色長髮，翅膀式斗篷，多管魔法槍；翱翔天際的颯爽姿態
+    appearance_current: 與首次出現相同
+    personality:
+      - 行事颯爽，以武力維持部落間和平
+      - 正直，不接受不公正的妥協
+      - 對旅行者有親切的戰友情誼
+    speech_style:
+      baseline: 爽快直接，空中作戰術語
+      under_stress: 以行動代替言語
+      humor: 對地面人抱怨高處的風景有多好
+    abilities:
+      - 風元素弓箭手，多元素轉換連射
+    current_status: 繼續在納塔各部落間執行和平使任務
+    progressions: []
+    goals:
+      - 維護各部落之間的和平
+    secrets: []
+    first_appearance: 版本5.2（納塔）
+
+  - id: ororon
+    name: 歐羅倫
+    aliases:
+      - Ororon
+      - 夜風師門弟子
+    role: 配角 / 夜風使者
+    age: "20"
+    occupation: 納塔「夜風大師」（Masters of the Night-Wind）部落成員；西特拉利的徒弟
+    appearance_public: 深色短髮，夜風部落服，發光眼紋；沉靜內斂
+    appearance_current: 與首次出現相同
+    personality:
+      - 沉靜觀察，話少但察覺力強
+      - 對師父西特拉利忠誠
+      - 對夜魂力量有獨特的感知
+    speech_style:
+      baseline: 輕聲安靜，以觀察代替表達
+      under_stress: 更加安靜，轉向夜魂感知
+      humor: 對他人情緒的精準判讀引發的意外尷尬
+    abilities:
+      - 雷元素弓弓箭手，暗器式攻擊
+    current_status: 繼續跟隨西特拉利執行任務
+    progressions: []
+    goals:
+      - 達到師父西特拉利的智慧水準
+    secrets: []
+    first_appearance: 版本5.2（納塔）
+
+  - id: citlali
+    name: 西特拉利
+    aliases:
+      - Citlali
+      - 夜風神算師
+    role: 重要配角 / 占卜師
+    age: "28"
+    occupation: 納塔「夜風大師」部落的神算師；穆拉妮的摯友
+    appearance_public: 白色捲髮，夜風部落的星辰禮服，持冰晶法器；氣質神秘而自信
+    appearance_current: 與首次出現相同
+    personality:
+      - 自信聰慧，對占卜結果充滿把握
+      - 幽默機智，能以笑容化解緊張
+      - 對朋友（尤其是穆拉妮）有深厚情感
+    speech_style:
+      baseline: 自信從容，占卜術語與日常自然融合
+      under_stress: 以「命運早已揭示」的平靜面對
+      humor: 以算命結果開玩笑，讓對方不確定是否認真
+    abilities:
+      - 冰元素法器，靈偶攻擊與冰雪輔助
+    current_status: 繼續在納塔提供神算服務，協助旅行者
+    progressions: []
+    goals:
+      - 引導部落走向命運指示的正確方向
+    secrets: []
+    first_appearance: 版本5.3（納塔）
+
+  - id: iansan
+    name: 伊安珊
+    aliases:
+      - Iansan
+      - 回聲之子成員
+    role: 配角 / 部落戰士
+    age: "19"
+    occupation: 納塔「回聲之子」（Children of Echoes）部落成員
+    appearance_public: 活力充沛的體型，部落戰士裝束
+    appearance_current: 與首次出現相同
+    personality:
+      - 衝動熱血，用行動先於思考
+      - 對部落的榮譽充滿熱情
+    speech_style:
+      baseline: 直接有力，部落戰士語氣
+      under_stress: 更加衝動，以行動突破困境
+      humor: 衝動行事後補充理由的反差
+    abilities:
+      - 雷元素長槍，雷電衝刺攻擊
+    current_status: 繼續在回聲之子部落活動
+    progressions: []
+    goals:
+      - 在戰場上證明自己的價值
+    secrets: []
+    first_appearance: 版本5.5（納塔）
+
+  - id: varesa
+    name: 瓦雷莎
+    aliases:
+      - Varesa
+      - 電光摔角手
+    role: 配角 / 格鬥者
+    age: "21"
+    occupation: 納塔摔角格鬥運動員；雷元素戰士
+    appearance_public: 活力四射的摔角服裝，雷電紋身，強健體魄
+    appearance_current: 與首次出現相同
+    personality:
+      - 熱情奔放，把一切事情都當成格鬥比賽
+      - 對友誼真誠，用力量表達關心
+    speech_style:
+      baseline: 豪邁洪亮，摔角運動術語
+      under_stress: 更大聲更有力，把壓力轉化為力量
+      humor: 用格鬥招式解決日常問題
+    abilities:
+      - 雷元素法器，電光衝拳連擊
+    current_status: 繼續在納塔各地參加格鬥活動
+    progressions: []
+    goals:
+      - 成為納塔最強的格鬥冠軍
+    secrets: []
+    first_appearance: 版本5.6（納塔）
+
+  # ══════════════════════════════════════════════════════
+  # 諾德·克萊補充角色（Nod-Krai Additional Characters）
+  # ══════════════════════════════════════════════════════
+
+  - id: lauma
+    name: 劳玛
+    aliases:
+      - Lauma
+      - 月霜守林人
+    role: 重要配角 / 月霜子嗣
+    age: 外表 20 多歲（月霜子嗣，實際年齡不詳）
+    occupation: 月霜子嗣（Frostmoon Scions）的守林人；草元素使用者
+    appearance_public: 森林綠色長髮，月霜部落服裝，草木氣息；神秘而接近自然
+    appearance_current: 在希伊西島及周邊森林地區活動
+    personality:
+      - 沉靜如林，對自然有深刻感知
+      - 說話帶有古老月霜文化的智慧
+      - 對庫瓦奇（月光力量）有天生的親近感
+    speech_style:
+      baseline: 緩慢深沉，自然意象貫穿語言
+      under_stress: 更加安靜，向自然尋求指引
+      humor: 對人類技術過度複雜化的平靜困惑
+    abilities:
+      - 草元素法器，月光花卉攻擊
+    current_status: 在諾德·克萊守護月霜子嗣的傳統領地
+    progressions: []
+    goals:
+      - 保護月霜子嗣的土地和傳統
+    secrets:
+      - 她對月神Kuutar（科倫比婭）的真實身份有比她承認的更多認識
+    first_appearance: 版本6.0（諾德·克萊）
+
+  - id: aino
+    name: 艾諾
+    aliases:
+      - Aino
+      - 叮噹卡魯姆卡庫店員
+    role: 配角 / 工匠
+    age: "22"
+    occupation: 諾德·克萊「叮噹卡魯姆卡庫工坊」工匠
+    appearance_public: 短髮，工匠服裝，水元素氣息；動手能力強的外表
+    appearance_current: 在工坊工作
+    personality:
+      - 勤勞踏實，以手工製作為樂
+      - 對諾德·克萊的工藝傳統充滿熱愛
+    speech_style:
+      baseline: 樸實直接，工匠術語
+      under_stress: 以製作新物品疏導情緒
+      humor: 把所有問題轉化為「我能修好它」
+    abilities:
+      - 水元素雙手劍，工匠式重擊
+    current_status: 繼續在工坊工作
+    progressions: []
+    goals:
+      - 製作出諾德·克萊最優質的工藝品
+    secrets: []
+    first_appearance: 版本6.0（諾德·克萊）
+
+  - id: flins
+    name: 芙林斯
+    aliases:
+      - Flins
+      - 燈塔守護者
+    role: 重要配角 / 燈塔看守
+    age: 20 多歲
+    occupation: 諾德·克萊「燈光守護者」（Lightkeepers）成員
+    appearance_public: 雷電紋路，守護者制服；沉穩威嚴
+    appearance_current: 在諾德·克萊燈塔區域守衛
+    personality:
+      - 嚴格忠誠，以守護燈塔為使命
+      - 對外來威脅高度警戒
+    speech_style:
+      baseline: 軍事化簡潔，守護者語氣
+      under_stress: 更加警戒，行動優先
+      humor: 對燈塔以外事物的完全不感興趣
+    abilities:
+      - 雷元素長槍，燈塔能量灌注攻擊
+    current_status: 繼續在諾德·克萊守護燈塔
+    progressions: []
+    goals:
+      - 保護諾德·克萊的燈塔不被任何力量摧毀
+    secrets:
+      - 燈塔守護者與月光能量的真實關係
+    first_appearance: 版本6.0（諾德·克萊）
+
+  - id: zibai
+    name: 紫白
+    aliases:
+      - Zibai
+    role: 配角 / 諾德·克萊居民
+    age: 20 多歲
+    occupation: 諾德·克萊當地人
+    appearance_public: 以白紫雙色為主調的服裝
+    appearance_current: 在諾德·克萊活動
+    personality:
+      - 個性細節待v6.3主線揭露
+    speech_style:
+      baseline: 尚待官方劇情揭露
+      under_stress: 尚待揭露
+      humor: 尚待揭露
+    abilities:
+      - 元素及武器類型待確認
+    current_status: 諾德·克萊活躍角色，v6.3登場
+    progressions: []
+    goals:
+      - 尚待主線揭露
+    secrets: []
+    first_appearance: 版本6.3（諾德·克萊）
+
+  - id: illuga
+    name: 伊路卡
+    aliases:
+      - Illuga
+    role: 配角 / 諾德·克萊居民
+    age: 20 多歲
+    occupation: 諾德·克萊當地岩元素使用者
+    appearance_public: 岩元素氣息的裝束
+    appearance_current: 在諾德·克萊活動
+    personality:
+      - 個性細節待v6.3主線揭露
+    speech_style:
+      baseline: 尚待官方劇情揭露
+      under_stress: 尚待揭露
+      humor: 尚待揭露
+    abilities:
+      - 岩元素長槍使用者
+    current_status: v6.3登場的諾德·克萊角色
+    progressions: []
+    goals:
+      - 尚待主線揭露
+    secrets: []
+    first_appearance: 版本6.3（諾德·克萊）
+
+  - id: linnea
+    name: 林內亞
+    aliases:
+      - Linnea
+      - 諾德·克萊冒險家協會員
+    role: 配角 / 冒險家
+    age: 20 多歲
+    occupation: 冒險家協會在諾德·克萊的駐點成員
+    appearance_public: 自然風格服裝，弓箭裝備；冒險家氣質
+    appearance_current: 在諾德·克萊冒險家公會工作
+    personality:
+      - 冒險精神旺盛，對諾德·克萊的探索充滿熱情
+      - 務實的冒險家思維
+    speech_style:
+      baseline: 冒險家直率，實用主義
+      under_stress: 化危機為冒險挑戰
+      humor: 以「這算什麼，我見過更難的」回應困難
+    abilities:
+      - 岩元素弓箭手，精準狙擊
+    current_status: 在諾德·克萊的冒險家公會服務
+    progressions: []
+    goals:
+      - 探索諾德·克萊的所有未知地區
+    secrets: []
+    first_appearance: 版本6.5（諾德·克萊）
+
+  - id: nicole
+    name: 妮可
+    aliases:
+      - Nicole
+      - 巫師六角環成員
+    role: 重要配角 / 魔法師
+    age: 外表 20 多歲（魔法師，實際年齡不明）
+    occupation: 提瓦特「巫師六角環」（Hexenzirkel）成員；可莉媽媽愛麗絲的友人
+    appearance_public: 火焰系魔法師服裝，充滿魔法氣息
+    appearance_current: 在諾德·克萊主線活動
+    personality:
+      - 魔法研究熱忱，風格奔放
+      - 與愛麗絲（Alice）有深厚友誼
+      - 對提瓦特各地的魔法傳統充滿好奇
+    speech_style:
+      baseline: 魔法師學術腔，充滿熱情
+      under_stress: 以魔法理論解決問題
+      humor: 對魔法誤用的自嘲
+    abilities:
+      - 火元素法器，魔法師式爆發
+    current_status: 在諾德·克萊主線活躍中（v6.6）
+    progressions: []
+    goals:
+      - 記錄提瓦特的所有魔法傳統
+    secrets:
+      - 與愛麗絲（可莉的母親）的深厚關係，以及兩人共同知道的某些提瓦特秘密
+    first_appearance: 版本6.6（諾德·克萊）
+
+  # ══════════════════════════════════════════════════════
+  # 斯涅茲奈亞 / 特殊角色
+  # ══════════════════════════════════════════════════════
+
+  - id: escoffier
+    name: 艾斯科菲耶
+    aliases:
+      - Escoffier
+      - 冰霜廚師
+    role: 配角 / 廚師
+    age: 20 多歲
+    occupation: 以冰元素烹飪的廚師（冰封保存技術）
+    appearance_public: 廚師服裝，冰元素氣息；專注的廚師眼神
+    appearance_current: 在提瓦特各地以廚藝服務
+    personality:
+      - 對廚藝有極高標準
+      - 以冰元素技術革新烹飪方式
+    speech_style:
+      baseline: 廚師術語，精準描述食材和技法
+      under_stress: 以完美料理的標準要求自己
+      humor: 以料理比喻所有事情
+    abilities:
+      - 冰元素長槍，冰封保存式攻擊
+    current_status: 持續在提瓦特各地活動（v5.6登場）
+    progressions: []
+    goals:
+      - 以冰元素技術創造最完美的料理
+    secrets: []
+    first_appearance: 版本5.6（特殊活動）
+
+  - id: pantalone
+    name: 潘塔隆
+    aliases:
+      - Pantalone
+      - 法提米第九執行官
+      - Regrator（倒賣者）
+    role: 重要對立角色 / 法提米高層
+    age: 不詳
+    occupation: 法提米執行官（第九席位）；掌管提瓦特金融體系的幕後黑手
+    appearance_public: 精緻的商人服裝，金色細節，眼鏡；外表優雅精明
+    appearance_current: v6.6主線中開始正式登場
+    personality:
+      - 精明冷酷，視一切為商業交易
+      - 對金錢和契約有極度執著
+      - 表面禮貌，骨子裡毫無情面
+    speech_style:
+      baseline: 商人式精確，每句話都是條件句
+      under_stress: 以契約和條款包裝危機
+      humor: 以商業術語描述生死存亡
+    abilities:
+      - 水元素相關（推測）
+    current_status: v6.6主線正式登場，在斯涅茲奈亞活動
+    progressions: []
+    goals:
+      - 通過掌控提瓦特金融體系支援沙皇的計劃
+    secrets:
+      - 他控制的金融體系的真實規模遠超表面所見
+    first_appearance: 版本6.6（斯涅茲奈亞預告）
+
+  - id: lohen
+    name: 洛恒
+    aliases:
+      - Lohen
+    role: 配角 / 諾德·克萊角色
+    age: 不詳
+    occupation: 諾德·克萊當地角色（v6.6）
+    appearance_public: 尚待官方資料補充
+    appearance_current: 在諾德·克萊活動
+    personality:
+      - 個性細節待v6.6主線揭露
+    speech_style:
+      baseline: 尚待揭露
+      under_stress: 尚待揭露
+      humor: 尚待揭露
+    abilities:
+      - 元素及武器類型待v6.6確認
+    current_status: v6.6登場的諾德·克萊角色
+    progressions: []
+    goals:
+      - 尚待主線揭露
+    secrets: []
+    first_appearance: 版本6.6（諾德·克萊）
+
+  - id: prune
+    name: 普魯內
+    aliases:
+      - Prune
+    role: 配角 / 諾德·克萊角色
+    age: 不詳
+    occupation: 諾德·克萊當地角色（v6.6）
+    appearance_public: 尚待官方資料補充
+    appearance_current: 在諾德·克萊活動
+    personality:
+      - 個性細節待v6.6主線揭露
+    speech_style:
+      baseline: 尚待揭露
+      under_stress: 尚待揭露
+      humor: 尚待揭露
+    abilities:
+      - 風元素法器（4星，待確認）
+    current_status: v6.6登場的諾德·克萊角色
+    progressions: []
+    goals:
+      - 尚待主線揭露
+    secrets: []
+    first_appearance: 版本6.6（諾德·克萊）

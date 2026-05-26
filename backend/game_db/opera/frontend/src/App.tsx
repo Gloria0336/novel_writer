@@ -3,6 +3,7 @@ import {
   useDeferredValue,
   useEffect,
   useMemo,
+  useRef,
   useState
 } from "react";
 import YAML from "yaml";
@@ -23,6 +24,8 @@ import type {
 type LeftTab = "settings" | "memory" | "scripts";
 type InputMode = "player" | "gm" | "director" | "inject";
 type CenterMode = "story" | "backstage";
+type StreamStatus = "idle" | "connecting" | "connected" | "disconnected";
+type RunStatus = "idle" | "submitting" | "queued" | "generating" | "error";
 
 type FeedItem = {
   id: string;
@@ -319,8 +322,14 @@ function streamToFeedItem(message: StreamEnvelope, index: number): FeedItem {
     title: translateText(message.event),
     body: payloadText || prettyLocalized(message.payload),
     meta: new Date(message.timestamp).toLocaleTimeString(),
-    tone: "stream"
+    tone: "stream",
+    createdAt: message.timestamp
   };
+}
+
+function feedItemTimestamp(item: FeedItem): number {
+  const timestamp = new Date(item.createdAt ?? 0).getTime();
+  return Number.isNaN(timestamp) ? 0 : timestamp;
 }
 
 function actorStatus(actor: ActorProfile, bundle: BundleResponse | null): Record<string, unknown> {
@@ -346,6 +355,21 @@ function openRouterIndicatorLabel(status: OpenRouterStatus | null): string {
   return "OpenRouter 離線";
 }
 
+function streamStatusLabel(status: StreamStatus): string {
+  if (status === "connecting") return "串流連線中";
+  if (status === "connected") return "串流已連線";
+  if (status === "disconnected") return "串流中斷";
+  return "串流待命";
+}
+
+function runStatusLabel(status: RunStatus, inputMode: InputMode | null): string {
+  if (status === "submitting") return `${inputMode ? inputModeLabels[inputMode] : "輸入"}送出中`;
+  if (status === "queued") return "玩家行動已排隊，等待執行一回合";
+  if (status === "generating") return "GM / NPC 回應生成中";
+  if (status === "error") return "剛才的操作失敗";
+  return "待命中";
+}
+
 export default function App() {
   const [novels, setNovels] = useState<NovelSummary[]>([]);
   const [campaigns, setCampaigns] = useState<CampaignSummary[]>([]);
@@ -357,6 +381,7 @@ export default function App() {
   const [gmView, setGMView] = useState<ViewResponse | null>(null);
   const [agentViews, setAgentViews] = useState<Record<string, ViewResponse>>({});
   const [stepResult, setStepResult] = useState<StepResponse | null>(null);
+  const [stepResultCreatedAt, setStepResultCreatedAt] = useState("");
   const [exportFormat, setExportFormat] = useState("json");
   const [exportedContent, setExportedContent] = useState("");
   const [importBuffer, setImportBuffer] = useState("");
@@ -366,6 +391,10 @@ export default function App() {
   const [gmBrief, setGMBrief] = useState("");
   const [injectedEvent, setInjectedEvent] = useState("");
   const [status, setStatus] = useState("待命中。");
+  const [streamStatus, setStreamStatus] = useState<StreamStatus>("idle");
+  const [runStatus, setRunStatus] = useState<RunStatus>("idle");
+  const [lastStreamEventAt, setLastStreamEventAt] = useState("");
+  const [lastOperationError, setLastOperationError] = useState("");
   const [activeLeftTab, setActiveLeftTab] = useState<LeftTab>("settings");
   const [centerMode, setCenterMode] = useState<CenterMode>("story");
   const [activeInputMode, setActiveInputMode] = useState<InputMode>("player");
@@ -381,6 +410,7 @@ export default function App() {
   const [openRouterStatus, setOpenRouterStatus] = useState<OpenRouterStatus | null>(null);
   const [openRouterKeyDraft, setOpenRouterKeyDraft] = useState(getStoredOpenRouterApiKey);
   const [openRouterKeyPanelOpen, setOpenRouterKeyPanelOpen] = useState(false);
+  const feedListRef = useRef<HTMLDivElement | null>(null);
 
   const deferredLogs = useDeferredValue(logMessages);
   const selectedNovel = novels.find((novel) => novel.novel_id === selectedNovelId) ?? null;
@@ -506,6 +536,11 @@ export default function App() {
     setGMView(null);
     setAgentViews({});
     setStepResult(null);
+    setStepResultCreatedAt("");
+    setRunStatus("idle");
+    setStreamStatus("idle");
+    setLastStreamEventAt("");
+    setLastOperationError("");
   }, [filteredCampaigns, selectedCampaign, selectedNovelId]);
 
   useEffect(() => {
@@ -519,18 +554,30 @@ export default function App() {
 
   useEffect(() => {
     if (!selectedCampaignId) {
+      setStreamStatus("idle");
       return;
     }
+    setStreamStatus("connecting");
     const source = new EventSource(streamUrl(selectedCampaignId));
+    source.onopen = () => {
+      setStreamStatus("connected");
+      setLastOperationError("");
+    };
     source.onmessage = (event) => {
       const payload = JSON.parse(event.data) as StreamEnvelope;
+      setStreamStatus("connected");
+      setLastStreamEventAt(payload.timestamp || new Date().toISOString());
       setLogMessages((current) => [payload, ...current].slice(0, 36));
       void refreshCampaignState(selectedCampaignId);
     };
     source.onerror = () => {
+      setStreamStatus("disconnected");
       setStatus("串流暫時中斷，仍可手動操作。");
     };
-    return () => source.close();
+    return () => {
+      source.close();
+      setStreamStatus("idle");
+    };
   }, [selectedCampaignId]);
 
   async function handleCreateNovelCampaign() {
@@ -550,14 +597,26 @@ export default function App() {
 
   async function handleRunStep() {
     if (!selectedCampaignId) return;
+    if (runStatus === "generating") return;
+    setRunStatus("generating");
+    setLastOperationError("");
     setStatus("正在執行一個編排步驟...");
-    const result = await api.stepCampaign(selectedCampaignId, {
-      run_id: bundle?.campaign.active_run_id ?? null,
-      max_actor_turns: 3
-    });
-    setStepResult(result);
-    setStatus(`步驟已完成，目前節點為 ${translateText(result.current_node)}。`);
-    await refreshCampaignState(selectedCampaignId);
+    try {
+      const result = await api.stepCampaign(selectedCampaignId, {
+        run_id: bundle?.campaign.active_run_id ?? null,
+        max_actor_turns: 3
+      });
+      setStepResult(result);
+      setStepResultCreatedAt(new Date().toISOString());
+      setRunStatus("idle");
+      setStatus(`步驟已完成，目前節點為 ${translateText(result.current_node)}。`);
+      await refreshCampaignState(selectedCampaignId);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      setRunStatus("error");
+      setLastOperationError(message);
+      setStatus(`生成失敗：${message}`);
+    }
   }
 
   async function handlePlayerAction(content = playerAction) {
@@ -567,7 +626,8 @@ export default function App() {
       content,
       intent: "調查"
     });
-    setStatus("玩家行動已加入佇列。");
+    setRunStatus("queued");
+    setStatus("玩家行動已加入佇列，按「執行一回合」生成回應。");
     await refreshCampaignState(selectedCampaignId);
   }
 
@@ -622,14 +682,23 @@ export default function App() {
     }
 
     setSubmittingInputMode(mode);
+    setRunStatus("submitting");
+    setLastOperationError("");
+    setStatus(`正在送出${inputModeLabels[mode]}...`);
     try {
       if (mode === "player") await handlePlayerAction(content);
       if (mode === "gm") await handleGMBrief(content);
       if (mode === "director") await handleDirectorNote(content);
       if (mode === "inject") await handleInjectedEvent(content);
       setInputValueForMode(mode, "");
+      if (mode !== "player") {
+        setRunStatus("idle");
+      }
     } catch (error) {
-      setStatus(`送出失敗：${error instanceof Error ? error.message : String(error)}`);
+      const message = error instanceof Error ? error.message : String(error);
+      setRunStatus("error");
+      setLastOperationError(message);
+      setStatus(`送出失敗：${message}`);
     } finally {
       setSubmittingInputMode(null);
     }
@@ -738,7 +807,8 @@ export default function App() {
         title: translateText(stepResult.current_node),
         body: gmText || resolutionText || "編排步驟已完成。",
         meta: translateText(stepResult.status),
-        tone: "step"
+        tone: "step",
+        createdAt: stepResultCreatedAt
       });
     }
     storyItems.push(...deferredLogs.slice(0, 8).map(streamToFeedItem));
@@ -748,12 +818,17 @@ export default function App() {
     backstageItems.push(...(bundle?.gm_briefs ?? []).map(gmBriefToFeedItem));
 
     const pick = centerMode === "story" ? storyItems : backstageItems;
-    pick.sort(
-      (left, right) =>
-        new Date(right.createdAt ?? 0).getTime() - new Date(left.createdAt ?? 0).getTime()
-    );
-    return pick.slice(0, 28);
-  }, [bundle?.director_notes, bundle?.gm_briefs, bundle?.timeline, centerMode, deferredLogs, stepResult]);
+    pick.sort((left, right) => feedItemTimestamp(left) - feedItemTimestamp(right));
+    return pick.slice(-28);
+  }, [bundle?.director_notes, bundle?.gm_briefs, bundle?.timeline, centerMode, deferredLogs, stepResult, stepResultCreatedAt]);
+
+  useEffect(() => {
+    const feedList = feedListRef.current;
+    if (!feedList) {
+      return;
+    }
+    feedList.scrollTop = feedList.scrollHeight;
+  }, [feedItems]);
 
   const visibleInputModes = useMemo(
     () =>
@@ -848,8 +923,11 @@ export default function App() {
   };
 
   const canSubmitInput = Boolean(
-    selectedCampaignId && activeInputValue.trim() && !submittingInputMode
+    selectedCampaignId && activeInputValue.trim() && !submittingInputMode && runStatus !== "generating"
   );
+  const lastStreamEventLabel = lastStreamEventAt
+    ? `最近事件 ${new Date(lastStreamEventAt).toLocaleTimeString()}`
+    : "尚未收到事件";
 
   function handleSaveOpenRouterApiKey() {
     const trimmed = openRouterKeyDraft.trim();
@@ -894,6 +972,22 @@ export default function App() {
               KEY
             </button>
           </div>
+          <div className="runtime-row" aria-live="polite">
+            <span className={`runtime-chip is-${streamStatus}`}>
+              <i aria-hidden="true" />
+              {streamStatusLabel(streamStatus)}
+            </span>
+            <span className={`runtime-chip is-${runStatus}`}>
+              <i aria-hidden="true" />
+              {runStatusLabel(runStatus, submittingInputMode)}
+            </span>
+            <span className="runtime-chip is-muted">{lastStreamEventLabel}</span>
+          </div>
+          {lastOperationError && (
+            <small className="runtime-error" title={lastOperationError}>
+              {lastOperationError}
+            </small>
+          )}
           {openRouterKeyPanelOpen && (
             <form
               className="openrouter-key-panel"
@@ -961,8 +1055,13 @@ export default function App() {
           <button type="button" onClick={handleCreateNovelCampaign} disabled={!selectedNovel}>
             建立
           </button>
-          <button type="button" className="primary-action" onClick={handleRunStep} disabled={!selectedCampaignId}>
-            執行一步
+          <button
+            type="button"
+            className="primary-action"
+            onClick={handleRunStep}
+            disabled={!selectedCampaignId || runStatus === "generating"}
+          >
+            {runStatus === "generating" ? "生成中..." : "執行一步"}
           </button>
           {selectedNovel && (
             <div className="novel-meta">
@@ -1098,7 +1197,7 @@ export default function App() {
             <p className="scene-text">{latestScene}</p>
           </div>
 
-          <div className="feed-list">
+          <div className="feed-list" ref={feedListRef}>
             {feedItems.map((item) => (
               <article className="feed-item" key={item.id}>
                 <header>
