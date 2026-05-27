@@ -27,7 +27,10 @@
       "Bash(npx tsc *)",
       "Bash(awk '/### E.1 Boss/,/^### /' card_game_design_v3.3.md)",
       "Bash(awk '/### E.1 Boss/{flag=1; next} flag && /^### / {exit} flag' card_game_design_v3.3.md)",
-      "mcp__Claude_Preview__preview_start"
+      "mcp__Claude_Preview__preview_start",
+      "Bash(Get-ChildItem -Path \"D:/Users/user/Desktop/T/novel_writer/backend/novel_db\" -Force)",
+      "Bash(Select-Object Name, FullName)",
+      "Bash(sqlite3 opera_trpg.db \".schema\")"
     ]
   }
 }
