@@ -10,6 +10,7 @@ import { registerCoreScripted } from "./handlers/scripted";
 import { registerRaceCardScripted } from "./handlers/raceCards";
 import { endTurnFor, startTurnFor } from "../turn/phases";
 import { applyAction } from "../turn/reducer";
+import { cloneTurnFlags } from "../turn/turnFlags";
 
 registerCoreScripted();
 registerRaceCardScripted();
@@ -587,6 +588,76 @@ describe("scripted passive integrations", () => {
     expect(applyAction(s, { type: "PLAY_TROOP", handIndex: 0, slotIndex: 1 }, ctx)).toMatchObject({ ok: true });
 
     expect(s.player.troopSlots[0]?.atk).toBe(8);
+  });
+
+  it("field troop buffs stay active for troops deployed after the field is played", () => {
+    const s = mkState();
+    s.player.hand = [
+      { instanceId: "plain", cardId: "F_c_01" },
+      { instanceId: "soldier1", cardId: "T_c_01" },
+    ];
+
+    expect(applyAction(s, { type: "PLAY_FIELD", handIndex: 0 }, ctx)).toMatchObject({ ok: true });
+    expect(applyAction(s, { type: "PLAY_TROOP", handIndex: 0, slotIndex: 0 }, ctx)).toMatchObject({ ok: true });
+
+    expect(s.player.troopSlots[0]?.atk).toBe(4);
+    expect(s.player.troopSlots[0]?.def).toBe(1);
+
+    s.player.hand = [
+      { instanceId: "forest", cardId: "F_c_02" },
+      { instanceId: "soldier2", cardId: "T_c_01" },
+    ];
+    expect(applyAction(s, { type: "PLAY_FIELD", handIndex: 0 }, ctx)).toMatchObject({ ok: true });
+    expect(s.player.troopSlots[0]?.atk).toBe(3);
+    expect(s.player.troopSlots[0]?.def).toBe(3);
+
+    expect(applyAction(s, { type: "PLAY_TROOP", handIndex: 0, slotIndex: 1 }, ctx)).toMatchObject({ ok: true });
+    expect(s.player.troopSlots[1]?.atk).toBe(3);
+    expect(s.player.troopSlots[1]?.def).toBe(3);
+  });
+
+  it("A_f_08 discounts only the next troop or device deployment", () => {
+    const s = mkState();
+    const phantom = mkTroop("T_s_31", "phantom1");
+    phantom.isPhantom = true;
+    s.player.troopSlots[0] = phantom;
+    s.player.manaCurrent = 6;
+    s.player.hand = [
+      { instanceId: "shift", cardId: "A_f_08" },
+      { instanceId: "guard", cardId: "T_c_13" },
+      { instanceId: "soldier", cardId: "T_c_02" },
+    ];
+
+    expect(applyAction(s, { type: "PLAY_ACTION", handIndex: 0 }, ctx)).toMatchObject({ ok: true });
+    expect(s.player.manaCurrent).toBe(5);
+    expect(s.player.troopSlots[0]).toBeNull();
+
+    expect(applyAction(s, { type: "PLAY_TROOP", handIndex: 0, slotIndex: 0 }, ctx)).toMatchObject({ ok: true });
+    expect(s.player.manaCurrent).toBe(2);
+
+    expect(applyAction(s, { type: "PLAY_TROOP", handIndex: 0, slotIndex: 1 }, ctx)).toMatchObject({ ok: true });
+    expect(s.player.manaCurrent).toBe(0);
+  });
+
+  it("A_f_08 deploy discount survives the UI dispatch state clone", () => {
+    const s = mkState();
+    const phantom = mkTroop("T_s_31", "phantom1");
+    phantom.isPhantom = true;
+    s.player.troopSlots[0] = phantom;
+    s.player.manaCurrent = 4;
+    s.player.hand = [
+      { instanceId: "shift", cardId: "A_f_08" },
+      { instanceId: "guard", cardId: "T_c_13" },
+    ];
+
+    expect(applyAction(s, { type: "PLAY_ACTION", handIndex: 0 }, ctx)).toMatchObject({ ok: true });
+
+    const cloned = structuredClone(s);
+    cloneTurnFlags(s, cloned);
+
+    expect(applyAction(cloned, { type: "PLAY_TROOP", handIndex: 0, slotIndex: 0 }, ctx)).toMatchObject({ ok: true });
+    expect(cloned.player.manaCurrent).toBe(0);
+    expect(cloned.player.troopSlots[0]?.cardId).toBe("T_c_13");
   });
 
   it("demon scripted effects are registered and apply corruption spread", () => {

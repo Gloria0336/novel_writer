@@ -8,7 +8,7 @@ import { canActionTarget, canTroopAttack } from "../core/combat/attack";
 import { canAffordMana } from "../core/resource/mana";
 import { canAffordMorale } from "../core/resource/morale";
 import { isHeroAbilityFrozen } from "../core/effects/heroAbilityFreeze";
-import { getEffectiveCardCost } from "../core/resource/fullGaugeBuff";
+import { getEffectiveCardCost } from "../core/resource/gaugeScalingBuff";
 import { canPlayField } from "../core/effects/omenHooks";
 
 const SCRIPTED_SELF_TROOP_TARGET_CARDS = new Set(["A_h_05"]);

@@ -3,7 +3,7 @@ import { executeEffects, registerScripted } from "../registry";
 import { aliveTroops, findTroopBySide, getSide, otherSide, freeSlotIndex } from "../../selectors/battle";
 import { applyHeroDamage, applyTroopDamage } from "../../combat/damage";
 import { addGauge } from "../../resource/gauge";
-import { syncFullGaugeBuffs } from "../../resource/fullGaugeBuff";
+import { syncGaugeScalingBuffs } from "../../resource/gaugeScalingBuff";
 import { addTempMana } from "../../resource/mana";
 import { drawCards } from "../../deck/draw";
 import { rngPick } from "../../deck/prng";
@@ -334,7 +334,7 @@ function registerElf(): void {
     const heroDef = ec.ctx.getHero(me.hero.defId);
     const race = ec.ctx.getRace(heroDef.raceId);
     addGauge(me.hero, race.gauge.max, 2);
-    syncFullGaugeBuffs(ec.state, ec.ctx);
+    syncGaugeScalingBuffs(ec.state, ec.ctx);
   });
 
   registerScripted("ELF_SILVERLEAF_SEAL", (_payload, ec) => {
@@ -611,7 +611,7 @@ function registerFey(): void {
     const target = findOwnTroopByPayload(ec, payload) ?? aliveTroops(getSide(ec.state, ec.sourceSide)).find((t) => t.isPhantom);
     if (!target?.isPhantom) return;
     removeOwnTroopSilently(ec, target, "PHANTOM_SHIFT");
-    getTurnFlags(ec.state).deployDiscount = Math.max(getTurnFlags(ec.state).deployDiscount ?? 0, 2);
+    getTurnFlags(ec.state).nextDeployDiscount = Math.max(getTurnFlags(ec.state).nextDeployDiscount ?? 0, 2);
   });
 
   registerScripted("Y_PHANTOM_TAUNT", (_payload, ec) => {
@@ -781,7 +781,7 @@ function registerDemigod(): void {
     const me = getSide(ec.state, ec.sourceSide);
     if (me.hero.gaugeValue < 40) return;
     me.hero.gaugeValue -= 40;
-    syncFullGaugeBuffs(ec.state, ec.ctx);
+    syncGaugeScalingBuffs(ec.state, ec.ctx);
     const enemy = getSide(ec.state, otherSide(ec.sourceSide));
     applyHeroDamage(enemy.hero, 25, { ignoreDef: true });
     for (const t of enemy.troopSlots) {
@@ -799,7 +799,7 @@ function registerDemigod(): void {
     if (me.hero.gaugeValue < 50) return;
     const consumed = me.hero.gaugeValue;
     me.hero.gaugeValue = 0;
-    syncFullGaugeBuffs(ec.state, ec.ctx);
+    syncGaugeScalingBuffs(ec.state, ec.ctx);
     const enemy = getSide(ec.state, otherSide(ec.sourceSide));
     const dmg = Math.floor(consumed * 1.5);
     applyHeroDamage(enemy.hero, dmg, { ignoreDef: true });

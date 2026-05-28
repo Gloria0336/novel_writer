@@ -122,7 +122,8 @@ export function createBattle(opts: CreateBattleOpts): BattleState {
   const enemyDef = getEnemy(enemyId);
 
   const playerHeroDef = ctx.getHero(opts.playerHeroId);
-  const playerHero = opts.initialPlayerHero ?? makePlayerHeroInstance(playerHeroDef);
+  // 複製傳入的英雄狀態，避免 startTurnFor 等流程 mutate 呼叫端（如試煉塔 run.heroSnapshot）共用的物件。
+  const playerHero = opts.initialPlayerHero ? structuredClone(opts.initialPlayerHero) : makePlayerHeroInstance(playerHeroDef);
   const race = getRace(playerHeroDef.raceId);
 
   const playerSide = buildSide(opts.playerDeckIds, playerHero, race.manaCap ?? 10);

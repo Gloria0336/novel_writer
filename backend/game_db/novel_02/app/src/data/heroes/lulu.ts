@@ -16,10 +16,13 @@ export const HERO_LULU: HeroDefinition = {
     {
       id: "psv_minimum_casualty_order",
       name: "最低損傷命令",
-      description: "所有我方兵力 +1 DEF、+3 HP。",
+      description: "所有我方兵力 +1 DEF、+3 HP。每回合首次我方兵力被消滅時，自身獲得 4 護甲。",
       cost: {},
       passive: true,
-      effects: [{ kind: "buff", target: { kind: "all", filter: { side: "self", entity: "troop" } }, mod: { def: 1, hp: 3 }, duration: { kind: "permanent" } }],
+      effects: [
+        { kind: "buff", target: { kind: "all", filter: { side: "self", entity: "troop" } }, mod: { def: 1, hp: 3 }, duration: { kind: "permanent" } },
+        { kind: "scripted", tag: "LULU_MIN_CASUALTY_SHIELD" },
+      ],
     },
   ],
   actives: [

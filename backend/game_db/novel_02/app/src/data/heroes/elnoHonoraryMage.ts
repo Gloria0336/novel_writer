@@ -15,10 +15,13 @@ export const HERO_ELNO_HONORARY_MAGE: HeroDefinition = {
     {
       id: "psv_court_honorary_mage",
       name: "宮廷榮譽法師",
-      description: "每回合開始額外獲得 1 點臨時魔力。",
+      description: "每回合開始額外獲得 1 點臨時魔力；若共鳴 ≥ 3，額外抽 1 張牌。",
       cost: {},
       passive: true,
-      effects: [{ kind: "mana", delta: 1, temporary: true }],
+      effects: [
+        { kind: "mana", delta: 1, temporary: true },
+        { kind: "scripted", tag: "ELNO_COURT_MANA_BONUS" },
+      ],
     },
   ],
   actives: [

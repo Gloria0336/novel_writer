@@ -85,7 +85,7 @@
   position: relative;
   z-index: 2;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 28px;
+  grid-template-columns: minmax(0, 1fr) 34px;
   gap: 6px;
   align-items: start;
   min-height: 38px;
@@ -119,8 +119,10 @@
 }
 
 .cost {
-  width: 26px;
-  height: 26px;
+  position: relative;
+  overflow: hidden;
+  width: 31px;
+  height: 31px;
   display: grid;
   place-items: center;
   border: 1px solid rgba(255, 255, 255, 0.28);
@@ -132,6 +134,48 @@
   font-family: Consolas, monospace;
   font-size: 13px;
   font-weight: 700;
+}
+
+.cost[data-reduced="true"] {
+  border-color: rgba(255, 255, 255, 0.8);
+  color: #ffffff;
+  background:
+    radial-gradient(circle at 34% 28%, rgba(255, 255, 255, 0.46), transparent 29%),
+    linear-gradient(180deg, #e43e34 0%, #a9101a 100%);
+  box-shadow:
+    0 0 0 2px rgba(255, 255, 255, 0.14),
+    0 0 16px rgba(255, 64, 42, 0.68);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+  animation: costReductionPulse 1.05s ease-in-out infinite;
+}
+
+.cost[data-reduced="true"]::after {
+  content: "";
+  position: absolute;
+  inset: -30%;
+  background: linear-gradient(115deg, transparent 20%, rgba(255, 255, 255, 0.52) 46%, transparent 68%);
+  transform: translateX(-80%) rotate(10deg);
+  animation: costReductionSweep 1.6s ease-in-out infinite;
+}
+
+@keyframes costReductionPulse {
+  0%, 100% {
+    transform: scale(1);
+    filter: saturate(1);
+  }
+  50% {
+    transform: scale(1.1);
+    filter: saturate(1.25);
+  }
+}
+
+@keyframes costReductionSweep {
+  0% {
+    transform: translateX(-90%) rotate(10deg);
+  }
+  52%, 100% {
+    transform: translateX(90%) rotate(10deg);
+  }
 }
 
 .artBox {
@@ -291,7 +335,7 @@
 }
 
 .mini .header {
-  grid-template-columns: minmax(0, 1fr) 22px;
+  grid-template-columns: minmax(0, 1fr) 26px;
   min-height: 28px;
   padding: 4px 5px 3px;
 }
@@ -306,8 +350,8 @@
 }
 
 .mini .cost {
-  width: 21px;
-  height: 21px;
+  width: 25px;
+  height: 25px;
   font-size: 11px;
 }
 
@@ -342,7 +386,7 @@
 .gallery .header {
   min-height: 48px;
   padding: 10px 10px 7px;
-  grid-template-columns: minmax(0, 1fr) 34px;
+  grid-template-columns: minmax(0, 1fr) 40px;
 }
 
 .gallery .name {
@@ -354,8 +398,8 @@
 }
 
 .gallery .cost {
-  width: 32px;
-  height: 32px;
+  width: 38px;
+  height: 38px;
   font-size: 15px;
 }
 
@@ -389,7 +433,7 @@
 .preview .header {
   min-height: 54px;
   padding: 12px 12px 8px;
-  grid-template-columns: minmax(0, 1fr) 38px;
+  grid-template-columns: minmax(0, 1fr) 44px;
 }
 
 .preview .name {
@@ -401,8 +445,8 @@
 }
 
 .preview .cost {
-  width: 36px;
-  height: 36px;
+  width: 42px;
+  height: 42px;
   font-size: 16px;
 }
 

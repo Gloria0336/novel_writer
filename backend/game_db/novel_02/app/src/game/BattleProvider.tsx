@@ -8,6 +8,7 @@ import { createBattle, createBattleContext, DEFAULT_ENEMY_ID, applyPlayerActionW
 import { getStarterDeckIds } from "../data/decks";
 import { useBattleAutoRecorder } from "../logger/useBattleAutoRecorder";
 import { ENEMIES } from "../data/enemies";
+import { cloneTurnFlags } from "../core/turn/turnFlags";
 
 export interface BattleSessionMeta {
   sessionId: string;
@@ -32,7 +33,11 @@ function makeSessionId(): string {
 }
 
 function deepClone<T>(v: T): T {
-  return structuredClone(v);
+  const cloned = structuredClone(v);
+  if (typeof v === "object" && v !== null && typeof cloned === "object" && cloned !== null) {
+    cloneTurnFlags(v, cloned);
+  }
+  return cloned;
 }
 
 const StoreContext = createContext<BattleStore | null>(null);
@@ -52,7 +57,7 @@ interface ProviderProps {
 export function BattleProvider({
   heroId,
   enemyId = DEFAULT_ENEMY_ID,
-  seed = Date.now() % 1_000_000,
+  seed: seedProp,
   initialPlayerHero,
   initialDeckIds,
   enemyScale,
@@ -60,6 +65,9 @@ export function BattleProvider({
   onBattleEnd,
   children,
 }: ProviderProps): JSX.Element {
+  // 每次 mount 固定一個 seed；避免預設 Date.now() 在每次 render 變動，
+  // 進而使下方 useMemo 依賴改變、createBattle 反覆重跑（會持續累加英雄量表）。
+  const [seed] = useState(() => seedProp ?? Date.now() % 1_000_000);
   const initial = useMemo(
     () => createBattle({
       seed,

@@ -12,7 +12,7 @@ import { tickRiftTremor } from "../resource/rift";
 import { aliveTroops, getSide, otherSide } from "../selectors/battle";
 import { isHeroAbilityFrozen, tickHeroAbilityFreezes } from "../effects/heroAbilityFreeze";
 import { executeEffects, reapDeadTroops } from "../effects/registry";
-import { applyFullGaugeTurnStartBonuses, isFullGaugeBuffSource, syncFullGaugeBuffs } from "../resource/fullGaugeBuff";
+import { applyGaugeScalingTurnStartBonuses, isGaugeScalingBuffSource, syncGaugeScalingBuffs } from "../resource/gaugeScalingBuff";
 import { applyTroopDamageWithPassives } from "../effects/battlePassives";
 import { getFirstEquipmentPassivePayload, sideHasEquipmentPassive } from "../effects/passiveTags";
 import { resetTurnFlags } from "./turnFlags";
@@ -20,6 +20,7 @@ import { syncDynamicPassiveAuras, isDynamicPassiveSource } from "../effects/dyna
 import { applyCorruptionStageEffects, applyStabilityDelta } from "../resource/stability";
 import { applyOmenFieldDamageModifier, applyOmenOnTurnEnd, applyOmenOnTurnStart, omenFieldStartTurnTriggerCount } from "../effects/omenHooks";
 import { notifyBossGauge } from "../resource/bossGauge";
+import { applyLairFieldOnTurnEnd, applyLairFieldOnTurnStart } from "./lairField";
 
 export function checkVictory(state: BattleState): void {
   if (state.result !== "ongoing") return;
@@ -71,11 +72,15 @@ export function startTurnFor(state: BattleState, side: Side, ctx: BattleContext)
 
   applyOmenOnTurnStart(state, ctx, side);
   applyStartTurnFieldEffects(state, ctx, side);
+  applyLairFieldOnTurnStart(state, ctx, side);
+  reapDeadTroops(state, ctx, "enemy");
+  checkVictory(state);
+  if (state.result !== "ongoing") return;
   applyStartTurnEquipmentPassives(state, ctx, side, sideState, race.gauge.max);
 
-  syncFullGaugeBuffs(state, ctx);
+  syncGaugeScalingBuffs(state, ctx);
   syncDynamicPassiveAuras(state, ctx);
-  applyFullGaugeTurnStartBonuses(state, ctx, side);
+  applyGaugeScalingTurnStartBonuses(state, ctx, side);
 
   // 重置回合計數
   sideState.spellsCastThisTurn = 0;
@@ -84,7 +89,7 @@ export function startTurnFor(state: BattleState, side: Side, ctx: BattleContext)
   const aliveCount = aliveTroops(sideState).length;
   gaugeOnTroopSurvivePerTurn(sideState.hero, race.gauge.max, heroDef.gauge, aliveCount);
   gaugeOnTurnStart(sideState.hero, race.gauge.max, heroDef.gauge);
-  syncFullGaugeBuffs(state, ctx);
+  syncGaugeScalingBuffs(state, ctx);
 
   // BossGauge：敵方回合開始時累積（onTurnStart + onTroopSurvivePerTurn）
   if (side === "enemy" && state.bossGauge) {
@@ -126,6 +131,50 @@ export function startTurnFor(state: BattleState, side: Side, ctx: BattleContext)
     });
   }
 
+  // 山獵人被動「無聲追跡」：敵方無兵力→抽1牌；有兵力→本回合 ATK +2。
+  if (sideState.hero.defId === "mountain-hunter") {
+    executeEffects([{ kind: "scripted", tag: "HUNTER_SILENT_TRACKING" }], {
+      state,
+      ctx,
+      sourceSide: side,
+      sourceKind: "passive",
+      sourceCardId: "HUNTER_SILENT_TRACKING",
+    });
+  }
+
+  // 芮卡被動「沙漠耐戰」：HP≤50%→3護甲；同時血怒≥5→額外回復3HP。
+  if (sideState.hero.defId === "reka") {
+    executeEffects([{ kind: "scripted", tag: "REKA_DESERT_SURGE" }], {
+      state,
+      ctx,
+      sourceSide: side,
+      sourceKind: "passive",
+      sourceCardId: "REKA_DESERT_SURGE",
+    });
+  }
+
+  // 艾爾諾被動「宮廷榮譽法師」：共鳴≥3→抽1牌。在精靈共鳴重置前觸發，讀取上回合積累值。
+  if (sideState.hero.defId === "elno-honorary-mage") {
+    executeEffects([{ kind: "scripted", tag: "ELNO_COURT_MANA_BONUS" }], {
+      state,
+      ctx,
+      sourceSide: side,
+      sourceKind: "passive",
+      sourceCardId: "ELNO_COURT_MANA_BONUS",
+    });
+  }
+
+  // 艾拉被動「風切預判」：敵方兵力≥2→各自獨立隨機造成2次ATK×0.5傷害。
+  if (sideState.hero.defId === "aella-flair") {
+    executeEffects([{ kind: "scripted", tag: "AELLA_WINDSHEAR_READ" }], {
+      state,
+      ctx,
+      sourceSide: side,
+      sourceKind: "passive",
+      sourceCardId: "AELLA_WINDSHEAR_READ",
+    });
+  }
+
   // 解除兵力暈眩、重置攻擊狀態、減少凍結
   for (const t of [...sideState.troopSlots, sideState.frontlineSlot ?? null]) {
     if (!t) continue;
@@ -144,7 +193,7 @@ export function startTurnFor(state: BattleState, side: Side, ctx: BattleContext)
   if (race.gauge.id === "resonance") {
     if (sideState.hero.flags.resonanceNoReset === true) sideState.hero.flags.resonanceNoReset = false;
     else sideState.hero.gaugeValue = 0;
-    syncFullGaugeBuffs(state, ctx);
+    syncGaugeScalingBuffs(state, ctx);
   }
 
   // 兵力 / 器具的 onTurnStart hook：在凍結倒數後執行，被暈眩中（frozenTurns > 0）的單位跳過
@@ -209,6 +258,12 @@ export function endTurnFor(state: BattleState, side: Side, ctx?: BattleContext):
   state.log.push({ turn: state.turn, side, kind: "TURN_END", text: `回合 ${state.turn} 結束（${side === "player" ? "玩家" : "敵方"}）` });
 
   // v3.3：tick 次元滲透裂縫倒數（僅在裂縫開啟時生效）
+  if (ctx) {
+    applyLairFieldOnTurnEnd(state, ctx, side);
+    checkVictory(state);
+    if (state.result !== "ongoing") return;
+  }
+
   if (ctx) tickRiftTremor(state, ctx);
 
   // v3.4：天象倒數遞減（每方結束回合各 -1）
@@ -367,7 +422,7 @@ function tickNumberFlag(hero: HeroInstance, key: string): void {
 function tickTroopBuffs(troop: TroopInstance): void {
   const kept: ActiveBuff[] = [];
   for (const buff of troop.buffs) {
-    if (isFullGaugeBuffSource(buff.source) || isDynamicPassiveSource(buff.source)) {
+    if (isGaugeScalingBuffSource(buff.source) || isDynamicPassiveSource(buff.source)) {
       kept.push(buff);
       continue;
     }
@@ -384,7 +439,7 @@ function tickTroopBuffs(troop: TroopInstance): void {
 function tickHeroBuffs(hero: HeroInstance): void {
   const kept: ActiveBuff[] = [];
   for (const buff of hero.buffs) {
-    if (isFullGaugeBuffSource(buff.source) || isDynamicPassiveSource(buff.source)) {
+    if (isGaugeScalingBuffSource(buff.source) || isDynamicPassiveSource(buff.source)) {
       kept.push(buff);
       continue;
     }

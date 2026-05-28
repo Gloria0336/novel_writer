@@ -231,8 +231,15 @@ export function describeCardEffects(card: Card, context: CardTextContext = {}): 
     appendEffects(lines, "後續", card.postEffects, card, context);
   }
 
-  if (card.type === "spell" || card.type === "field") {
+  if (card.type === "spell") {
     appendEffects(lines, "效果", card.effects, card, context);
+  }
+
+  if (card.type === "field") {
+    lines.push(`放置：${fieldPlacementLabel(card.placement)}`);
+    const fieldLines = describeFieldEffects(card.id, context);
+    if (fieldLines) lines.push(...fieldLines);
+    else appendEffects(lines, "效果", card.effects, card, context);
   }
 
   if (card.type === "equipment") {
@@ -318,14 +325,14 @@ const SCRIPTED_EFFECT_TEXT: Record<string, ScriptedEffectFormatter> = {
   HERO_LIFESTEAL: (payload) => `英雄攻擊造成傷害時，恢復傷害量 ${payloadNumber(payload, "pct", 20)}% 的 HP`,
   DRAGONSCALE: "免疫燃燒與冰凍；每回合恢復 3 HP",
 
-  FIELD_MANA_NODE: "場地：每回合雙方額外獲得 1 魔力；法術效果 +10%",
+  FIELD_MANA_NODE: "場地：己方回合開始 +1 臨時魔力；己方法術傷害與治療 +10%",
   FIELD_BURN: (_payload, card) =>
     card?.id === "F_s_01"
-      ? "場地：每回合結束時，雙方兵力受到 2 傷害"
-      : "場地：每回合所有兵力受到 3 傷害；治療效果 -50%",
+      ? "場地：被籠罩方回合開始時，該方全兵力受到 2 火焰傷害"
+      : "場地：己方回合開始時，己方全兵力受到 3 火焰傷害；己方兵力治療減半",
   FIELD_RESURRECT: "場地：兵力被摧毀時，30% 機率以 30% HP 原地復活",
-  FIELD_STORM: "場地：每回合開始時，隨機 1 個敵方兵力受到 6 傷害；所有兵力不可被治癒",
-  FIELD_DIMENSIONAL_RIFT: "場地：穩定度每回合 -5；所有法術與行動卡傷害 +50%",
+  FIELD_STORM: "場地：被籠罩方回合開始時，隨機 1 個兵力受到 6 傷害；被籠罩方兵力不可被治療",
+  FIELD_DIMENSIONAL_RIFT: "場地：需要已開啟的裂縫；放置時升級為加強裂縫；己方法術與行動傷害 +50%",
   FIELD_BURN_APPLY: "戰鬥開始時設置獄火場地",
 
   UNTARGETABLE_BY_SPELL: "無法被法術選為目標",
@@ -346,7 +353,7 @@ const SCRIPTED_EFFECT_TEXT: Record<string, ScriptedEffectFormatter> = {
   MOONLIGHT_ARROW: (_payload, _card, context) => `隨機攻擊敵方任一單位（兵力優先），造成 8 傷害；${gaugeTerm(context, "共鳴")} ≥2 時改為 12`,
   ATK_PER_SPELL_CAST: "己方每施放 1 張法術，此兵力永久 +1 ATK",
   DOUBLE_NEXT_SPELL: "本回合下一張法術效果翻倍",
-  FIELD_ELVEN_WARD: "場地：所有法術效果 +25%；兵力部署費用 +1",
+  FIELD_ELVEN_WARD: "場地：己方法術傷害與治療 +25%；己方兵力與器具部署費用 +1",
   HP_PER_SPELL_CAST: "己方每施放 1 張法術，此兵力 +3 HP",
   RESONANCE_NO_RESET: (_payload, _card, context) => `本回合${gaugeTerm(context, "共鳴")}不會重置，累積至下回合`,
   AENO_FORBIDDEN: (_payload, _card, context) => `指定敵方任意單體造成 40 魔法傷害；${gaugeTerm(context, "共鳴")} ≥4 時改為對敵方全體造成 70 傷害，無視守護`,
@@ -416,8 +423,8 @@ const SCRIPTED_EFFECT_TEXT: Record<string, ScriptedEffectFormatter> = {
   DM_FREEZE_RANDOM_ENEMY: (payload) => `入場時隨機凍結-冰凍 1 個敵方兵力 ${payloadNumber(payload, "turns", 2)} 回合`,
   DM_CORRUPTION_SPREAD: (_payload, _card, context) => `腐化蔓延：削弱敵方陣線並推進${gaugeTerm(context, "黑暗蝕")}`,
   DM_ENERGY_CORE_PASSIVE: (_payload, _card, context) => `英雄造成傷害時${gaugeTerm(context, "黑暗蝕")} +5`,
-  DM_RIFT_FIELD: (_payload, _card, context) => `場地：每回合穩定度 -3，${gaugeTerm(context, "黑暗蝕")} +5`,
-  DM_SCORCHED_FIELD: "場地：每回合灼燒敵方兵力，並降低敵方治療效果",
+  DM_RIFT_FIELD: (_payload, _card, context) => `場地：放置時與己方回合開始，穩定度 -3，${gaugeTerm(context, "黑暗蝕")} +5`,
+  DM_SCORCHED_FIELD: "場地：己方回合開始灼燒敵方全兵力 4 點；敵方兵力治療減半",
   DM_CURSE_GENERAL_AURA: "光環：敵方兵力 ATK / DEF 下降",
   DM_DARK_DESCENT: (_payload, _card, context) => `召喚黑暗軍勢並大幅推進${gaugeTerm(context, "黑暗蝕")}`,
   DM_DOOM_GIANT_SPELL_IMMUNE: "免疫法術傷害",
@@ -437,6 +444,43 @@ function describeScriptedEffect(tag: string, payload: unknown, card?: Card, cont
   if (typeof formatter === "function") return formatter(payload, card, context);
   if (formatter) return formatter;
   return "特殊效果待補文字";
+}
+
+function describeFieldEffects(cardId: string, context: CardTextContext): string[] | null {
+  const gauge = gaugeTerm(context);
+  const darkGauge = gaugeTerm(context, "黑暗蝕");
+  const forgeGauge = gaugeTerm(context, "爐火");
+
+  const text: Record<string, string[]> = {
+    F_c_01: ["己方所有兵力 ATK +1（動態光環，後續部署也會套用）"],
+    F_c_02: ["己方所有兵力 DEF +2（動態光環，後續部署也會套用）"],
+    F_c_03: ["己方所有兵力 DEF +3（動態光環，後續部署也會套用）"],
+    F_c_04: ["己方回合開始：+1 臨時魔力", "己方法術傷害與治療 +10%"],
+    F_c_05: ["己方回合開始：己方全兵力受到 3 火焰場地傷害", "己方兵力受到治療減半"],
+    F_c_06: ["己方兵力死亡時：30% 機率以 30% 最大 HP 復活"],
+    F_c_07: ["被籠罩方回合開始：隨機 1 個兵力受到 6 場地傷害", "被籠罩方兵力不能被治療"],
+    F_c_08: ["需要場上已有次元裂縫才能放置", "放置時：裂縫升級為加強裂縫，玩家佔據者獲得穿透，敵方滲透池升階", "己方法術與行動傷害 +50%"],
+    F_s_01: ["被籠罩方回合開始：該方全兵力受到 2 火焰場地傷害"],
+    F_e_01: ["己方法術傷害與治療 +25%", "己方兵力與器具部署費用 +1"],
+    F_dw_01: [`放置時與己方回合開始：${forgeGauge} +10`, "己方裝備費用 -1"],
+    F_de_01: [`放置時與己方回合開始：穩定度 -3，${darkGauge} +5`],
+    F_de_02: ["己方回合開始：對方全兵力受到 4 火焰場地傷害", "對方兵力受到治療減半"],
+  };
+
+  const lines = text[cardId];
+  if (!lines && cardId.startsWith("F_")) return [`場地效果使用目前${gauge}與戰場狀態結算`];
+  return lines ?? null;
+}
+
+function fieldPlacementLabel(placement: "self" | "enemy" | "either"): string {
+  switch (placement) {
+    case "self":
+      return "己方槽位";
+    case "enemy":
+      return "對方槽位";
+    case "either":
+      return "可指定任一槽位";
+  }
 }
 
 const HERO_ABILITY_FREEZE_TEXT = {
@@ -648,6 +692,12 @@ const IMPLEMENTED_RULE_SECTIONS: ImplementedRuleSection[] = [
     id: "lairs",
     title: "§E.2 巢穴戰",
     items: [
+      "第 10 回合開始強制套用巢穴場地：腐植巢穴「腐敗蔓延」每回合穩定度 -3，玩家英雄與兵力 HP -2。",
+      "第 10 回合開始強制套用巢穴場地：蟲族窩巢「蟲巢盛宴」讓場上所有兵力 ATK +3 並獲得汲取。",
+      "第 10 回合開始強制套用巢穴場地：魔獸洞穴「魔月現世」每回合結束時場上所有兵力 HP +2。",
+      "第 10 回合開始強制套用巢穴場地：暗影門戶「暗影霧海」每回合開始時隨機冰凍 1 名兵力 1 回合。",
+      "第 10 回合開始強制套用巢穴場地：晶體礦脈「結晶洞穴」讓場上所有兵力 DEF +2 並獲得守護。",
+      "第 10 回合開始強制套用巢穴場地：腐化神殿「腐化神殿」每 3 回合在敵方場上額外召喚 1 名腐化祭司。",
       "腐植巢穴：HP 80 / DEF 0；每回合 1 召喚；兵力被摧毀穩定度 -2。",
       "蟲族窩巢：HP 100 / DEF 2；每回合 2 召喚；5 蟲母幼體合併為蟲后。",
       "魔獸洞穴：HP 120 / DEF 3；每 2 回合 1 召喚；半血爆發兵力 ATK ×2。",

@@ -24,7 +24,7 @@ import { GameIndexOverlay } from "./GameIndexOverlay";
 import { buildCardFaceModel } from "../../game/cardPresentation";
 import { CardFace } from "../components/CardFace";
 import { LLMTakeoverButton } from "../components/LLMTakeoverButton";
-import { getEffectiveCardCost, isFullGaugeActive } from "../../core/resource/fullGaugeBuff";
+import { getEffectiveCardCost, getEffectiveGaugeMax, hasGaugeScalingValue, isGaugeScalingCapped } from "../../core/resource/gaugeScalingBuff";
 import { canPlayField } from "../../core/effects/omenHooks";
 import { OMEN_DEFS } from "../../game/tower/towerData";
 import {
@@ -197,8 +197,9 @@ function BattleView({ onExit }: { onExit: () => void }): JSX.Element {
   const enemyRace = getRace(enemyDef.raceId);
   const heroGaugeName = heroDef.gauge.name ?? heroRace.gauge.name;
   const enemyGaugeName = enemyDef.gauge.name ?? enemyRace.gauge.name;
-  const gaugeMax = heroRace.gauge.max;
-  const fullGaugeReady = isFullGaugeActive(state.player, heroRace);
+  const gaugeMax = getEffectiveGaugeMax(state.player, heroRace);
+  const gaugeScalingActive = hasGaugeScalingValue(state.player);
+  const gaugeScalingCapped = isGaugeScalingCapped(state.player, heroRace);
   const heroTheme = RACE_TO_THEME[heroDef.raceId] ?? "azure";
   const actionPlayerHero = actionState.player.hero;
 
@@ -472,6 +473,8 @@ function BattleView({ onExit }: { onExit: () => void }): JSX.Element {
   const recentLogs = state.log.slice(-3).reverse();
   const playerFieldCard = state.field.player ? getCard(state.field.player.cardId) : null;
   const enemyFieldCard = state.field.enemy ? getCard(state.field.enemy.cardId) : null;
+  const enemyLairFieldName =
+    typeof state.enemy.hero.flags.lairFieldName === "string" ? state.enemy.hero.flags.lairFieldName : null;
   const currentOmen = state.omen ? OMEN_DEFS[state.omen.id] : null;
   function toggleCardPreview(cardId: string, gaugeName = heroGaugeName): void {
     setPreviewCard((current) => (current?.card.id === cardId ? null : { card: getCard(cardId), gaugeName }));
@@ -507,6 +510,7 @@ function BattleView({ onExit }: { onExit: () => void }): JSX.Element {
               <FieldStatusChip
                 label="敵方場地"
                 card={enemyFieldCard}
+                fallbackName={enemyLairFieldName}
                 onPreview={enemyFieldCard ? () => toggleCardPreview(enemyFieldCard.id, enemyGaugeName) : undefined}
               />
             </div>
@@ -613,10 +617,10 @@ function BattleView({ onExit }: { onExit: () => void }): JSX.Element {
                   <div className={styles.v}>{playerHero.gaugeValue} / {gaugeMax}</div>
                 </div>
                 <div className={styles.track}>
-                  <div className={`${styles.fill} ${fullGaugeReady ? styles.fillReady : ""}`} style={{ width: `${Math.min(100, (playerHero.gaugeValue / gaugeMax) * 100)}%` }} />
+                  <div className={`${styles.fill} ${gaugeScalingCapped ? styles.fillReady : ""}`} style={{ width: `${Math.min(100, (playerHero.gaugeValue / gaugeMax) * 100)}%` }} />
                 </div>
                 <div className={styles.gaugeDesc}>{heroDef.gauge.description}</div>
-                {fullGaugeReady && <div className={styles.gaugeDesc}>{heroRace.fullGaugeBuff.name}：{heroRace.fullGaugeBuff.description}</div>}
+                {gaugeScalingActive && <div className={styles.gaugeDesc}>{heroRace.gaugeScalingBuff.name}：{heroRace.gaugeScalingBuff.description}</div>}
               </div>
 
               <div className={styles.skillsList}>
@@ -815,6 +819,7 @@ function BattleView({ onExit }: { onExit: () => void }): JSX.Element {
                 const playable = inNeedsRiftHand
                   ? isPlayerTurn && !isS_c_15Self && card.type === "troop"
                   : isPlayerTurn && canPlayCardCheck(actionState, battleCtx, card);
+                const effectiveCost = getDisplayEffectiveCardCost(actionState, battleCtx, card);
                 const selected =
                   (select.kind === "playCard" && select.handIndex === i) ||
                   isS_c_15Self;
@@ -843,7 +848,7 @@ function BattleView({ onExit }: { onExit: () => void }): JSX.Element {
                     onClick={() => playable && clickHandCard(i)}
                   >
                     <CardFace
-                      model={buildCardFaceModel(card, { gaugeName: heroGaugeName })}
+                      model={buildCardFaceModel(card, { gaugeName: heroGaugeName, effectiveCost })}
                       variant="hand"
                       playable={playable}
                       selected={selected}
@@ -925,15 +930,20 @@ function canPlayCardTargetTroop(card: Card, side: "player" | "enemy", troop: Tro
   return true;
 }
 
-function canPlayCardCheck(state: BattleState, ctx: BattleContext, card: Card): boolean {
-  if (state.activeSide !== "player") return false;
-  if (card.type === "field" && !canPlayField(state, "player")) return false;
+function getDisplayEffectiveCardCost(state: BattleState, ctx: BattleContext, card: Card): number {
   let cost = getEffectiveCardCost(state, ctx, "player", card);
   const heroDef = ENEMIES[state.player.hero.defId]?.heroDef ?? HEROES[state.player.hero.defId];
   if (heroDef) {
     const race = getRace(heroDef.raceId);
     if (card.type === "spell" && race.gauge.id === "resonance" && state.player.hero.gaugeValue >= 4) cost = 0;
   }
+  return cost;
+}
+
+function canPlayCardCheck(state: BattleState, ctx: BattleContext, card: Card): boolean {
+  if (state.activeSide !== "player") return false;
+  if (card.type === "field" && !canPlayField(state, "player")) return false;
+  const cost = getDisplayEffectiveCardCost(state, ctx, card);
   if (!canAffordMana(state.player, cost)) return false;
   if (card.type === "troop" || card.type === "device") {
     // v3.3：兵力卡可選兵力欄或裂縫位（後者僅 rift open 時）
@@ -977,16 +987,17 @@ function canPlayCardCheck(state: BattleState, ctx: BattleContext, card: Card): b
   return true;
 }
 
-function FieldStatusChip({ label, card, onPreview }: { label: string; card: Card | null; onPreview?: () => void }): JSX.Element {
+function FieldStatusChip({ label, card, onPreview, fallbackName }: { label: string; card: Card | null; onPreview?: () => void; fallbackName?: string | null }): JSX.Element {
+  const displayName = card ? card.name : fallbackName ?? "空槽";
   const content = (
     <>
       <span className={styles.fieldStatusLabel}>{label}</span>
-      <span className={styles.fieldStatusName}>{card ? card.name : "空槽"}</span>
+      <span className={styles.fieldStatusName}>{displayName}</span>
     </>
   );
 
   if (!card || !onPreview) {
-    return <div className={styles.fieldStatusCard} data-empty="true">{content}</div>;
+    return <div className={styles.fieldStatusCard} data-empty={card || fallbackName ? "false" : "true"}>{content}</div>;
   }
 
   return (

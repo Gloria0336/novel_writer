@@ -13,6 +13,8 @@ export interface CardFaceModel {
   id: string;
   name: string;
   cost: number;
+  displayCost: number;
+  costReduced: boolean;
   type: CardType;
   typeLabel: string;
   typeColor: string;
@@ -29,6 +31,7 @@ export interface BuildCardFaceModelOptions {
   metaLine?: string;
   effectLines?: string[];
   gaugeName?: string;
+  effectiveCost?: number;
   artManifest?: CardArtManifest;
 }
 
@@ -49,19 +52,26 @@ export const RARITY_COLOR: Record<Rarity, string> = {
 };
 
 export function buildCardFaceModel(card: Card, options: BuildCardFaceModelOptions = {}): CardFaceModel {
-  const effectLines = normalizeEffectLines(options.effectLines ?? describeCardEffects(card, { gaugeName: options.gaugeName }), card);
+  const metaLine = options.metaLine ?? defaultMetaLine(card);
+  const effectSource = options.effectLines ?? describeCardEffects(card, { gaugeName: options.gaugeName });
+  const effectLines = normalizeEffectLines(
+    options.metaLine === undefined ? removeDefaultMetaLineDuplication(effectSource, card) : effectSource,
+    card,
+  );
 
   return {
     id: card.id,
     name: card.name,
     cost: card.cost,
+    displayCost: options.effectiveCost ?? card.cost,
+    costReduced: options.effectiveCost !== undefined && options.effectiveCost < card.cost,
     type: card.type,
     typeLabel: CARD_TYPE_LABEL[card.type],
     typeColor: CARD_TYPE_COLOR[card.type],
     rarity: card.rarity,
     rarityLabel: RARITY_LABEL[card.rarity],
     rarityColor: RARITY_COLOR[card.rarity],
-    metaLine: options.metaLine,
+    metaLine,
     effectLines,
     stats: card.type === "troop" || card.type === "device" ? unitStats(card as TroopCard | DeviceCard) : undefined,
     art: resolveCardArt(card.id, options.artManifest),
@@ -70,6 +80,23 @@ export function buildCardFaceModel(card: Card, options: BuildCardFaceModelOption
 
 function unitStats(card: TroopCard | DeviceCard): CardFaceStats {
   return { hp: card.hp, atk: card.atk, def: card.def };
+}
+
+function defaultMetaLine(card: Card): string | undefined {
+  if (card.type !== "field") return undefined;
+  switch (card.placement) {
+    case "self":
+      return "場地 · 己方槽位";
+    case "enemy":
+      return "場地 · 對方槽位";
+    case "either":
+      return "場地 · 可指定槽位";
+  }
+}
+
+function removeDefaultMetaLineDuplication(lines: readonly string[], card: Card): string[] {
+  if (card.type !== "field") return [...lines];
+  return lines.filter((line) => !line.trim().startsWith("放置："));
 }
 
 function normalizeEffectLines(lines: readonly string[], card: Card): string[] {

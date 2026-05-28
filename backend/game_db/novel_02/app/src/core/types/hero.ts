@@ -22,7 +22,7 @@ export interface GaugeFrame {
   description: string;
 }
 
-export type FullGaugeBuffRule =
+export type GaugeScalingBuffRule =
   | { kind: "troopAura"; atk?: number; def?: number }
   | { kind: "turnStartTempMana"; amount: number }
   | { kind: "cardCostReduction"; cardTypes: Array<"equipment" | "device">; amount: number; minCost: number }
@@ -34,11 +34,11 @@ export type FullGaugeBuffRule =
   | { kind: "troopDamagePct"; pct: number }
   | { kind: "turnStartTroopHeal"; amount: number };
 
-export interface FullGaugeBuffFrame {
+export interface GaugeScalingBuffFrame {
   id: string;
   name: string;
   description: string;
-  rules: FullGaugeBuffRule[];
+  rules: GaugeScalingBuffRule[];
 }
 
 export interface DeckLimits {
@@ -54,7 +54,7 @@ export interface RaceFrame {
   name: string;
   statMods: Stats;
   gauge: GaugeFrame;
-  fullGaugeBuff: FullGaugeBuffFrame;
+  gaugeScalingBuff: GaugeScalingBuffFrame;
   deckLimits: DeckLimits;
   manaCap?: number;
   description: string;

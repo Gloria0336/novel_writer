@@ -80,6 +80,38 @@ describe("card face presentation", () => {
     expect(text).not.toContain("種族量表");
   });
 
+  it("marks reduced effective cost separately from base cost", () => {
+    const model = buildCardFaceModel(getCard("T_c_13"), { effectiveCost: 3 });
+
+    expect(model.cost).toBe(5);
+    expect(model.displayCost).toBe(3);
+    expect(model.costReduced).toBe(true);
+  });
+
+  it("renders field cards with text that matches implemented slot effects", () => {
+    const manaNode = buildCardFaceModel(getCard("F_c_04"));
+    expect(manaNode.metaLine).toBe("場地 · 己方槽位");
+    expect(manaNode.effectLines.join(" ")).not.toContain("放置：");
+    expect(manaNode.effectLines.join(" ")).toContain("己方回合開始：+1 臨時魔力");
+    expect(manaNode.effectLines.join(" ")).toContain("己方法術傷害與治療 +10%");
+    expect(manaNode.effectLines.join(" ")).not.toContain("雙方");
+
+    const stormRidge = buildCardFaceModel(getCard("F_c_07"));
+    expect(stormRidge.metaLine).toBe("場地 · 對方槽位");
+    expect(stormRidge.effectLines.join(" ")).toContain("被籠罩方回合開始");
+    expect(stormRidge.effectLines.join(" ")).toContain("被籠罩方兵力不能被治療");
+
+    const rift = buildCardFaceModel(getCard("F_c_08"));
+    expect(rift.effectLines.join(" ")).toContain("需要場上已有次元裂縫");
+    expect(rift.effectLines.join(" ")).toContain("加強裂縫");
+    expect(rift.effectLines.slice(0, 3).join(" ")).toContain("己方法術與行動傷害 +50%");
+    expect(rift.effectLines.join(" ")).not.toContain("穩定度每回合 -5");
+
+    const inferno = buildCardFaceModel(getCard("F_s_01"));
+    expect(inferno.effectLines.join(" ")).toContain("該方全兵力受到 2 火焰場地傷害");
+    expect(inferno.effectLines.join(" ")).not.toContain("雙方兵力");
+  });
+
   it("does not expose raw scripted tags or payloads on any card face", () => {
     const rawScriptPattern = /腳本效果|[A-Z]{2,}_[A-Z0-9_]+|\{"[a-zA-Z0-9_]+":/;
 

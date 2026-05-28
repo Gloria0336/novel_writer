@@ -16,10 +16,13 @@ export const HERO_MOUNTAIN_HUNTER: HeroDefinition = {
     {
       id: "psv_silent_pursuit",
       name: "無聲追跡",
-      description: "山獵人自身 ATK +1、DEF +1。",
+      description: "山獵人自身 ATK +1、DEF +1。每回合開始，若敵方無兵力，抽 1 張牌；否則自身本回合 ATK +2。",
       cost: {},
       passive: true,
-      effects: [{ kind: "buff", target: { kind: "self" }, mod: { atk: 1, def: 1 }, duration: { kind: "permanent" } }],
+      effects: [
+        { kind: "buff", target: { kind: "self" }, mod: { atk: 1, def: 1 }, duration: { kind: "permanent" } },
+        { kind: "scripted", tag: "HUNTER_SILENT_TRACKING" },
+      ],
     },
   ],
   actives: [

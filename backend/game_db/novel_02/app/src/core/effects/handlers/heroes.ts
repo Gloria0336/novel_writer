@@ -1,13 +1,14 @@
-import { registerScripted } from "../registry";
+import { registerScripted, reapDeadTroops } from "../registry";
 import { drawCards } from "../../deck/draw";
+import { rngPick } from "../../deck/prng";
 import { aliveTroops, getSide, otherSide } from "../../selectors/battle";
-import { applyHeroDamage } from "../../combat/damage";
+import { applyHeroDamage, applyTroopDamage } from "../../combat/damage";
 import { createTroopInstance } from "../../turn/factories";
 import type { TroopInstance } from "../../types/battle";
 import type { TroopCard } from "../../types/card";
 import { addGauge } from "../../resource/gauge";
 import { addHeroAbilityFreeze } from "../heroAbilityFreeze";
-import { syncFullGaugeBuffs } from "../../resource/fullGaugeBuff";
+import { syncGaugeScalingBuffs } from "../../resource/gaugeScalingBuff";
 
 export function registerHeroScripted(): void {
   // 軍團統帥終極技：帝國總動員
@@ -49,7 +50,7 @@ export function registerHeroScripted(): void {
     const damage = (side.hero.atk + side.hero.gaugeValue * 5) * 2;
     applyHeroDamage(enemyHero, damage, { ignoreDef: false });
     side.hero.gaugeValue = 0;
-    syncFullGaugeBuffs(ec.state, ec.ctx);
+    syncGaugeScalingBuffs(ec.state, ec.ctx);
     side.hero.hp = Math.min(side.hero.maxHp, side.hero.hp + Math.floor(side.hero.maxHp * 0.3));
     // 兵力進入狂暴 2 回合（ATK ×1.5，DEF 歸零）
     for (const t of side.troopSlots) {
@@ -173,6 +174,124 @@ export function registerHeroScripted(): void {
       text: "百年戰場記憶：芙爾卓獲得 3 護甲",
       payload: { armorGained: 3 },
     });
+  });
+
+  // 露露被動「最低損傷命令」：每回合首次我方兵力被消滅時，自身獲得 4 護甲。
+  // 由 reapHandleDeath 在露露為當前英雄且同方兵力陣亡時觸發。
+  registerScripted("LULU_MIN_CASUALTY_SHIELD", (_p, ec) => {
+    const side = getSide(ec.state, ec.sourceSide);
+    if (side.hero.defId !== "lulu") return;
+    if (side.hero.flags.luluCasualtyShieldTurn === ec.state.turn) return;
+    side.hero.flags.luluCasualtyShieldTurn = ec.state.turn;
+    side.hero.armor += 4;
+    ec.state.log.push({
+      turn: ec.state.turn,
+      side: ec.sourceSide,
+      kind: "LULU_MIN_CASUALTY_SHIELD",
+      text: "最低損傷命令：友軍陣亡，露露獲得 4 護甲",
+      payload: { armorGained: 4 },
+    });
+  });
+
+  // 山獵人被動「無聲追跡」：回合開始，敵方無兵力→抽1牌；有兵力→本回合 ATK +2。
+  // 由 startTurnFor 在山獵人為當前英雄時觸發。
+  registerScripted("HUNTER_SILENT_TRACKING", (_p, ec) => {
+    const side = getSide(ec.state, ec.sourceSide);
+    if (side.hero.defId !== "mountain-hunter") return;
+    if (side.hero.flags.hunterTrackingTurn === ec.state.turn) return;
+    side.hero.flags.hunterTrackingTurn = ec.state.turn;
+    const enemy = getSide(ec.state, otherSide(ec.sourceSide));
+    if (aliveTroops(enemy).length === 0) {
+      const draw = drawCards(side, 1, ec.state.rngState);
+      ec.state.rngState = draw.newRngState;
+      ec.state.log.push({
+        turn: ec.state.turn,
+        side: ec.sourceSide,
+        kind: "HUNTER_SILENT_TRACKING",
+        text: `無聲追跡：視野清晰，抽 ${draw.drawn} 張牌`,
+        payload: { mode: "draw", drawn: draw.drawn },
+      });
+    } else {
+      side.hero.atk += 2;
+      side.hero.buffs.push({ id: `hunter_track_${ec.state.nextInstanceId++}`, source: "HUNTER_SILENT_TRACKING", mod: { atk: 2 }, remainingTurns: 1 });
+      ec.state.log.push({
+        turn: ec.state.turn,
+        side: ec.sourceSide,
+        kind: "HUNTER_SILENT_TRACKING",
+        text: "無聲追跡：鎖定目標，ATK +2",
+        payload: { mode: "atk", bonus: 2 },
+      });
+    }
+  });
+
+  // 芮卡被動「沙漠耐戰」：回合開始，HP≤50%→3護甲；同時血怒≥5→額外回復3HP。
+  // 由 startTurnFor 在芮卡為當前英雄時觸發。
+  registerScripted("REKA_DESERT_SURGE", (_p, ec) => {
+    const side = getSide(ec.state, ec.sourceSide);
+    if (side.hero.defId !== "reka") return;
+    if (side.hero.flags.rekaDesertSurgeTurn === ec.state.turn) return;
+    if (side.hero.hp / side.hero.maxHp > 0.5) return;
+    side.hero.flags.rekaDesertSurgeTurn = ec.state.turn;
+    side.hero.armor += 3;
+    const healed = side.hero.gaugeValue >= 5 ? 3 : 0;
+    if (healed > 0) side.hero.hp = Math.min(side.hero.maxHp, side.hero.hp + healed);
+    const text = healed > 0
+      ? "沙漠耐戰：HP ≤ 50%，獲得 3 護甲，血怒 ≥ 5，回復 3 HP"
+      : "沙漠耐戰：HP ≤ 50%，獲得 3 護甲";
+    ec.state.log.push({
+      turn: ec.state.turn,
+      side: ec.sourceSide,
+      kind: "REKA_DESERT_SURGE",
+      text,
+      payload: { armorGained: 3, healed },
+    });
+  });
+
+  // 艾爾諾被動「宮廷榮譽法師」：回合開始，若共鳴≥3，抽1張牌。
+  // 由 startTurnFor 在共鳴重置前觸發，讀取上一回合積累的共鳴值。
+  registerScripted("ELNO_COURT_MANA_BONUS", (_p, ec) => {
+    const side = getSide(ec.state, ec.sourceSide);
+    if (side.hero.defId !== "elno-honorary-mage") return;
+    if (side.hero.flags.elnoCourtBonusTurn === ec.state.turn) return;
+    if (side.hero.gaugeValue < 3) return;
+    side.hero.flags.elnoCourtBonusTurn = ec.state.turn;
+    const draw = drawCards(side, 1, ec.state.rngState);
+    ec.state.rngState = draw.newRngState;
+    ec.state.log.push({
+      turn: ec.state.turn,
+      side: ec.sourceSide,
+      kind: "ELNO_COURT_MANA_BONUS",
+      text: `宮廷榮譽法師：共鳴 ≥ 3，抽 ${draw.drawn} 張牌`,
+      payload: { drawn: draw.drawn, resonance: side.hero.gaugeValue },
+    });
+  });
+
+  // 艾拉被動「風切預判」：回合開始，敵方兵力≥2→對敵方隨機兵力各自獨立造成2次ATK×0.5傷害。
+  // 由 startTurnFor 在艾拉為當前英雄時觸發。
+  registerScripted("AELLA_WINDSHEAR_READ", (_p, ec) => {
+    const side = getSide(ec.state, ec.sourceSide);
+    if (side.hero.defId !== "aella-flair") return;
+    if (side.hero.flags.aellaWindshearTurn === ec.state.turn) return;
+    const enemy = getSide(ec.state, otherSide(ec.sourceSide));
+    if (aliveTroops(enemy).length < 2) return;
+    side.hero.flags.aellaWindshearTurn = ec.state.turn;
+    const baseAmount = Math.max(1, Math.floor(side.hero.atk * 0.5));
+    for (let i = 0; i < 2; i++) {
+      const targets = aliveTroops(enemy);
+      if (targets.length === 0) break;
+      const pick = rngPick(ec.state.rngState, targets);
+      ec.state.rngState = pick.state;
+      const target = pick.value;
+      const result = applyTroopDamage(target, baseAmount);
+      ec.state.log.push({
+        turn: ec.state.turn,
+        side: ec.sourceSide,
+        kind: "AELLA_WINDSHEAR_READ",
+        text: `風切預判：${target.cardId} 受到 ${result.finalAmount} 傷害（第 ${i + 1} 擊）`,
+        payload: { targetInstanceId: target.instanceId, amount: result.finalAmount, hit: i + 1 },
+      });
+    }
+    reapDeadTroops(ec.state, ec.ctx, ec.sourceSide);
   });
 
   // 曇終極技：敵方下一回合不恢復魔力，且不能打出/生成兵力。

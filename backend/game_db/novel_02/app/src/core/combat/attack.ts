@@ -2,7 +2,7 @@ import type { BattleState, TroopInstance, LogEntry } from "../types/battle";
 import type { Side } from "../types/effect";
 import type { BattleContext } from "../types/context";
 import { aliveTroops, findTroopBySide, getSide, hasGuardTroop, heroHasStatus, otherSide, sideHasStatusTarget, troopHasStatus } from "../selectors/battle";
-import { getFullGaugeHeroDamageTakenMultiplier, getFullGaugeTroopDamageMultiplier } from "../resource/fullGaugeBuff";
+import { getGaugeScalingHeroDamageTakenMultiplier, getGaugeScalingTroopDamageMultiplier } from "../resource/gaugeScalingBuff";
 import { getTurnFlags } from "../turn/turnFlags";
 import { applyHeroDamageWithPassives, applyTroopDamageWithPassives } from "../effects/battlePassives";
 import { applyLifesteal } from "./damage";
@@ -26,9 +26,9 @@ export function troopVsTroop(state: BattleState, ctx: BattleContext, attacker: T
   const aPierce = attacker.keywords.has("pierce");
   const dPierce = defender.keywords.has("pierce");
 
-  const attackerDamage = Math.round(attacker.atk * consumeFirstAttackMultiplier(state, attacker) * getFullGaugeTroopDamageMultiplier(state, ctx, attackerSide));
+  const attackerDamage = Math.round(attacker.atk * consumeFirstAttackMultiplier(state, attacker) * getGaugeScalingTroopDamageMultiplier(state, ctx, attackerSide));
   const defenderCountered = consumeTroopCounterattack(state, defender);
-  const defenderDamage = defenderCountered ? Math.round(defender.atk * getFullGaugeTroopDamageMultiplier(state, ctx, defenderSide)) : 0;
+  const defenderDamage = defenderCountered ? Math.round(defender.atk * getGaugeScalingTroopDamageMultiplier(state, ctx, defenderSide)) : 0;
   const dmgToDefender = applyTroopDamageWithPassives(state, ctx, defenderSide, defender, attackerDamage, { ignoreDef: aPierce, sourceKind: "troop" });
   const dmgToAttacker = defenderCountered
     ? applyTroopDamageWithPassives(state, ctx, attackerSide, attacker, defenderDamage, { ignoreDef: dPierce, sourceKind: "troop" })
@@ -76,10 +76,10 @@ export function troopVsTroop(state: BattleState, ctx: BattleContext, attacker: T
 export function troopVsHero(state: BattleState, ctx: BattleContext, attacker: TroopInstance, attackingSide: Side): TroopAttackResult {
   const log: Pick<LogEntry, "kind" | "text" | "payload">[] = [];
   const defendingSide = otherSide(attackingSide);
-  const amount = Math.round(attacker.atk * consumeFirstAttackMultiplier(state, attacker) * getFullGaugeTroopDamageMultiplier(state, ctx, attackingSide));
+  const amount = Math.round(attacker.atk * consumeFirstAttackMultiplier(state, attacker) * getGaugeScalingTroopDamageMultiplier(state, ctx, attackingSide));
   const dmg = applyHeroDamageWithPassives(state, ctx, attackingSide, defendingSide, amount, {
     ignoreDef: attacker.keywords.has("pierce"),
-    finalMultiplier: getFullGaugeHeroDamageTakenMultiplier(state, ctx, defendingSide),
+    finalMultiplier: getGaugeScalingHeroDamageTakenMultiplier(state, ctx, defendingSide),
     sourceKind: "troop",
   });
   if (attacker.keywords.has("lifesteal")) applyLifesteal(state, attackingSide, dmg.finalAmount, 100);

@@ -13,7 +13,7 @@ import type { TroopInstance } from "../../types/battle";
 import type { StatModifier } from "../../types/effect";
 import type { ActiveBuff, HeroInstance } from "../../types/hero";
 import type { TroopCard } from "../../types/card";
-import { syncFullGaugeBuffs } from "../../resource/fullGaugeBuff";
+import { syncGaugeScalingBuffs } from "../../resource/gaugeScalingBuff";
 import { getTurnFlags } from "../../turn/turnFlags";
 
 export { getTurnFlags, resetTurnFlags } from "../../turn/turnFlags";
@@ -389,7 +389,7 @@ export function registerCoreScripted(): void {
     const enemyHero = getSide(ec.state, otherSide(ec.sourceSide)).hero;
     applyHeroDamage(enemyHero, amount, { ignoreDef: false });
     hero.gaugeValue = 0;
-    syncFullGaugeBuffs(ec.state, ec.ctx);
+    syncGaugeScalingBuffs(ec.state, ec.ctx);
     hero.hp = Math.min(hero.maxHp, hero.hp + Math.round(hero.maxHp * 0.3));
     ec.state.log.push({ turn: ec.state.turn, side: ec.sourceSide, kind: "PRIMAL", text: `祖獸覺醒：對敵方英雄造 ${amount} 傷害，HP +30%。`, payload: { amount } });
   });

@@ -99,7 +99,9 @@ export function CardFace({
           <strong className={styles.name}>{model.name}</strong>
           {model.metaLine && <span className={styles.meta}>{model.metaLine}</span>}
         </div>
-        <span className={styles.cost}>{model.cost}</span>
+        <span className={styles.cost} data-reduced={model.costReduced ? "true" : undefined}>
+          {model.displayCost}
+        </span>
       </header>
 
       <div className={styles.artBox}>

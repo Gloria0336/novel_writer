@@ -16,10 +16,13 @@ export const HERO_AELLA_FLAIR: HeroDefinition = {
     {
       id: "psv_windshear_precognition",
       name: "風切預判",
-      description: "艾拉自身永久 ATK +2、DEF +1。半秒前預判風切，比敵人早一步調整重心。",
+      description: "艾拉自身永久 ATK +2、DEF +1。每回合開始，若敵方兵力 ≥ 2，對敵方隨機造成 2 次 ATK×0.5 傷害（各自獨立選目標）。",
       cost: {},
       passive: true,
-      effects: [{ kind: "buff", target: { kind: "self" }, mod: { atk: 2, def: 1 }, duration: { kind: "permanent" } }],
+      effects: [
+        { kind: "buff", target: { kind: "self" }, mod: { atk: 2, def: 1 }, duration: { kind: "permanent" } },
+        { kind: "scripted", tag: "AELLA_WINDSHEAR_READ" },
+      ],
     },
   ],
   actives: [

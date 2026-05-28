@@ -66,7 +66,7 @@ describe("Stage 3 — 鍛造師 FORGE_ACTION", () => {
     s.player.manaCurrent = 5;
     const gaugeBefore = s.player.hero.gaugeValue;
     applyAction(s, { type: "FORGE_ACTION", mode: "device" }, ctx);
-    // +15 來自 onForge；可能因為 syncFullGaugeBuffs 而觸發其他變化，但 gaugeValue 一定有增 15
+    // +15 來自 onForge；可能因為 syncGaugeScalingBuffs 而觸發其他變化，但 gaugeValue 一定有增 15
     expect(s.player.hero.gaugeValue).toBe(gaugeBefore + 15);
   });
 });

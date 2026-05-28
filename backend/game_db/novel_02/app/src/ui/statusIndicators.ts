@@ -176,7 +176,7 @@ function statTitle(parts: Array<{ key: keyof StatModifier; label: string; value:
 function sourceLabel(source: string, resolveSourceName?: SourceNameResolver): string {
   const resolved = resolveSourceName?.(source);
   if (resolved) return resolved;
-  if (source.startsWith("FULL_GAUGE_BUFF")) return "滿量表加成";
+  if (source.startsWith("GAUGE_SCALING_BUFF")) return "量表加成";
   return SYSTEM_SOURCE_LABELS[source] ?? source;
 }
 

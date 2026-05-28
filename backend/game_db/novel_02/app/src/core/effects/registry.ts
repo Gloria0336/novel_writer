@@ -20,12 +20,12 @@ import { applyOmenFieldValueModifier, isFieldProtected } from "./omenHooks";
 import { createTroopInstance } from "../turn/factories";
 import { addHeroAbilityFreeze, HERO_ABILITY_FREEZE_LABEL } from "./heroAbilityFreeze";
 import {
-  getFullGaugeActionDamageMultiplier,
-  getFullGaugeHeroDamageTakenMultiplier,
-  getFullGaugeSpellEffectMultiplier,
-  maybeHealHeroFromFullGaugeTroopKill,
-  syncFullGaugeBuffs,
-} from "../resource/fullGaugeBuff";
+  getGaugeScalingActionDamageMultiplier,
+  getGaugeScalingHeroDamageTakenMultiplier,
+  getGaugeScalingSpellEffectMultiplier,
+  maybeHealHeroFromGaugeScalingTroopKill,
+  syncGaugeScalingBuffs,
+} from "../resource/gaugeScalingBuff";
 import { triggerReactionsBySide } from "./reactions";
 import { getTurnFlags } from "../turn/turnFlags";
 import { applyHeroDamageWithPassives, applyTroopDamageWithPassives, type PassiveDamageSource } from "./battlePassives";
@@ -47,7 +47,7 @@ export function executeEffects(effects: readonly Effect[], ec: EffectContext): v
   for (const e of effects) {
     if (ec.state.result !== "ongoing") return;
     executeEffect(e, ec);
-    syncFullGaugeBuffs(ec.state, ec.ctx);
+    syncGaugeScalingBuffs(ec.state, ec.ctx);
     syncDynamicPassiveAuras(ec.state, ec.ctx);
   }
 }
@@ -66,7 +66,7 @@ function applyDamageMultipliers(amount: number, ec: EffectContext): number {
   }
 
   if (sourceKind === "spell") {
-    result *= getFullGaugeSpellEffectMultiplier(state, ctx, sourceSide);
+    result *= getGaugeScalingSpellEffectMultiplier(state, ctx, sourceSide);
   }
 
   if (sourceKind === "spell" && getTurnFlags(state).currentSpellDouble === true) {
@@ -74,7 +74,7 @@ function applyDamageMultipliers(amount: number, ec: EffectContext): number {
   }
 
   if (sourceKind === "action") {
-    result *= getFullGaugeActionDamageMultiplier(state, ctx, sourceSide);
+    result *= getGaugeScalingActionDamageMultiplier(state, ctx, sourceSide);
   }
 
   if (sourceKind === "action" && sideHasEquipmentPassive(ctx, side, "OATH_BLADE")) {
@@ -113,7 +113,7 @@ function applyHealMultipliers(amount: number, ec: EffectContext): number {
   const cls = ctx.getClass(heroDef.classId);
   let result = amount;
   if (cls.keyword === "blessing") result = Math.round(result * 1.5);
-  if (ec.sourceKind === "spell") result *= getFullGaugeSpellEffectMultiplier(state, ctx, sourceSide);
+  if (ec.sourceKind === "spell") result *= getGaugeScalingSpellEffectMultiplier(state, ctx, sourceSide);
   if (ec.sourceKind === "spell" && getTurnFlags(state).currentSpellDouble === true) result *= 2;
   if (ec.sourceKind === "spell" && getFieldOf(state, sourceSide)?.cardId === "F_c_04") result *= 1.1;
   if (ec.sourceKind === "spell" && getFieldOf(state, sourceSide)?.cardId === "F_e_01") result *= 1.25;
@@ -138,7 +138,7 @@ function executeEffect(e: Effect, ec: EffectContext): void {
           const prevHp = tg.hero.hp;
           const r = applyHeroDamageWithPassives(state, ctx, sourceSide, tg.side, amount, {
             ignoreDef: e.ignoreDef,
-            finalMultiplier: getFullGaugeHeroDamageTakenMultiplier(state, ctx, tg.side),
+            finalMultiplier: getGaugeScalingHeroDamageTakenMultiplier(state, ctx, tg.side),
             sourceKind: toPassiveDamageSource(ec.sourceKind),
           });
           totalDealt += r.finalAmount;
@@ -147,7 +147,7 @@ function executeEffect(e: Effect, ec: EffectContext): void {
           const tgRace = ctx.getRace(tgHeroDef.raceId);
           if (tgHeroDef.gauge.onHeroDamaged) {
             gaugeOnHeroDamaged(tg.hero, tgRace.gauge.max, tgHeroDef.gauge.onHeroDamaged, prevHp, tg.hero.hp);
-            syncFullGaugeBuffs(state, ctx);
+            syncGaugeScalingBuffs(state, ctx);
           }
           // BossGauge：Boss 自身受傷（onHeroDamaged / onHeroDamagedPct，炎魔/獸王）
           if (tg.side === "enemy" && r.finalAmount > 0) {
@@ -249,7 +249,7 @@ function executeEffect(e: Effect, ec: EffectContext): void {
         const heroDef = ctx.getHero(target.hero.defId);
         const race = ctx.getRace(heroDef.raceId);
         if (heroDef.gauge.onTroopEnter) addGauge(target.hero, race.gauge.max, heroDef.gauge.onTroopEnter);
-        syncFullGaugeBuffs(state, ctx);
+        syncGaugeScalingBuffs(state, ctx);
         state.log.push({ turn: state.turn, side: summonSide, kind: "SUMMON", text: `召喚 ${card.name}`, payload: { cardId: card.id, instanceId: inst.instanceId } });
         // BossGauge：敵方召喚（含 spell summon 與其他 effect summon）
         if (summonSide === "enemy") notifyBossGauge(state, ctx, { kind: "onSummon", cardId: card.id });
@@ -263,7 +263,7 @@ function executeEffect(e: Effect, ec: EffectContext): void {
       const heroDef = ctx.getHero(ts.hero.defId);
       const race = ctx.getRace(heroDef.raceId);
       addGauge(ts.hero, race.gauge.max, e.delta);
-      syncFullGaugeBuffs(state, ctx);
+      syncGaugeScalingBuffs(state, ctx);
       break;
     }
     case "morale": {
@@ -276,10 +276,13 @@ function executeEffect(e: Effect, ec: EffectContext): void {
       break;
     }
     case "armor": {
-      const targetSide = e.target ? sourceSide : sourceSide;
-      const hero = getSide(state, targetSide).hero;
-      hero.armor = Math.max(0, hero.armor + e.amount);
-      state.log.push({ turn: state.turn, side: sourceSide, kind: "ARMOR", text: `英雄獲得 ${e.amount} 護甲`, payload: { amount: e.amount } });
+      const targets = resolveTargets(state, e.target ?? { kind: "self" }, sourceSide);
+      for (const tg of targets) {
+        if (tg.kind === "hero" && tg.hero) {
+          tg.hero.armor = Math.max(0, tg.hero.armor + e.amount);
+          state.log.push({ turn: state.turn, side: tg.side, kind: "ARMOR", text: `英雄獲得 ${e.amount} 護甲`, payload: { amount: e.amount } });
+        }
+      }
       break;
     }
     case "buff": {
@@ -530,7 +533,7 @@ function reapHandleDeath(state: BattleState, ctx: BattleContext, side: Side, sou
     const killerSide = getSide(state, sourceSide);
     addMorale(killerSide.hero, killReward);
     if (sideHasEquipmentPassive(ctx, killerSide, "MANA_ON_KILL")) addTempMana(killerSide, 1);
-    maybeHealHeroFromFullGaugeTroopKill(state, ctx, sourceSide);
+    maybeHealHeroFromGaugeScalingTroopKill(state, ctx, sourceSide);
     // BossGauge：Boss 擊殺玩家方兵力（獸王血祭暴怒）
     if (side === "player" && sourceSide === "enemy") {
       notifyBossGauge(state, ctx, { kind: "onPlayerTroopKilled" });
@@ -543,13 +546,24 @@ function reapHandleDeath(state: BattleState, ctx: BattleContext, side: Side, sou
   const heroDef = ctx.getHero(s.hero.defId);
   const race = ctx.getRace(heroDef.raceId);
   if (heroDef.gauge.onTroopDestroyedSelf) addGauge(s.hero, race.gauge.max, heroDef.gauge.onTroopDestroyedSelf);
-  syncFullGaugeBuffs(state, ctx);
+  syncGaugeScalingBuffs(state, ctx);
   state.log.push({ turn: state.turn, side: sourceSide, kind: "TROOP_DESTROYED", text: `${card.name} 被摧毀`, payload: { instanceId: t.instanceId, cardId: t.cardId, side, fromRift: t.fromRift === true } });
   // 腐化神殿：每個兵力死亡累積獻祭計數（不分陣營）
   if (state.enemy.hero.defId === "corrupted_temple") {
     const prev = (state.enemy.hero.flags.sacrificeCount as number | undefined) ?? 0;
     state.enemy.hero.flags.sacrificeCount = prev + 1;
   }
+  // 露露被動「最低損傷命令」：每回合首次同方兵力被消滅時（非幻影/構裝），自身獲得 4 護甲。
+  if (!suppressDestroyEffects && s.hero.defId === "lulu") {
+    executeEffects([{ kind: "scripted", tag: "LULU_MIN_CASUALTY_SHIELD" }], {
+      state,
+      ctx,
+      sourceSide: side,
+      sourceKind: "passive",
+      sourceCardId: "LULU_MIN_CASUALTY_SHIELD",
+    });
+  }
+
   // 自動反應：陣亡兵力的同陣營器具對「我方兵力陣亡」反應
   triggerReactionsBySide(state, ctx, "allyTroopDestroyed", side);
 }

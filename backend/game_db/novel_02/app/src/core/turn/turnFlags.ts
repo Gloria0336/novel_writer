@@ -6,6 +6,7 @@ export interface TurnFlagsState {
   actionCardsPlayedThisTurn: number;
   ignoreGuardThisTurn?: boolean;
   deployDiscount?: number;
+  nextDeployDiscount?: number;
   nextSpellDouble?: boolean;
   currentSpellDouble?: boolean;
   nextEquipDiscount?: number;
@@ -37,4 +38,14 @@ export function getTurnFlags(state: object): TurnFlagsState {
 
 export function resetTurnFlags(state: object): void {
   TURN_FLAGS.set(state, createTurnFlags());
+}
+
+export function cloneTurnFlags(from: object, to: object): void {
+  const flags = TURN_FLAGS.get(from);
+  if (!flags) return;
+  TURN_FLAGS.set(to, {
+    ...flags,
+    firstAttackDoubleInstanceIds: new Set(flags.firstAttackDoubleInstanceIds),
+    troopCounteredThisTurnInstanceIds: new Set(flags.troopCounteredThisTurnInstanceIds),
+  });
 }

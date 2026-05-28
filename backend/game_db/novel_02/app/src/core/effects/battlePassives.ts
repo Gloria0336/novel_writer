@@ -5,7 +5,7 @@ import type { Side } from "../types/effect";
 import { applyHeroDamage, applyTroopDamage } from "../combat/damage";
 import { aliveTroops, getSide } from "../selectors/battle";
 import { spendGauge } from "../resource/gauge";
-import { syncFullGaugeBuffs } from "../resource/fullGaugeBuff";
+import { syncGaugeScalingBuffs } from "../resource/gaugeScalingBuff";
 import { sideHasEquipmentPassive, troopHasPassiveTag } from "./passiveTags";
 
 export type PassiveDamageSource = "troop" | "spell" | "action" | "equipment" | "field" | "skill" | "ultimate" | "passive";
@@ -63,7 +63,7 @@ export function applyHeroDamageWithPassives(
 
   if (defender.hero.hp <= 0 && sideHasEquipmentPassive(ctx, defender, "MOON_RELIC") && spendGauge(defender.hero, 50)) {
     defender.hero.hp = 1;
-    syncFullGaugeBuffs(state, ctx);
+    syncGaugeScalingBuffs(state, ctx);
     result = { ...result, killed: false };
   }
 

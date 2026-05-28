@@ -89,9 +89,9 @@ describe("魔導器具系統 — Stage 1~6 機制驗證", () => {
     for (let i = 0; i < 6; i++) {
       startTurnFor(s, "player", ctx);
     }
-    // 5 層封頂：atk += 5, def += 5
+    // 5 層封頂：atk += 5, def += 5；艾德圖林回合開始累積爐火，量表加成另給器具 DEF +1。
     expect(inst.atk).toBe(atk0 + 5);
-    expect(inst.def).toBe(def0 + 5);
+    expect(inst.def).toBe(def0 + 6);
     expect(inst.upgradeLevel).toBe(5);
   });
 

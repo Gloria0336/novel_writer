@@ -8,7 +8,7 @@ import { getCard } from "../../data/cards";
 import { executeEffects } from "../effects/registry";
 import { startTurnFor } from "../turn/phases";
 import { troopVsTroop } from "../combat/attack";
-import { getEffectiveCardCost, syncFullGaugeBuffs } from "./fullGaugeBuff";
+import { getEffectiveCardCost, syncGaugeScalingBuffs } from "./gaugeScalingBuff";
 
 function hero(id: string, raceId: RaceId): HeroDefinition {
   return {
@@ -104,19 +104,19 @@ function mkState(playerHeroId = "humanHero", enemyHeroId = "humanHero"): BattleS
   };
 }
 
-describe("滿值種族 Buff", () => {
-  it("人類滿軍令給所有兵力 +1/+1，量表下降後移除", () => {
+describe("種族量表加成", () => {
+  it("人類軍令依目前量表值給所有兵力加成，歸零後移除", () => {
     const state = mkState("humanHero");
     const troop = mkTroop("T_h_01", 2, 2);
     state.player.troopSlots[0] = troop;
     state.player.hero.gaugeValue = 100;
 
-    syncFullGaugeBuffs(state, ctx);
+    syncGaugeScalingBuffs(state, ctx);
     expect(troop.atk).toBe(3);
     expect(troop.def).toBe(3);
 
-    state.player.hero.gaugeValue = 90;
-    syncFullGaugeBuffs(state, ctx);
+    state.player.hero.gaugeValue = 0;
+    syncGaugeScalingBuffs(state, ctx);
     expect(troop.atk).toBe(2);
     expect(troop.def).toBe(2);
   });
@@ -140,7 +140,7 @@ describe("滿值種族 Buff", () => {
     expect(getEffectiveCardCost(state, ctx, "player", getCard("S_dw_01"))).toBe(1);
   });
 
-  it("妖族人形滿靈蘊只加法術效果，妖形加行動傷害與 DEF", () => {
+  it("妖族人形依靈蘊加法術效果，妖形依靈蘊加行動傷害與 DEF", () => {
     const state = mkState("feyHero");
     state.player.hero.gaugeValue = 100;
     state.player.hero.flags.feyForm = "human";
@@ -155,7 +155,7 @@ describe("滿值種族 Buff", () => {
 
     state.enemy.hero.hp = 80;
     state.player.hero.flags.feyForm = "fey";
-    syncFullGaugeBuffs(state, ctx);
+    syncGaugeScalingBuffs(state, ctx);
     expect(state.player.hero.def).toBe(8);
 
     executeEffects([{ kind: "damage", target: { kind: "enemyHero" }, amount: { kind: "const", value: 10 } }], {
@@ -165,6 +165,25 @@ describe("滿值種族 Buff", () => {
       sourceKind: "action",
     });
     expect(state.enemy.hero.hp).toBe(69);
+  });
+
+  it("妖族靈蘊突破 100 後繼續提高量表加成，DEF 使用 Math.round", () => {
+    const state = mkState("feyHero");
+    state.player.hero.gaugeValue = 150;
+    state.player.hero.flags.essenceMaxBonus = 50;
+    state.player.hero.flags.feyForm = "human";
+
+    executeEffects([{ kind: "damage", target: { kind: "enemyHero" }, amount: { kind: "const", value: 10 } }], {
+      state,
+      ctx,
+      sourceSide: "player",
+      sourceKind: "spell",
+    });
+    expect(state.enemy.hero.hp).toBe(67);
+
+    state.player.hero.flags.feyForm = "fey";
+    syncGaugeScalingBuffs(state, ctx);
+    expect(state.player.hero.def).toBe(10);
   });
 
   it("惡魔滿黑暗蝕讓兵力傷害 +10%，且回合開始回復 3 HP", () => {
@@ -183,3 +202,4 @@ describe("滿值種族 Buff", () => {
     expect(attacker.hp).toBe(13);
   });
 });
+

@@ -8,7 +8,7 @@ import { canActionTarget, canTroopAttack } from "../combat/attack";
 import type { CandidateAction, EnemyProfile } from "./types";
 import type { Effect, TargetSelector } from "../types/effect";
 import { isHeroAbilityFrozen } from "../effects/heroAbilityFreeze";
-import { getEffectiveCardCost } from "../resource/fullGaugeBuff";
+import { getEffectiveCardCost } from "../resource/gaugeScalingBuff";
 
 export function enumerateActions(state: BattleState, ctx: BattleContext, profile: EnemyProfile): CandidateAction[] {
   const out: CandidateAction[] = [];

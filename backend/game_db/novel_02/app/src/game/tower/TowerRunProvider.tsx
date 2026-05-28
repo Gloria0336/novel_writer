@@ -40,7 +40,16 @@ function makeFreshHero(heroId: string, ctx: ReturnType<typeof createBattleContex
     playerDeckIds: getStarterDeckIds(heroId),
     enemyId: "putrefactive_lair",
   });
-  return tmp.player.hero;
+  // tmp 已跑過第一回合 startTurnFor，會帶有量表等戰場狀態；snapshot 需為乾淨的初始英雄。
+  const h = tmp.player.hero;
+  return {
+    ...h,
+    morale: 0,
+    gaugeValue: 0,
+    armor: 0,
+    buffs: [],
+    flags: { ...h.flags, ultimateUsed: false, immortalUsed: false },
+  };
 }
 
 export function TowerRunProvider({ children }: { children: ReactNode }): JSX.Element {

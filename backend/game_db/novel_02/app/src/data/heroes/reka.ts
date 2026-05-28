@@ -16,10 +16,13 @@ export const HERO_REKA: HeroDefinition = {
     {
       id: "psv_desert_endurance",
       name: "沙漠耐戰",
-      description: "芮卡自身 HP +5、ATK +1。",
+      description: "芮卡自身 HP +5、ATK +1。每回合開始，若 HP ≤ 50%，獲得 3 護甲；若同時血怒 ≥ 5，額外回復 3 HP。",
       cost: {},
       passive: true,
-      effects: [{ kind: "buff", target: { kind: "self" }, mod: { hp: 5, atk: 1 }, duration: { kind: "permanent" } }],
+      effects: [
+        { kind: "buff", target: { kind: "self" }, mod: { hp: 5, atk: 1 }, duration: { kind: "permanent" } },
+        { kind: "scripted", tag: "REKA_DESERT_SURGE" },
+      ],
     },
   ],
   actives: [

@@ -19,7 +19,7 @@ import { createTroopInstance } from "./factories";
 import { addTempMana } from "../resource/mana";
 import { findTroopBySide } from "../selectors/battle";
 import { isHeroAbilityFrozen } from "../effects/heroAbilityFreeze";
-import { getEffectiveCardCost, syncFullGaugeBuffs } from "../resource/fullGaugeBuff";
+import { getEffectiveCardCost, syncGaugeScalingBuffs } from "../resource/gaugeScalingBuff";
 import { spendGauge } from "../resource/gauge";
 import { getTurnFlags } from "./turnFlags";
 import { effectHasScriptedTag, getFirstEquipmentPassivePayload, sideHasEquipmentPassive, troopHasPassiveTag } from "../effects/passiveTags";
@@ -56,7 +56,7 @@ export function applyAction(state: BattleState, action: GameAction, ctx: BattleC
     case "END_TURN": result = endTurn(state, sideKey, ctx); break;
   }
   if (result.ok) {
-    syncFullGaugeBuffs(state, ctx);
+    syncGaugeScalingBuffs(state, ctx);
     syncDynamicPassiveAuras(state, ctx);
   }
   return result;
@@ -91,7 +91,7 @@ function playTroop(state: BattleState, sideKey: Side, side: BattleState["player"
   if (bloodSacrifice && !sacrifice) return { ok: false, reason: "no sacrifice target" };
   if (reserveFormation && !sacrifice) return { ok: false, reason: "no reserve formation target" };
   discardFromHand(side, handIndex);
-  getTurnFlags(state).nextEquipDiscount = undefined;
+  getTurnFlags(state).nextDeployDiscount = undefined;
 
   const inst = createTroopInstance(state, lookup.card);
   if (bloodSacrifice && sacrifice) applyBloodSacrificeBonus(state, inst, lookup.card, sacrifice);
@@ -108,7 +108,7 @@ function playTroop(state: BattleState, sideKey: Side, side: BattleState["player"
     addGauge(side.hero, race.gauge.max, heroDef.gauge.onDevicePlay);
   }
   applyDeployEquipmentPassives(ctx, side);
-  syncFullGaugeBuffs(state, ctx);
+  syncGaugeScalingBuffs(state, ctx);
   syncDynamicPassiveAuras(state, ctx);
 
   // 入場曲
@@ -201,6 +201,7 @@ function playTroopRift(state: BattleState, sideKey: Side, side: BattleState["pla
     state.log.push({ turn: state.turn, side: sideKey, kind: "PLAY_TROOP_RIFT_FAIL", text: "佔據裂縫失敗" });
     return { ok: false, reason: "occupy failed" };
   }
+  getTurnFlags(state).nextDeployDiscount = undefined;
 
   state.log.push({ turn: state.turn, side: sideKey, kind: "PLAY_TROOP_RIFT", text: `部署 ${lookup.card.name} 到次元裂縫`, payload: { cardId: lookup.card.id, instanceId: inst.instanceId } });
 
@@ -209,7 +210,7 @@ function playTroopRift(state: BattleState, sideKey: Side, side: BattleState["pla
   const race = ctx.getRace(heroDef.raceId);
   if (heroDef.gauge.onTroopEnter) addGauge(side.hero, race.gauge.max, heroDef.gauge.onTroopEnter);
   applyDeployEquipmentPassives(ctx, side);
-  syncFullGaugeBuffs(state, ctx);
+  syncGaugeScalingBuffs(state, ctx);
   syncDynamicPassiveAuras(state, ctx);
 
   // 入場曲
@@ -255,7 +256,7 @@ function playSpell(state: BattleState, sideKey: Side, side: BattleState["player"
   if (race.gauge.id === "resonance" && side.hero.gaugeValue >= 4) {
     cost = 0;
     side.hero.gaugeValue = 0;
-    syncFullGaugeBuffs(state, ctx);
+    syncGaugeScalingBuffs(state, ctx);
   }
   if (!canAffordMana(side, cost)) return { ok: false, reason: "not enough mana" };
   const targetCheck = validateSingleTargetEffects(state, sideKey, lookup.card.effects, targetInstanceId, ctx, "spell");
@@ -278,7 +279,7 @@ function playSpell(state: BattleState, sideKey: Side, side: BattleState["player"
   // 共鳴量表 onSpellCast
   triggerAllySpellCastPassives(state, ctx, sideKey);
   if (heroDef.gauge.onSpellCast) gaugeOnSpellCast(side.hero, race.gauge.max, heroDef.gauge);
-  syncFullGaugeBuffs(state, ctx);
+  syncGaugeScalingBuffs(state, ctx);
 
   state.log.push({ turn: state.turn, side: sideKey, kind: "PLAY_SPELL", text: `施放 ${lookup.card.name}`, payload: { cardId: lookup.card.id } });
 
@@ -532,6 +533,7 @@ function playEquipment(state: BattleState, sideKey: Side, side: BattleState["pla
   discardFromHand(side, handIndex);
 
   // 替換舊裝備（移除舊修正）— MVP：只追蹤 cardId，不還原修正（簡化）
+  getTurnFlags(state).nextEquipDiscount = undefined;
   const slot = lookup.card.slot;
   side.hero.equipment[slot] = lookup.card.id;
   syncSpecialEquipmentFlags(ctx, side);
@@ -550,7 +552,7 @@ function playEquipment(state: BattleState, sideKey: Side, side: BattleState["pla
   const heroDef = ctx.getHero(side.hero.defId);
   const race = ctx.getRace(heroDef.raceId);
   if (heroDef.gauge.onEquipmentPlay) gaugeOnEquipmentPlay(side.hero, race.gauge.max, heroDef.gauge);
-  syncFullGaugeBuffs(state, ctx);
+  syncGaugeScalingBuffs(state, ctx);
 
   if (lookup.card.onPlay) {
     executeEffects(lookup.card.onPlay, { state, ctx, sourceSide: sideKey, sourceKind: "equipment", sourceCardId: lookup.card.id });
@@ -585,8 +587,9 @@ function playField(state: BattleState, sideKey: Side, side: BattleState["player"
   state.field[targetSlot] = { cardId: lookup.card.id };
   state.log.push({ turn: state.turn, side: sideKey, kind: "PLAY_FIELD", text: `放置場地 ${lookup.card.name}`, payload: { cardId: lookup.card.id, targetSlot } });
 
-  if (lookup.card.effects.length > 0) {
-    executeEffects(lookup.card.effects, { state, ctx, sourceSide: targetSlot, sourceKind: "field", sourceCardId: lookup.card.id });
+  const immediateEffects = lookup.card.effects.filter((effect) => effect.kind !== "buff");
+  if (immediateEffects.length > 0) {
+    executeEffects(immediateEffects, { state, ctx, sourceSide: targetSlot, sourceKind: "field", sourceCardId: lookup.card.id });
   }
   return { ok: true };
 }
@@ -673,7 +676,7 @@ function useSkill(state: BattleState, sideKey: Side, side: BattleState["player"]
   if (skill.cost.mana) spendMana(side, skill.cost.mana);
   if (skill.cost.gauge) {
     spendGauge(side.hero, skill.cost.gauge);
-    syncFullGaugeBuffs(state, ctx);
+    syncGaugeScalingBuffs(state, ctx);
   }
 
   state.log.push({ turn: state.turn, side: sideKey, kind: "USE_SKILL", text: `${heroDef.name} 使用 ${skill.name}`, payload: { skillId } });
@@ -749,6 +752,6 @@ function forgeAction(state: BattleState, sideKey: Side, side: BattleState["playe
   side.hero.flags.forgeUsedThisTurn = true;
   const race = ctx.getRace(heroDef.raceId);
   gaugeOnForge(side.hero, race.gauge.max, heroDef.gauge);
-  syncFullGaugeBuffs(state, ctx);
+  syncGaugeScalingBuffs(state, ctx);
   return { ok: true };
 }

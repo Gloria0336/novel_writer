@@ -4,6 +4,8 @@ import type { Side, StatModifier } from "../types/effect";
 import type { HeroInstance } from "../types/hero";
 import { aliveTroops, getSide, otherSide } from "../selectors/battle";
 import { equippedCount, sideHasEquipmentPassive, troopHasPassiveTag } from "./passiveTags";
+import { applyOmenFieldValueModifier } from "./omenHooks";
+import { addLairFieldTroopAura } from "../turn/lairField";
 
 const DYNAMIC_SOURCE = "DYNAMIC_PASSIVE";
 
@@ -72,7 +74,26 @@ function syncTroopAuras(state: BattleState, ctx: BattleContext, side: Side): voi
       mod.atk = (mod.atk ?? 0) - 2;
       mod.def = (mod.def ?? 0) - 2;
     }
+    if (side === "enemy") addLairFieldTroopAura(state, troop, mod);
+    addFieldAuraMod(state, ctx, side, mod);
     addTroopDynamicBuff(troop, "troop", mod);
+  }
+}
+
+function addFieldAuraMod(state: BattleState, ctx: BattleContext, side: Side, mod: StatModifier): void {
+  const field = state.field[side];
+  if (!field) return;
+  const card = ctx.getCard(field.cardId);
+  if (card.type !== "field") return;
+
+  for (const effect of card.effects) {
+    if (effect.kind !== "buff") continue;
+    if (effect.target.kind !== "all") continue;
+    if (effect.target.filter.entity !== "troop") continue;
+    if (effect.target.filter.side && effect.target.filter.side !== "self") continue;
+    if (effect.mod.atk !== undefined) mod.atk = (mod.atk ?? 0) + applyOmenFieldValueModifier(state, side, effect.mod.atk);
+    if (effect.mod.def !== undefined) mod.def = (mod.def ?? 0) + applyOmenFieldValueModifier(state, side, effect.mod.def);
+    if (effect.mod.hp !== undefined) mod.hp = (mod.hp ?? 0) + applyOmenFieldValueModifier(state, side, effect.mod.hp);
   }
 }
 

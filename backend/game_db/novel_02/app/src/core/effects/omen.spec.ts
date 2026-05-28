@@ -10,7 +10,7 @@ import { registerCoreScripted } from "./handlers/scripted";
 import { registerRaceCardScripted } from "./handlers/raceCards";
 import { startTurnFor } from "../turn/phases";
 import { applyAction } from "../turn/reducer";
-import { getEffectiveCardCost } from "../resource/fullGaugeBuff";
+import { getEffectiveCardCost } from "../resource/gaugeScalingBuff";
 import { applyOmenOnEnter } from "./omenHooks";
 
 registerCoreScripted();

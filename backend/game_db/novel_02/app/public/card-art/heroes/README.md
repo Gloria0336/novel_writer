@@ -14,6 +14,7 @@
 - `mountain-hunter`
 - `reka`
 - `elno-honorary-mage`
+- `butterflyYao`
 
 ## 建議素材規格
 

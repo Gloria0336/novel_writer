@@ -127,7 +127,7 @@ describe("status indicator builders", () => {
     const indicators = buildTroopStatusIndicators(troop({
       buffs: [
         { id: "b1", source: "RIFT_BUFF", mod: { atk: 2 }, remainingTurns: 9999 },
-        { id: "b2", source: "FULL_GAUGE_BUFF:x", mod: { def: 2 }, remainingTurns: Number.MAX_SAFE_INTEGER },
+        { id: "b2", source: "GAUGE_SCALING_BUFF:x", mod: { def: 2 }, remainingTurns: Number.MAX_SAFE_INTEGER },
       ],
     }));
 

@@ -2,6 +2,8 @@ import { describe, expect, it } from "vitest";
 import { FLOOR_TABLE, getFloorEntry, OMEN_LIST } from "./towerData";
 import { scaleForFloor, pickOmen } from "./towerScaling";
 import { generateRewards, applyReward } from "./towerRewards";
+import { createBattle } from "../seed";
+import { getStarterDeckIds } from "../../data/decks";
 import type { HeroInstance } from "../../core/types/hero";
 
 describe("§F.1 試煉塔資料表", () => {
@@ -86,6 +88,48 @@ describe("§F.1 獎勵生成與套用", () => {
     const r = applyReward({ kind: "addCard", cardId: "T_c_01" }, hero, ["T_c_01"]);
     expect(r.deckIds).toHaveLength(2);
     expect(r.deckIds).toEqual(["T_c_01", "T_c_01"]);
+  });
+});
+
+describe("createBattle initialPlayerHero 不被 mutate（妖族靈蘊起手 100 bug 回歸）", () => {
+  function makeFeySnapshot(): HeroInstance {
+    return {
+      defId: "butterfly-yao",
+      hp: 80, maxHp: 80,
+      atk: 10, def: 5, cmd: 6,
+      morale: 0, gaugeValue: 0, armor: 0,
+      buffs: [], equipment: {},
+      flags: { ultimateUsed: false, immortalUsed: false, feyForm: "human" },
+    };
+  }
+
+  it("不修改傳入的 heroSnapshot 物件", () => {
+    const snapshot = makeFeySnapshot();
+    createBattle({
+      seed: 1,
+      playerHeroId: "butterfly-yao",
+      playerDeckIds: getStarterDeckIds("butterfly-yao"),
+      enemyId: "putrefactive_lair",
+      initialPlayerHero: snapshot,
+    });
+    expect(snapshot.gaugeValue).toBe(0);
+  });
+
+  it("重複呼叫不會在同一個 snapshot 上累加靈蘊（避免被夾到上限 100）", () => {
+    const snapshot = makeFeySnapshot();
+    const opts = {
+      seed: 1,
+      playerHeroId: "butterfly-yao",
+      playerDeckIds: getStarterDeckIds("butterfly-yao"),
+      enemyId: "putrefactive_lair",
+      initialPlayerHero: snapshot,
+    } as const;
+    const a = createBattle(opts);
+    const b = createBattle(opts);
+    // 開場為妖族 onTurnStart +4 與幻術師幻影進場 +6 = 10；兩次結果一致、互不影響。
+    expect(a.player.hero.gaugeValue).toBe(10);
+    expect(b.player.hero.gaugeValue).toBe(a.player.hero.gaugeValue);
+    expect(snapshot.gaugeValue).toBe(0);
   });
 });
 
