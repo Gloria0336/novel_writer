@@ -1,0 +1,52 @@
+# 人類單位範本 — 以 UnitTemplate 模型驗證（見 ../schema/models.py）
+# 魔物單位由 MonsterSpecies 實例化，不在此檔。鍵 = 單位 id。
+
+militia:
+  id: militia
+  name: 民兵
+  side: human
+  attack: 5
+  defense: 5
+  hp: 12
+  upkeep: 0.3
+  cost:
+    combat_resource: 4
+  abilities: []
+
+knight:
+  id: knight
+  name: 騎士
+  side: human
+  attack: 12
+  defense: 11
+  hp: 28
+  upkeep: 1.0
+  cost:
+    combat_resource: 12
+  abilities: [charge]
+
+mage:
+  id: mage
+  name: 魔導士
+  side: human
+  attack: 18
+  defense: 6
+  hp: 16
+  upkeep: 1.5
+  cost:
+    combat_resource: 16
+    research_point: 4
+  abilities: [aoe_spell]
+
+valkyrie:
+  id: valkyrie
+  name: 女武神
+  side: human
+  attack: 22
+  defense: 16
+  hp: 40
+  upkeep: 3.0
+  cost:
+    combat_resource: 30
+    research_point: 10
+  abilities: [elite, flight]

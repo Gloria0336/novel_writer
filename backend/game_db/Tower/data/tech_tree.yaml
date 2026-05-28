@@ -1,0 +1,109 @@
+# 科技 / 進化節點 — 以 TechNode 模型驗證（見 ../schema/models.py）
+# side=human 為科技樹；side=monster + category=evolution 為進化樹。
+# effects 為效果鍵值，由引擎的「效果套用表」解讀。鍵 = tech id。
+
+# ===== 人類科技樹 =====
+gene_1:
+  id: gene_1
+  name: 基因強化 I
+  category: gene
+  side: human
+  cost: {research_point: 6}
+  prerequisites: []
+  effects: {hp_mult: 1.10, attack_mult: 1.05}
+  description: 提升所有人類單位的 HP 與攻擊。
+
+gene_2:
+  id: gene_2
+  name: 基因強化 II
+  category: gene
+  side: human
+  cost: {research_point: 14}
+  prerequisites: [gene_1]
+  effects: {hp_mult: 1.20, attack_mult: 1.15}
+
+forged_weapons:
+  id: forged_weapons
+  name: 精煉武器
+  category: weapon
+  side: human
+  cost: {research_point: 8, combat_resource: 6}
+  prerequisites: []
+  effects: {attack_mult: 1.15}
+
+city_fortify:
+  id: city_fortify
+  name: 城防強化
+  category: fortification
+  side: human
+  cost: {research_point: 10, combat_resource: 8}
+  prerequisites: []
+  effects: {fortification_add: 0.3}
+  description: 提升己方據點的工事倍率。
+
+scout_network:
+  id: scout_network
+  name: 斥候網
+  category: recon
+  side: human
+  cost: {research_point: 6}
+  prerequisites: []
+  effects: {intel_clarity: 0.20}
+  description: 提升情報清晰度（見 08-intelligence-and-fog）。
+
+counter_recon:
+  id: counter_recon
+  name: 反偵察
+  category: recon
+  side: human
+  cost: {research_point: 8}
+  prerequisites: [scout_network]
+  effects: {concealment: 0.20}
+
+supply_lines:
+  id: supply_lines
+  name: 行軍補給
+  category: logistics
+  side: human
+  cost: {research_point: 6}
+  prerequisites: []
+  effects: {movement: 0.25, upkeep_reduction: 0.15}
+
+# ===== 魔物進化樹 =====
+evo_goblin_swarm:
+  id: evo_goblin_swarm
+  name: 哥布林群化
+  category: evolution
+  side: monster
+  cost: {monster_source: 8}
+  prerequisites: []
+  effects: {unlock_species_goblin: 1, horde_bonus: 0.10}
+  description: 解鎖哥布林孵化並強化 horde。
+
+evo_orc:
+  id: evo_orc
+  name: 半獸人化
+  category: evolution
+  side: monster
+  cost: {monster_source: 18}
+  prerequisites: [evo_goblin_swarm]
+  effects: {unlock_species_orc: 1}
+
+evo_demon:
+  id: evo_demon
+  name: 召喚惡魔
+  category: evolution
+  side: monster
+  cost: {monster_source: 40}
+  prerequisites: [evo_orc]
+  effects: {unlock_species_demon: 1}
+
+evo_mutation:
+  id: evo_mutation
+  name: 變異強化
+  category: evolution
+  side: monster
+  cost: {monster_source: 24}
+  prerequisites: []
+  effects: {hp_mult: 1.15, attack_mult: 1.10}
+  description: 全物種數值提升。

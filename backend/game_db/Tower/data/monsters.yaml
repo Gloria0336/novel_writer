@@ -1,0 +1,81 @@
+# 魔物物種圖鑑 — 以 MonsterSpecies 模型驗證（見 ../schema/models.py）
+# 新增物種只需在此增條目，不必改 schema。鍵 = 物種 id。
+
+goblin:
+  id: goblin
+  name: 哥布林
+  base_attack: 3
+  base_defense: 2
+  base_hp: 6
+  upkeep: 0.2
+  slave_cost: 1
+  monster_source_cost: 2
+  evolves_to: [orc]
+  traits: [horde]
+  description: 廉價雜兵，數量越多攻擊加成越高（horde）。
+
+kappa:
+  id: kappa
+  name: 河童
+  base_attack: 4
+  base_defense: 4
+  base_hp: 8
+  upkeep: 0.4
+  slave_cost: 2
+  monster_source_cost: 4
+  evolves_to: []
+  traits: [amphibious]
+  description: 水域 / 沼澤地形作戰獲額外加成。
+
+slime:
+  id: slime
+  name: 史萊姆
+  base_attack: 2
+  base_defense: 5
+  base_hp: 12
+  upkeep: 0.3
+  slave_cost: 1
+  monster_source_cost: 3
+  evolves_to: []
+  traits: [split]
+  description: 肉盾，受擊分裂、難以一次殲滅，提升有效防禦。
+
+orc:
+  id: orc
+  name: 半獸人
+  base_attack: 7
+  base_defense: 6
+  base_hp: 16
+  upkeep: 0.8
+  slave_cost: 3
+  monster_source_cost: 8
+  evolves_to: [demon]
+  traits: [frontline]
+  description: 中堅主力，正面對抗人類精兵的骨幹。
+
+demon:
+  id: demon
+  name: 惡魔
+  base_attack: 12
+  base_defense: 9
+  base_hp: 24
+  upkeep: 2.0
+  slave_cost: 0
+  monster_source_cost: 20
+  evolves_to: []
+  traits: [caster, fear]
+  description: 高階精英，施放魔法並使敵方士氣下降（fear）。
+
+# --- 擴充示範：只加 YAML 即可新增物種，驗證資料/規則解耦 ---
+troll:
+  id: troll
+  name: 巨魔
+  base_attack: 9
+  base_defense: 8
+  base_hp: 40
+  upkeep: 1.5
+  slave_cost: 0
+  monster_source_cost: 16
+  evolves_to: []
+  traits: [regen]
+  description: 高血量、每回合再生，消耗戰之王。
