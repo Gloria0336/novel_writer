@@ -21,9 +21,9 @@ describe("種族卡與中立傳說擴展", () => {
     expect(NEUTRAL_LEGENDS).toHaveLength(6);
   });
 
-  it("總卡池 = 通用 104 + 種族 68 + 職業 6 + 中立 6 = 184 張（v3.4 M）", () => {
-    expect(GENERIC_CARDS).toHaveLength(109);
-    expect(ALL_CARDS).toHaveLength(193);
+  it("總卡池 = 通用 110 + 種族 68 + 職業 10 + 中立 6 = 194 張（v3.4 M）", () => {
+    expect(GENERIC_CARDS).toHaveLength(110);
+    expect(ALL_CARDS).toHaveLength(194);
   });
 
   it("所有卡 id 唯一且符合命名規則", () => {

@@ -66,15 +66,17 @@ export const REKA_DECK_IDS: string[] = [
 export const ELNO_HONORARY_MAGE_DECK_IDS: string[] = [
   // 兵力 (4 張，配額 3-5)
   "T_e_01", "T_e_01", "T_e_02", "T_c_03",
-  // 行動 (4 張，配額 4-6)
-  "A_c_01", "A_c_02", "A_c_04", "A_c_06",
+  // 行動 (1 張，配額 1)
+  "A_c_10",
   // 法術 (16 張，配額 12-16)
-  "S_c_01", "S_c_01",
+  "S_c_01", "S_c_23",
   "S_c_02", "S_c_02",
+  "S_c_03", "S_c_04",
   "S_c_06",
   "S_c_07",
   "S_c_12",
   "S_c_14",
+  "S_c_18",
   "S_e_01",
   "S_e_02",
   "S_e_03",

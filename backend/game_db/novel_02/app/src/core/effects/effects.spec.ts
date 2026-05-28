@@ -55,23 +55,23 @@ function mkState(playerHeroId = "lulu", enemyHeroId = "lulu"): BattleState {
 }
 
 describe("通用卡資料完整性", () => {
-  it("通用卡共 104 張（v4：魔導器具獨立為 device type，新增 T_m_05/T_m_06/T_m_07）", () => {
-    expect(GENERIC_CARDS).toHaveLength(109);
+  it("通用卡共 110 張（v4：魔導器具獨立為 device type，新增 T_m_05/T_m_06/T_m_07）", () => {
+    expect(GENERIC_CARDS).toHaveLength(110);
   });
-  it("通用卡分類正確：14 兵力 + 10 行動 + 17 法術 + 48 裝備 + 8 場地 + 7 魔導器具（v4）", () => {
+  it("通用卡分類正確：14 兵力 + 10 行動 + 23 法術 + 48 裝備 + 8 場地 + 7 魔導器具（v4）", () => {
     const byType = GENERIC_CARDS.reduce<Record<string, number>>((acc, c) => {
       acc[c.type] = (acc[c.type] ?? 0) + 1;
       return acc;
     }, {});
     expect(byType.troop).toBe(14);
     expect(byType.action).toBe(10);
-    expect(byType.spell).toBe(22);
+    expect(byType.spell).toBe(23);
     expect(byType.equipment).toBe(48);
     expect(byType.field).toBe(8);
     expect(byType.device).toBe(7);
   });
-  it("總卡池 = 通用 104 + 升級後種族 68 + 職業 6 + 中立傳說 6 = 184 張（v3.4 M）", () => {
-    expect(ALL_CARDS).toHaveLength(193);
+  it("總卡池 = 通用 110 + 升級後種族 68 + 職業 10 + 中立傳說 6 = 194 張（v3.4 M）", () => {
+    expect(ALL_CARDS).toHaveLength(194);
   });
   it("每張卡 id 唯一", () => {
     const ids = ALL_CARDS.map((c) => c.id);
@@ -79,7 +79,7 @@ describe("通用卡資料完整性", () => {
   });
 
   it("new generic and elf spells are indexed", () => {
-    for (const id of ["S_c_18", "S_c_19", "S_c_20", "S_c_21", "S_c_22", "S_e_08", "S_e_09", "S_e_10", "S_e_11"]) {
+    for (const id of ["S_c_18", "S_c_19", "S_c_20", "S_c_21", "S_c_22", "S_c_23", "S_e_08", "S_e_09", "S_e_10", "S_e_11"]) {
       expect(getCard(id).type).toBe("spell");
     }
   });
@@ -230,6 +230,24 @@ describe("new spell cards", () => {
     expect(s.enemy.troopSlots[1]?.hp).toBe(6);
     expect(s.enemy.troopSlots[1]?.atk).toBe(0);
     expect(s.enemy.troopSlots[1]?.def).toBe(3);
+  });
+
+  it("S_c_23 全域探查 draws 3 cards", () => {
+    const s = mkState();
+    s.player.deck = [
+      { instanceId: "d1", cardId: "T_c_01" },
+      { instanceId: "d2", cardId: "T_c_02" },
+      { instanceId: "d3", cardId: "T_c_03" },
+      { instanceId: "d4", cardId: "T_c_04" },
+    ];
+    const c = getCard("S_c_23");
+    if (c.type !== "spell") throw new Error("expect spell");
+
+    executeEffects(c.effects, { state: s, ctx, sourceSide: "player", sourceKind: "spell", sourceCardId: "S_c_23" });
+
+    expect(s.player.hand).toHaveLength(3);
+    expect(s.player.deck).toHaveLength(1);
+    expect(s.player.hand.map((card) => card.cardId)).toEqual(["T_c_01", "T_c_02", "T_c_03"]);
   });
 
   it("S_e_08 漫天星光 resolves six random fixed-damage hits", () => {

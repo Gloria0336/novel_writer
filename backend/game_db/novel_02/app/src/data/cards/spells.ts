@@ -119,4 +119,9 @@ export const SPELLS: SpellCard[] = [
     ],
     flavor: "符文像燒紅的釘子釘進護甲紋路，下一擊會知道該往哪裡裂開。",
   },
+  {
+    id: "S_c_23", type: "spell", name: "全域探查", cost: 2, rarity: "uncommon",
+    effects: [{ kind: "draw", count: 3 }],
+    flavor: "視野越過前線、手牌與命運的邊界，將藏在暗處的答案一口氣翻上桌面。",
+  },
 ];

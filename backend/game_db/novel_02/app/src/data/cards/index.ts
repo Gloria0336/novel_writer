@@ -34,7 +34,7 @@ export const RACE_CARDS: Record<string, Card[]> = {
   demigod: DEMIGOD_CARDS,
 };
 
-// 全部玩家可用卡（v3.4：通用 104 + 種族 68 + 職業 6 + 中立傳說 6 = 184 張）
+// 全部玩家可用卡（v3.4：通用 110 + 種族 68 + 職業 10 + 中立傳說 6 = 194 張）
 export const ALL_CARDS: Card[] = [
   ...GENERIC_CARDS,
   ...HUMAN_CARDS,
