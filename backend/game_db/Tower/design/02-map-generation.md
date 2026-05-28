@@ -2,12 +2,36 @@
 
 ## 資料模型
 
-地圖是一張**無向圖**：節點 = 據點（`MapNode`），邊 = 鄰接（`Edge`）。
+地圖由**地形區 + 節點 + 路徑類型**共同形成：先在空白底圖上生成不同地形的範圍嵌合，
+再把據點放入地形中，最後用不同層級的道路串聯。節點與道路都會讀取所在 / 經過的地形，
+因此同一種節點落在不同地形時會產生不同互動。
+
+圖結構仍是一張**無向圖**：節點 = 據點（`MapNode`），邊 = 鄰接（`Edge`）。
 **攻擊與行軍只能沿邊發生**——這把「佔點」變成沿網路推進的爭奪。
 
-- `MapNode`：`id, name, node_type, owner, position, fortification, garrison, bonuses, parent_nest_id, tags`
-- `Edge`：`a, b, travel_cost`（無自連，見模型 validator）
+- `TerrainRegion`：`id, terrain_type, bounds, tags, node_effects, path_effects`
+- `MapNode`：`id, name, node_type, owner, position, terrain_id, terrain_type, fortification, garrison, bonuses, parent_nest_id, tags`
+- `Edge`：`a, b, path_type, length, terrain_mix, dominant_terrain, travel_cost`（無自連，見模型 validator）
 - `GameState.neighbors(node_id)` 取鄰接節點。
+
+### 地形區（`TerrainType`）
+
+| 類型 | 節點互動 | 路徑互動 |
+|------|----------|----------|
+| `plain` 平原 | 中立節點可變成平原據點；補給與部署較穩定 | 小徑行軍成本低，適合大軍通過 |
+| `forest` 森林 | 提供隱蔽、伏擊、木材等加成 | 森林小徑較慢，但偵查 / 伏擊效果更強 |
+| `swamp` 沼澤 | 城市可派生為沼澤城，防守高、產能低 | 沼澤小徑行軍慢，非適應部隊部署受阻 |
+| `desert` 沙漠 | 補給壓力高，特定資源或遺跡較常見 | 沙漠小徑消耗高，長距離行軍懲罰增加 |
+| `mountain` 山地 | 隘口、礦脈、要塞加成較常見 | 山地小徑慢但防守價值高 |
+| `water` 水域 / 河川 | 生成港口、渡口、橋頭堡等特殊節點 | 需要橋、渡口或特殊道路才可通行 |
+
+### 路徑類型（`PathType`）
+
+| 類型 | 用途 | 行軍特性 |
+|------|------|----------|
+| `road` 大道 | 主據點與副據點間的骨幹道路 | 速度最快，地形懲罰較低，適合主力軍團 |
+| `trail` 小徑 | 隨機連接網格節點形成局部網路 | 速度低於大道，效果由主要經過地形決定 |
+| `secret` 密道 | 魔族副巢與部落間的隱蔽通路 | 魔族行軍速度高於人類，情報可見度較低 |
 
 ### 據點類型（`NodeType`）
 
@@ -28,15 +52,48 @@
 由 `MapGenConfig`（含 `seed`）決定。全程用 `derive_seed(seed, ...)` 衍生子 seed，
 同一 seed 永遠生成同一張圖（可重現）。步驟：
 
-1. **决定規模**：依 config 抽 `monster_nests`、每巢的副巢 / 部落數（落在範圍內）。
-2. **放置核心**：王城置中一側，主巢群置對側；各巢周圍生成其副巢 / 部落叢集，設 `parent_nest_id`。
-3. **散佈次要節點**：人類城市與中立地形以 seeded 亂數佈在中間地帶（`Position`）。
-4. **連邊（兩步）**：
-   - 先建**生成樹**確保全圖連通（任意據點可達）。
-   - 再依 `extra_edge_ratio` 加額外邊形成**網狀**（多路徑、可包抄）。傾向連接地理相近節點。
-5. **指派加成**：依節點類型 / 地形，從 `Catalog.node_bonus_templates`
+1. **生成地形圖**：在空白底圖上用 seeded noise / Voronoi / cellular 區塊生成多個 `TerrainRegion`，
+   讓平原、森林、沼澤、沙漠、山地、水域等範圍彼此嵌合並完整覆蓋地圖。
+2. **拆分勢力範圍**：依地圖長軸或戰線曲線切分人類方、魔族方與中間爭奪帶。
+   人類方通常靠近王城與城市群；魔族方靠近主巢、副巢、部落；中間帶提高中立節點密度。
+3. **放置主據點**：王城置於人類勢力核心，主巢置於魔族勢力核心。
+   若地形不適合該主據點，可在合理半徑內重新取樣，或保留並套用地形派生效果。
+4. **放置副據點**：人類城市放在人類勢力範圍內；魔族副巢與部落圍繞主巢生成叢集，
+   並以 `parent_nest_id` 指向所屬主巢。
+5. **散佈中立節點**：中立節點以 seeded 亂數放在中間帶與各勢力邊界。
+   每個節點取樣其所在 `TerrainRegion`，得到 `terrain_id` / `terrain_type`，再派生互動：
+   例如城市落於沼澤區會成為沼澤城；中立節點落於平原區會成為平原據點。
+6. **建立大道**：用最短路徑串聯主據點與副據點，並把該路徑標記為 `road`。
+   人類大道優先串聯王城與城市；魔族大道優先串聯主巢與副巢。大道是骨幹交通網，
+   主要差異在行軍速度高、地形懲罰較低。
+7. **建立小徑**：依 `extra_edge_ratio` 與陣營密度權重隨機串聯鄰近網格節點 / 據點，
+   並標記為 `trail`。小徑會計算路徑穿越的 `terrain_mix`，以佔比最高者作為
+   `dominant_terrain`，派生為森林小徑、沙漠小徑等不同效果。
+   魔族勢力範圍的小徑連接密度高於人類勢力範圍，使魔族外圍更複雜、包抄路線更多。
+8. **建立密道**：魔族方額外建立 `secret`，連接副巢與部落。
+   密道上魔族行軍速度高於人類，且可搭配情報系統降低人類方預設可見度。
+9. **指派加成**：依節點類型、所在地形、路徑鄰接關係，從 `Catalog.node_bonus_templates`
    （[`../data/node_bonuses.yaml`](../data/node_bonuses.yaml)）套上 `NodeBonus` 組合。
-6. **初始駐軍 / 工事**：王城高工事高駐軍；部落低工事低駐軍。
+10. **初始駐軍 / 工事**：王城高工事高駐軍；部落低工事低駐軍。
+
+## 路徑長與行軍速度
+
+每條 `Edge` 需計算：
+
+- `length`：節點座標距離，或路徑折線長度。
+- `path_type`：`road` / `trail` / `secret`。
+- `terrain_mix`：路徑經過各地形區的長度占比。
+- `dominant_terrain`：占比最高的地形，用來決定小徑類型與主要效果。
+- `travel_cost`：由路徑長、道路層級、行軍速度、地形與陣營修正共同計算。
+
+建議公式：
+
+```text
+travel_cost = length * terrain_cost(dominant_terrain) * path_cost(path_type) / faction_speed(faction, path_type, terrain)
+```
+
+小徑與大道的主要差別是行軍速度：大道適合快速部署與主力推進，小徑提供繞路與局部滲透，
+但行軍速度更受地形限制。密道則是魔族特權路徑，人類可通行時成本較高，或需先透過情報 / 佔點揭露。
 
 ## 地圖加成（`NodeBonus` / `BonusType`）
 
