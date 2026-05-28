@@ -313,3 +313,7 @@ INFO:     127.0.0.1:1541 - "GET /api/openrouter/status HTTP/1.1" 200 OK
 INFO:     127.0.0.1:1541 - "GET /api/openrouter/status HTTP/1.1" 200 OK
 INFO:     127.0.0.1:1541 - "GET /api/openrouter/status HTTP/1.1" 200 OK
 INFO:     127.0.0.1:1541 - "GET /api/openrouter/status HTTP/1.1" 200 OK
+INFO:     127.0.0.1:1541 - "GET /api/openrouter/status HTTP/1.1" 200 OK
+INFO:     127.0.0.1:1541 - "GET /api/openrouter/status HTTP/1.1" 200 OK
+INFO:     127.0.0.1:1541 - "GET /api/openrouter/status HTTP/1.1" 200 OK
+INFO:     127.0.0.1:1541 - "GET /api/openrouter/status HTTP/1.1" 200 OK
