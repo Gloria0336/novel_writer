@@ -40,7 +40,7 @@ const DEFAULT_LAYERS: MapLayers = {
 };
 
 const MIN_ZOOM = 0.5;
-const MAX_ZOOM = 2;
+const MAX_ZOOM = 3;
 const WHEEL_ZOOM_SENSITIVITY = 0.0012;
 const ZOOM_EASING = 0.24;
 
@@ -91,7 +91,7 @@ function LayerToggle({
   );
 }
 
-export default function App() {
+export function MapView() {
   const [seedInput, setSeedInput] = useState(DEFAULT_SEED);
   const [preset, setPreset] = useState<GenerationPreset>("standard");
   const [density, setDensity] = useState<DensityPreset>("standard");
@@ -138,7 +138,7 @@ export default function App() {
   );
 
   useEffect(() => {
-    window.__TOWER_MAP__ = map;
+    (window as unknown as { __TOWER_MAP__?: TowerMap }).__TOWER_MAP__ = map;
   }, [map]);
 
   useEffect(() => {

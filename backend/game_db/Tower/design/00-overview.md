@@ -38,7 +38,7 @@
 Tower/
 ├─ design/                     設計文件（本資料夾）
 │  ├─ 00-overview.md           ← 你在這
-│  ├─ 01-world-and-factions.md 世界觀、非對稱雙方、魔物圖鑑、勝負
+│  ├─ 01-world-and-factions.md 世界觀、非對稱雙方、魔物圖鑑、菁英單位、勝負
 │  ├─ 02-map-generation.md     網狀圖模型、種子碼生成、據點類型、加成
 │  ├─ 03-economy-and-resources.md 人類戰鬥資源 / 魔物奴隸·魔物源、佔領獎勵
 │  ├─ 04-units-and-combat.md   單位數值、確定性戰鬥公式、工事 / 地形倍率
@@ -52,7 +52,8 @@ Tower/
    ├─ monsters.yaml            魔物物種圖鑑
    ├─ tech_tree.yaml           科技 / 進化節點
    ├─ node_bonuses.yaml        據點類型 → 加成組合
-   └─ units.yaml               人類單位範本
+   ├─ units.yaml               人類單位範本
+   └─ elites.yaml              雙方菁英單位（英雄 / 首領）範本
 ```
 
 ## 本階段範圍

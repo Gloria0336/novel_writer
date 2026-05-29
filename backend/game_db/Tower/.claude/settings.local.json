@@ -1,0 +1,19 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(Get-ChildItem -Path \"D:\\\\Users\\\\user\\\\Desktop\\\\T\\\\novel_writer\" -Force)",
+      "Bash(Select-Object Name, FullName)",
+      "PowerShell(Get-ChildItem -Path \"D:\\\\Users\\\\user\\\\Desktop\\\\T\\\\novel_writer\\\\backend\\\\game_db\\\\Tower\" -Recurse -Force | Where-Object { $_.PSIsContainer } | Select-Object -ExpandProperty FullName | Sort-Object | head -50)",
+      "PowerShell(Get-ChildItem -Path \"D:\\\\Users\\\\user\\\\Desktop\\\\T\\\\novel_writer\\\\backend\\\\game_db\\\\Tower\" -Recurse -Force | Where-Object { $_.PSIsContainer } | Select-Object -ExpandProperty FullName | Sort-Object)",
+      "PowerShell(Get-ChildItem -Path \"D:\\\\Users\\\\user\\\\Desktop\\\\T\\\\novel_writer\\\\backend\\\\game_db\\\\Tower\" -MaxDepth 1 -Force | Select-Object Name, @{Name=\"Type\"; Expression={if\\($_.PSIsContainer\\){\"DIR\"}else{\"FILE\"}}} | Sort-Object Name)",
+      "PowerShell(Get-ChildItem -Path \"D:\\\\Users\\\\user\\\\Desktop\\\\T\\\\novel_writer\\\\backend\\\\game_db\\\\Tower\" -Depth 1 -Force | Select-Object Name, @{Name=\"Type\"; Expression={if\\($_.PSIsContainer\\){\"DIR\"}else{\"FILE\"}}} | Sort-Object Name)",
+      "PowerShell(Get-ChildItem -Path \"D:\\\\Users\\\\user\\\\Desktop\\\\T\\\\novel_writer\\\\backend\\\\game_db\\\\Tower\" -Depth 2 -Directory -Force | Where-Object { $_.Name -eq \"src\" -or $_.Name -eq \"api\" -or $_.Name -eq \"backend\" })",
+      "PowerShell(Get-ChildItem -Path \"D:\\\\Users\\\\user\\\\Desktop\\\\T\\\\novel_writer\\\\backend\\\\game_db\\\\Tower\" -Depth 0 | Where-Object { -not $_.PSIsContainer } | Select-Object Name)",
+      "Bash(python -c \"import sys; sys.path.insert\\(0,'schema'\\); import yaml; from models import EliteTemplate, Catalog; d=yaml.safe_load\\(open\\('data/elites.yaml',encoding='utf-8'\\)\\); cat=Catalog\\(elites={k:EliteTemplate\\(**v\\) for k,v in d.items\\(\\)}\\); print\\('OK', len\\(cat.elites\\), 'elites'\\); h=[e for e in cat.elites.values\\(\\) if e.side=='human']; m=[e for e in cat.elites.values\\(\\) if e.side=='monster']; print\\('human',len\\(h\\),'monster',len\\(m\\)\\)\")",
+      "Bash(curl -s http://localhost:5173)",
+      "mcp__Claude_Preview__preview_start",
+      "mcp__Claude_in_Chrome__tabs_context_mcp",
+      "mcp__Claude_in_Chrome__browser_batch"
+    ]
+  }
+}

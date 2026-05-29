@@ -1,81 +1,385 @@
 # 魔物物種圖鑑 — 以 MonsterSpecies 模型驗證（見 ../schema/models.py）
 # 新增物種只需在此增條目，不必改 schema。鍵 = 物種 id。
+# race_group 決定進化歸屬；進化鏈只在同 group 內發生（見 ../data/tech_tree.yaml）。
+#
+# 五大種族：
+#   greenskins  — 綠皮種族（哥布林系 / 河童系）
+#   fleshes     — 血肉族（史萊姆系 / 觸手系）
+#   fures       — 獸族（狼人系 / 牛頭人系）
+#   undeads     — 不死族（骷髏系 / 殭屍系）
+#   demons      — 魔族（惡魔系）
 
+# =============================================================
+# 綠皮種族 (greenskins)
+# 進化鏈：goblin → elite_goblin / goblin_shaman / hobgoblin → orc
+#          kappa → troll
+# =============================================================
 goblin:
   id: goblin
   name: 哥布林
+  race_group: greenskins
   base_attack: 3
   base_defense: 2
   base_hp: 6
   upkeep: 0.2
   slave_cost: 1
   monster_source_cost: 2
-  evolves_to: [orc]
+  evolves_to: [elite_goblin, goblin_shaman, hobgoblin]
   traits: [horde]
-  description: 廉價雜兵，數量越多攻擊加成越高（horde）。
+  description: 廉價雜兵，horde 特性讓數量越多攻擊加成越高。
 
-kappa:
-  id: kappa
-  name: 河童
-  base_attack: 4
-  base_defense: 4
-  base_hp: 8
-  upkeep: 0.4
-  slave_cost: 2
-  monster_source_cost: 4
-  evolves_to: []
-  traits: [amphibious]
-  description: 水域 / 沼澤地形作戰獲額外加成。
-
-slime:
-  id: slime
-  name: 史萊姆
-  base_attack: 2
+elite_goblin:
+  id: elite_goblin
+  name: 精英哥布林
+  race_group: greenskins
+  base_attack: 6
   base_defense: 5
-  base_hp: 12
-  upkeep: 0.3
-  slave_cost: 1
-  monster_source_cost: 3
+  base_hp: 14
+  upkeep: 0.5
+  slave_cost: 2
+  monster_source_cost: 6
+  evolves_to: [hobgoblin]
+  traits: [horde, veteran]
+  description: 歷戰的哥布林，veteran 使同隊友軍傷亡閾值提高。
+
+goblin_shaman:
+  id: goblin_shaman
+  name: 哥布林祭司
+  race_group: greenskins
+  base_attack: 5
+  base_defense: 3
+  base_hp: 10
+  upkeep: 0.6
+  slave_cost: 2
+  monster_source_cost: 7
   evolves_to: []
-  traits: [split]
-  description: 肉盾，受擊分裂、難以一次殲滅，提升有效防禦。
+  traits: [caster, horde_boost]
+  description: 綠皮法師，horde_boost 進一步放大同隊 horde 加成。
+
+hobgoblin:
+  id: hobgoblin
+  name: 霍布地精
+  race_group: greenskins
+  base_attack: 8
+  base_defense: 7
+  base_hp: 18
+  upkeep: 0.8
+  slave_cost: 3
+  monster_source_cost: 10
+  evolves_to: [orc]
+  traits: [frontline]
+  description: 比哥布林更高大的亞種，可晉升為半獸人的中繼兵種。
 
 orc:
   id: orc
   name: 半獸人
-  base_attack: 7
-  base_defense: 6
-  base_hp: 16
-  upkeep: 0.8
-  slave_cost: 3
-  monster_source_cost: 8
-  evolves_to: [demon]
-  traits: [frontline]
-  description: 中堅主力，正面對抗人類精兵的骨幹。
-
-demon:
-  id: demon
-  name: 惡魔
-  base_attack: 12
+  race_group: greenskins
+  base_attack: 11
   base_defense: 9
-  base_hp: 24
-  upkeep: 2.0
-  slave_cost: 0
-  monster_source_cost: 20
+  base_hp: 26
+  upkeep: 1.2
+  slave_cost: 4
+  monster_source_cost: 16
   evolves_to: []
-  traits: [caster, fear]
-  description: 高階精英，施放魔法並使敵方士氣下降（fear）。
+  traits: [frontline, warcry]
+  description: 綠皮頂點，warcry 使同據點友軍在開戰回合獲得攻擊加成。
 
-# --- 擴充示範：只加 YAML 即可新增物種，驗證資料/規則解耦 ---
+kappa:
+  id: kappa
+  name: 河童
+  race_group: greenskins
+  base_attack: 4
+  base_defense: 4
+  base_hp: 10
+  upkeep: 0.4
+  slave_cost: 2
+  monster_source_cost: 4
+  evolves_to: [troll]
+  traits: [amphibious]
+  description: 水域 / 沼澤地形作戰獲額外加成，可進化為巨魔。
+
 troll:
   id: troll
   name: 巨魔
+  race_group: greenskins
+  base_attack: 10
+  base_defense: 9
+  base_hp: 44
+  upkeep: 1.6
+  slave_cost: 0
+  monster_source_cost: 18
+  evolves_to: []
+  traits: [regen, amphibious]
+  description: 再生型重甲，高血量配合每回合 regen，消耗戰首選。
+
+# =============================================================
+# 血肉族 (fleshes)
+# 進化鏈：slime → elemental_slime / specialized_slime
+#          slime + tentacle_beast → oblex
+#          tentacle_beast → the_rotten
+# =============================================================
+slime:
+  id: slime
+  name: 史萊姆
+  race_group: fleshes
+  base_attack: 2
+  base_defense: 5
+  base_hp: 14
+  upkeep: 0.3
+  slave_cost: 1
+  monster_source_cost: 3
+  evolves_to: [elemental_slime, specialized_slime]
+  traits: [split]
+  description: 肉盾，受擊分裂、難以一次殲滅，提升有效防禦。
+
+elemental_slime:
+  id: elemental_slime
+  name: 元素史萊姆
+  race_group: fleshes
   base_attack: 9
+  base_defense: 5
+  base_hp: 18
+  upkeep: 0.8
+  slave_cost: 0
+  monster_source_cost: 12
+  evolves_to: [oblex]
+  traits: [elemental, split]
+  description: 吸收元素後覺醒，elemental 使攻擊附加對應元素傷害。
+
+specialized_slime:
+  id: specialized_slime
+  name: 特化史萊姆
+  race_group: fleshes
+  base_attack: 4
+  base_defense: 10
+  base_hp: 24
+  upkeep: 0.7
+  slave_cost: 0
+  monster_source_cost: 10
+  evolves_to: [oblex]
+  traits: [split, armored, acid]
+  description: 高防特化，acid 使防禦者盔甲每回合腐蝕。
+
+tentacle_beast:
+  id: tentacle_beast
+  name: 觸手怪
+  race_group: fleshes
+  base_attack: 7
+  base_defense: 5
+  base_hp: 16
+  upkeep: 0.7
+  slave_cost: 2
+  monster_source_cost: 9
+  evolves_to: [the_rotten, oblex]
+  traits: [grab, multi_attack]
+  description: 多觸手攻擊，grab 可固定敵方單位使其防禦降低。
+
+oblex:
+  id: oblex
+  name: 歐布萊克斯
+  race_group: fleshes
+  base_attack: 12
   base_defense: 8
-  base_hp: 40
+  base_hp: 26
   upkeep: 1.5
   slave_cost: 0
-  monster_source_cost: 16
+  monster_source_cost: 22
   evolves_to: []
-  traits: [regen]
-  description: 高血量、每回合再生，消耗戰之王。
+  traits: [absorb, mimicry, caster]
+  description: 源自深淵的智慧黏液，absorb 吸收敵方傷亡補充自身、mimicry 降低對方偵察清晰度。
+
+the_rotten:
+  id: the_rotten
+  name: 腐者
+  race_group: fleshes
+  base_attack: 13
+  base_defense: 6
+  base_hp: 32
+  upkeep: 1.4
+  slave_cost: 0
+  monster_source_cost: 20
+  evolves_to: []
+  traits: [decay_aura, regen, fear]
+  description: 腐化巨體，decay_aura 使相鄰敵軍每回合減損防禦，regen 維持長期消耗。
+
+# =============================================================
+# 獸族 (fures)
+# 進化鏈：werewolf → bigfoot → yeti
+#          werewolf → minotaur（分支）
+# =============================================================
+werewolf:
+  id: werewolf
+  name: 狼人
+  race_group: fures
+  base_attack: 9
+  base_defense: 6
+  base_hp: 20
+  upkeep: 0.9
+  slave_cost: 2
+  monster_source_cost: 11
+  evolves_to: [bigfoot, minotaur]
+  traits: [frenzy, pack]
+  description: 群體捕獵者，frenzy 血量低時攻擊暴增；pack 隨同隊數量加乘。
+
+bigfoot:
+  id: bigfoot
+  name: 大腳怪
+  race_group: fures
+  base_attack: 11
+  base_defense: 10
+  base_hp: 38
+  upkeep: 1.4
+  slave_cost: 0
+  monster_source_cost: 17
+  evolves_to: [yeti]
+  traits: [intimidate, tough]
+  description: 巨型山林野人，intimidate 降低敵方進攻意願（士氣削弱）。
+
+minotaur:
+  id: minotaur
+  name: 牛頭人
+  race_group: fures
+  base_attack: 14
+  base_defense: 9
+  base_hp: 32
+  upkeep: 1.5
+  slave_cost: 0
+  monster_source_cost: 19
+  evolves_to: []
+  traits: [frontline, charge, cleave]
+  description: 衝鋒重戰士，charge 首回合傷害大幅提升；cleave 傷害波及相鄰敵方單位。
+
+yeti:
+  id: yeti
+  name: 雪怪
+  race_group: fures
+  base_attack: 12
+  base_defense: 12
+  base_hp: 42
+  upkeep: 1.6
+  slave_cost: 0
+  monster_source_cost: 21
+  evolves_to: []
+  traits: [cold_aura, intimidate, regen]
+  description: 雪山巨獸，cold_aura 降低敵方移動速度與攻擊；regen 使其在消耗戰中難以擊垮。
+
+yeti_elite:
+  id: yeti_elite
+  name: 雪怪精英
+  race_group: fures
+  base_attack: 15
+  base_defense: 15
+  base_hp: 50
+  upkeep: 1.8
+  slave_cost: 10
+  monster_source_cost: 21
+  evolves_to: []
+  traits: [cold_aura, intimidate, regen]
+  description: 雪山巨獸，cold_aura 降低敵方移動速度與攻擊；regen 使其在消耗戰中難以擊垮。
+
+# =============================================================
+# 不死族 (undeads)
+# 進化鏈：skeleton / zombie → vampire
+#          zombie → mummy（分支）
+# =============================================================
+skeleton:
+  id: skeleton
+  name: 骷髏
+  race_group: undeads
+  base_attack: 5
+  base_defense: 4
+  base_hp: 10
+  upkeep: 0.2
+  slave_cost: 1
+  monster_source_cost: 3
+  evolves_to: [vampire]
+  traits: [undead, horde]
+  description: 最基礎的不死兵，維持成本極低，以數量堆疊 horde 加成。
+
+zombie:
+  id: zombie
+  name: 殭屍
+  race_group: undeads
+  base_attack: 4
+  base_defense: 3
+  base_hp: 16
+  upkeep: 0.2
+  slave_cost: 1
+  monster_source_cost: 3
+  evolves_to: [vampire, mummy]
+  traits: [undead, plague]
+  description: plague 使擊傷敵方單位有機率感染，累積後造成額外損耗。
+
+vampire:
+  id: vampire
+  name: 吸血鬼
+  race_group: undeads
+  base_attack: 16
+  base_defense: 11
+  base_hp: 30
+  upkeep: 2.0
+  slave_cost: 0
+  monster_source_cost: 24
+  evolves_to: []
+  traits: [undead, life_drain, flight, fear]
+  description: 不死精英，life_drain 每回合從傷亡中回復 HP；flight 可無視地形；fear 削弱敵方士氣。
+
+mummy:
+  id: mummy
+  name: 木乃伊
+  race_group: undeads
+  base_attack: 7
+  base_defense: 12
+  base_hp: 24
+  upkeep: 0.8
+  slave_cost: 0
+  monster_source_cost: 13
+  evolves_to: []
+  traits: [undead, cursed, tough]
+  description: 古老詛咒纏身，cursed 使擊傷敵方單位施加持續負面效果；超高防禦為不死前排。
+
+# =============================================================
+# 魔族 (demons)
+# 進化鏈：demon → succubus → balrog（主線）
+# =============================================================
+demon:
+  id: demon
+  name: 惡魔
+  race_group: demons
+  base_attack: 13
+  base_defense: 10
+  base_hp: 26
+  upkeep: 2.0
+  slave_cost: 0
+  monster_source_cost: 20
+  evolves_to: [succubus, balrog]
+  traits: [caster, fear]
+  description: 召喚系精英，caster 施放範圍魔法；fear 使敵方在開戰前損失士氣。
+
+succubus:
+  id: succubus
+  name: 魅魔
+  race_group: demons
+  base_attack: 12
+  base_defense: 8
+  base_hp: 22
+  upkeep: 1.8
+  slave_cost: 0
+  monster_source_cost: 22
+  evolves_to: [balrog]
+  traits: [charm, flight, caster]
+  description: 魅惑型魔族，charm 有機率使敵方單位在一回合內攻擊己方；flight 不受地形限制。
+
+balrog:
+  id: balrog
+  name: 炎魔
+  race_group: demons
+  base_attack: 18
+  base_defense: 13
+  base_hp: 40
+  upkeep: 3.0
+  slave_cost: 0
+  monster_source_cost: 35
+  evolves_to: []
+  traits: [fire_aura, fear, flight, tough]
+  description: 魔族頂點，fire_aura 對所有鄰接敵方單位每回合造成灼傷；fear + 超高戰力令守軍崩潰。

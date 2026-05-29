@@ -6,6 +6,17 @@
 
 `TurnState.phase`（`TurnPhase`）記錄當前階段；`month` 記錄第幾個月。
 
+## 開局步驟：菁英選角 `DRAFT`（每局一次，先於 month 1）
+
+四階段循環開始前，雙方各從己方英雄池（[`../data/elites.yaml`](../data/elites.yaml)）選
+**5–8 名**菁英組成 roster：
+
+- 數量上下限由 `MapGenConfig.elite_roster_size`（預設 `(5, 8)`）界定。
+- 玩家手選、魔物 AI 依盤面評估選，各方選定的 `EliteTemplate.id` 寫入 `Faction.elite_roster`。
+- 選定的菁英以 `EliteInstance`（`level=1, xp=0, alive=True`）初始化，部署於己方核心據點
+  （王城 / 主巢）的 `MapNode.elites`，之後可在軍事階段隨部隊移動。
+- 此步驟只在開局執行一次，**不屬於任何月份的四階段**。
+
 ## 階段 1：內政階段 `DOMESTIC`
 
 雙方各自進行：資源分配 / 科技研發 / 產生兵力 / 建築。
@@ -30,6 +41,8 @@
 `ATTACK / REINFORCE / DEFEND / HOLD`），存入 `TurnState.deployments[side]`。
 
 - 進攻只能沿邊指向鄰接敵 / 中立據點；`DEFEND/HOLD` 的 from/to 必須同一據點（見模型 validator）。
+- **菁英隨軍移動**：`TroopMovement.elite_ids` 列出隨此次部屬一同移動的菁英 instance id，
+  沿用相同的沿邊 / DEFEND 規則；菁英抵達後計入目標據點 `MapNode.elites`，其光環即作用於該據點。
 - **雙方都部屬完成後**才進入下一階段（玩家提交後等 AI，或反之）。
 
 ## 階段 4：戰鬥結算 `COMBAT`
@@ -37,7 +50,9 @@
 依雙方部屬演算戰鬥過程與結果。系統逐據點處理：
 
 1. 蒐集每個據點的進攻方部隊（沿邊而來、`intent=ATTACK`）與守方（駐軍 + `REINFORCE/DEFEND`）。
-2. 套戰鬥公式（[04](04-units-and-combat.md)）算出 `CombatReport`：過程 `rounds`、結果 `outcome`、傷亡、是否易主。
+2. 套戰鬥公式（[04](04-units-and-combat.md)）算出 `CombatReport`：先結算同據點菁英光環與
+   `abilities`，再算 power 與過程 `rounds`、結果 `outcome`、傷亡、是否易主；菁英本體傷亡 /
+   陣亡與獲得的 `xp`（可能觸發升級）一併更新進對應 `EliteInstance`。
 3. `captured` → 更新 `MapNode.owner`、發佔領獎勵（[03](03-economy-and-resources.md)）。
 4. **突發事件**：以 `derive_seed(master_seed, "event", month, ...)` 判定是否觸發 `RandomEvent`
    （援軍 / 瘟疫 / 倒戈 / 資源發現 / 地形變動 / 突變），套用其 `effects`。

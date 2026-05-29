@@ -85,13 +85,22 @@ class DomesticActionType(StrEnum):
     BUILD = "build"         # 建築
 
 
+class RaceGroup(StrEnum):
+    GREENSKINS = "greenskins"  # 綠皮種族：哥布林系 / 河童系
+    FLESHES = "fleshes"        # 血肉族：史萊姆系 / 觸手系
+    FURES = "fures"            # 獸族：狼人系 / 牛頭人系
+    UNDEADS = "undeads"        # 不死族：骷髏系 / 殭屍系
+    DEMONS = "demons"          # 魔族：惡魔系
+
+
 class TechCategory(StrEnum):
-    GENE = "gene"                   # 基因強化（人類）
-    WEAPON = "weapon"               # 武器
-    FORTIFICATION = "fortification" # 工事
-    RECON = "recon"                 # 偵察 / 反偵察
-    EVOLUTION = "evolution"         # 進化（魔物）
-    LOGISTICS = "logistics"         # 後勤 / 行軍
+    GENE = "gene"                       # 基因強化（人類）
+    WEAPON = "weapon"                   # 武器
+    FORTIFICATION = "fortification"     # 工事
+    RECON = "recon"                     # 偵察 / 反偵察
+    EVOLUTION = "evolution"             # 進化（魔物）—— 解鎖新物種
+    MONSTER_RESEARCH = "monster_research"  # 魔物科研 —— 數值強化，不解鎖新物種
+    LOGISTICS = "logistics"             # 後勤 / 行軍
 
 
 class DeployIntent(StrEnum):
@@ -141,13 +150,14 @@ class MonsterSpecies(BaseModel):
     """魔物物種定義（../data/monsters.yaml）。"""
     id: str
     name: str
+    race_group: RaceGroup = Field(description="所屬種族大類；進化只在同大類內發生")
     base_attack: NonNegativeFloat
     base_defense: NonNegativeFloat
     base_hp: NonNegativeFloat
     upkeep: NonNegativeFloat = Field(default=0, description="每月維持成本（魔物源）")
     slave_cost: NonNegativeInt = Field(default=0, description="以奴隸孵化所需數量")
     monster_source_cost: NonNegativeFloat = Field(default=0, description="以魔物源孵化所需數量")
-    evolves_to: list[str] = Field(default_factory=list, description="可進化成的物種 id")
+    evolves_to: list[str] = Field(default_factory=list, description="可進化成的物種 id（限同 race_group）")
     traits: list[str] = Field(default_factory=list, description="特性標籤，如 amphibious / split / horde")
     description: str = ""
 
@@ -164,6 +174,35 @@ class UnitTemplate(BaseModel):
     cost: dict[ResourceKind, float] = Field(default_factory=dict, description="招募成本")
     species_id: str | None = Field(default=None, description="魔物單位對應的物種 id")
     abilities: list[str] = Field(default_factory=list)
+
+
+class EliteTemplate(BaseModel):
+    """菁英單位（英雄 / 首領）範本（../data/elites.yaml）。
+
+    菁英是稀有的指揮型單位：本身參戰，並對同據點友軍提供光環加乘（aura）與特殊能力
+    （abilities）。開局選角時雙方各選 5–8 名組成 roster，實例化為 EliteInstance。
+    """
+    id: str
+    name: str
+    side: Side
+    attack: NonNegativeFloat
+    defense: NonNegativeFloat
+    hp: NonNegativeFloat
+    upkeep: NonNegativeFloat = 0
+    aura: dict[str, float] = Field(
+        default_factory=dict,
+        description="對同據點友軍的光環倍率，如 {'ally_attack_mult': 1.2, 'ally_defense_mult': 1.1, 'ally_hp_mult': 1.1}",
+    )
+    abilities: list[str] = Field(
+        default_factory=list, description="特殊能力鍵值，如 bless / fear / aoe_spell，由效果套用表解讀"
+    )
+    growth: dict[str, float] = Field(
+        default_factory=dict,
+        description="每級成長，如 {'attack_per_level': 1.5, 'hp_per_level': 4, 'aura_attack_mult_per_level': 0.02}",
+    )
+    xp_per_level: NonNegativeFloat = Field(default=10, description="升一級所需 xp 基數（門檻 = 此值 × 當前 level）")
+    max_level: int = Field(default=5, ge=1, description="等級上限")
+    description: str = ""
 
 
 class TechNode(BaseModel):
@@ -185,6 +224,7 @@ class Catalog(BaseModel):
     """所有 YAML 圖鑑載入後的彙整，作為一局遊戲的靜態規則資料。"""
     monsters: dict[str, MonsterSpecies] = Field(default_factory=dict)
     units: dict[str, UnitTemplate] = Field(default_factory=dict)
+    elites: dict[str, EliteTemplate] = Field(default_factory=dict)
     techs: dict[str, TechNode] = Field(default_factory=dict)
     node_bonus_templates: dict[str, list[NodeBonus]] = Field(
         default_factory=dict, description="據點類型 / 地形 → 預設加成組合"
@@ -204,6 +244,17 @@ class UnitStack(BaseModel):
     hp: NonNegativeFloat | None = None
 
 
+class EliteInstance(BaseModel):
+    """在局的菁英實例（由 EliteTemplate 於開局選角時實例化）。"""
+    instance_id: str = Field(description="本局唯一實例 id，供部屬 / 戰報引用")
+    template_id: str
+    level: int = Field(default=1, ge=1)
+    xp: NonNegativeFloat = 0
+    # 當前 hp；None 表示沿用範本基礎值（含等級成長 / 科技修正後）。
+    hp: NonNegativeFloat | None = None
+    alive: bool = True
+
+
 class MapNode(BaseModel):
     """地圖上的一個網狀據點。"""
     id: str
@@ -213,6 +264,7 @@ class MapNode(BaseModel):
     position: Position
     fortification: float = Field(default=1.0, description="工事倍率，套在守方防禦上；王城最高")
     garrison: list[UnitStack] = Field(default_factory=list, description="駐軍")
+    elites: list[EliteInstance] = Field(default_factory=list, description="駐紮此據點的菁英，光環作用於同據點友軍")
     bonuses: list[NodeBonus] = Field(default_factory=list)
     parent_nest_id: str | None = Field(
         default=None, description="副巢 / 部落 所屬的主巢 id，用於『巢穴=部落+副巢叢集』結構"
@@ -241,6 +293,9 @@ class MapGenConfig(BaseModel):
     sub_nests_per_nest: tuple[int, int] = Field(default=(1, 3), description="每巢副巢數範圍 (min,max)")
     tribes_per_nest: tuple[int, int] = Field(default=(2, 4), description="每巢部落數範圍 (min,max)")
     neutral_nodes: int = Field(default=4, ge=0)
+    elite_roster_size: tuple[int, int] = Field(
+        default=(5, 8), description="開局選角時每方可選的菁英數量範圍 (min,max)"
+    )
     extra_edge_ratio: float = Field(
         default=0.25, ge=0, description="在生成樹之上額外加邊的比例，決定網狀程度"
     )
@@ -280,6 +335,9 @@ class TroopMovement(BaseModel):
     to_node: str
     intent: DeployIntent
     units: list[UnitStack] = Field(default_factory=list)
+    elite_ids: list[str] = Field(
+        default_factory=list, description="隨此次部屬移動的菁英 instance_id；沿用相同沿邊 / DEFEND 規則"
+    )
 
     @model_validator(mode="after")
     def _attack_moves(self) -> TroopMovement:
@@ -382,6 +440,9 @@ class Faction(BaseModel):
     resources: ResourcePool = Field(default_factory=ResourcePool)
     researched_techs: list[str] = Field(default_factory=list)
     unlocked_species: list[str] = Field(default_factory=list, description="魔物方已解鎖可孵化的物種")
+    elite_roster: list[str] = Field(
+        default_factory=list, description="開局選角選定的 EliteTemplate id（5–8 名），實例化為 MapNode.elites"
+    )
     intel_clarity_bonus: float = Field(default=0.0, description="偵察科技累積的情報清晰度加成")
     is_ai: bool = False
 

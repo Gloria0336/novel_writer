@@ -168,6 +168,7 @@ select {
   text-anchor: middle;
   dominant-baseline: text-before-edge;
   stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
 }
 
 .map-svg-label {
@@ -462,6 +463,259 @@ select {
 .route-chain {
   display: flex;
   flex-wrap: wrap;
+}
+
+/* ===== 頂層視圖切換 ===== */
+.root-shell {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  height: 100vh;
+  min-height: 0;
+}
+
+.view-switch {
+  display: flex;
+  gap: 0.4rem;
+  align-items: center;
+  padding: 0.5rem 0.75rem;
+  border-bottom: 1px solid var(--border);
+  background: var(--panel);
+}
+
+.view-switch button {
+  display: inline-flex;
+  gap: 0.4rem;
+  align-items: center;
+  padding: 0.35rem 0.85rem;
+  font-weight: 700;
+}
+
+.view-switch .is-active {
+  border-color: var(--gold);
+  background: #4b3d1f;
+  color: #fff3ca;
+}
+
+.view-body {
+  min-height: 0;
+  overflow: hidden;
+}
+
+/* 地圖視圖原為全高，嵌入切換外殼後改為填滿容器。 */
+.view-body .app-shell {
+  height: 100%;
+}
+
+/* ===== 科技樹 ===== */
+.tech-shell {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 320px;
+  gap: 0.75rem;
+  height: 100%;
+  min-height: 0;
+  padding: 0.75rem;
+}
+
+.tech-stage {
+  display: grid;
+  grid-template-rows: auto auto minmax(0, 1fr);
+  gap: 0.65rem;
+  min-height: 0;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: rgba(29, 36, 29, 0.96);
+  box-shadow: var(--shadow);
+  padding: 0.75rem;
+}
+
+.tech-toolbar {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.tech-toolbar h2 {
+  display: flex;
+  gap: 0.45rem;
+  align-items: center;
+  margin: 0;
+  color: #fff3ca;
+  font-size: 0.96rem;
+}
+
+.tech-toolbar h2 svg {
+  color: var(--gold-2);
+}
+
+.tech-side-toggle {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  min-width: 160px;
+}
+
+.tech-sub-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+  padding-bottom: 0.35rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.race-filter {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  align-items: center;
+}
+
+.race-chip {
+  min-height: 1.9rem;
+  padding: 0 0.7rem;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--muted);
+  font-size: 0.78rem;
+  cursor: pointer;
+  transition: background 0.1s ease, color 0.1s ease, border-color 0.1s ease;
+}
+
+.race-chip:hover {
+  background: var(--panel-3);
+  color: var(--ink);
+}
+
+.race-chip.is-active {
+  color: #fff;
+  font-weight: 600;
+}
+
+.tech-graph-viewport {
+  min-width: 0;
+  min-height: 0;
+  overflow: auto;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: #111712;
+  scrollbar-gutter: stable both-edges;
+}
+
+.tech-graph-canvas {
+  position: relative;
+  margin: auto;
+}
+
+.tech-edge-layer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.tech-edge {
+  fill: none;
+  stroke: var(--faint);
+  stroke-width: 1.8;
+  opacity: 0.55;
+}
+
+.tech-edge.is-active {
+  stroke: var(--gold);
+  stroke-width: 2.6;
+  opacity: 1;
+}
+
+.tech-edge.is-dimmed {
+  opacity: 0.16;
+}
+
+.tech-node {
+  position: absolute;
+  display: flex;
+  gap: 0;
+  align-items: stretch;
+  padding: 0;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--panel-2);
+  text-align: left;
+  transition: transform 0.08s ease, box-shadow 0.08s ease, opacity 0.12s ease;
+}
+
+.tech-node:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.32);
+}
+
+.tech-node.is-selected {
+  background: #2b2f1e;
+  box-shadow: 0 0 0 2px var(--gold);
+}
+
+.tech-node.is-dimmed {
+  opacity: 0.32;
+}
+
+.tech-node-bar {
+  flex: none;
+  width: 5px;
+}
+
+.tech-node-body {
+  display: grid;
+  align-content: center;
+  gap: 0.3rem;
+  min-width: 0;
+  padding: 0.5rem 0.65rem;
+}
+
+.tech-node-head {
+  display: grid;
+  gap: 0.1rem;
+  min-width: 0;
+}
+
+.tech-node-head strong {
+  overflow: hidden;
+  color: #fff8dc;
+  font-size: 0.92rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tech-node-head em {
+  font-size: 0.72rem;
+  font-style: normal;
+}
+
+.tech-node-body small {
+  color: var(--muted);
+  font-size: 0.74rem;
+}
+
+.tech-rail {
+  height: 100%;
+}
+
+.tech-desc {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.84rem;
+}
+
+.tech-block {
+  display: grid;
+  gap: 0.4rem;
+}
+
+.tech-block h3 {
+  display: flex;
+  gap: 0.3rem;
+  align-items: center;
+  margin: 0;
+  color: var(--gold-2);
+  font-size: 0.82rem;
 }
 
 @media (max-width: 1180px) {

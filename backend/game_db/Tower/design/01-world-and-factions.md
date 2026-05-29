@@ -26,6 +26,37 @@
 設計意圖：人類玩家必須「以寡擊眾、層層設防」，承受不起王城風險；魔物 AI 則「廣鋪
 多路、消耗滲透」，可以用部落 / 副巢當消耗品換取主力突破。
 
+## 菁英單位（英雄 / 首領）
+
+雙方除了量產的一般單位外，各有一池**菁英單位**——人類的英雄、魔物的首領。菁英是
+**稀有的指揮型存在**：本身能戰，更重要的是**對同據點友軍提供光環加乘**並帶**特殊能力**，
+是扭轉局部戰局的關鍵棋子。菁英定義放在 [`../data/elites.yaml`](../data/elites.yaml)，以
+`EliteTemplate` 模型驗證；新增菁英只需改 YAML，不必改 schema。
+
+**賽前選角（開局一次）**：開局前雙方各從己方英雄池選 **5–8 名**組成 roster 帶入本局
+（人類玩家手選、魔物 AI 依評估選），寫入 `Faction.elite_roster`。這是一個**獨立的開局
+步驟**，先於第一個月的四階段循環（見 [06](06-turn-and-phases.md)）。
+
+菁英的三層效果：
+
+1. **同據點光環**：駐紮某據點時，對**同據點友軍** stack 乘上 `attack/defense/hp` 倍率
+   （`aura` 鍵值），接在戰力公式末端，與特性修正並列（見 [04](04-units-and-combat.md)）。
+2. **特殊能力**：1–2 個主動 / 被動技（`abilities`），如聖女「祝福」回復、魔王「恐懼」
+   削守方戰力，由引擎效果套用表解讀。
+3. **自身戰力**：菁英有自己的 `attack/defense/hp`，併入所在據點戰力，可受傷、**陣亡後
+   退出本局**（不復活），是高風險高回報的投入。
+
+**成長（經驗值）**：每個 `EliteInstance` 帶 `level` 與 `xp`，參與戰鬥累積經驗、達門檻升級。
+升級依範本 `growth` 提升自身數值與光環強度。菁英的最終數值 = 範本基礎值 × (1 + 升級成長)
+× (1 + 科技 / 進化 `*_mult` 加成)——**同時吃等級與科技兩種加成**（見 [04](04-units-and-combat.md)、
+[05](05-tech-and-evolution.md)）。
+
+| 面向 | 人類英雄池 | 魔物首領池 |
+|------|-----------|-----------|
+| 定位 | 少數天賦女性中的頂尖者 | 巢穴中誕生的變異統御者 |
+| 光環典型 | 攻擊 / 防禦 / 治療加成 | 恐懼削敵、horde / regen 強化 |
+| 風險 | 陣亡即永久損失頂尖戰力 | 首領隕落動搖巢群士氣 |
+
 ## 魔物物種圖鑑（可擴充）
 
 物種定義放在 [`../data/monsters.yaml`](../data/monsters.yaml)，以 `MonsterSpecies` 模型驗證。
@@ -48,4 +79,5 @@
 - **人類敗**：王城（`node_type=capital`）被魔物佔領。
 - 反之為魔物方勝負條件。`GameState.winner` 記錄結果，`None` 表示進行中。
 
-相關模型：`Side`、`NodeType`、`Faction`、`GameState.winner`（見 [`../schema/models.py`](../schema/models.py)）。
+相關模型：`Side`、`NodeType`、`Faction`、`GameState.winner`、`EliteTemplate`、`EliteInstance`
+（見 [`../schema/models.py`](../schema/models.py)）。

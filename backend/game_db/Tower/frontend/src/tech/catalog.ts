@@ -1,0 +1,284 @@
+import type { TechCatalog } from "./types";
+
+// 由 ../../../data/tech_tree.yaml 鏡像而來（手動同步）。
+// 若日後接後端，改成 fetch('/api/tech-tree') 即可，形狀不變。
+export const TECH_CATALOG: TechCatalog = {
+
+  // ===========================================================
+  // 人類科技樹
+  // ===========================================================
+  gene_1: {
+    id: "gene_1", name: "基因強化 I", category: "gene", side: "human",
+    cost: { research_point: 6 }, prerequisites: [],
+    effects: { hp_mult: 1.10, attack_mult: 1.05 },
+    description: "提升所有人類單位的 HP 與攻擊。"
+  },
+  gene_2: {
+    id: "gene_2", name: "基因強化 II", category: "gene", side: "human",
+    cost: { research_point: 14 }, prerequisites: ["gene_1"],
+    effects: { hp_mult: 1.20, attack_mult: 1.15 },
+    description: ""
+  },
+  forged_weapons: {
+    id: "forged_weapons", name: "精煉武器", category: "weapon", side: "human",
+    cost: { research_point: 8, combat_resource: 6 }, prerequisites: [],
+    effects: { attack_mult: 1.15 },
+    description: ""
+  },
+  city_fortify: {
+    id: "city_fortify", name: "城防強化", category: "fortification", side: "human",
+    cost: { research_point: 10, combat_resource: 8 }, prerequisites: [],
+    effects: { fortification_add: 0.3 },
+    description: "提升己方據點的工事倍率。"
+  },
+  scout_network: {
+    id: "scout_network", name: "斥候網", category: "recon", side: "human",
+    cost: { research_point: 6 }, prerequisites: [],
+    effects: { intel_clarity: 0.20 },
+    description: "提升情報清晰度。"
+  },
+  counter_recon: {
+    id: "counter_recon", name: "反偵察", category: "recon", side: "human",
+    cost: { research_point: 8 }, prerequisites: ["scout_network"],
+    effects: { concealment: 0.20 },
+    description: ""
+  },
+  supply_lines: {
+    id: "supply_lines", name: "行軍補給", category: "logistics", side: "human",
+    cost: { research_point: 6 }, prerequisites: [],
+    effects: { movement: 0.25, upkeep_reduction: 0.15 },
+    description: ""
+  },
+
+  // ===========================================================
+  // 魔物進化樹 — 綠皮種族 (greenskins)
+  // ===========================================================
+  evo_greenskin_init: {
+    id: "evo_greenskin_init", name: "綠皮覺醒", category: "evolution", side: "monster",
+    race_group: "greenskins",
+    cost: { monster_source: 6 }, prerequisites: [],
+    effects: { unlock_species_goblin: 1, unlock_species_kappa: 1 },
+    description: "解鎖哥布林與河童，開啟綠皮種族進化線。"
+  },
+  evo_goblin_elite: {
+    id: "evo_goblin_elite", name: "哥布林精英化", category: "evolution", side: "monster",
+    race_group: "greenskins",
+    cost: { monster_source: 12 }, prerequisites: ["evo_greenskin_init"],
+    effects: { unlock_species_elite_goblin: 1, horde_bonus: 0.10 },
+    description: "解鎖精英哥布林並強化 horde 特性。"
+  },
+  evo_goblin_shaman: {
+    id: "evo_goblin_shaman", name: "哥布林祭司化", category: "evolution", side: "monster",
+    race_group: "greenskins",
+    cost: { monster_source: 12 }, prerequisites: ["evo_greenskin_init"],
+    effects: { unlock_species_goblin_shaman: 1 },
+    description: "解鎖哥布林祭司，為綠皮提供法術支援。"
+  },
+  evo_hobgoblin: {
+    id: "evo_hobgoblin", name: "霍布地精化", category: "evolution", side: "monster",
+    race_group: "greenskins",
+    cost: { monster_source: 18 }, prerequisites: ["evo_goblin_elite"],
+    effects: { unlock_species_hobgoblin: 1 },
+    description: "解鎖霍布地精，連接哥布林系與半獸人的中繼進化。"
+  },
+  evo_orc: {
+    id: "evo_orc", name: "半獸人化", category: "evolution", side: "monster",
+    race_group: "greenskins",
+    cost: { monster_source: 28 }, prerequisites: ["evo_hobgoblin"],
+    effects: { unlock_species_orc: 1, greenskin_attack_mult: 1.10 },
+    description: "解鎖半獸人，同時強化所有綠皮的攻擊。"
+  },
+  evo_troll: {
+    id: "evo_troll", name: "巨魔化", category: "evolution", side: "monster",
+    race_group: "greenskins",
+    cost: { monster_source: 20 }, prerequisites: ["evo_greenskin_init"],
+    effects: { unlock_species_troll: 1 },
+    description: "解鎖巨魔，河童系最高進化形態。"
+  },
+
+  // ===========================================================
+  // 魔物進化樹 — 血肉族 (fleshes)
+  // ===========================================================
+  evo_flesh_init: {
+    id: "evo_flesh_init", name: "血肉覺醒", category: "evolution", side: "monster",
+    race_group: "fleshes",
+    cost: { monster_source: 6 }, prerequisites: [],
+    effects: { unlock_species_slime: 1 },
+    description: "解鎖史萊姆，開啟血肉族進化線。"
+  },
+  evo_tentacle: {
+    id: "evo_tentacle", name: "觸手分化", category: "evolution", side: "monster",
+    race_group: "fleshes",
+    cost: { monster_source: 14 }, prerequisites: ["evo_flesh_init"],
+    effects: { unlock_species_tentacle_beast: 1 },
+    description: "解鎖觸手怪，血肉族的進攻分支。"
+  },
+  evo_elemental_slime: {
+    id: "evo_elemental_slime", name: "元素史萊姆化", category: "evolution", side: "monster",
+    race_group: "fleshes",
+    cost: { monster_source: 16 }, prerequisites: ["evo_flesh_init"],
+    effects: { unlock_species_elemental_slime: 1 },
+    description: "解鎖元素史萊姆，吸收元素能量的攻擊型分支。"
+  },
+  evo_specialized_slime: {
+    id: "evo_specialized_slime", name: "特化史萊姆化", category: "evolution", side: "monster",
+    race_group: "fleshes",
+    cost: { monster_source: 14 }, prerequisites: ["evo_flesh_init"],
+    effects: { unlock_species_specialized_slime: 1 },
+    description: "解鎖特化史萊姆，酸蝕型防禦分支。"
+  },
+  evo_oblex: {
+    id: "evo_oblex", name: "歐布萊克斯融合", category: "evolution", side: "monster",
+    race_group: "fleshes",
+    cost: { monster_source: 36 }, prerequisites: ["evo_tentacle", "evo_elemental_slime"],
+    effects: { unlock_species_oblex: 1 },
+    description: "需同時解鎖觸手與元素史萊姆線，融合進化出歐布萊克斯。"
+  },
+  evo_rotten: {
+    id: "evo_rotten", name: "腐者化", category: "evolution", side: "monster",
+    race_group: "fleshes",
+    cost: { monster_source: 32 }, prerequisites: ["evo_tentacle"],
+    effects: { unlock_species_the_rotten: 1, flesh_hp_mult: 1.10 },
+    description: "解鎖腐者並強化所有血肉族的 HP。"
+  },
+
+  // ===========================================================
+  // 魔物進化樹 — 獸族 (fures)
+  // ===========================================================
+  evo_fures_init: {
+    id: "evo_fures_init", name: "野性覺醒", category: "evolution", side: "monster",
+    race_group: "fures",
+    cost: { monster_source: 8 }, prerequisites: [],
+    effects: { unlock_species_werewolf: 1 },
+    description: "解鎖狼人，開啟獸族進化線。"
+  },
+  evo_bigfoot: {
+    id: "evo_bigfoot", name: "大腳怪化", category: "evolution", side: "monster",
+    race_group: "fures",
+    cost: { monster_source: 20 }, prerequisites: ["evo_fures_init"],
+    effects: { unlock_species_bigfoot: 1 },
+    description: "解鎖大腳怪，高 HP 的山地重型獸族。"
+  },
+  evo_minotaur: {
+    id: "evo_minotaur", name: "牛頭人化", category: "evolution", side: "monster",
+    race_group: "fures",
+    cost: { monster_source: 24 }, prerequisites: ["evo_fures_init"],
+    effects: { unlock_species_minotaur: 1 },
+    description: "解鎖牛頭人，衝鋒型獸族精英。"
+  },
+  evo_yeti: {
+    id: "evo_yeti", name: "雪怪化", category: "evolution", side: "monster",
+    race_group: "fures",
+    cost: { monster_source: 30 }, prerequisites: ["evo_bigfoot"],
+    effects: { unlock_species_yeti: 1, fures_defense_mult: 1.08 },
+    description: "解鎖雪怪，大腳怪的極地進化；同時強化所有獸族的防禦。"
+  },
+
+  // ===========================================================
+  // 魔物進化樹 — 不死族 (undeads)
+  // ===========================================================
+  evo_undead_init: {
+    id: "evo_undead_init", name: "不死覺醒", category: "evolution", side: "monster",
+    race_group: "undeads",
+    cost: { monster_source: 6 }, prerequisites: [],
+    effects: { unlock_species_skeleton: 1, unlock_species_zombie: 1 },
+    description: "解鎖骷髏與殭屍，開啟不死族進化線。"
+  },
+  evo_mummy: {
+    id: "evo_mummy", name: "木乃伊化", category: "evolution", side: "monster",
+    race_group: "undeads",
+    cost: { monster_source: 18 }, prerequisites: ["evo_undead_init"],
+    effects: { unlock_species_mummy: 1 },
+    description: "解鎖木乃伊，詛咒型不死前排。"
+  },
+  evo_vampire: {
+    id: "evo_vampire", name: "吸血鬼化", category: "evolution", side: "monster",
+    race_group: "undeads",
+    cost: { monster_source: 34 }, prerequisites: ["evo_undead_init"],
+    effects: { unlock_species_vampire: 1, undead_hp_mult: 1.12 },
+    description: "解鎖吸血鬼，不死族頂點；同時強化所有不死的 HP。"
+  },
+
+  // ===========================================================
+  // 魔物進化樹 — 魔族 (demons)
+  // ===========================================================
+  evo_demon_init: {
+    id: "evo_demon_init", name: "魔族召喚", category: "evolution", side: "monster",
+    race_group: "demons",
+    cost: { monster_source: 20 }, prerequisites: [],
+    effects: { unlock_species_demon: 1 },
+    description: "解鎖惡魔，開啟魔族進化線；消耗較高，代表高階起步。"
+  },
+  evo_succubus: {
+    id: "evo_succubus", name: "魅魔化", category: "evolution", side: "monster",
+    race_group: "demons",
+    cost: { monster_source: 26 }, prerequisites: ["evo_demon_init"],
+    effects: { unlock_species_succubus: 1 },
+    description: "解鎖魅魔，魅惑與飛行兼具的法術型進化。"
+  },
+  evo_balrog: {
+    id: "evo_balrog", name: "炎魔化", category: "evolution", side: "monster",
+    race_group: "demons",
+    cost: { monster_source: 44 }, prerequisites: ["evo_succubus"],
+    effects: { unlock_species_balrog: 1, demon_attack_mult: 1.15 },
+    description: "解鎖炎魔，魔族最強形態；同時強化所有魔族的攻擊。"
+  },
+
+  // ===========================================================
+  // 魔物科研列表 (monster_research)
+  // ===========================================================
+  res_dark_ritual: {
+    id: "res_dark_ritual", name: "暗黑儀式", category: "monster_research", side: "monster",
+    cost: { monster_source: 10 }, prerequisites: [],
+    effects: { hp_mult: 1.10 },
+    description: "對所有魔物物種施加暗黑祝福，全體 HP 提升 10%。"
+  },
+  res_blood_harvest: {
+    id: "res_blood_harvest", name: "血腥收割", category: "monster_research", side: "monster",
+    cost: { monster_source: 10 }, prerequisites: [],
+    effects: { upkeep_reduction: 0.15 },
+    description: "優化奴隸資源消耗鏈，全物種每月維持成本降低 15%。"
+  },
+  res_hellforge: {
+    id: "res_hellforge", name: "地獄熔爐", category: "monster_research", side: "monster",
+    cost: { monster_source: 16, slave: 6 }, prerequisites: ["res_dark_ritual"],
+    effects: { attack_mult: 1.12, defense_mult: 1.08 },
+    description: "地獄火鍛造武裝，全體攻擊與防禦同步提升。"
+  },
+  res_horde_surge: {
+    id: "res_horde_surge", name: "群衝戰術", category: "monster_research", side: "monster",
+    cost: { monster_source: 14 }, prerequisites: ["res_dark_ritual"],
+    effects: { greenskin_horde_bonus: 0.15, greenskin_attack_mult: 1.08 },
+    description: "專項強化綠皮種族的 horde 特性，並提升其攻擊。"
+  },
+  res_undead_resilience: {
+    id: "res_undead_resilience", name: "不死韌性", category: "monster_research", side: "monster",
+    cost: { monster_source: 14 }, prerequisites: ["res_dark_ritual"],
+    effects: { undead_hp_mult: 1.18, undead_regen: 0.05 },
+    description: "強化不死族的血肉腐韌，HP 大幅提升並獲得微量再生。"
+  },
+  res_predator_fury: {
+    id: "res_predator_fury", name: "掠奪狂怒", category: "monster_research", side: "monster",
+    cost: { monster_source: 14 }, prerequisites: ["res_dark_ritual"],
+    effects: { fures_attack_mult: 1.15, fures_frenzy_threshold: 0.10 },
+    description: "激發獸族原始獵性，攻擊提升並提前觸發 frenzy。"
+  },
+  res_flesh_mutation: {
+    id: "res_flesh_mutation", name: "血肉突變", category: "monster_research", side: "monster",
+    cost: { monster_source: 14 }, prerequisites: ["res_dark_ritual"],
+    effects: { flesh_defense_mult: 1.15, flesh_split_threshold: 0.10 },
+    description: "加速血肉族的細胞分裂能力，防禦提升且 split 觸發閾值更低。"
+  },
+  res_demonic_pact: {
+    id: "res_demonic_pact", name: "惡魔契約", category: "monster_research", side: "monster",
+    cost: { monster_source: 18, slave: 8 }, prerequisites: ["res_hellforge"],
+    effects: { demon_attack_mult: 1.18, demon_fear_mult: 1.20 },
+    description: "簽訂更深層的惡魔契約，魔族攻擊與 fear 效果大幅增強。"
+  },
+  res_soul_harvest: {
+    id: "res_soul_harvest", name: "靈魂收割", category: "monster_research", side: "monster",
+    cost: { monster_source: 22, slave: 10 }, prerequisites: ["res_hellforge"],
+    effects: { attack_mult: 1.08, hp_mult: 1.08, upkeep_reduction: 0.10 },
+    description: "頂階科研，收割戰場靈魂轉化為全物種的力量，全體數值全面改善。"
+  }
+};

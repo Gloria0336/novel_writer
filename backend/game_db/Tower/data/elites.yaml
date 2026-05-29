@@ -1,0 +1,246 @@
+# 菁英單位（英雄 / 首領）範本 — 以 EliteTemplate 模型驗證（見 ../schema/models.py）
+# 開局選角時雙方各從己方陣營選 5–8 名（elite_roster_size），實例化為 EliteInstance。
+# aura = 對同據點友軍的光環倍率；growth = 每級成長；abilities 由引擎效果套用表解讀。
+# 新增菁英只需在此增條目，不必改 schema。鍵 = 菁英 id。
+
+# ===== 人類英雄池 =====
+saintess:
+  id: saintess
+  name: 聖女
+  side: human
+  attack: 14
+  defense: 18
+  hp: 60
+  upkeep: 2.0
+  aura: {ally_hp_mult: 1.20, ally_defense_mult: 1.10}
+  abilities: [bless]
+  growth: {hp_per_level: 6, ally_hp_mult_per_level: 0.03}
+  xp_per_level: 10
+  max_level: 5
+  description: 治療型英雄，光環大幅提升同據點友軍有效 HP，bless 額外回復。
+
+general:
+  id: general
+  name: 女將軍
+  side: human
+  attack: 26
+  defense: 18
+  hp: 55
+  upkeep: 2.5
+  aura: {ally_attack_mult: 1.25}
+  abilities: [rally]
+  growth: {attack_per_level: 2.0, ally_attack_mult_per_level: 0.03}
+  xp_per_level: 10
+  max_level: 6
+  description: 進攻型統帥，光環提升全據點友軍攻擊，rally 鼓舞士氣。
+
+archmage:
+  id: archmage
+  name: 大法師
+  side: human
+  attack: 30
+  defense: 10
+  hp: 42
+  upkeep: 3.0
+  aura: {ally_attack_mult: 1.10}
+  abilities: [aoe_spell]
+  growth: {attack_per_level: 2.5}
+  xp_per_level: 12
+  max_level: 5
+  description: 高爆發法系英雄，aoe_spell 對進攻方造成額外傷亡。
+
+dragoon:
+  id: dragoon
+  name: 龍騎士
+  side: human
+  attack: 24
+  defense: 16
+  hp: 58
+  upkeep: 2.5
+  aura: {ally_attack_mult: 1.12}
+  abilities: [flight, charge]
+  growth: {attack_per_level: 1.8, hp_per_level: 4}
+  xp_per_level: 11
+  max_level: 6
+  description: 機動型英雄，flight 不受地形限制、charge 提升突擊戰力。
+
+shield_captain:
+  id: shield_captain
+  name: 盾衛統領
+  side: human
+  attack: 16
+  defense: 26
+  hp: 70
+  upkeep: 2.0
+  aura: {ally_defense_mult: 1.25}
+  abilities: [guard]
+  growth: {defense_per_level: 2.0, ally_defense_mult_per_level: 0.03}
+  xp_per_level: 10
+  max_level: 6
+  description: 防禦型英雄，光環強化守軍防禦，guard 提升據點工事效益。
+
+paladin:
+  id: paladin
+  name: 聖殿騎士
+  side: human
+  attack: 22
+  defense: 22
+  hp: 64
+  upkeep: 2.8
+  aura: {ally_attack_mult: 1.10, ally_defense_mult: 1.10}
+  abilities: [smite]
+  growth: {attack_per_level: 1.5, defense_per_level: 1.5}
+  xp_per_level: 11
+  max_level: 6
+  description: 攻守均衡的英雄，smite 對魔物造成額外傷害。
+
+ranger_warden:
+  id: ranger_warden
+  name: 遊俠守望
+  side: human
+  attack: 20
+  defense: 14
+  hp: 48
+  upkeep: 1.8
+  aura: {ally_attack_mult: 1.08}
+  abilities: [scout, ambush]
+  growth: {attack_per_level: 1.6}
+  xp_per_level: 10
+  max_level: 5
+  description: 偵察型英雄，scout 提升該據點視野、ambush 先制削弱進攻方。
+
+valkyrie_lord:
+  id: valkyrie_lord
+  name: 女武神統領
+  side: human
+  attack: 28
+  defense: 20
+  hp: 66
+  upkeep: 3.5
+  aura: {ally_attack_mult: 1.18, ally_hp_mult: 1.08}
+  abilities: [flight, elite]
+  growth: {attack_per_level: 2.2, hp_per_level: 5, ally_attack_mult_per_level: 0.025}
+  xp_per_level: 13
+  max_level: 7
+  description: 頂尖女武神，攻擊與 HP 雙光環，飛行兼具高自身戰力。
+
+# ===== 魔物首領池 =====
+demon_lord:
+  id: demon_lord
+  name: 魔王
+  side: monster
+  attack: 30
+  defense: 18
+  hp: 70
+  upkeep: 3.0
+  aura: {ally_attack_mult: 1.20}
+  abilities: [fear, caster]
+  growth: {attack_per_level: 2.2, ally_attack_mult_per_level: 0.03}
+  xp_per_level: 12
+  max_level: 7
+  description: 魔物方核心首領，fear 削弱守方戰力、攻擊光環統御全據點。
+
+spider_queen:
+  id: spider_queen
+  name: 蛛后
+  side: monster
+  attack: 18
+  defense: 16
+  hp: 64
+  upkeep: 2.0
+  aura: {ally_attack_mult: 1.15}
+  abilities: [horde_boost, spawn]
+  growth: {ally_attack_mult_per_level: 0.035}
+  xp_per_level: 10
+  max_level: 6
+  description: 強化群體單位，horde_boost 放大 horde 特性、spawn 補充雜兵。
+
+lich:
+  id: lich
+  name: 不死巫妖
+  side: monster
+  attack: 22
+  defense: 14
+  hp: 50
+  upkeep: 2.5
+  aura: {ally_hp_mult: 1.15}
+  abilities: [regen_aura, raise_dead]
+  growth: {ally_hp_mult_per_level: 0.03}
+  xp_per_level: 12
+  max_level: 6
+  description: 不死系首領，regen_aura 使同據點友軍每回合再生、raise_dead 回收傷亡。
+
+mutant_lord:
+  id: mutant_lord
+  name: 變異領主
+  side: monster
+  attack: 20
+  defense: 20
+  hp: 76
+  upkeep: 2.5
+  aura: {ally_hp_mult: 1.12, ally_defense_mult: 1.10}
+  abilities: [mutate]
+  growth: {hp_per_level: 6, ally_hp_mult_per_level: 0.025}
+  xp_per_level: 11
+  max_level: 6
+  description: 高韌性首領，mutate 隨機強化同據點物種數值。
+
+beast_alpha:
+  id: beast_alpha
+  name: 獸群首領
+  side: monster
+  attack: 26
+  defense: 14
+  hp: 58
+  upkeep: 2.2
+  aura: {ally_attack_mult: 1.18}
+  abilities: [frenzy]
+  growth: {attack_per_level: 2.0, ally_attack_mult_per_level: 0.03}
+  xp_per_level: 11
+  max_level: 6
+  description: 狂暴型首領，frenzy 在進攻時大幅提升全據點攻擊。
+
+corruptor:
+  id: corruptor
+  name: 腐化巫師
+  side: monster
+  attack: 24
+  defense: 10
+  hp: 44
+  upkeep: 2.5
+  aura: {ally_attack_mult: 1.08}
+  abilities: [caster, debuff_defense]
+  growth: {attack_per_level: 2.0}
+  xp_per_level: 12
+  max_level: 5
+  description: 法系首領，debuff_defense 降低守方防禦、caster 施放範圍魔法。
+
+broodmother:
+  id: broodmother
+  name: 孵母
+  side: monster
+  attack: 12
+  defense: 18
+  hp: 68
+  upkeep: 2.0
+  aura: {ally_hp_mult: 1.10}
+  abilities: [breed_boost]
+  growth: {hp_per_level: 5, ally_hp_mult_per_level: 0.025}
+  xp_per_level: 10
+  max_level: 6
+  description: 後勤型首領，breed_boost 加速同據點孵化、提供 HP 光環。
+
+titan:
+  id: titan
+  name: 泰坦巨獸
+  side: monster
+  attack: 28
+  defense: 28
+  hp: 100
+  upkeep: 3.5
+  aura: {ally_defense_mult: 1.20}
+  abilities: [trample, regen]
+  growth: {defense_per_level: 2.5, hp_per_level: 8, ally_defense_mult_per_level: 0.03}
+  xp_per_level: 14
+  max_level: 7
+  description: 重裝巨獸，超高自身戰力與防禦光環，trample 踐踏進攻方。
