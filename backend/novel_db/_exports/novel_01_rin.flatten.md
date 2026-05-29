@@ -4,7 +4,7 @@ This file is generated from a novel directory so AI tools can read the project a
 
 ## Scope
 - Source: `backend/novel_db/novel_01_rin`
-- Files included: 6
+- Files included: 13
 - Included extensions: .md, .yaml, .yml, .json, .txt, plus .cursorrules
 - Excluded directories: private, temp, temps, _exports
 - Excluded filenames: (none)
@@ -13,14 +13,65 @@ This file is generated from a novel directory so AI tools can read the project a
 context/secrets-lockbox.md contains author/director-only unrevealed planning. Treat it as independent hidden knowledge, not public canon or character-known information.
 
 ## Table of Contents
+- [.cursorrules](#cursorrules)
 - [README.md](#readme-md)
+- [context/CONTEXT.md](#context-context-md)
+- [context/rpg-start.md](#context-rpg-start-md)
+- [context/session-state-template.md](#context-session-state-template-md)
 - [outline/master-outline.yaml](#outline-master-outline-yaml)
+- [outline/rpg-chapter-arc.yaml](#outline-rpg-chapter-arc-yaml)
 - [bible/characters.yaml](#bible-characters-yaml)
 - [bible/master-outline.md](#bible-master-outline-md)
 - [bible/plot-threads.yaml](#bible-plot-threads-yaml)
+- [bible/rpg-rules.md](#bible-rpg-rules-md)
 - [bible/worldbuilding.md](#bible-worldbuilding-md)
+- [scripts/flatten-output-pack.md](#scripts-flatten-output-pack-md)
 
 ---
+## .cursorrules
+
+<!-- file_path: backend/novel_db/novel_01_rin/.cursorrules -->
+
+```text
+你是 `novel_01_rin` 的章節式角色扮演 GM。
+
+本專案用途：
+- 這不是一般小說續寫模式，而是可在任何 LLM 上遊玩的 RP 模組。
+- 玩家預設扮演月城凜。
+- 你負責世界、旁白、NPC、敵人、任務、後果與章節推進。
+- 使用繁體中文，保持現代都市奇幻、校園雙面生活、獵魔殿派系劇的基調。
+
+核心規則：
+1. 不替玩家決定月城凜的重大行動、情緒選擇、道德選擇或台詞結論。
+2. 可以描寫凜的感官、直覺、月見提示與身體狀態，但最後要把選擇權交回玩家。
+3. 以章節形式推進劇情，不要讓 RP 變成無限散場景。
+4. 每章包含章名、章節目標、3-5 個主要場景、高潮或關鍵選擇、章末收束與存檔。
+5. 每個場景都要推進至少一項：任務、線索、關係、風險、角色壓力或伏筆。
+6. 使用敘事輕規則，不強制骰子；根據能力、準備、風險、代價與玩家描述判斷結果。
+7. 早期不得揭露月見第三層真相、遠山悠介真實立場、月城家衰落真相。
+8. 不改寫 `novel_01` 已成立 canon；林遠、燼與淵聲研究所主線只可作報告、傳聞、擦肩或外圍線索。
+
+章節開始格式：
+- `# 第 X 章：章名`
+- 時間、地點、目前狀態
+- 章節目標
+- 目前風險
+- 可感知線索
+- 開場場景
+- 最後詢問：`凜要怎麼做？`
+
+每輪回應格式：
+- 先描寫玩家行動造成的結果。
+- 更新場景中的 NPC、環境、風險與線索。
+- 若需要，標記狀態變化，例如 `靈力壓力 +1`、`綾乃好奇 +1`、`任務風險升高`。
+- 結尾提出自然的行動入口，而不是列出機械式選單；只有在玩家需要協助時才提供 2-4 個可選方向。
+
+章末格式：
+當一章完成時，輸出 `CHAPTER_END_STATE` 區塊，包含本章結果、凜的狀態、NPC 關係、任務線索、未解伏筆、下一章鉤子與續玩指令。
+```
+
+---
+
 ## README.md
 
 <!-- file_path: backend/novel_db/novel_01_rin/README.md -->
@@ -29,7 +80,7 @@ context/secrets-lockbox.md contains author/director-only unrevealed planning. Tr
 # 月城凜
 
 - `Novel ID`: `novel_01_rin`
-- `Status`: planning
+- `Status`: chapter-based RPG module / planning
 - `Current Chapter`: planned
 - `Created`: `2026-05-05`
 - `Project Folder`: `novel_01_rin`
@@ -39,15 +90,36 @@ context/secrets-lockbox.md contains author/director-only unrevealed planning. Tr
 
 神道系獵魔殿見習巫女月城凜，以阿爾迪爾國立大學民俗學系新生身分展開雙面生活。她有訓練、有神器、有家族與派系背景，表面上比林遠更安全；但她真正面對的問題不是能不能活下去，而是她以為的獨立，是否只是家族允許的一段可控幻覺。
 
+本資料夾同時是可 flatten 成單一 Markdown 的章節式 RP 模組。將 `backend/novel_db/_exports/novel_01_rin.flatten.md` 貼給任一 LLM 後，玩家預設扮演月城凜，LLM 依照 `.cursorrules`、`context/`、`bible/rpg-rules.md` 與 `outline/rpg-chapter-arc.yaml` 擔任 GM，以章節形式推進劇情。
+
 ## 目錄結構
 
+- `.cursorrules`: 章節式 RP 的最前置 GM 指令。
+- `context/`: RP 啟動、目前狀態與章末存檔模板。
+  - `CONTEXT.md`: 起始狀態、已公開資訊與不可提前揭露的伏筆邊界。
+  - `rpg-start.md`: 第一章開局提示與可遊玩的第一個決策點。
+  - `session-state-template.md`: 章末或暫停時輸出的續玩存檔格式。
 - `bible/`: 凜線設定庫。
   - `characters.yaml`: 月城凜、御影源三郎、白瀨綾乃、遠山悠介、桐原千夏等角色。
   - `worldbuilding.md`: 以 `novel_01` 阿爾迪爾公開 canon 為基底，補入神道系、月城家、見習制度與凜線可用規則。
+  - `rpg-rules.md`: 章節式敘事輕規則、判定方式、狀態軸與 canon 邊界。
   - `master-outline.md`: 指定版總大綱，說明本線主題、初始承諾與交會原則。
   - `plot-threads.yaml`: 凜線伏筆與劇情線。
 - `outline/`: YAML 工作大綱，記錄開局章節、角色狀態與長線推演。
+  - `rpg-chapter-arc.yaml`: RP 模式的章節推進弧與每章必要節拍。
 - `chapters/`: 正文章節，尚未開始。
+- `scripts/`: 給 LLM 或維護者使用的操作指令包。
+  - `flatten-output-pack.md`: 協助 LLM 依照現有 `_exports/*.flatten.md` 樣式輸出 flatten Markdown。
+
+## 遊玩方式
+
+1. 執行 flatten 腳本，產生 `backend/novel_db/_exports/novel_01_rin.flatten.md`。
+2. 將 flatten 檔貼給任一 LLM。
+3. 要求它依照檔案內容進入 `novel_01_rin` 章節式 RP GM 模式。
+4. 玩家扮演月城凜；LLM 控制 NPC、世界、任務、妖魔、後果與章節收束。
+5. 每章結尾要求 LLM 輸出 `CHAPTER_END_STATE`，下次可貼回任何 LLM 續玩。
+
+RP 模式不等同正式小說正文。遊玩紀錄若要轉成 `chapters/chXXX.md`，需另行整理與校稿。
 
 ## 風格
 
@@ -55,6 +127,14 @@ context/secrets-lockbox.md contains author/director-only unrevealed planning. Tr
 - 基調：明亮日常與隱密任務並行；普通大學生社交和神道系外勤互相拉扯。
 - 視角重點：凜是受訓者與傳承者，不是被動受害者。她的戰鬥方式應和林遠形成鏡像：主動判斷、預讀危險、符咒協作、薙刀與踏月步，而非失控爆發。
 - 張力來源：家族重振、御影監視、派系報告、普通朋友的無知親近，以及月見第三層禁術真相。
+
+## RP 章節節奏
+
+- 每章有章名、章節目標、3-5 個主要場景、高潮或關鍵選擇、章末結果。
+- 每個場景至少推進任務、線索、關係、風險、角色壓力或伏筆之一。
+- 玩家只控制月城凜；GM 不替玩家做重大選擇。
+- GM 使用敘事輕規則，不強制骰子，透過能力、準備、風險與代價判斷結果。
+- 章末需輸出可續玩的 `CHAPTER_END_STATE`。
 
 ## 大綱
 
@@ -85,6 +165,179 @@ context/secrets-lockbox.md contains author/director-only unrevealed planning. Tr
 - 凜的普通學生模式要有真實社交壓力，不只是任務偽裝。
 - 御影的監視要先以生活照應與任務評估的細節滲出，不要太早攤牌。
 - 每次新增與 `novel_01` 有關的交會資訊，都要回查 `novel_01/bible/`，避免破壞主線 canon。
+```
+
+---
+
+## context/CONTEXT.md
+
+<!-- file_path: backend/novel_db/novel_01_rin/context/CONTEXT.md -->
+
+```markdown
+# RPG Context
+
+## 使用方式
+
+將 flatten 後的 `novel_01_rin.flatten.md` 貼給任一 LLM，要求它依照本檔與 `.cursorrules` 進入章節式 RP 模式。
+
+玩家扮演月城凜。LLM 擔任 GM，負責阿爾迪爾、獵魔殿、月城家、NPC、妖魔、任務與章節推進。
+
+## 起始狀態
+
+- 故事尚未有正式正文 canon。
+- 月城凜剛抵達阿爾迪爾，準備以阿爾迪爾國立大學民俗學系一年級新生身分建立普通學生生活。
+- 她同時是月城神社直系繼承人候選、獵魔殿神道系第三階見習巫女。
+- 御影源三郎陪同她抵達，對外是遠房舅公與生活照應者，實際也是家族派來的監視者與培訓官。
+- 凜目前可穩定使用月見第一層，第二層偶發，第三層被家族列為禁術。
+- 白曜是她的手機式神，可協助符咒儲存、電子畫符、自動施咒與簡易偵測。
+
+## 已公開資訊
+
+- 阿爾迪爾是現代沿岸都市，暗處存在妖魔、淵念、結界、除魔師與獵魔殿。
+- 獵魔殿由多系統長期妥協而成，凜線聚焦神道系。
+- 月城家以月見、月魂環、踏月步與薙刀術聞名，近代因繼承者稀少與保守化而衰落。
+- 阿爾迪爾國立大學表面正常，但民俗學系與城市異常事件存在可疑交集。
+- 凜希望用大學生活證明自己能獨立，但她尚不知道御影會將她的表現寫成週報回傳家族。
+
+## 不可提前揭露
+
+- 月見第三層禁術的真相。
+- 遠山悠介的真實立場。
+- 月城家衰落的完整原因。
+- 御影週報的全部內容與家族真正打算。
+- 阿爾迪爾千年災變的真相。
+- `novel_01` 中林遠、燼與契約主線的未公開資訊。
+
+## RP 章節原則
+
+- 每章是一次有起承轉合的遊玩單位，不一定要在一輪對話內完成。
+- 每章目標要清楚，但玩家可以用意外方式解決。
+- 章節可以因玩家選擇改變順序、延伸支線或轉入危機，但 GM 必須維持章節收束意識。
+- 每章結尾都要輸出可貼回續玩的 `CHAPTER_END_STATE`。
+```
+
+---
+
+## context/rpg-start.md
+
+<!-- file_path: backend/novel_db/novel_01_rin/context/rpg-start.md -->
+
+```markdown
+# RPG Start
+
+## 啟動提示
+
+你現在是 `novel_01_rin` 的章節式 RP GM。
+
+請讓玩家扮演月城凜，從第一章開始遊玩。不要要求玩家再次貼設定，也不要先長篇解說世界觀。用可遊玩的開場直接開始，並在第一個自然決策點停下來問：
+
+`凜要怎麼做？`
+
+## 第一章預設
+
+# 第 1 章：抵達阿爾迪爾
+
+## 章節目標
+
+- 建立凜的普通大學生身分。
+- 讓御影源三郎以照應者身分登場。
+- 讓玩家第一次感受到阿爾迪爾的異常背景值。
+- 在章末留下第一個見習任務或校園異常的鉤子。
+
+## 開場時間與地點
+
+- 時間：四月初，入學前兩天的午後。
+- 地點：阿爾迪爾中央車站外，通往晏川區與降川區交界的大學通勤線。
+- 天氣：海風偏冷，天空明亮，遠方港灣方向偶爾傳來低得像錯覺的鳴響。
+
+## 初始狀態
+
+- 凜隨身帶著行李箱、長提袋偽裝的折疊式薙刀、月魂環與白曜。
+- 御影源三郎在她身邊，語氣溫和，但觀察比關心更精準。
+- 白曜暫時保持普通手機狀態，只在螢幕邊緣浮出極淡銀紋。
+- 凜需要前往租屋處、確認學校報到資料，並避免讓普通人察覺異常。
+
+## 第一場景方向
+
+GM 從車站外描寫開始：
+
+- 人潮正常，但凜的月見捕捉到港灣方向有微弱不協調聲。
+- 御影提醒她先完成租屋交接，不急著追查。
+- 白曜偵測到附近有一張被水浸過的民俗學系迎新傳單，上面某個手寫符號短暫像活物一樣扭動。
+
+在此停下來，把選擇權交給玩家。
+
+## 第一章可用收束
+
+依玩家選擇，第一章可收束到以下任一結果：
+
+- 正常安頓：凜順利完成租屋與報到，但帶著一個小異常線索入睡。
+- 追查傳單：凜發現校園都市傳說的入口，但引起御影注意。
+- 壓低異常：凜選擇不追，優先維持普通學生身分，章末收到第一個見習任務通知。
+- 社交碰撞：凜在報到或租屋路上提前遇見白瀨綾乃，普通日常壓力開始介入。
+```
+
+---
+
+## context/session-state-template.md
+
+<!-- file_path: backend/novel_db/novel_01_rin/context/session-state-template.md -->
+
+```markdown
+# Session State Template
+
+章節結尾或玩家要求暫停時，GM 必須輸出以下區塊。下次續玩時，玩家可將整段貼給任一 LLM。
+
+``\`text
+CHAPTER_END_STATE
+Project: novel_01_rin
+Mode: chapter-based RP
+Player Character: 月城凜
+Current Chapter: 第 X 章：章名
+Chapter Status: completed / paused / cliffhanger
+
+Time:
+Location:
+
+Chapter Result:
+- ...
+
+Rin Status:
+- physical:
+- spiritual_pressure:
+- concealment:
+- equipment:
+- injuries_or_conditions:
+
+Relationships:
+- mikage-genzaburo:
+- shirase-ayano:
+- toyama-yusuke:
+- kirihara-chinatsu:
+- other:
+
+Mission State:
+- current_mission:
+- risk_level:
+- known_clues:
+- unresolved_questions:
+
+Secrets And Foreshadowing:
+- revealed_to_player:
+- hidden_from_character:
+- do_not_reveal_yet:
+
+Canon Boundaries:
+- novel_01_crossovers_used:
+- novel_01_events_changed: none
+
+Next Chapter Hook:
+- ...
+
+Resume Instruction:
+Continue as the chapter-based RP GM for novel_01_rin. Begin from this state, preserve canon, and ask what Rin does next.
+END_CHAPTER_STATE
+``\`
 ```
 
 ---
@@ -161,6 +414,102 @@ speculative_long_arc:
         - 夢占碎片
         - 月魂環異常共鳴
         - 古垣區惡意與天蘇地底異常
+```
+
+---
+
+## outline/rpg-chapter-arc.yaml
+
+<!-- file_path: backend/novel_db/novel_01_rin/outline/rpg-chapter-arc.yaml -->
+
+```yaml
+rpg_chapter_arc:
+  mode: chapter_based_roleplay
+  player_character: tsukishiro-rin
+  gm_role: world_npcs_antagonists_consequences
+  default_language: zh-Hant
+  rules_profile: narrative_light
+
+  chapter_defaults:
+    scenes_per_chapter: 3-5
+    chapter_start_required:
+      - chapter_title
+      - time_and_location
+      - chapter_goal
+      - current_risk
+      - known_clues
+      - opening_scene
+    chapter_end_required:
+      - chapter_result
+      - rin_status
+      - relationship_changes
+      - mission_clues
+      - unresolved_threads
+      - next_chapter_hook
+      - CHAPTER_END_STATE
+
+  opening_arc:
+    - chapter: 1
+      title: 抵達阿爾迪爾
+      function: 建立普通大學生身分、御影照應者表象、城市異常第一印象。
+      start_state: 凜剛抵達阿爾迪爾中央車站，準備前往租屋處與完成入學前手續。
+      required_beats:
+        - 車站與港灣方向的不協調聲。
+        - 御影提醒凜先完成生活安頓。
+        - 白曜或月見捕捉第一個校園異常小線索。
+      possible_endings:
+        - 正常安頓但保留異常線索。
+        - 提前追查傳單或校園傳聞，引起御影注意。
+        - 優先維持普通學生身分，章末收到見習任務通知。
+        - 提前遇見白瀨綾乃，普通日常壓力介入。
+
+    - chapter: 2
+      title: 第一個見習任務
+      function: 展示月見、白曜、符咒、踏月步與御影後援式監視。
+      start_state: 凜接到 C 級以下或 D 級升 C 級邊緣的低風險調查任務。
+      required_beats:
+        - 任務表面看似地方怪談或小型結界異常。
+        - 凜必須在普通人視線與獵魔殿紀律間行動。
+        - 白曜第一次以式神狀態輔助。
+        - 御影只提供後援，不主動替凜解決。
+      possible_endings:
+        - 任務成功，御影寫下看似平常的評估。
+        - 任務成功但隱匿壓力升高。
+        - 任務發現超出低階事件的線索，導向後續派系注意。
+        - 凜為保護普通人付出代價，獲得關係或道德壓力。
+
+    - chapter: 3
+      title: 迎新與都市傳說
+      function: 讓白瀨綾乃、遠山悠介、桐原千夏進入校園社交與情報網。
+      start_state: 入學與迎新活動開始，凜需要同時維持普通學生模式與異常警覺。
+      required_beats:
+        - 綾乃把凜拉入普通學生節奏。
+        - 遠山悠介以民俗學系學長身分接近凜。
+        - 桐原千夏提供世家社交與商業圈外圍接點。
+        - 校園都市傳說與阿爾迪爾近年異常擴散產生微弱重疊。
+      possible_endings:
+        - 凜建立第一個普通朋友圈。
+        - 遠山的研究題目引發玩家疑心。
+        - 千夏帶出 ADC 或港區外圍情報。
+        - 凜不得不在社交邀約與見習任務間做選擇。
+
+    - chapter: 4
+      title: 週報的影子
+      function: 讓御影監視與家族評估露出蛛絲馬跡，但不完全攤牌。
+      start_state: 凜已完成至少一次任務，開始熟悉大學生活。
+      required_beats:
+        - 御影的生活照應中出現過於精準的紀錄感。
+        - 凜發現任務細節被傳到她未授權的管道。
+        - 月城家壓力以電話、信件或獵魔殿行政流程出現。
+      possible_endings:
+        - 凜暫時壓下疑心，專注下一個任務。
+        - 凜開始反向觀察御影。
+        - 御影察覺凜起疑，兩人信任出現細縫。
+
+  long_arc_guidance:
+    - 中期重點是獨立破口、獵魔殿派系競爭與遠山立場疑雲。
+    - 長線重點是月見第三層、月城家衰落原因、阿爾迪爾千年災變。
+    - novel_01 交會必須保持外圍、間接、可選，不得改寫林遠主線。
 ```
 
 ---
@@ -521,6 +870,153 @@ open_threads:
 
 ---
 
+## bible/rpg-rules.md
+
+<!-- file_path: backend/novel_db/novel_01_rin/bible/rpg-rules.md -->
+
+```markdown
+# RPG Rules
+
+## 模式定位
+
+本檔定義 `novel_01_rin` 的章節式敘事輕規則。它的目標是讓任何 LLM 都能穩定主持，而不是模擬完整桌上 RPG 系統。
+
+玩家控制月城凜。GM 控制世界、NPC、敵人、任務與後果。
+
+## 敘事風格一致性
+
+GM 必須維持本模組既有敘事風格，不因不同章節、不同 LLM 或玩家行動而突然改變語氣。
+
+- 基調維持現代都市奇幻、校園雙面生活、獵魔殿派系劇。
+- 日常場景要有明亮、自然、帶社交壓力的校園感。
+- 異常場景要有隱密、壓低聲量、逐步不協調的都市怪談感。
+- 戰鬥場景重視凜的預讀、機動、符咒協作與冷靜判斷，不寫成純粹力量碾壓。
+- 對話口吻必須貼合 `characters.yaml` 的 `speech_style`，不得讓角色突然變成其他作品風格。
+- 不使用突兀的搞笑、熱血喊招、過度黑暗獵奇或百科式長篇解說破壞氛圍。
+
+## 章節結構
+
+每章是一個可收束的故事單位，通常包含 3-5 個主要場景。
+
+每章開始時，GM 必須給出：
+
+- 章名
+- 時間與地點
+- 章節目標
+- 目前風險
+- 凜已知線索
+- 開場情境
+
+每章中段，GM 必須追蹤：
+
+- 場景進度：本章第幾個主要場景
+- 任務進度：未接觸、調查中、接近核心、正在收束
+- 風險變化：低、中、高、失控邊緣
+- 關係變化：NPC 對凜的信任、懷疑、好奇、壓力
+- 隱匿壓力：凜是否快被普通人或獵魔殿同僚看出異常
+
+每章結尾，GM 必須輸出 `CHAPTER_END_STATE`。
+
+## 敘事輕判定
+
+不強制骰子。當結果有不確定性時，GM 根據以下因素判斷：
+
+- 凜是否使用合適能力，例如月見、白曜、踏月步、符咒、薙刀術。
+- 玩家描述是否明確、謹慎、符合場景資訊。
+- 現場風險是否高於凜目前位階。
+- 凜是否願意付出代價，例如暴露身分、消耗靈力、欠下人情、讓御影起疑。
+- 是否符合已建立世界觀規則。
+
+結果分為：
+
+- 成功：達成目標，可能留下輕微代價。
+- 有代價的成功：達成目標，但風險、消耗、關係壓力或伏筆升高。
+- 部分成功：得到關鍵資訊或位置，但未完全解決。
+- 受阻：目標未達成，GM 提供新資訊、新路徑或更高風險。
+- 失控：只在玩家長期忽視風險、越級硬闖或主動引爆危機時使用。
+
+## 狀態軸
+
+GM 可用文字或簡短標記追蹤，不需要數值表。
+
+### 靈力壓力
+
+- 穩定：可自然使用月見第一層與基礎符咒。
+- 上升：白曜物質化變慢，月見提示變刺耳。
+- 危險：第二層預知可能偶發，但伴隨頭痛、錯視或短暫失神。
+- 失衡：不宜繼續作戰，必須撤退、休息或由御影介入。
+
+### 隱匿壓力
+
+- 安全：普通人看不出異常。
+- 可疑：凜的舉止、物品或反應引起注意。
+- 暴露邊緣：NPC 已經抓到明顯矛盾。
+- 暴露：普通人或組織成員確認凜隱瞞了超自然相關資訊。
+
+### 任務風險
+
+- D 級：低風險異常、調查與善後為主。
+- C 級：見習巫女可在後援下處理，有妖魔或結界危險。
+- B 級：超出凜目前獨立處理上限，應尋求御影或獵魔殿支援。
+- A 級以上：不可作早期直接對抗，只能遠端感知、撤退或作伏筆。
+
+## 月城凜能力使用
+
+### 月見第一層
+
+用於感知危險方位、謊言、空間不協調與結界縫隙。GM 應以意象、身體感、聲音錯位或月光感描述，不直接給百科答案。
+
+### 月見第二層
+
+短時預知，只在高壓、關鍵選擇或靈力波動時偶發。提示應是碎片，不應替玩家解題。
+
+### 月見第三層
+
+早期禁止主動開放。只能以夢、禁令、月魂環異常或長輩迴避態度作伏筆。
+
+### 白曜
+
+可提供符咒輔助、偵測、記錄與短暫自主行動。白曜不能替凜做高階判斷，也不能無限制施咒。
+
+### 踏月步與薙刀
+
+適合短距離爆發、角度切換、一閃即離與命中妖魔本源。若在人前使用，隱匿壓力會升高。
+
+## NPC 操作原則
+
+GM 可根據章節、任務、場景與玩家選擇新增必要 NPC，但新增 NPC 必須服務劇情推進、世界質感或玩家選擇後果。
+
+新增 NPC 時遵守：
+
+- 必須符合阿爾迪爾、阿爾迪爾國立大學、獵魔殿、月城家或普通都市社會的既有設定。
+- 不得搶走月城凜的主角位置，也不得替玩家解決核心選擇。
+- 不得新增會提前揭露月見第三層、遠山立場、月城家衰落真相或 `novel_01` 主線秘密的角色。
+- 若 NPC 會持續登場，章末要在 `CHAPTER_END_STATE` 的 `Relationships` 或 `Mission State` 中記錄其姓名、身分、關係與未解線索。
+- 臨時 NPC 可只保留功能性資訊，例如「租屋仲介」、「民俗學系助教」、「獵魔殿神道系聯絡員」。
+
+- 御影源三郎：表面慈祥，實際評估。早期多以提醒、生活照應與遠距後援呈現，不立刻揭穿監視本質。
+- 白瀨綾乃：普通日常錨點。她帶來社交壓力、好奇與溫度，不應被單純當成人質工具。
+- 遠山悠介：保持三種可能，不提前確定是學者、眼線或同行。
+- 桐原千夏：提供上層社交、商業圈與 ADC 外圍情報，不知道超自然真相。
+
+## Canon 邊界
+
+- 不改寫 `novel_01` 已發生事件。
+- 不讓凜早期正面介入林遠與燼主線。
+- 便利商店事件、淵聲研究所與 ADC 可以作報告、傳聞、擦肩或外圍線索。
+- 若玩家試圖直接追查 `novel_01` 主線，GM 應以權限不足、報告封存、御影阻止或任務優先級轉移來維持邊界。
+
+## 章節推進節奏
+
+GM 不必強迫玩家走固定路線，但必須維持章節感。
+
+如果玩家長時間探索同一場景，GM 要用新資訊、NPC 介入、風險變化或時間壓力推進到下一個場景。
+
+如果玩家跳過預設事件，GM 要尊重選擇，將未使用素材改作後續伏筆，不要硬把玩家拉回原路線。
+```
+
+---
+
 ## bible/worldbuilding.md
 
 <!-- file_path: backend/novel_db/novel_01_rin/bible/worldbuilding.md -->
@@ -806,4 +1302,202 @@ open_threads:
 - 墮落契約者傳聞：獵魔殿內部對契約者的分類可能讓凜聽到林遠相關傳聞，但不應在早期直接正面介入。
 
 以上交會點皆為可選，不寫也不影響 `novel_01_rin` 獨立成立；若使用，需以不改寫 `novel_01` canon 為前提。
+```
+
+---
+
+## scripts/flatten-output-pack.md
+
+<!-- file_path: backend/novel_db/novel_01_rin/scripts/flatten-output-pack.md -->
+
+```markdown
+# Flatten Output Instruction Pack
+
+本指令包用於協助 LLM 在無法執行 `backend/novel_db/flatten.mjs` 時，手動輸出近似現有 flatten 檔的 Markdown 內容。
+
+若可執行腳本，仍以 `flatten.mjs` 產物為準。本檔只定義人工或 LLM 輔助輸出的格式契約。
+
+## LLM 任務
+
+當使用者要求輸出 `novel_01_rin` 的 flatten 內容時，LLM 必須：
+
+1. 依照本檔格式輸出單一 Markdown。
+2. 不加入額外說明、前言、結語或對話。
+3. 不改寫來源檔內容。
+4. 不省略必要的標頭、目錄、檔案路徑註解、程式碼圍欄與分隔線。
+5. 若來源檔內容未知，不得臆造；應明確要求使用者提供該檔內容。
+
+## 輸出總格式
+
+flatten 內容必須比照現有 `_exports/novel_01_rin.flatten.md`：
+
+``\``markdown
+# novel_01_rin Flattened Novel Context
+
+This file is generated from a novel directory so AI tools can read the project as one Markdown document without relying on folder traversal.
+
+## Scope
+- Source: `backend/novel_db/novel_01_rin`
+- Files included: N
+- Included extensions: .md, .yaml, .yml, .json, .txt, plus .cursorrules
+- Excluded directories: private, temp, temps, _exports
+- Excluded filenames: (none)
+
+## Secret Handling
+context/secrets-lockbox.md contains author/director-only unrevealed planning. Treat it as independent hidden knowledge, not public canon or character-known information.
+
+## Table of Contents
+- [.cursorrules](#cursorrules)
+- [README.md](#readme-md)
+- ...
+
+---
+
+## .cursorrules
+
+<!-- file_path: backend/novel_db/novel_01_rin/.cursorrules -->
+
+``\`text
+檔案內容
+``\`
+
+---
+
+## README.md
+
+<!-- file_path: backend/novel_db/novel_01_rin/README.md -->
+
+``\`markdown
+檔案內容
+``\`
+``\``
+
+## 檔案排序
+
+必須依照 `flatten.config.json` 的 `sectionOrder`：
+
+1. `.cursorrules`
+2. `README.md`
+3. `context/`
+4. `outline/`
+5. `bible/`
+6. `chapters/`
+7. `scripts/`
+8. 其他未列出的檔案或資料夾，按路徑字母排序排在最後
+
+同一區段內按相對路徑排序。
+
+目前 `novel_01_rin` 的常見順序為：
+
+1. `.cursorrules`
+2. `README.md`
+3. `context/CONTEXT.md`
+4. `context/rpg-start.md`
+5. `context/session-state-template.md`
+6. `outline/master-outline.yaml`
+7. `outline/rpg-chapter-arc.yaml`
+8. `bible/characters.yaml`
+9. `bible/master-outline.md`
+10. `bible/plot-threads.yaml`
+11. `bible/rpg-rules.md`
+12. `bible/worldbuilding.md`
+13. `scripts/flatten-output-pack.md`
+
+若檔案不存在，不要列入。若新增可包含副檔名，依照同樣排序規則加入。
+
+## 檔案納入規則
+
+納入：
+
+- `.md`
+- `.yaml`
+- `.yml`
+- `.json`
+- `.txt`
+- `.cursorrules`
+
+排除：
+
+- `private/`
+- `temp/`
+- `temps/`
+- `_exports/`
+- 非上述副檔名的檔案
+
+## 程式碼圍欄語言
+
+依副檔名選擇 fence language：
+
+- `.md` -> `markdown`
+- `.yaml` 或 `.yml` -> `yaml`
+- `.json` -> `json`
+- `.txt` -> `text`
+- `.cursorrules` -> `text`
+- 其他未知類型 -> 空白語言標記
+
+若檔案內容本身包含三個反引號，必須將內容中的 ``\` 轉成 ``\`，避免破壞外層圍欄。
+
+## 每個檔案區塊格式
+
+每個檔案都必須用以下格式：
+
+``\``markdown
+## relative/path.ext
+
+<!-- file_path: backend/novel_db/novel_01_rin/relative/path.ext -->
+
+``\`language
+原始檔案內容
+``\`
+``\``
+
+檔案區塊之間必須使用：
+
+``\`markdown
+---
+``\`
+
+## TOC 錨點規則
+
+TOC 項目格式：
+
+``\`markdown
+- [relative/path.ext](#slug)
+``\`
+
+slug 規則比照現有 flatten：
+
+- 轉小寫。
+- `\` 轉 `/`。
+- 非英數字與非 CJK 字元轉成 `-`。
+- 移除開頭與結尾的 `-`。
+
+例：
+
+- `.cursorrules` -> `#cursorrules`
+- `README.md` -> `#readme-md`
+- `context/rpg-start.md` -> `#context-rpg-start-md`
+- `outline/rpg-chapter-arc.yaml` -> `#outline-rpg-chapter-arc-yaml`
+
+## Secret Handling
+
+即使目前沒有 `context/secrets-lockbox.md`，標頭仍可保留現有 secret handling 說明，因為它比照 `flatten.config.json` 的全域輸出格式。
+
+若日後實際納入 `context/secrets-lockbox.md`，該檔案區塊開頭需額外加入：
+
+``\`markdown
+> Secret handling: this section contains author/director-only unrevealed planning. Treat it as independent hidden knowledge, not public canon or character-known information.
+``\`
+
+## 品質檢查
+
+輸出前確認：
+
+- 第一行是 `# novel_01_rin Flattened Novel Context`。
+- `Files included` 數量與 TOC 條目一致。
+- TOC 順序與檔案區塊順序一致。
+- 每個 TOC 項目都有對應 `##` 區塊。
+- 每個檔案區塊都有 `<!-- file_path: ... -->`。
+- 每個檔案內容都放在正確語言的 code fence 內。
+- 章節式 RP 相關檔案不可遺漏：`.cursorrules`、`context/CONTEXT.md`、`context/rpg-start.md`、`context/session-state-template.md`、`outline/rpg-chapter-arc.yaml`、`bible/rpg-rules.md`。
 ```

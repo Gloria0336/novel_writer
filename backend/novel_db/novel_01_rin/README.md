@@ -1,7 +1,7 @@
 # 月城凜
 
 - `Novel ID`: `novel_01_rin`
-- `Status`: planning
+- `Status`: chapter-based RPG module / planning
 - `Current Chapter`: planned
 - `Created`: `2026-05-05`
 - `Project Folder`: `novel_01_rin`
@@ -11,15 +11,36 @@
 
 神道系獵魔殿見習巫女月城凜，以阿爾迪爾國立大學民俗學系新生身分展開雙面生活。她有訓練、有神器、有家族與派系背景，表面上比林遠更安全；但她真正面對的問題不是能不能活下去，而是她以為的獨立，是否只是家族允許的一段可控幻覺。
 
+本資料夾同時是可 flatten 成單一 Markdown 的章節式 RP 模組。將 `backend/novel_db/_exports/novel_01_rin.flatten.md` 貼給任一 LLM 後，玩家預設扮演月城凜，LLM 依照 `.cursorrules`、`context/`、`bible/rpg-rules.md` 與 `outline/rpg-chapter-arc.yaml` 擔任 GM，以章節形式推進劇情。
+
 ## 目錄結構
 
+- `.cursorrules`: 章節式 RP 的最前置 GM 指令。
+- `context/`: RP 啟動、目前狀態與章末存檔模板。
+  - `CONTEXT.md`: 起始狀態、已公開資訊與不可提前揭露的伏筆邊界。
+  - `rpg-start.md`: 第一章開局提示與可遊玩的第一個決策點。
+  - `session-state-template.md`: 章末或暫停時輸出的續玩存檔格式。
 - `bible/`: 凜線設定庫。
   - `characters.yaml`: 月城凜、御影源三郎、白瀨綾乃、遠山悠介、桐原千夏等角色。
   - `worldbuilding.md`: 以 `novel_01` 阿爾迪爾公開 canon 為基底，補入神道系、月城家、見習制度與凜線可用規則。
+  - `rpg-rules.md`: 章節式敘事輕規則、判定方式、狀態軸與 canon 邊界。
   - `master-outline.md`: 指定版總大綱，說明本線主題、初始承諾與交會原則。
   - `plot-threads.yaml`: 凜線伏筆與劇情線。
 - `outline/`: YAML 工作大綱，記錄開局章節、角色狀態與長線推演。
+  - `rpg-chapter-arc.yaml`: RP 模式的章節推進弧與每章必要節拍。
 - `chapters/`: 正文章節，尚未開始。
+- `scripts/`: 給 LLM 或維護者使用的操作指令包。
+  - `flatten-output-pack.md`: 協助 LLM 依照現有 `_exports/*.flatten.md` 樣式輸出 flatten Markdown。
+
+## 遊玩方式
+
+1. 執行 flatten 腳本，產生 `backend/novel_db/_exports/novel_01_rin.flatten.md`。
+2. 將 flatten 檔貼給任一 LLM。
+3. 要求它依照檔案內容進入 `novel_01_rin` 章節式 RP GM 模式。
+4. 玩家扮演月城凜；LLM 控制 NPC、世界、任務、妖魔、後果與章節收束。
+5. 每章結尾要求 LLM 輸出 `CHAPTER_END_STATE`，下次可貼回任何 LLM 續玩。
+
+RP 模式不等同正式小說正文。遊玩紀錄若要轉成 `chapters/chXXX.md`，需另行整理與校稿。
 
 ## 風格
 
@@ -27,6 +48,14 @@
 - 基調：明亮日常與隱密任務並行；普通大學生社交和神道系外勤互相拉扯。
 - 視角重點：凜是受訓者與傳承者，不是被動受害者。她的戰鬥方式應和林遠形成鏡像：主動判斷、預讀危險、符咒協作、薙刀與踏月步，而非失控爆發。
 - 張力來源：家族重振、御影監視、派系報告、普通朋友的無知親近，以及月見第三層禁術真相。
+
+## RP 章節節奏
+
+- 每章有章名、章節目標、3-5 個主要場景、高潮或關鍵選擇、章末結果。
+- 每個場景至少推進任務、線索、關係、風險、角色壓力或伏筆之一。
+- 玩家只控制月城凜；GM 不替玩家做重大選擇。
+- GM 使用敘事輕規則，不強制骰子，透過能力、準備、風險與代價判斷結果。
+- 章末需輸出可續玩的 `CHAPTER_END_STATE`。
 
 ## 大綱
 

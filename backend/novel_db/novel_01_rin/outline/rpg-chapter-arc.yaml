@@ -1,0 +1,87 @@
+rpg_chapter_arc:
+  mode: chapter_based_roleplay
+  player_character: tsukishiro-rin
+  gm_role: world_npcs_antagonists_consequences
+  default_language: zh-Hant
+  rules_profile: narrative_light
+
+  chapter_defaults:
+    scenes_per_chapter: 3-5
+    chapter_start_required:
+      - chapter_title
+      - time_and_location
+      - chapter_goal
+      - current_risk
+      - known_clues
+      - opening_scene
+    chapter_end_required:
+      - chapter_result
+      - rin_status
+      - relationship_changes
+      - mission_clues
+      - unresolved_threads
+      - next_chapter_hook
+      - CHAPTER_END_STATE
+
+  opening_arc:
+    - chapter: 1
+      title: 抵達阿爾迪爾
+      function: 建立普通大學生身分、御影照應者表象、城市異常第一印象。
+      start_state: 凜剛抵達阿爾迪爾中央車站，準備前往租屋處與完成入學前手續。
+      required_beats:
+        - 車站與港灣方向的不協調聲。
+        - 御影提醒凜先完成生活安頓。
+        - 白曜或月見捕捉第一個校園異常小線索。
+      possible_endings:
+        - 正常安頓但保留異常線索。
+        - 提前追查傳單或校園傳聞，引起御影注意。
+        - 優先維持普通學生身分，章末收到見習任務通知。
+        - 提前遇見白瀨綾乃，普通日常壓力介入。
+
+    - chapter: 2
+      title: 第一個見習任務
+      function: 展示月見、白曜、符咒、踏月步與御影後援式監視。
+      start_state: 凜接到 C 級以下或 D 級升 C 級邊緣的低風險調查任務。
+      required_beats:
+        - 任務表面看似地方怪談或小型結界異常。
+        - 凜必須在普通人視線與獵魔殿紀律間行動。
+        - 白曜第一次以式神狀態輔助。
+        - 御影只提供後援，不主動替凜解決。
+      possible_endings:
+        - 任務成功，御影寫下看似平常的評估。
+        - 任務成功但隱匿壓力升高。
+        - 任務發現超出低階事件的線索，導向後續派系注意。
+        - 凜為保護普通人付出代價，獲得關係或道德壓力。
+
+    - chapter: 3
+      title: 迎新與都市傳說
+      function: 讓白瀨綾乃、遠山悠介、桐原千夏進入校園社交與情報網。
+      start_state: 入學與迎新活動開始，凜需要同時維持普通學生模式與異常警覺。
+      required_beats:
+        - 綾乃把凜拉入普通學生節奏。
+        - 遠山悠介以民俗學系學長身分接近凜。
+        - 桐原千夏提供世家社交與商業圈外圍接點。
+        - 校園都市傳說與阿爾迪爾近年異常擴散產生微弱重疊。
+      possible_endings:
+        - 凜建立第一個普通朋友圈。
+        - 遠山的研究題目引發玩家疑心。
+        - 千夏帶出 ADC 或港區外圍情報。
+        - 凜不得不在社交邀約與見習任務間做選擇。
+
+    - chapter: 4
+      title: 週報的影子
+      function: 讓御影監視與家族評估露出蛛絲馬跡，但不完全攤牌。
+      start_state: 凜已完成至少一次任務，開始熟悉大學生活。
+      required_beats:
+        - 御影的生活照應中出現過於精準的紀錄感。
+        - 凜發現任務細節被傳到她未授權的管道。
+        - 月城家壓力以電話、信件或獵魔殿行政流程出現。
+      possible_endings:
+        - 凜暫時壓下疑心，專注下一個任務。
+        - 凜開始反向觀察御影。
+        - 御影察覺凜起疑，兩人信任出現細縫。
+
+  long_arc_guidance:
+    - 中期重點是獨立破口、獵魔殿派系競爭與遠山立場疑雲。
+    - 長線重點是月見第三層、月城家衰落原因、阿爾迪爾千年災變。
+    - novel_01 交會必須保持外圍、間接、可選，不得改寫林遠主線。
