@@ -1,17 +1,115 @@
 import { useEffect, useMemo, useRef } from "react";
 
-import type { MapLayers, RoutePlan, TowerMap, TowerMapEdge, TowerMapNode, ViewMode } from "../types";
-import { BONUS_BADGES, OWNER_COLORS, TERRAIN_COLORS } from "../map/constants";
+import type { MapLayers, RoutePlan, TerrainRegion, TerrainType, TowerMap, TowerMapEdge, TowerMapNode, ViewMode } from "../types";
+import { BONUS_BADGES } from "../map/constants";
 
 type MapCanvasProps = {
   map: TowerMap;
   layers: MapLayers;
   viewMode: ViewMode;
+  zoom: number;
   selectedNodeId: string | null;
   route: RoutePlan | null;
   hoveredEdgeId: string | null;
   onSelectNode: (nodeId: string | null) => void;
   onHoverEdge: (edgeId: string | null) => void;
+};
+
+type HatchStyle = {
+  base: string;
+  stroke: string;
+  angle: number;
+  spacing: number;
+  lineWidth: number;
+  opacity: number;
+  dash?: number[];
+  crossAngle?: number;
+  dots?: boolean;
+  waves?: boolean;
+};
+
+const PAPER = "#efeee8";
+const INK = "#181816";
+
+const TERRAIN_HATCH: Record<TerrainType, HatchStyle> = {
+  plain: {
+    base: "#f1f0ea",
+    stroke: "#272722",
+    angle: -Math.PI / 4,
+    spacing: 15,
+    lineWidth: 0.55,
+    opacity: 0.22
+  },
+  forest: {
+    base: "#deded8",
+    stroke: "#1f1f1c",
+    angle: Math.PI / 4,
+    spacing: 8,
+    lineWidth: 0.55,
+    opacity: 0.25,
+    crossAngle: -Math.PI / 4,
+    dots: true
+  },
+  swamp: {
+    base: "#e7e6df",
+    stroke: "#242421",
+    angle: 0,
+    spacing: 10,
+    lineWidth: 0.6,
+    opacity: 0.2,
+    dash: [5, 7],
+    waves: true
+  },
+  desert: {
+    base: "#f4f3ee",
+    stroke: "#22221f",
+    angle: Math.PI / 12,
+    spacing: 12,
+    lineWidth: 0.52,
+    opacity: 0.18,
+    dash: [2, 8],
+    dots: true
+  },
+  mountain: {
+    base: "#d6d6d0",
+    stroke: "#181816",
+    angle: -Math.PI / 5,
+    spacing: 6,
+    lineWidth: 0.65,
+    opacity: 0.25,
+    crossAngle: Math.PI / 7
+  },
+  water: {
+    base: "#eeeeea",
+    stroke: "#242421",
+    angle: 0,
+    spacing: 11,
+    lineWidth: 0.6,
+    opacity: 0.16,
+    dash: [8, 10],
+    waves: true
+  }
+};
+
+const OWNER_FILL: Record<TowerMapNode["owner"], string> = {
+  human: PAPER,
+  monster: "#20201d",
+  neutral: "#8e8e86"
+};
+
+const OWNER_STROKE: Record<TowerMapNode["owner"], string> = {
+  human: INK,
+  monster: PAPER,
+  neutral: INK
+};
+
+const BONUS_TONES: Record<string, string> = {
+  resource_yield: "#1f1f1c",
+  recruit_rate: "#3b3b37",
+  research_rate: "#62625b",
+  vision: "#2c2c28",
+  terrain_defense: "#73736b",
+  movement: "#96968d"
 };
 
 function nodeRadius(node: TowerMapNode): number {
@@ -45,17 +143,6 @@ function edgeVisible(edge: TowerMapEdge, layers: MapLayers, viewMode: ViewMode):
   return true;
 }
 
-function drawLabel(ctx: CanvasRenderingContext2D, text: string, x: number, y: number, size = 10, bold = false) {
-  ctx.font = `${bold ? "700 " : "600 "}${size}px "Noto Sans TC", "Segoe UI", sans-serif`;
-  ctx.textAlign = "center";
-  ctx.textBaseline = "top";
-  ctx.lineWidth = 3;
-  ctx.strokeStyle = "rgba(250, 247, 235, 0.9)";
-  ctx.strokeText(text, x, y);
-  ctx.fillStyle = "#17110b";
-  ctx.fillText(text, x, y);
-}
-
 function drawStar(ctx: CanvasRenderingContext2D, x: number, y: number, spikes: number, outer: number, inner: number) {
   let rotation = -Math.PI / 2;
   const step = Math.PI / spikes;
@@ -70,35 +157,186 @@ function drawStar(ctx: CanvasRenderingContext2D, x: number, y: number, spikes: n
   ctx.closePath();
 }
 
+function tracePolyline(ctx: CanvasRenderingContext2D, polyline: Array<{ x: number; y: number }>) {
+  if (polyline.length < 2) return;
+  ctx.beginPath();
+  ctx.moveTo(polyline[0].x, polyline[0].y);
+  for (const point of polyline.slice(1)) ctx.lineTo(point.x, point.y);
+}
+
+function pathForRegion(region: TerrainRegion, cellSize: number): Path2D {
+  const path = new Path2D();
+  for (const cell of region.cells) {
+    path.rect(cell.c * cellSize, cell.r * cellSize, cellSize, cellSize);
+  }
+  return path;
+}
+
+function drawHatchLines(
+  ctx: CanvasRenderingContext2D,
+  bounds: { x: number; y: number; width: number; height: number },
+  style: HatchStyle,
+  angle = style.angle
+) {
+  const centerX = bounds.x + bounds.width / 2;
+  const centerY = bounds.y + bounds.height / 2;
+  const extent = Math.hypot(bounds.width, bounds.height) + style.spacing * 4;
+  ctx.save();
+  ctx.translate(centerX, centerY);
+  ctx.rotate(angle);
+  ctx.beginPath();
+  for (let x = -extent; x <= extent; x += style.spacing) {
+    ctx.moveTo(x, -extent);
+    ctx.lineTo(x, extent);
+  }
+  ctx.strokeStyle = style.stroke;
+  ctx.globalAlpha = style.opacity;
+  ctx.lineWidth = style.lineWidth;
+  ctx.setLineDash(style.dash ?? []);
+  ctx.stroke();
+  ctx.restore();
+}
+
+function drawStipple(ctx: CanvasRenderingContext2D, bounds: { x: number; y: number; width: number; height: number }, terrainType: TerrainType) {
+  const spacing = terrainType === "forest" ? 19 : 17;
+  const radius = terrainType === "forest" ? 1.25 : 0.85;
+  ctx.save();
+  ctx.fillStyle = "rgba(24, 24, 22, 0.24)";
+  for (let y = bounds.y + spacing * 0.45; y < bounds.y + bounds.height; y += spacing) {
+    for (let x = bounds.x + spacing * 0.45; x < bounds.x + bounds.width; x += spacing) {
+      const jitterX = Math.sin((x + y) * 0.09) * 2.2;
+      const jitterY = Math.cos((x - y) * 0.07) * 2.2;
+      ctx.beginPath();
+      ctx.arc(x + jitterX, y + jitterY, radius, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  }
+  ctx.restore();
+}
+
+function drawWaveHatch(ctx: CanvasRenderingContext2D, bounds: { x: number; y: number; width: number; height: number }, terrainType: TerrainType) {
+  const spacing = terrainType === "water" ? 13 : 16;
+  const amplitude = terrainType === "water" ? 1.8 : 1.15;
+  ctx.save();
+  ctx.strokeStyle = "rgba(24, 24, 22, 0.18)";
+  ctx.lineWidth = 0.65;
+  for (let y = bounds.y + spacing * 0.6; y < bounds.y + bounds.height; y += spacing) {
+    ctx.beginPath();
+    for (let x = bounds.x - 4; x <= bounds.x + bounds.width + 4; x += 4) {
+      const yy = y + Math.sin((x + bounds.y) * 0.06) * amplitude;
+      if (x === bounds.x - 4) ctx.moveTo(x, yy);
+      else ctx.lineTo(x, yy);
+    }
+    ctx.stroke();
+  }
+  ctx.restore();
+}
+
+function drawTerrainLayer(ctx: CanvasRenderingContext2D, map: TowerMap) {
+  ctx.fillStyle = PAPER;
+  ctx.fillRect(0, 0, map.pixelWidth, map.pixelHeight);
+
+  const richRegions = map.terrainRegions.filter((region) => Array.isArray(region.cells) && region.cells.length > 0);
+  if (!richRegions.length) {
+    for (let r = 0; r < map.terrainGrid.length; r += 1) {
+      for (let c = 0; c < map.terrainGrid[r].length; c += 1) {
+        ctx.fillStyle = TERRAIN_HATCH[map.terrainGrid[r][c]].base;
+        ctx.fillRect(c * map.config.cellSize, r * map.config.cellSize, map.config.cellSize, map.config.cellSize);
+      }
+    }
+    return;
+  }
+
+  for (const region of richRegions) {
+    const style = TERRAIN_HATCH[region.terrainType];
+    const [minC, minR, maxC, maxR] = region.bounds;
+    const bounds = {
+      x: minC * map.config.cellSize,
+      y: minR * map.config.cellSize,
+      width: (maxC - minC + 1) * map.config.cellSize,
+      height: (maxR - minR + 1) * map.config.cellSize
+    };
+    const path = pathForRegion(region, map.config.cellSize);
+    ctx.fillStyle = style.base;
+    ctx.fill(path);
+    ctx.save();
+    ctx.clip(path);
+    drawHatchLines(ctx, bounds, style);
+    if (style.crossAngle !== undefined) drawHatchLines(ctx, bounds, { ...style, opacity: style.opacity * 0.58 }, style.crossAngle);
+    if (style.dots) drawStipple(ctx, bounds, region.terrainType);
+    if (style.waves) drawWaveHatch(ctx, bounds, region.terrainType);
+    ctx.restore();
+  }
+
+  ctx.save();
+  ctx.strokeStyle = "rgba(22, 22, 20, 0.18)";
+  ctx.lineWidth = 0.55;
+  ctx.lineJoin = "round";
+  for (const region of richRegions) {
+    for (const outline of region.outlines) {
+      if (outline.length < 2) continue;
+      tracePolyline(ctx, outline);
+      ctx.closePath();
+      ctx.stroke();
+    }
+  }
+  ctx.restore();
+}
+
+function drawContourLayer(ctx: CanvasRenderingContext2D, map: TowerMap) {
+  if (!Array.isArray(map.contourLines)) return;
+  ctx.save();
+  ctx.lineCap = "round";
+  ctx.lineJoin = "round";
+  for (const contour of map.contourLines) {
+    if (contour.points.length < 2) continue;
+    tracePolyline(ctx, contour.points);
+    ctx.strokeStyle = contour.kind === "major" ? "rgba(18, 18, 16, 0.46)" : "rgba(18, 18, 16, 0.24)";
+    ctx.lineWidth = contour.kind === "major" ? 0.95 : 0.48;
+    ctx.setLineDash([]);
+    ctx.stroke();
+  }
+  ctx.restore();
+}
+
 function drawNode(ctx: CanvasRenderingContext2D, node: TowerMapNode, selected: boolean, layers: MapLayers) {
-  const color = OWNER_COLORS[node.owner];
+  const fill = OWNER_FILL[node.owner];
+  const stroke = OWNER_STROKE[node.owner];
   const r = nodeRadius(node);
   ctx.save();
 
   if (selected) {
     ctx.beginPath();
     ctx.arc(node.position.x, node.position.y, r + 7, 0, Math.PI * 2);
-    ctx.strokeStyle = "#f2c45c";
-    ctx.lineWidth = 3.5;
+    ctx.strokeStyle = "rgba(247, 246, 239, 0.95)";
+    ctx.lineWidth = 5;
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.arc(node.position.x, node.position.y, r + 7, 0, Math.PI * 2);
+    ctx.strokeStyle = INK;
+    ctx.lineWidth = 2;
     ctx.stroke();
   }
 
   if (node.nodeType === "capital") {
     ctx.beginPath();
     ctx.arc(node.position.x, node.position.y, r + 2, 0, Math.PI * 2);
-    ctx.fillStyle = "#d8b149";
+    ctx.fillStyle = PAPER;
     ctx.fill();
+    ctx.strokeStyle = INK;
+    ctx.lineWidth = 1.4;
+    ctx.stroke();
     ctx.beginPath();
     ctx.arc(node.position.x, node.position.y, r - 2, 0, Math.PI * 2);
-    ctx.fillStyle = color;
+    ctx.fillStyle = fill;
     ctx.fill();
   } else if (node.nodeType === "main_nest") {
     drawStar(ctx, node.position.x, node.position.y, 9, r + 2, r * 0.45);
-    ctx.fillStyle = color;
+    ctx.fillStyle = fill;
     ctx.fill();
   } else if (node.nodeType === "sub_nest") {
     drawStar(ctx, node.position.x, node.position.y, 6, r + 1, r * 0.5);
-    ctx.fillStyle = color;
+    ctx.fillStyle = fill;
     ctx.fill();
   } else if (node.nodeType === "neutral") {
     ctx.beginPath();
@@ -107,40 +345,31 @@ function drawNode(ctx: CanvasRenderingContext2D, node: TowerMapNode, selected: b
     ctx.lineTo(node.position.x, node.position.y + r);
     ctx.lineTo(node.position.x - r, node.position.y);
     ctx.closePath();
-    ctx.fillStyle = color;
+    ctx.fillStyle = fill;
     ctx.fill();
   } else {
     ctx.beginPath();
     ctx.arc(node.position.x, node.position.y, r, 0, Math.PI * 2);
-    ctx.fillStyle = color;
+    ctx.fillStyle = fill;
     ctx.fill();
   }
 
-  ctx.lineWidth = 2;
-  ctx.strokeStyle = "rgba(255, 255, 255, 0.9)";
+  ctx.lineWidth = node.owner === "monster" ? 1.8 : 2.1;
+  ctx.strokeStyle = stroke;
   ctx.stroke();
-  drawLabel(ctx, node.name, node.position.x, node.position.y + r + 3, 10, node.nodeType === "capital" || node.nodeType === "main_nest");
-
   if (layers.bonuses && node.bonuses.length) {
     const uniqueBonuses = [...new Map(node.bonuses.map((bonus) => [bonus.type, bonus])).values()];
     uniqueBonuses.slice(0, 4).forEach((bonus, index) => {
-      const badge = BONUS_BADGES[bonus.type];
       const x = node.position.x + r + 7 + index * 13;
       const y = node.position.y - r - 8;
       ctx.beginPath();
       ctx.arc(x, y, 6, 0, Math.PI * 2);
-      ctx.fillStyle = badge.color;
+      ctx.fillStyle = BONUS_TONES[bonus.type] ?? "#565650";
       ctx.fill();
-      ctx.font = '700 8px "Noto Sans TC", sans-serif';
-      ctx.fillStyle = "#fffaf0";
-      ctx.textAlign = "center";
-      ctx.textBaseline = "middle";
-      ctx.fillText(badge.label, x, y + 0.5);
+      ctx.strokeStyle = PAPER;
+      ctx.lineWidth = 1;
+      ctx.stroke();
     });
-  }
-
-  if (layers.garrison) {
-    drawLabel(ctx, `駐 ${node.garrisonSummary.strength}  工 ${node.fortification}`, node.position.x, node.position.y + r + 16, 9);
   }
 
   ctx.restore();
@@ -151,36 +380,45 @@ function drawEdge(ctx: CanvasRenderingContext2D, map: TowerMap, edge: TowerMapEd
   if (polyline.length < 2) return;
 
   ctx.save();
-  ctx.beginPath();
-  ctx.moveTo(polyline[0].x, polyline[0].y);
-  for (const point of polyline.slice(1)) ctx.lineTo(point.x, point.y);
-
-  if (highlighted) {
-    ctx.strokeStyle = "#f2c45c";
-    ctx.lineWidth = 5.5;
-    ctx.setLineDash([]);
-    ctx.stroke();
-    ctx.beginPath();
-    ctx.moveTo(polyline[0].x, polyline[0].y);
-    for (const point of polyline.slice(1)) ctx.lineTo(point.x, point.y);
-  }
-
-  if (edge.pathType === "road") {
-    ctx.strokeStyle = hovered ? "#4c2b13" : "rgba(82, 49, 22, 0.92)";
-    ctx.lineWidth = hovered ? 3.6 : 2.7;
-    ctx.setLineDash([]);
-  } else if (edge.pathType === "trail") {
-    ctx.strokeStyle = hovered ? "#6d431f" : "rgba(93, 63, 32, 0.78)";
-    ctx.lineWidth = hovered ? 2.4 : 1.55;
-    ctx.setLineDash([6, 4]);
-  } else {
-    ctx.strokeStyle = hovered ? "#a66ad4" : "rgba(138, 78, 174, 0.82)";
-    ctx.lineWidth = hovered ? 2.6 : 1.7;
-    ctx.setLineDash([2, 4]);
-  }
   ctx.lineJoin = "round";
   ctx.lineCap = "round";
-  ctx.stroke();
+
+  if (edge.pathType === "road") {
+    tracePolyline(ctx, polyline);
+    ctx.strokeStyle = hovered ? "rgba(250, 249, 242, 0.98)" : "rgba(250, 249, 242, 0.92)";
+    ctx.lineWidth = hovered ? 7.6 : 6.2;
+    ctx.setLineDash([]);
+    ctx.stroke();
+
+    tracePolyline(ctx, polyline);
+    ctx.strokeStyle = hovered ? "rgba(16, 16, 14, 0.78)" : "rgba(16, 16, 14, 0.52)";
+    ctx.lineWidth = hovered ? 1.8 : 1.15;
+    ctx.stroke();
+  } else if (edge.pathType === "trail") {
+    tracePolyline(ctx, polyline);
+    ctx.strokeStyle = hovered ? "rgba(18, 18, 16, 0.84)" : "rgba(18, 18, 16, 0.58)";
+    ctx.lineWidth = hovered ? 2.4 : 1.45;
+    ctx.setLineDash([7, 5]);
+    ctx.stroke();
+  } else {
+    tracePolyline(ctx, polyline);
+    ctx.strokeStyle = hovered ? "rgba(18, 18, 16, 0.82)" : "rgba(18, 18, 16, 0.48)";
+    ctx.lineWidth = hovered ? 2.15 : 1.35;
+    ctx.setLineDash([1.5, 4.5]);
+    ctx.stroke();
+  }
+
+  if (highlighted) {
+    tracePolyline(ctx, polyline);
+    ctx.strokeStyle = "rgba(246, 245, 238, 0.96)";
+    ctx.lineWidth = edge.pathType === "road" ? 3.8 : 4.6;
+    ctx.setLineDash([]);
+    ctx.stroke();
+    tracePolyline(ctx, polyline);
+    ctx.strokeStyle = INK;
+    ctx.lineWidth = edge.pathType === "road" ? 1.6 : 2.1;
+    ctx.stroke();
+  }
   ctx.restore();
 }
 
@@ -188,6 +426,7 @@ export function MapCanvas({
   map,
   layers,
   viewMode,
+  zoom,
   selectedNodeId,
   route,
   hoveredEdgeId,
@@ -201,51 +440,47 @@ export function MapCanvas({
     const canvas = canvasRef.current;
     if (!canvas) return;
     const ratio = window.devicePixelRatio || 1;
-    canvas.width = Math.round(map.pixelWidth * ratio);
-    canvas.height = Math.round(map.pixelHeight * ratio);
+    const displayWidth = map.pixelWidth * zoom;
+    const displayHeight = map.pixelHeight * zoom;
+    canvas.width = Math.round(displayWidth * ratio);
+    canvas.height = Math.round(displayHeight * ratio);
+    canvas.style.width = `${displayWidth}px`;
+    canvas.style.height = `${displayHeight}px`;
     canvas.style.aspectRatio = `${map.pixelWidth} / ${map.pixelHeight}`;
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
-    ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
+    ctx.setTransform(ratio * zoom, 0, 0, ratio * zoom, 0, 0);
     ctx.clearRect(0, 0, map.pixelWidth, map.pixelHeight);
 
     if (layers.terrain) {
-      for (let r = 0; r < map.terrainGrid.length; r += 1) {
-        for (let c = 0; c < map.terrainGrid[r].length; c += 1) {
-          ctx.fillStyle = TERRAIN_COLORS[map.terrainGrid[r][c]];
-          ctx.fillRect(c * map.config.cellSize, r * map.config.cellSize, map.config.cellSize, map.config.cellSize);
-        }
-      }
+      drawTerrainLayer(ctx, map);
     } else {
-      ctx.fillStyle = "#d1d5c7";
+      ctx.fillStyle = PAPER;
       ctx.fillRect(0, 0, map.pixelWidth, map.pixelHeight);
     }
 
     if (layers.factionZones) {
       const humanMax = Math.round(map.config.width * 0.42);
       const monsterMin = Math.round(map.config.width * 0.58);
-      ctx.fillStyle = "rgba(45, 92, 154, 0.18)";
+      ctx.fillStyle = "rgba(0, 0, 0, 0.025)";
       ctx.fillRect(0, 0, humanMax * map.config.cellSize, map.pixelHeight);
-      ctx.fillStyle = "rgba(167, 55, 78, 0.18)";
+      ctx.fillStyle = "rgba(0, 0, 0, 0.045)";
       ctx.fillRect(monsterMin * map.config.cellSize, 0, map.pixelWidth - monsterMin * map.config.cellSize, map.pixelHeight);
-      ctx.fillStyle = "rgba(207, 157, 54, 0.14)";
+      ctx.fillStyle = "rgba(255, 255, 255, 0.14)";
       ctx.fillRect(humanMax * map.config.cellSize, 0, (monsterMin - humanMax) * map.config.cellSize, map.pixelHeight);
+      ctx.strokeStyle = "rgba(18, 18, 16, 0.34)";
+      ctx.lineWidth = 1;
+      ctx.setLineDash([9, 7]);
+      for (const c of [humanMax, monsterMin]) {
+        ctx.beginPath();
+        ctx.moveTo(c * map.config.cellSize, 0);
+        ctx.lineTo(c * map.config.cellSize, map.pixelHeight);
+        ctx.stroke();
+      }
+      ctx.setLineDash([]);
     }
 
-    ctx.strokeStyle = "rgba(22, 19, 13, 0.06)";
-    ctx.lineWidth = 0.5;
-    for (let r = 0; r <= map.config.height; r += 1) {
-      ctx.beginPath();
-      ctx.moveTo(0, r * map.config.cellSize);
-      ctx.lineTo(map.pixelWidth, r * map.config.cellSize);
-      ctx.stroke();
-    }
-    for (let c = 0; c <= map.config.width; c += 1) {
-      ctx.beginPath();
-      ctx.moveTo(c * map.config.cellSize, 0);
-      ctx.lineTo(c * map.config.cellSize, map.pixelHeight);
-      ctx.stroke();
-    }
+    if (layers.terrain) drawContourLayer(ctx, map);
 
     for (const pathType of ["road", "trail", "secret"] as const) {
       for (const edge of map.edges.filter((entry) => entry.pathType === pathType && edgeVisible(entry, layers, viewMode))) {
@@ -256,7 +491,7 @@ export function MapCanvas({
     for (const node of map.nodes) {
       drawNode(ctx, node, selectedNodeId === node.id, layers);
     }
-  }, [hoveredEdgeId, layers, map, routeEdges, selectedNodeId, viewMode]);
+  }, [hoveredEdgeId, layers, map, routeEdges, selectedNodeId, viewMode, zoom]);
 
   const toMapPoint = (event: React.MouseEvent<HTMLCanvasElement>) => {
     const canvas = canvasRef.current;
@@ -286,20 +521,68 @@ export function MapCanvas({
     return best?.edge ?? null;
   };
 
+  const renderSvgLabels = () =>
+    map.nodes.map((node) => {
+      const r = nodeRadius(node);
+      const isMajor = node.nodeType === "capital" || node.nodeType === "main_nest";
+      const uniqueBonuses = layers.bonuses
+        ? [...new Map(node.bonuses.map((bonus) => [bonus.type, bonus])).values()].slice(0, 4)
+        : [];
+
+      return (
+        <g key={node.id}>
+          <text
+            className={`map-svg-label${isMajor ? " is-major" : ""}`}
+            x={node.position.x}
+            y={node.position.y + r + 3}
+            fontSize={10}
+          >
+            {node.name}
+          </text>
+          {layers.garrison ? (
+            <text className="map-svg-label is-garrison" x={node.position.x} y={node.position.y + r + 16} fontSize={9}>
+              {`駐 ${node.garrisonSummary.strength}  工 ${node.fortification}`}
+            </text>
+          ) : null}
+          {uniqueBonuses.map((bonus, index) => {
+            const x = node.position.x + r + 7 + index * 13;
+            const y = node.position.y - r - 8;
+            return (
+              <text key={bonus.type} className="map-svg-badge-label" x={x} y={y + 0.5} fontSize={8}>
+                {BONUS_BADGES[bonus.type].label}
+              </text>
+            );
+          })}
+        </g>
+      );
+    });
+
   return (
-    <canvas
-      ref={canvasRef}
-      className="map-canvas"
-      data-testid="tower-map-canvas"
-      onMouseLeave={() => onHoverEdge(null)}
-      onMouseMove={(event) => {
-        const point = toMapPoint(event);
-        onHoverEdge(findEdge(point)?.id ?? null);
+    <div
+      className="map-canvas-shell"
+      style={{
+        width: `${map.pixelWidth * zoom}px`,
+        height: `${map.pixelHeight * zoom}px`,
+        aspectRatio: `${map.pixelWidth} / ${map.pixelHeight}`
       }}
-      onClick={(event) => {
-        const node = findNode(toMapPoint(event));
-        onSelectNode(node?.id ?? null);
-      }}
-    />
+    >
+      <canvas
+        ref={canvasRef}
+        className="map-canvas"
+        data-testid="tower-map-canvas"
+        onMouseLeave={() => onHoverEdge(null)}
+        onMouseMove={(event) => {
+          const point = toMapPoint(event);
+          onHoverEdge(findEdge(point)?.id ?? null);
+        }}
+        onClick={(event) => {
+          const node = findNode(toMapPoint(event));
+          onSelectNode(node?.id ?? null);
+        }}
+      />
+      <svg className="map-label-layer" viewBox={`0 0 ${map.pixelWidth} ${map.pixelHeight}`} aria-hidden="true">
+        {renderSvgLabels()}
+      </svg>
+    </div>
   );
 }

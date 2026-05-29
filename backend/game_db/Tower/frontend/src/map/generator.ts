@@ -8,12 +8,12 @@ import type {
   OwnerSide,
   PathType,
   Position,
-  TerrainRegion,
   TerrainType,
   TowerMap,
   TowerMapEdge,
   TowerMapNode
 } from "../types";
+import { buildContourLines, buildElevationGrid, buildTerrainRegions } from "./cartography";
 import {
   DEFAULT_SEED,
   DENSITY_VALUES,
@@ -94,34 +94,6 @@ export function normalizeConfig(input: Partial<MapGenConfig> = {}): MapGenConfig
 
 function distanceCells(a: TowerMapNode, b: TowerMapNode): number {
   return Math.hypot(a.grid.c - b.grid.c, a.grid.r - b.grid.r);
-}
-
-function makeRegions(grid: TerrainType[][]): TerrainRegion[] {
-  const regions: TerrainRegion[] = [];
-  for (const terrainType of Object.keys(TERRAIN_COST) as TerrainType[]) {
-    let minC = Number.POSITIVE_INFINITY;
-    let minR = Number.POSITIVE_INFINITY;
-    let maxC = -1;
-    let maxR = -1;
-    for (let r = 0; r < grid.length; r += 1) {
-      for (let c = 0; c < grid[r].length; c += 1) {
-        if (grid[r][c] !== terrainType) continue;
-        minC = Math.min(minC, c);
-        minR = Math.min(minR, r);
-        maxC = Math.max(maxC, c);
-        maxR = Math.max(maxR, r);
-      }
-    }
-    if (maxC >= 0) {
-      regions.push({
-        id: `terrain-${terrainType}`,
-        terrainType,
-        bounds: [minC, minR, maxC, maxR],
-        tags: terrainType === "swamp" ? ["marsh"] : [terrainType]
-      });
-    }
-  }
-  return regions;
 }
 
 function nameForNode(type: NodeType, terrain: TerrainType, index: number): string {
@@ -284,6 +256,13 @@ export function generateTowerMap(input: Partial<MapGenConfig> = {}): TowerMap {
     }
     terrainGrid.push(row);
   }
+  const terrainRegions = buildTerrainRegions(terrainGrid, config.cellSize);
+  const terrainRegionIdByCell = new Map<string, string>();
+  for (const region of terrainRegions) {
+    for (const cell of region.cells) terrainRegionIdByCell.set(`${cell.c},${cell.r}`, region.id);
+  }
+  const elevationGrid = buildElevationGrid(config, terrainGrid, config.seed);
+  const contourLines = buildContourLines(elevationGrid, config);
 
   const nodes: TowerMapNode[] = [];
   const edges: TowerMapEdge[] = [];
@@ -332,7 +311,7 @@ export function generateTowerMap(input: Partial<MapGenConfig> = {}): TowerMap {
       owner,
       position: { x: c * config.cellSize + config.cellSize / 2, y: r * config.cellSize + config.cellSize / 2 },
       grid: { c, r },
-      terrainId: `terrain-${terrainType}`,
+      terrainId: terrainRegionIdByCell.get(`${c},${r}`) ?? `terrain-${terrainType}`,
       terrainType,
       fortification: round(randomRange(rng, fortMin, fortMax) * terrainFort, 2),
       garrisonSummary: buildGarrison(type, owner, rng),
@@ -560,7 +539,9 @@ export function generateTowerMap(input: Partial<MapGenConfig> = {}): TowerMap {
     pixelHeight: config.height * config.cellSize,
     config,
     terrainGrid,
-    terrainRegions: makeRegions(terrainGrid),
+    terrainRegions,
+    elevationGrid,
+    contourLines,
     nodes,
     edges,
     counts: {

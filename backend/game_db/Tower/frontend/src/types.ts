@@ -21,11 +21,24 @@ export type Position = {
   y: number;
 };
 
+export type GridCell = {
+  c: number;
+  r: number;
+};
+
+export type ContourLine = {
+  level: number;
+  kind: "minor" | "major";
+  points: Position[];
+};
+
 export type TerrainRegion = {
   id: string;
   terrainType: TerrainType;
   bounds: [number, number, number, number];
   tags: string[];
+  cells: GridCell[];
+  outlines: Position[][];
 };
 
 export type NodeBonus = {
@@ -102,6 +115,8 @@ export type TowerMap = {
   config: MapGenConfig;
   terrainGrid: TerrainType[][];
   terrainRegions: TerrainRegion[];
+  elevationGrid: number[][];
+  contourLines: ContourLine[];
   nodes: TowerMapNode[];
   edges: TowerMapEdge[];
   counts: {

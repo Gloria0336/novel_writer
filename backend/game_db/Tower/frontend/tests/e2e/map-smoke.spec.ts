@@ -3,7 +3,29 @@ import { expect, test } from "@playwright/test";
 test("map sandbox opens, renders, selects, and exports JSON", async ({ page }) => {
   await page.goto("/");
   const canvas = page.getByTestId("tower-map-canvas");
+  const viewport = page.getByTestId("map-viewport");
   await expect(canvas).toBeVisible();
+
+  const initialBox = await canvas.boundingBox();
+  await canvas.hover();
+  await page.mouse.wheel(0, -1600);
+  await expect.poll(async () => (await canvas.boundingBox())?.width ?? 0).toBeGreaterThan(initialBox?.width ?? 0);
+
+  const viewportBox = await viewport.boundingBox();
+  expect(viewportBox).toBeTruthy();
+  await viewport.evaluate((element) => {
+    element.scrollLeft = 20;
+    element.scrollTop = 20;
+  });
+  const beforePan = await viewport.evaluate((element) => ({ left: element.scrollLeft, top: element.scrollTop }));
+  await page.mouse.move((viewportBox?.x ?? 0) + (viewportBox?.width ?? 0) / 2, (viewportBox?.y ?? 0) + (viewportBox?.height ?? 0) / 2);
+  await page.mouse.down({ button: "middle" });
+  await page.mouse.move((viewportBox?.x ?? 0) + (viewportBox?.width ?? 0) / 2 - 80, (viewportBox?.y ?? 0) + (viewportBox?.height ?? 0) / 2 - 60, {
+    steps: 5
+  });
+  await page.mouse.up({ button: "middle" });
+  const afterPan = await viewport.evaluate((element) => ({ left: element.scrollLeft, top: element.scrollTop }));
+  expect(afterPan.left + afterPan.top).toBeGreaterThan(beforePan.left + beforePan.top);
 
   const hasPaint = await canvas.evaluate((element) => {
     const canvasElement = element as HTMLCanvasElement;

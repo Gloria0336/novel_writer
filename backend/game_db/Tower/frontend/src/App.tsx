@@ -1,4 +1,5 @@
 import { ChangeEvent, useEffect, useMemo, useRef, useState } from "react";
+import type { PointerEvent, WheelEvent } from "react";
 import {
   Download,
   Eye,
@@ -38,6 +39,11 @@ const DEFAULT_LAYERS: MapLayers = {
   garrison: false
 };
 
+const MIN_ZOOM = 0.5;
+const MAX_ZOOM = 2;
+const WHEEL_ZOOM_SENSITIVITY = 0.0012;
+const ZOOM_EASING = 0.24;
+
 const presetLabels: Record<GenerationPreset, string> = {
   compact: "緊湊",
   standard: "標準",
@@ -62,6 +68,10 @@ function makeInitialMap() {
 
 function shortCost(value: number): string {
   return Number.isFinite(value) ? value.toFixed(1) : "-";
+}
+
+function clampZoom(value: number): number {
+  return Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, value));
 }
 
 function LayerToggle({
@@ -92,8 +102,27 @@ export default function App() {
   const [hoveredEdgeId, setHoveredEdgeId] = useState<string | null>(null);
   const [routeStartId, setRouteStartId] = useState<string | null>(null);
   const [routeEndId, setRouteEndId] = useState<string | null>(null);
+  const [zoom, setZoom] = useState(1);
+  const [isPanning, setIsPanning] = useState(false);
   const [status, setStatus] = useState("地圖已生成");
   const importInputRef = useRef<HTMLInputElement | null>(null);
+  const viewportRef = useRef<HTMLDivElement | null>(null);
+  const zoomRef = useRef(1);
+  const targetZoomRef = useRef(1);
+  const zoomFrameRef = useRef<number | null>(null);
+  const zoomAnchorRef = useRef<{
+    localX: number;
+    localY: number;
+    mapX: number;
+    mapY: number;
+  } | null>(null);
+  const panRef = useRef<{
+    pointerId: number;
+    x: number;
+    y: number;
+    scrollLeft: number;
+    scrollTop: number;
+  } | null>(null);
 
   const selectedNode = useMemo(() => map.nodes.find((node) => node.id === selectedNodeId) ?? null, [map.nodes, selectedNodeId]);
   const hoveredEdge = useMemo(() => map.edges.find((edge) => edge.id === hoveredEdgeId) ?? null, [hoveredEdgeId, map.edges]);
@@ -111,6 +140,16 @@ export default function App() {
   useEffect(() => {
     window.__TOWER_MAP__ = map;
   }, [map]);
+
+  useEffect(() => {
+    zoomRef.current = zoom;
+  }, [zoom]);
+
+  useEffect(() => {
+    return () => {
+      if (zoomFrameRef.current !== null) cancelAnimationFrame(zoomFrameRef.current);
+    };
+  }, []);
 
   function regenerate(nextSeed = seedInput) {
     const trimmedSeed = nextSeed.trim() || DEFAULT_SEED;
@@ -163,6 +202,92 @@ export default function App() {
 
   const setLayer = (key: keyof MapLayers, checked: boolean) => {
     setLayers((current) => ({ ...current, [key]: checked }));
+  };
+
+  const applyAnimatedZoomFrame = () => {
+    const viewport = viewportRef.current;
+    const current = zoomRef.current;
+    const target = targetZoomRef.current;
+    const diff = target - current;
+    const next = Math.abs(diff) < 0.001 ? target : current + diff * ZOOM_EASING;
+    const anchor = zoomAnchorRef.current;
+
+    zoomRef.current = next;
+    setZoom(next);
+
+    if (viewport && anchor) {
+      viewport.scrollLeft = anchor.mapX * next - anchor.localX;
+      viewport.scrollTop = anchor.mapY * next - anchor.localY;
+    }
+
+    if (next === target) {
+      zoomFrameRef.current = null;
+      return;
+    }
+
+    zoomFrameRef.current = requestAnimationFrame(applyAnimatedZoomFrame);
+  };
+
+  const scheduleAnimatedZoom = () => {
+    if (zoomFrameRef.current !== null) return;
+    zoomFrameRef.current = requestAnimationFrame(applyAnimatedZoomFrame);
+  };
+
+  const handleViewportWheel = (event: WheelEvent<HTMLDivElement>) => {
+    const viewport = viewportRef.current;
+    if (!viewport) return;
+    event.preventDefault();
+
+    const rect = viewport.getBoundingClientRect();
+    const localX = event.clientX - rect.left;
+    const localY = event.clientY - rect.top;
+    const contentX = viewport.scrollLeft + localX;
+    const contentY = viewport.scrollTop + localY;
+    const current = zoomRef.current;
+    const zoomFactor = Math.exp(-event.deltaY * WHEEL_ZOOM_SENSITIVITY);
+
+    zoomAnchorRef.current = {
+      localX,
+      localY,
+      mapX: contentX / current,
+      mapY: contentY / current
+    };
+    targetZoomRef.current = clampZoom(targetZoomRef.current * zoomFactor);
+    scheduleAnimatedZoom();
+  };
+
+  const handleViewportPointerDown = (event: PointerEvent<HTMLDivElement>) => {
+    if (event.button !== 1) return;
+    const viewport = viewportRef.current;
+    if (!viewport) return;
+    event.preventDefault();
+    viewport.setPointerCapture(event.pointerId);
+    panRef.current = {
+      pointerId: event.pointerId,
+      x: event.clientX,
+      y: event.clientY,
+      scrollLeft: viewport.scrollLeft,
+      scrollTop: viewport.scrollTop
+    };
+    setIsPanning(true);
+  };
+
+  const handleViewportPointerMove = (event: PointerEvent<HTMLDivElement>) => {
+    const pan = panRef.current;
+    const viewport = viewportRef.current;
+    if (!pan || !viewport || pan.pointerId !== event.pointerId) return;
+    event.preventDefault();
+    viewport.scrollLeft = pan.scrollLeft - (event.clientX - pan.x);
+    viewport.scrollTop = pan.scrollTop - (event.clientY - pan.y);
+  };
+
+  const stopViewportPan = (event: PointerEvent<HTMLDivElement>) => {
+    const pan = panRef.current;
+    const viewport = viewportRef.current;
+    if (!pan || pan.pointerId !== event.pointerId) return;
+    if (viewport?.hasPointerCapture(event.pointerId)) viewport.releasePointerCapture(event.pointerId);
+    panRef.current = null;
+    setIsPanning(false);
   };
 
   return (
@@ -263,16 +388,29 @@ export default function App() {
       </aside>
 
       <main className="map-stage">
-        <MapCanvas
-          map={map}
-          layers={layers}
-          viewMode={viewMode}
-          selectedNodeId={selectedNodeId}
-          route={route}
-          hoveredEdgeId={hoveredEdgeId}
-          onSelectNode={setSelectedNodeId}
-          onHoverEdge={setHoveredEdgeId}
-        />
+        <div
+          ref={viewportRef}
+          className={`map-viewport${isPanning ? " is-panning" : ""}`}
+          data-testid="map-viewport"
+          onWheel={handleViewportWheel}
+          onPointerDown={handleViewportPointerDown}
+          onPointerMove={handleViewportPointerMove}
+          onPointerUp={stopViewportPan}
+          onPointerCancel={stopViewportPan}
+          onAuxClick={(event) => event.preventDefault()}
+        >
+          <MapCanvas
+            map={map}
+            layers={layers}
+            viewMode={viewMode}
+            zoom={zoom}
+            selectedNodeId={selectedNodeId}
+            route={route}
+            hoveredEdgeId={hoveredEdgeId}
+            onSelectNode={setSelectedNodeId}
+            onHoverEdge={setHoveredEdgeId}
+          />
+        </div>
         <div className="status-strip">
           <span>Seed {map.seed}</span>
           <span>節點 {map.nodes.length}</span>
@@ -280,6 +418,7 @@ export default function App() {
           <span>大道 {map.counts.roads}</span>
           <span>小徑 {map.counts.trails}</span>
           <span>密道 {map.counts.secrets}</span>
+          <span>{Math.round(zoom * 100)}%</span>
           <span>{selectedNode ? selectedNode.name : "未選取"}</span>
         </div>
       </main>

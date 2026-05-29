@@ -85,9 +85,9 @@ export const PRESET_DIMENSIONS: Record<GenerationPreset, { width: number; height
 };
 
 export const DENSITY_VALUES: Record<DensityPreset, { humanCities: number; neutralNodes: number; extraEdgeRatio: number }> = {
-  low: { humanCities: 2, neutralNodes: 4, extraEdgeRatio: 0.18 },
-  standard: { humanCities: 3, neutralNodes: 5, extraEdgeRatio: 0.28 },
-  high: { humanCities: 4, neutralNodes: 7, extraEdgeRatio: 0.42 }
+  low: { humanCities: 3, neutralNodes: 6, extraEdgeRatio: 0.252 },
+  standard: { humanCities: 4, neutralNodes: 7, extraEdgeRatio: 0.392 },
+  high: { humanCities: 6, neutralNodes: 10, extraEdgeRatio: 0.588 }
 };
 
 export const DEFAULT_SEED = "20250529";
