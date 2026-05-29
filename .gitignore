@@ -17,6 +17,12 @@ backend/game_db/opera/backend/.pytest_cache/
 backend/game_db/opera/backend/.ruff_cache/
 backend/game_db/opera/frontend/node_modules/
 backend/game_db/opera/frontend/dist/
+backend/game_db/Tower/frontend/node_modules/
+backend/game_db/Tower/frontend/dist/
+backend/game_db/Tower/frontend/release/
+backend/game_db/Tower/frontend/test-results/
+backend/game_db/Tower/frontend/playwright-report/
+backend/game_db/Tower/frontend/*.tsbuildinfo
 backend/game_db/opera/campaigns_staging/
 backend/game_db/opera/*.sqlite3
 backend/game_db/opera/*.db

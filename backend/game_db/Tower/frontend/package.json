@@ -1,0 +1,58 @@
+{
+  "name": "tower-map-sandbox",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Tower PC map sandbox frontend.",
+  "author": "LO",
+  "type": "module",
+  "main": "electron/main.cjs",
+  "scripts": {
+    "dev": "vite --host 127.0.0.1 --port 5174",
+    "build": "tsc -b && vite build",
+    "preview": "vite preview --host 127.0.0.1 --port 4174",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:e2e": "playwright test",
+    "electron:dev": "concurrently -k \"npm:dev\" \"wait-on tcp:5174 && electron electron/main.cjs\"",
+    "electron:preview": "npm run build && electron electron/main.cjs",
+    "build:steam": "npm run build && electron-builder --win --x64 --dir"
+  },
+  "dependencies": {
+    "lucide-react": "^0.468.0",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.49.0",
+    "@types/node": "^24.0.0",
+    "@types/react": "^19.1.2",
+    "@types/react-dom": "^19.1.2",
+    "@vitejs/plugin-react": "^5.0.0",
+    "concurrently": "^9.1.0",
+    "electron": "^33.2.1",
+    "electron-builder": "^25.1.8",
+    "jsdom": "^25.0.1",
+    "typescript": "^5.8.3",
+    "vite": "^7.0.0",
+    "vitest": "^2.1.8",
+    "wait-on": "^8.0.1"
+  },
+  "build": {
+    "appId": "com.lo.tower.mapsandbox",
+    "productName": "Tower Map Sandbox",
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "dist/**/*",
+      "electron/**/*",
+      "package.json"
+    ],
+    "win": {
+      "signAndEditExecutable": false,
+      "target": [
+        "dir"
+      ]
+    }
+  }
+}

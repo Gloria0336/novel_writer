@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>網狀據點地圖 — 種子碼程序生成</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang TC","Microsoft JhengHei",sans-serif;background:#ece9e1;padding:18px;color:#1f1e1b;line-height:1.5}
+.app{max-width:900px;margin:0 auto;background:#fff;border-radius:14px;padding:20px 22px;border:1px solid #ddd9cf}
+h1{font-size:17px;font-weight:600;margin-bottom:4px}
+.sub{font-size:12px;color:#73726c;margin-bottom:16px}
+.ctrl{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:14px;padding:10px 12px;background:#f6f4ee;border-radius:8px}
+.ctrl label{font-size:12px;color:#5f5e5a;font-weight:500}
+.ctrl input{width:130px;padding:6px 8px;font-size:13px;border:1px solid #cdcabf;border-radius:6px;font-family:ui-monospace,monospace}
+.btn{padding:6px 13px;font-size:12px;font-weight:500;cursor:pointer;background:#fff;border:1px solid #b4b2a9;border-radius:6px;color:#1f1e1b;transition:background .15s}
+.btn:hover{background:#f0eee7}
+.btn.primary{background:#2b2a27;color:#fff;border-color:#2b2a27}
+.btn.primary:hover{background:#444}
+.dots{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:12px}
+.dot{width:30px;height:26px;font-size:11px;font-weight:600;cursor:pointer;background:#f0eee7;border:1px solid #ddd9cf;border-radius:6px;color:#9c9a92;display:flex;align-items:center;justify-content:center;transition:all .15s}
+.dot.on{background:#2b2a27;color:#fff;border-color:#2b2a27}
+.dot.done{background:#d8d4c8;color:#5f5e5a}
+.stage{display:flex;gap:18px;align-items:flex-start;flex-wrap:wrap}
+.cwrap{flex-shrink:0}
+.frame{border:1px solid #cdcabf;border-radius:8px;overflow:hidden;background:#cfd8e0;line-height:0}
+canvas{display:block;max-width:100%;height:auto}
+.side{flex:1;min-width:230px}
+.stitle{font-size:14px;font-weight:600;margin-bottom:2px}
+.snum{font-size:11px;color:#9c9a92;font-weight:500;margin-bottom:8px}
+.sdesc{font-size:12.5px;color:#5f5e5a;line-height:1.7;margin-bottom:12px}
+.added{font-size:11.5px;background:#f6f4ee;border-radius:6px;padding:8px 10px;color:#444;border-left:3px solid #b4b2a9}
+.nav{display:flex;gap:8px;justify-content:center;margin:16px 0 4px}
+.legend{margin-top:16px;padding-top:14px;border-top:1px solid #eceae3}
+.lgrid{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:11px;color:#5f5e5a;margin-bottom:8px}
+.li{display:flex;align-items:center;gap:5px}
+.lsq{width:11px;height:11px;border-radius:2px;flex-shrink:0}
+.lc{width:12px;height:12px;border-radius:50%;flex-shrink:0;border:1.5px solid #fff;box-shadow:0 0 0 1px rgba(0,0,0,.2)}
+.stats{margin-top:14px;font-size:11.5px;color:#5f5e5a;background:#f6f4ee;border-radius:8px;padding:10px 12px}
+.stats b{color:#1f1e1b;font-weight:600}
+.stats .grid{display:grid;grid-template-columns:1fr 1fr;gap:3px 16px;margin-top:6px}
+code{font-family:ui-monospace,monospace;background:#eceae3;padding:1px 5px;border-radius:4px;font-size:11px}
+</style>
+</head>
+<body>
+<div class="app">
+  <h1>網狀據點地圖 — 種子碼程序生成</h1>
+  <div class="sub">同一 seed 永遠生成同一張圖（可重現）。按「隨機新地圖」換種子碼，用步驟按鈕逐步觀看 10 個生成階段。</div>
+
+  <div class="ctrl">
+    <label>種子碼 seed</label>
+    <input id="seedInput" value="20250529">
+    <button class="btn" onclick="applySeed()">套用</button>
+    <button class="btn primary" onclick="randomSeed()">🎲 隨機新地圖</button>
+    <button class="btn" onclick="autoPlay()" id="apBtn">▶ 自動播放</button>
+  </div>
+
+  <div class="dots" id="dots"></div>
+
+  <div class="stage">
+    <div class="cwrap">
+      <div class="frame"><canvas id="map" width="600" height="400"></canvas></div>
+      <div class="legend">
+        <div class="lgrid">
+          <div class="li"><div class="lsq" style="background:#9CB86E"></div>平原</div>
+          <div class="li"><div class="lsq" style="background:#4F7B43"></div>森林</div>
+          <div class="li"><div class="lsq" style="background:#6E7551"></div>沼澤</div>
+          <div class="li"><div class="lsq" style="background:#D8C078"></div>沙漠</div>
+          <div class="li"><div class="lsq" style="background:#A59C8F"></div>山地</div>
+          <div class="li"><div class="lsq" style="background:#6BA2CE"></div>水域</div>
+        </div>
+        <div class="lgrid">
+          <div class="li"><div class="lc" style="background:#244E8A"></div>人類</div>
+          <div class="li"><div class="lc" style="background:#9E2B4E"></div>魔族</div>
+          <div class="li"><div class="lc" style="background:#4A4842"></div>中立</div>
+          <div class="li"><span style="color:#5A3A18;font-weight:700">———</span> 大道</div>
+          <div class="li"><span style="color:#6B4A28">- - -</span> 小徑</div>
+          <div class="li"><span style="color:#7B3FA0">· · ·</span> 密道</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="side">
+      <div class="stitle" id="stitle"></div>
+      <div class="snum" id="snum"></div>
+      <div class="sdesc" id="sdesc"></div>
+      <div class="added" id="added"></div>
+      <div class="stats" id="stats"></div>
+    </div>
+  </div>
+
+  <div class="nav">
+    <button class="btn" id="bp" onclick="prev()">← 上一步</button>
+    <button class="btn" id="bn" onclick="next()">下一步 →</button>
+  </div>
+</div>
+
+<script>
+const CELL=10, COLS=60, ROWS=40, W=COLS*CELL, H=ROWS*CELL;
+const TTYPE=['plain','forest','swamp','desert','mountain','water'];
+const TNAME={plain:'平原',forest:'森林',swamp:'沼澤',desert:'沙漠',mountain:'山地',water:'水域'};
+const TCOLOR={plain:'#9CB86E',forest:'#4F7B43',swamp:'#6E7551',desert:'#D8C078',mountain:'#A59C8F',water:'#6BA2CE'};
+const TERRAIN_COST={plain:1,forest:1.5,swamp:2.2,desert:1.8,mountain:2.0,water:3.0};
+const PATH_COST={road:0.7,trail:1.0,secret:0.9};
+const OWNER_COLOR={human:'#244E8A',monster:'#9E2B4E',neutral:'#4A4842'};
+const BONUS={
+  resource:{ch:'資',col:'#B8791C',label:'資源產出'},
+  recruit:{ch:'募',col:'#3B7D3B',label:'招募加速'},
+  research:{ch:'研',col:'#6A4BA8',label:'研究加速'},
+  vision:{ch:'視',col:'#2E6DA8',label:'情報視野'},
+  defense:{ch:'防',col:'#5F5E5A',label:'守方防禦'},
+  port:{ch:'港',col:'#2E8B9E',label:'渡口 / 港'}
+};
+
+const STEPS=[
+  {t:'生成地形圖',d:'用 seeded Voronoi + 噪聲扭曲在空白底圖生成多個 TerrainRegion，讓平原 / 森林 / 沼澤 / 沙漠 / 山地 / 水域彼此嵌合並完整覆蓋地圖。'},
+  {t:'拆分勢力範圍',d:'依地圖長軸與戰線曲線切分人類方（左）、魔族方（右）與中間爭奪帶。藍 / 紅色調表示勢力歸屬，虛線為戰線邊界。'},
+  {t:'放置主據點',d:'王城置於人類核心、主巢置於魔族核心。若落在水域等不適地形則在合理半徑內重新取樣。'},
+  {t:'放置副據點',d:'人類城市散佈於人類範圍；魔族副巢與部落圍繞主巢生成叢集，以 parent_nest_id 指向所屬主巢。'},
+  {t:'散佈中立節點',d:'中立節點以亂數放在爭奪帶與勢力邊界，讀取所在 TerrainRegion 派生互動：城市落於沼澤成沼澤城、中立落於平原成平原據點。'},
+  {t:'建立大道 road',d:'用最短路徑（MST）串聯主據點與副據點並標記 road。人類大道串王城與城市、魔族大道串主巢與副巢，骨幹速度高、地形懲罰低。'},
+  {t:'建立小徑 trail',d:'依 extra_edge_ratio 與陣營密度權重隨機串聯鄰近節點標記 trail，計算 terrain_mix 取 dominant_terrain。魔族側連接密度更高、包抄路線更多。'},
+  {t:'建立密道 secret',d:'魔族方額外建立 secret 連接副巢與部落，魔族行軍速度高於人類，且可降低人類方預設可見度。'},
+  {t:'指派加成 bonus',d:'依節點類型、所在地形、路徑鄰接，從 node_bonus_templates 套上 NodeBonus（資源 / 招募 / 研究 / 視野 / 防禦 / 渡口）。'},
+  {t:'初始駐軍 / 工事',d:'王城高工事高駐軍、部落低工事低駐軍。節點下方數字為駐軍，外環厚度代表工事倍率。'}
+];
+
+// ---- seeded RNG ----
+function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;var t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+function strToSeed(s){let h=2166136261>>>0;for(let i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,16777619)>>>0;}return h>>>0;}
+function valueNoise(rng){
+  const n=64,g=new Float32Array(n*n);for(let i=0;i<g.length;i++)g[i]=rng();
+  const sm=t=>t*t*(3-2*t);
+  return function(x,y){
+    const xi=Math.floor(x),yi=Math.floor(y),xf=x-xi,yf=y-yi;
+    const idx=(a,b)=>(((b%n)+n)%n)*n+(((a%n)+n)%n);
+    const v00=g[idx(xi,yi)],v10=g[idx(xi+1,yi)],v01=g[idx(xi,yi+1)],v11=g[idx(xi+1,yi+1)];
+    const sx=sm(xf),sy=sm(yf);
+    return (v00+sx*(v10-v00))+sy*((v01+sx*(v11-v01))-(v00+sx*(v10-v00)));
+  };
+}
+
+// ---- state ----
+let MAP=null, step=0, autoTimer=null;
+
+function clamp(v,a,b){return v<a?a:v>b?b:v;}
+function dist(a,b){return Math.hypot(a.c-b.c,a.r-b.r);}
+
+function weightedTerrain(rng){
+  // bias: plain common, water/desert rarer
+  const w=[['plain',30],['forest',20],['mountain',17],['swamp',13],['water',12],['desert',8]];
+  let tot=0;w.forEach(x=>tot+=x[1]);
+  let v=rng()*tot;
+  for(const [t,ww] of w){if(v<ww)return t;v-=ww;}
+  return 'plain';
+}
+
+function generate(seed){
+  const rng=mulberry32(seed);
+  // 1. terrain (Voronoi + domain warp)
+  const numSeeds=34, tseeds=[];
+  for(let i=0;i<numSeeds;i++) tseeds.push({x:rng()*COLS,y:rng()*ROWS,type:weightedTerrain(rng)});
+  const nx=valueNoise(rng), ny=valueNoise(rng);
+  const grid=[];
+  for(let r=0;r<ROWS;r++){grid[r]=[];for(let c=0;c<COLS;c++){
+    const wc=c+(nx(c*0.11,r*0.11)-0.5)*9, wr=r+(ny(c*0.11,r*0.11)-0.5)*9;
+    let best=0,bd=Infinity;
+    for(let i=0;i<tseeds.length;i++){const d=(wc-tseeds[i].x)**2+(wr-tseeds[i].y)**2;if(d<bd){bd=d;best=i;}}
+    grid[r][c]=tseeds[best].type;
+  }}
+
+  // 2. faction line (wobble per seed)
+  const phase=rng()*Math.PI*2;
+  const CONTEST=COLS*0.13;
+  function flineAt(r){return COLS*0.5+Math.sin(r/ROWS*Math.PI*1.3+phase)*COLS*0.07;}
+  function zoneOf(c,r){const l=flineAt(r);if(c<l-CONTEST)return 'human';if(c>l+CONTEST)return 'monster';return 'contested';}
+
+  const nodes=[], edges=[];
+  let cfg={human_cities:3,neutral_nodes:4,extra_edge_ratio:0.35};
+
+  function nearWater(c,r){for(let dr=-1;dr<=1;dr++)for(let dc=-1;dc<=1;dc++){const rr=r+dr,cc=c+dc;if(rr>=0&&rr<ROWS&&cc>=0&&cc<COLS&&grid[rr][cc]==='water')return true;}return false;}
+  function nameFor(type,terrain,c,r,idx){
+    if(type==='capital')return '王城';
+    if(type==='main_nest')return '主巢';
+    if(type==='city')return ({plain:'平原城',forest:'森林城',swamp:'沼澤城',desert:'沙漠城',mountain:'山城'})[terrain]||'城市';
+    if(type==='sub_nest')return '副巢'+idx;
+    if(type==='tribe')return '部落'+idx;
+    if(type==='neutral'){
+      if(nearWater(c,r))return '渡口';
+      return ({plain:'驛站',forest:'林寨',swamp:'沼澤地',desert:'綠洲',mountain:'隘口'})[terrain]||'據點';
+    }
+    return '節點';
+  }
+  function tooClose(c,r,md){for(const n of nodes){if((n.c-c)**2+(n.r-r)**2<md*md)return true;}return false;}
+  function makeNode(type,owner,c,r,idx){
+    const terrain=grid[r][c];
+    return {id:nodes.length,type,owner,c,r,x:c*CELL+CELL/2,y:r*CELL+CELL/2,terrain,
+      name:nameFor(type,terrain,c,r,idx),fortification:0,garrison:0,bonuses:[],parent:null};
+  }
+  function place(type,owner,opt){
+    opt=opt||{};const md=opt.minDist||3.2;
+    for(let a=0;a<250;a++){
+      let c,r;
+      if(opt.cx!==undefined){c=(opt.cx+(rng()-0.5)*(opt.spread||0.16))*COLS;r=(opt.cy+(rng()-0.5)*(opt.spread||0.16))*ROWS;}
+      else{c=rng()*COLS;r=rng()*ROWS;}
+      c=clamp(Math.round(c),1,COLS-2);r=clamp(Math.round(r),1,ROWS-2);
+      if(opt.zone&&zoneOf(c,r)!==opt.zone)continue;
+      if(grid[r][c]==='water')continue;
+      if(tooClose(c,r,md))continue;
+      const n=makeNode(type,owner,c,r,opt.idx);nodes.push(n);return n;
+    }
+    return null;
+  }
+  function cluster(center,type,owner,count,rad,md){
+    let placed=0;
+    for(let i=1;i<=count;i++){
+      for(let a=0;a<160;a++){
+        const ang=rng()*Math.PI*2, rr=(0.35+rng()*0.65)*rad;
+        let c=clamp(Math.round(center.c+Math.cos(ang)*rr),1,COLS-2);
+        let r=clamp(Math.round(center.r+Math.sin(ang)*rr),1,ROWS-2);
+        if(zoneOf(c,r)==='human')continue;
+        if(grid[r][c]==='water')continue;
+        if(tooClose(c,r,md))continue;
+        const n=makeNode(type,owner,c,r,i);n.parent=center.id;nodes.push(n);placed++;break;
+      }
+    }
+    return placed;
+  }
+
+  // 3. main strongholds
+  const capital=place('capital','human',{cx:0.14,cy:0.5,spread:0.22,zone:'human',minDist:0});
+  const mainNest=place('main_nest','monster',{cx:0.86,cy:0.5,spread:0.22,zone:'monster',minDist:0});
+
+  // 4. sub strongholds
+  for(let i=1;i<=cfg.human_cities;i++) place('city','human',{cx:0.22+rng()*0.18,cy:rng(),spread:0.3,zone:'human',minDist:4.8,idx:i});
+  const nSub=1+Math.floor(rng()*3); // 1-3
+  const nTribe=2+Math.floor(rng()*3); // 2-4
+  if(mainNest){
+    cluster(mainNest,'sub_nest','monster',nSub,COLS*0.14,4.4);
+    cluster(mainNest,'tribe','monster',nTribe,COLS*0.20,3.6);
+  }
+
+  // 5. neutral nodes
+  for(let i=1;i<=cfg.neutral_nodes;i++) place('neutral','neutral',{cx:0.5,cy:rng(),spread:0.55,minDist:4.4,idx:i});
+
+  // ---- edges ----
+  function nodeById(id){return nodes.find(n=>n.id===id);}
+  function hasEdge(a,b){return edges.some(e=>(e.a===a&&e.b===b)||(e.a===b&&e.b===a));}
+  function factionSpeed(a,b,pt){
+    let s=1.0;
+    if(pt==='secret'&&(a.owner==='monster'||b.owner==='monster'))s=1.4;
+    if(pt==='road')s=1.15;
+    return s;
+  }
+  // --- A* on terrain grid (trails route around terrain) ---
+  function aStar(sc,sr,ec,er){
+    const key=(c,r)=>r*COLS+c, ek=key(ec,er), sk=key(sc,sr);
+    const h=(c,r)=>Math.hypot(c-ec,r-er);
+    const dirs=[[-1,0],[1,0],[0,-1],[0,1],[-1,-1],[1,-1],[-1,1],[1,1]];
+    const g=new Map([[sk,0]]),par=new Map([[sk,null]]),pos=new Map([[sk,{c:sc,r:sr}]]);
+    const open=[{k:sk,c:sc,r:sr,f:h(sc,sr)}],vis=new Set();
+    let guard=0;
+    while(open.length&&guard++<8000){
+      let bi=0;for(let i=1;i<open.length;i++)if(open[i].f<open[bi].f)bi=i;
+      const cur=open.splice(bi,1)[0];
+      if(vis.has(cur.k))continue;vis.add(cur.k);
+      if(cur.k===ek){const path=[];let k=ek;while(k!==null){path.unshift(pos.get(k));k=par.get(k);}return path;}
+      for(const [dc,dr] of dirs){
+        const nc=cur.c+dc,nr=cur.r+dr;
+        if(nc<0||nc>=COLS||nr<0||nr>=ROWS)continue;
+        const nk=key(nc,nr);if(vis.has(nk))continue;
+        const tc=TERRAIN_COST[grid[nr][nc]]||1; // water=3, passable but costly
+        const ng=g.get(cur.k)+tc*(dc!==0&&dr!==0?1.414:1);
+        if(!g.has(nk)||ng<g.get(nk)){g.set(nk,ng);par.set(nk,cur.k);pos.set(nk,{c:nc,r:nr});open.push({k:nk,c:nc,r:nr,f:ng+h(nc,nr)});}
+      }
+    }
+    return [{c:sc,r:sr},{c:ec,r:er}];
+  }
+  function subsample(arr,stepN){const r=[arr[0]];for(let i=stepN;i<arr.length-1;i+=stepN)r.push(arr[i]);r.push(arr[arr.length-1]);return r;}
+  function catmull(pts,segs){
+    if(pts.length<3)return pts.slice();
+    const r=[];
+    for(let i=0;i<pts.length-1;i++){
+      const p0=pts[Math.max(0,i-1)],p1=pts[i],p2=pts[i+1],p3=pts[Math.min(pts.length-1,i+2)];
+      for(let t=0;t<segs;t++){const s=t/segs,s2=s*s,s3=s2*s;
+        r.push({x:0.5*((2*p1.x)+(-p0.x+p2.x)*s+(2*p0.x-5*p1.x+4*p2.x-p3.x)*s2+(-p0.x+3*p1.x-3*p2.x+p3.x)*s3),
+                y:0.5*((2*p1.y)+(-p0.y+p2.y)*s+(2*p0.y-5*p1.y+4*p2.y-p3.y)*s2+(-p0.y+3*p1.y-3*p2.y+p3.y)*s3)});}
+    }
+    r.push(pts[pts.length-1]);return r;
+  }
+  function jitter(pts,amp,seed){
+    if(pts.length<3)return pts;
+    return pts.map((p,i)=>{
+      if(i===0||i===pts.length-1)return p;
+      const t=i/(pts.length-1),env=Math.sin(t*Math.PI);
+      const pr=pts[i-1],nx2=pts[i+1];let dx=nx2.x-pr.x,dy=nx2.y-pr.y;const L=Math.hypot(dx,dy)||1;
+      const px=-dy/L,py=dx/L;
+      const n=Math.sin(p.x*0.09+seed)*Math.cos(p.y*0.08+seed*1.3)*0.6+Math.sin((p.x+p.y)*0.05+seed*2.1)*0.4;
+      return {x:p.x+px*n*amp*env,y:p.y+py*n*amp*env};
+    });
+  }
+  function trailPoly(a,b,seed){
+    const gp=aStar(a.c,a.r,b.c,b.r);
+    const px=gp.map(p=>({x:p.c*CELL+CELL/2,y:p.r*CELL+CELL/2}));
+    const sub=subsample(px,3);
+    return jitter(catmull(sub,8),CELL*0.9,seed);
+  }
+  let trailSeed=1;
+  function makeEdge(aId,bId,pt){
+    const a=nodeById(aId),b=nodeById(bId);
+    const length=dist(a,b);
+    let poly=null;
+    if(pt==='trail')poly=trailPoly(a,b,trailSeed++*13.7);
+    const mix={};
+    if(poly){
+      poly.forEach(p=>{const cc=clamp(Math.round((p.x-CELL/2)/CELL),0,COLS-1);const rr=clamp(Math.round((p.y-CELL/2)/CELL),0,ROWS-1);const tt=grid[rr][cc];mix[tt]=(mix[tt]||0)+1;});
+    }else{
+      const samples=Math.max(2,Math.ceil(length));
+      for(let s=0;s<=samples;s++){const t=s/samples;const cc=clamp(Math.round(a.c+(b.c-a.c)*t),0,COLS-1);const rr=clamp(Math.round(a.r+(b.r-a.r)*t),0,ROWS-1);const tt=grid[rr][cc];mix[tt]=(mix[tt]||0)+1;}
+    }
+    let dom='plain',dn=0;for(const k in mix)if(mix[k]>dn){dn=mix[k];dom=k;}
+    const travel=length*(TERRAIN_COST[dom]||1)*(PATH_COST[pt]||1)/factionSpeed(a,b,pt);
+    const e={a:aId,b:bId,path_type:pt,length:+length.toFixed(1),dominant_terrain:dom,travel_cost:+travel.toFixed(1)};
+    if(poly)e.poly=poly;
+    return e;
+  }
+  // 6. roads (MST per faction)
+  function mst(subset){
+    if(subset.length<2)return;
+    const inT=new Set([subset[0].id]); const rem=subset.slice(1);
+    while(rem.length){
+      let best=null,bd=Infinity,bi=-1;
+      for(let i=0;i<rem.length;i++)for(const tid of inT){const d=dist(rem[i],nodeById(tid));if(d<bd){bd=d;best={a:tid,b:rem[i].id};bi=i;}}
+      edges.push(makeEdge(best.a,best.b,'road'));inT.add(rem[bi].id);rem.splice(bi,1);
+    }
+  }
+  mst(nodes.filter(n=>n.type==='capital'||n.type==='city'));
+  mst(nodes.filter(n=>n.type==='main_nest'||n.type==='sub_nest'));
+
+  // 7. trails
+  for(let i=0;i<nodes.length;i++)for(let j=i+1;j<nodes.length;j++){
+    const a=nodes[i],b=nodes[j],d=dist(a,b);
+    if(d>COLS*0.30)continue;
+    if(hasEdge(a.id,b.id))continue;
+    let p=cfg.extra_edge_ratio*(1-d/(COLS*0.30))*1.4;
+    if(a.owner==='monster'&&b.owner==='monster')p*=1.8;
+    if(a.owner==='neutral'||b.owner==='neutral')p*=1.25;
+    if(rng()<p)edges.push(makeEdge(a.id,b.id,'trail'));
+  }
+  // connectivity guarantee
+  (function(){
+    const par=nodes.map((_,i)=>i);
+    const find=x=>{while(par[x]!==x){par[x]=par[par[x]];x=par[x];}return x;};
+    const uni=(a,b)=>{par[find(a)]=find(b);};
+    edges.forEach(e=>uni(e.a,e.b));
+    let guard=0;
+    while(guard++<30){
+      const comps={};nodes.forEach(n=>{const k=find(n.id);(comps[k]=comps[k]||[]).push(n);});
+      const ks=Object.keys(comps);if(ks.length<=1)break;
+      const c0=comps[ks[0]];let best=null,bd=Infinity;
+      for(const a of c0)for(let ri=1;ri<ks.length;ri++)for(const b of comps[ks[ri]]){const d=dist(a,b);if(d<bd){bd=d;best={a:a.id,b:b.id};}}
+      edges.push(makeEdge(best.a,best.b,'trail'));uni(best.a,best.b);
+    }
+  })();
+
+  // 8. secret (demon sub_nest/tribe -> nearest nest)
+  for(const t of nodes.filter(n=>n.type==='tribe')){
+    let best=null,bd=Infinity;
+    for(const nn of nodes.filter(n=>n.type==='sub_nest'||n.type==='main_nest')){const d=dist(t,nn);if(d<bd){bd=d;best=nn;}}
+    if(best&&!hasEdge(t.id,best.id))edges.push(makeEdge(t.id,best.id,'secret'));
+  }
+
+  // 9. bonuses
+  for(const n of nodes){
+    const b=[];
+    if(n.type==='capital'){b.push('research');b.push('recruit');}
+    if(n.type==='city')b.push(n.terrain==='mountain'?'resource':n.terrain==='plain'?'recruit':'resource');
+    if(n.type==='main_nest')b.push('recruit');
+    if(n.type==='sub_nest')b.push('recruit');
+    if(n.terrain==='mountain'||n.terrain==='swamp')b.push('defense');
+    if(nearWater(n.c,n.r))b.push('port');
+    if(n.type==='neutral'&&n.terrain==='mountain')b.push('vision');
+    n.bonuses=[...new Set(b)];
+  }
+  // 10. garrison / fort
+  const FORT={capital:[2.0,3.0],city:[1.4,1.8],main_nest:[1.3,1.6],sub_nest:[1.1,1.3],tribe:[1.0,1.1],neutral:[1.0,1.4]};
+  const GARR={capital:[800,1200],city:[280,520],main_nest:[500,800],sub_nest:[150,300],tribe:[60,130],neutral:[0,90]};
+  for(const n of nodes){
+    const f=FORT[n.type],g=GARR[n.type];
+    n.fortification=+(f[0]+rng()*(f[1]-f[0])).toFixed(2);
+    if(n.terrain==='mountain'||n.terrain==='swamp')n.fortification=+(n.fortification*1.15).toFixed(2);
+    n.garrison=Math.round(g[0]+rng()*(g[1]-g[0]));
+  }
+
+  return {seed,grid,nodes,edges,flineAt,zoneOf,CONTEST,counts:{sub:nSub,tribe:nTribe}};
+}
+
+// ---- drawing ----
+function starPath(ctx,cx,cy,spikes,outer,inner){
+  let rot=-Math.PI/2,step=Math.PI/spikes;ctx.beginPath();ctx.moveTo(cx,cy-outer);
+  for(let i=0;i<spikes;i++){let x=cx+Math.cos(rot)*outer,y=cy+Math.sin(rot)*outer;ctx.lineTo(x,y);rot+=step;x=cx+Math.cos(rot)*inner;y=cy+Math.sin(rot)*inner;ctx.lineTo(x,y);rot+=step;}
+  ctx.closePath();
+}
+function labelText(ctx,text,x,y,bold,size){
+  ctx.font=(bold?'bold ':'')+(size||9)+'px sans-serif';ctx.textAlign='center';ctx.textBaseline='top';
+  ctx.lineWidth=2.6;ctx.strokeStyle='rgba(255,255,255,.9)';ctx.strokeText(text,x,y);
+  ctx.fillStyle='#1a1208';ctx.fillText(text,x,y);
+}
+
+function drawEdge(ctx,e){
+  const a=MAP.nodes[e.a],b=MAP.nodes[e.b];
+  ctx.beginPath();
+  if(e.path_type==='trail'&&e.poly&&e.poly.length>1){
+    ctx.moveTo(e.poly[0].x,e.poly[0].y);
+    for(let i=1;i<e.poly.length;i++)ctx.lineTo(e.poly[i].x,e.poly[i].y);
+  }else{
+    ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);
+  }
+  if(e.path_type==='road'){ctx.strokeStyle='rgba(90,58,24,.95)';ctx.lineWidth=2.6;ctx.setLineDash([]);}
+  else if(e.path_type==='trail'){ctx.strokeStyle='rgba(107,74,40,.8)';ctx.lineWidth=1.3;ctx.setLineDash([5,3]);ctx.lineJoin='round';ctx.lineCap='round';}
+  else{ctx.strokeStyle='rgba(123,63,160,.85)';ctx.lineWidth=1.4;ctx.setLineDash([1.5,3]);}
+  ctx.stroke();ctx.setLineDash([]);
+}
+function drawNode(ctx,n){
+  const col=OWNER_COLOR[n.owner];
+  ctx.lineJoin='round';
+  if(n.type==='capital'){
+    ctx.beginPath();ctx.arc(n.x,n.y,11,0,7);ctx.fillStyle='#D9B84B';ctx.fill();
+    ctx.beginPath();ctx.arc(n.x,n.y,8.5,0,7);ctx.fillStyle=col;ctx.fill();
+    ctx.lineWidth=2;ctx.strokeStyle='#fff';ctx.stroke();
+  }else if(n.type==='main_nest'){
+    starPath(ctx,n.x,n.y,9,11,5.5);ctx.fillStyle=col;ctx.fill();ctx.lineWidth=1.8;ctx.strokeStyle='#fff';ctx.stroke();
+  }else if(n.type==='city'){
+    ctx.beginPath();ctx.arc(n.x,n.y,6.5,0,7);ctx.fillStyle=col;ctx.fill();ctx.lineWidth=1.6;ctx.strokeStyle='#fff';ctx.stroke();
+  }else if(n.type==='sub_nest'){
+    starPath(ctx,n.x,n.y,6,7,3.6);ctx.fillStyle=col;ctx.fill();ctx.lineWidth=1.4;ctx.strokeStyle='#fff';ctx.stroke();
+  }else if(n.type==='tribe'){
+    ctx.beginPath();ctx.arc(n.x,n.y,4.2,0,7);ctx.fillStyle=col;ctx.fill();ctx.lineWidth=1.2;ctx.strokeStyle='#fff';ctx.stroke();
+  }else{ // neutral diamond
+    ctx.beginPath();ctx.moveTo(n.x,n.y-5.5);ctx.lineTo(n.x+5.5,n.y);ctx.lineTo(n.x,n.y+5.5);ctx.lineTo(n.x-5.5,n.y);ctx.closePath();
+    ctx.fillStyle=col;ctx.fill();ctx.lineWidth=1.4;ctx.strokeStyle='#fff';ctx.stroke();
+  }
+}
+function nodeRadius(n){return n.type==='capital'||n.type==='main_nest'?11:n.type==='city'||n.type==='sub_nest'?7:n.type==='tribe'?4.2:5.5;}
+
+function draw(){
+  const cv=document.getElementById('map'),ctx=cv.getContext('2d');
+  ctx.clearRect(0,0,W,H);
+  // terrain
+  for(let r=0;r<ROWS;r++)for(let c=0;c<COLS;c++){ctx.fillStyle=TCOLOR[MAP.grid[r][c]];ctx.fillRect(c*CELL,r*CELL,CELL,CELL);}
+  ctx.strokeStyle='rgba(0,0,0,.05)';ctx.lineWidth=0.4;
+  for(let r=0;r<=ROWS;r++){ctx.beginPath();ctx.moveTo(0,r*CELL);ctx.lineTo(W,r*CELL);ctx.stroke();}
+  for(let c=0;c<=COLS;c++){ctx.beginPath();ctx.moveTo(c*CELL,0);ctx.lineTo(c*CELL,H);ctx.stroke();}
+
+  // faction tint (step 1) + boundary (step>=1)
+  if(step>=1){
+    if(step===1){
+      for(let r=0;r<ROWS;r++)for(let c=0;c<COLS;c++){const z=MAP.zoneOf(c,r);if(z==='human')ctx.fillStyle='rgba(36,78,138,.20)';else if(z==='monster')ctx.fillStyle='rgba(158,43,78,.20)';else ctx.fillStyle='rgba(210,170,40,.16)';ctx.fillRect(c*CELL,r*CELL,CELL,CELL);}
+    }
+    ctx.strokeStyle='rgba(40,40,40,.5)';ctx.lineWidth=1.3;ctx.setLineDash([6,4]);
+    for(const off of [-MAP.CONTEST,MAP.CONTEST]){ctx.beginPath();for(let r=0;r<=ROWS;r++){const x=(MAP.flineAt(r)+off)*CELL;if(r===0)ctx.moveTo(x,r*CELL);else ctx.lineTo(x,r*CELL);}ctx.stroke();}
+    ctx.setLineDash([]);
+  }
+
+  // edges
+  if(step>=5)MAP.edges.filter(e=>e.path_type==='road').forEach(e=>drawEdge(ctx,e));
+  if(step>=6)MAP.edges.filter(e=>e.path_type==='trail').forEach(e=>drawEdge(ctx,e));
+  if(step>=7)MAP.edges.filter(e=>e.path_type==='secret').forEach(e=>drawEdge(ctx,e));
+
+  // nodes by step
+  const showN=n=>{
+    if(n.type==='capital'||n.type==='main_nest')return step>=2;
+    if(n.type==='city'||n.type==='sub_nest'||n.type==='tribe')return step>=3;
+    if(n.type==='neutral')return step>=4;
+    return false;
+  };
+  MAP.nodes.filter(showN).forEach(n=>{
+    drawNode(ctx,n);
+    const showLabel=(n.type==='capital'||n.type==='main_nest'||n.type==='city'||n.type==='neutral'||n.type==='sub_nest');
+    if(showLabel)labelText(ctx,n.name,n.x,n.y+nodeRadius(n)+2,n.type==='capital'||n.type==='main_nest',9);
+    // bonuses (step8)
+    if(step>=8&&n.bonuses.length){
+      let bx=n.x+nodeRadius(n)+1, by=n.y-nodeRadius(n)-9;
+      n.bonuses.forEach((b,i)=>{const info=BONUS[b];ctx.beginPath();ctx.arc(bx+i*12,by,5.5,0,7);ctx.fillStyle=info.col;ctx.fill();ctx.font='bold 8px sans-serif';ctx.fillStyle='#fff';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(info.ch,bx+i*12,by+0.5);});
+    }
+    // garrison (step9)
+    if(step>=9){
+      const gy=n.y+nodeRadius(n)+2+11;
+      labelText(ctx,'駐 '+n.garrison+' · 工 '+n.fortification,n.x,gy,false,8);
+    }
+  });
+
+  renderSide();
+}
+
+function renderSide(){
+  const s=STEPS[step];
+  document.getElementById('stitle').textContent=s.t;
+  document.getElementById('snum').textContent='步驟 '+(step+1)+' / 10';
+  document.getElementById('sdesc').textContent=s.d;
+  // added summary
+  const c=MAP.nodes;
+  const cnt=t=>c.filter(n=>n.type===t).length;
+  const ec=t=>MAP.edges.filter(e=>e.path_type===t).length;
+  let add='';
+  if(step===0)add='地形區：6 種類型，'+ROWS*COLS+' 格完整覆蓋';
+  else if(step===1)add='勢力帶：人類（左）/ 爭奪帶（中）/ 魔族（右）';
+  else if(step===2)add='主據點 +2：王城 ×1、主巢 ×1';
+  else if(step===3)add='副據點 +'+(cnt('city')+cnt('sub_nest')+cnt('tribe'))+'：城市 ×'+cnt('city')+'、副巢 ×'+cnt('sub_nest')+'、部落 ×'+cnt('tribe');
+  else if(step===4)add='中立節點 +'+cnt('neutral')+'：依地形派生互動類型';
+  else if(step===5)add='大道 road ×'+ec('road')+'：陣營骨幹交通網（MST）';
+  else if(step===6)add='小徑 trail ×'+ec('trail')+'：含跨帶連通，魔族側更密';
+  else if(step===7)add='密道 secret ×'+ec('secret')+'：魔族副巢 / 部落隱蔽通路';
+  else if(step===8)add='加成 bonus：依類型 × 地形 × 鄰接套上 NodeBonus';
+  else if(step===9)add='駐軍 / 工事：王城最高、部落最低，沼澤 / 山地 +15% 工事';
+  document.getElementById('added').textContent='本步驟新增 ⟶ '+add;
+
+  // stats
+  document.getElementById('stats').innerHTML=
+    '<div>種子碼 <b>'+MAP.seed+'</b> · 節點 <b>'+c.length+'</b> · 邊 <b>'+MAP.edges.length+'</b></div>'+
+    '<div class="grid">'+
+    '<span>王城 '+cnt('capital')+' · 城市 '+cnt('city')+'</span>'+
+    '<span>主巢 '+cnt('main_nest')+' · 副巢 '+cnt('sub_nest')+'</span>'+
+    '<span>部落 '+cnt('tribe')+' · 中立 '+cnt('neutral')+'</span>'+
+    '<span>大道 '+ec('road')+' · 小徑 '+ec('trail')+' · 密道 '+ec('secret')+'</span>'+
+    '</div>';
+
+  // dots
+  document.querySelectorAll('.dot').forEach((d,i)=>{d.classList.toggle('on',i===step);d.classList.toggle('done',i<step);});
+  document.getElementById('bp').disabled=step===0;
+  document.getElementById('bn').disabled=step===9;
+}
+
+// ---- controls ----
+function buildDots(){
+  const w=document.getElementById('dots');w.innerHTML='';
+  for(let i=0;i<10;i++){const b=document.createElement('button');b.className='dot';b.textContent=i+1;b.onclick=()=>{stopAuto();step=i;draw();};w.appendChild(b);}
+}
+function regen(seed){MAP=generate(seed);document.getElementById('seedInput').value=seed;step=0;draw();}
+function applySeed(){stopAuto();const v=document.getElementById('seedInput').value.trim();const seed=/^\d+$/.test(v)?(parseInt(v,10)>>>0):strToSeed(v);regen(seed);}
+function randomSeed(){stopAuto();regen(Math.floor(Math.random()*4294967296)>>>0);}
+function prev(){stopAuto();if(step>0){step--;draw();}}
+function next(){stopAuto();if(step<9){step++;draw();}}
+function autoPlay(){
+  if(autoTimer){stopAuto();return;}
+  document.getElementById('apBtn').textContent='⏸ 暫停';
+  if(step>=9)step=0;
+  autoTimer=setInterval(()=>{if(step<9){step++;draw();}else{stopAuto();}},850);
+  draw();
+}
+function stopAuto(){if(autoTimer){clearInterval(autoTimer);autoTimer=null;document.getElementById('apBtn').textContent='▶ 自動播放';}}
+
+buildDots();
+regen(20250529);
+</script>
+</body>
+</html>
