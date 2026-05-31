@@ -18,7 +18,7 @@ const NEIGHBORS = [
 ];
 
 type GridPoint = { x: number; y: number };
-type BoundaryEdge = { from: GridPoint; to: GridPoint };
+type BoundarySegment = { from: GridPoint; to: GridPoint };
 
 function cellKey(c: number, r: number): string {
   return `${c},${r}`;
@@ -59,40 +59,40 @@ function softenClosedLoop(points: Position[]): Position[] {
 
 function outlineLoopsForCells(cells: Array<{ c: number; r: number }>, cellSize: number): Position[][] {
   const occupied = new Set(cells.map((cell) => cellKey(cell.c, cell.r)));
-  const edges: BoundaryEdge[] = [];
-  const addEdge = (from: GridPoint, to: GridPoint) => edges.push({ from, to });
+  const segments: BoundarySegment[] = [];
+  const addSegment = (from: GridPoint, to: GridPoint) => segments.push({ from, to });
 
   for (const cell of cells) {
     const { c, r } = cell;
-    if (!occupied.has(cellKey(c, r - 1))) addEdge({ x: c, y: r }, { x: c + 1, y: r });
-    if (!occupied.has(cellKey(c + 1, r))) addEdge({ x: c + 1, y: r }, { x: c + 1, y: r + 1 });
-    if (!occupied.has(cellKey(c, r + 1))) addEdge({ x: c + 1, y: r + 1 }, { x: c, y: r + 1 });
-    if (!occupied.has(cellKey(c - 1, r))) addEdge({ x: c, y: r + 1 }, { x: c, y: r });
+    if (!occupied.has(cellKey(c, r - 1))) addSegment({ x: c, y: r }, { x: c + 1, y: r });
+    if (!occupied.has(cellKey(c + 1, r))) addSegment({ x: c + 1, y: r }, { x: c + 1, y: r + 1 });
+    if (!occupied.has(cellKey(c, r + 1))) addSegment({ x: c + 1, y: r + 1 }, { x: c, y: r + 1 });
+    if (!occupied.has(cellKey(c - 1, r))) addSegment({ x: c, y: r + 1 }, { x: c, y: r });
   }
 
   const starts = new Map<string, number[]>();
-  edges.forEach((edge, index) => {
-    const key = pointKey(edge.from);
+  segments.forEach((segment, index) => {
+    const key = pointKey(segment.from);
     starts.set(key, [...(starts.get(key) ?? []), index]);
   });
 
   const used = new Set<number>();
   const loops: Position[][] = [];
-  for (let index = 0; index < edges.length; index += 1) {
+  for (let index = 0; index < segments.length; index += 1) {
     if (used.has(index)) continue;
-    const first = edges[index];
+    const first = segments[index];
     used.add(index);
     const loop: GridPoint[] = [first.from, first.to];
     const startKey = pointKey(first.from);
     let cursorKey = pointKey(first.to);
     let guard = 0;
 
-    while (cursorKey !== startKey && guard < edges.length + 4) {
+    while (cursorKey !== startKey && guard < segments.length + 4) {
       guard += 1;
       const nextIndex = (starts.get(cursorKey) ?? []).find((candidate) => !used.has(candidate));
       if (nextIndex === undefined) break;
       used.add(nextIndex);
-      const next = edges[nextIndex];
+      const next = segments[nextIndex];
       loop.push(next.to);
       cursorKey = pointKey(next.to);
     }

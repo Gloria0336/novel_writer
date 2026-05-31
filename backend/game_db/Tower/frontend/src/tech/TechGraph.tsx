@@ -32,14 +32,14 @@ export function TechGraph({ layout, selectedId, highlightedIds, onSelect }: Tech
         onClick={(event) => event.stopPropagation()}
       >
         <svg className="tech-edge-layer" width={layout.width} height={layout.height} aria-hidden="true">
-          {layout.edges.map((edge) => {
-            const from = positions.get(edge.from);
-            const to = positions.get(edge.to);
+          {layout.links.map((link) => {
+            const from = positions.get(link.from);
+            const to = positions.get(link.to);
             if (!from || !to) return null;
-            const active = hasHighlight && highlightedIds.has(edge.from) && highlightedIds.has(edge.to);
+            const active = hasHighlight && highlightedIds.has(link.from) && highlightedIds.has(link.to);
             return (
               <path
-                key={`${edge.from}-${edge.to}`}
+                key={`${link.from}-${link.to}`}
                 className={`tech-edge${active ? " is-active" : ""}${hasHighlight && !active ? " is-dimmed" : ""}`}
                 d={edgePath(from, to)}
               />

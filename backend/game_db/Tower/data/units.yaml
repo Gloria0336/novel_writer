@@ -8,6 +8,8 @@ militia:
   attack: 5
   defense: 5
   hp: 12
+  range: 1
+  move_speed: 1
   upkeep: 0.3
   cost:
     combat_resource: 4
@@ -20,6 +22,8 @@ knight:
   attack: 12
   defense: 11
   hp: 28
+  range: 1
+  move_speed: 1.25
   upkeep: 1.0
   cost:
     combat_resource: 12
@@ -32,6 +36,8 @@ mage:
   attack: 18
   defense: 6
   hp: 16
+  range: 5
+  move_speed: 0.9
   upkeep: 1.5
   cost:
     combat_resource: 16
@@ -45,6 +51,8 @@ valkyrie:
   attack: 22
   defense: 16
   hp: 40
+  range: 1
+  move_speed: 1.4
   upkeep: 3.0
   cost:
     combat_resource: 30

@@ -1,4 +1,4 @@
-import type { BonusType, DensityPreset, GenerationPreset, NodeType, OwnerSide, PathType, TerrainType } from "../types";
+import type { BonusType, DensityPreset, GenerationPreset, OwnerSide, StructureType, TerrainType, TileFeature } from "../types";
 
 export const TERRAIN_LABELS: Record<TerrainType, string> = {
   plain: "平原",
@@ -10,12 +10,12 @@ export const TERRAIN_LABELS: Record<TerrainType, string> = {
 };
 
 export const TERRAIN_COLORS: Record<TerrainType, string> = {
-  plain: "#97ad66",
-  forest: "#426c3d",
-  swamp: "#68714f",
-  desert: "#d2b968",
-  mountain: "#9a9288",
-  water: "#5d99c4"
+  plain: "#96ac66",
+  forest: "#496f3f",
+  swamp: "#6e7651",
+  desert: "#d3bd73",
+  mountain: "#9b948b",
+  water: "#659cc5"
 };
 
 export const TERRAIN_COST: Record<TerrainType, number> = {
@@ -23,41 +23,41 @@ export const TERRAIN_COST: Record<TerrainType, number> = {
   forest: 1.5,
   swamp: 2.2,
   desert: 1.8,
-  mountain: 2,
-  water: 3
+  mountain: 2.6,
+  water: 5
 };
 
-export const PATH_LABELS: Record<PathType, string> = {
-  road: "大道",
-  trail: "小徑",
-  secret: "密道"
-};
-
-export const PATH_COST: Record<PathType, number> = {
-  road: 0.72,
-  trail: 1,
-  secret: 0.88
+export const FEATURE_LABELS: Record<TileFeature, string> = {
+  road: "道路",
+  bridge: "橋",
+  secret_path: "密道",
+  wall: "牆",
+  moat: "壕",
+  mine: "礦脈",
+  ruin: "遺跡",
+  ford: "淺灘"
 };
 
 export const OWNER_LABELS: Record<OwnerSide, string> = {
   human: "人類",
-  monster: "魔物",
-  neutral: "中立"
+  monster: "魔物"
 };
 
 export const OWNER_COLORS: Record<OwnerSide, string> = {
   human: "#2d5c9a",
-  monster: "#a7374e",
-  neutral: "#4b4b42"
+  monster: "#a7374e"
 };
 
-export const NODE_TYPE_LABELS: Record<NodeType, string> = {
+export const STRUCTURE_TYPE_LABELS: Record<StructureType, string> = {
   capital: "王城",
   city: "城市",
   main_nest: "主巢",
   sub_nest: "副巢",
   tribe: "部落",
-  neutral: "中立據點"
+  tower: "塔",
+  barracks: "兵營",
+  outpost: "哨站",
+  fort: "堡壘"
 };
 
 export const BONUS_LABELS: Record<BonusType, string> = {
@@ -79,15 +79,15 @@ export const BONUS_BADGES: Record<BonusType, { label: string; color: string }> =
 };
 
 export const PRESET_DIMENSIONS: Record<GenerationPreset, { width: number; height: number }> = {
-  compact: { width: 58, height: 38 },
-  standard: { width: 72, height: 48 },
-  wide: { width: 88, height: 48 }
+  compact: { width: 30, height: 20 },
+  standard: { width: 36, height: 24 },
+  wide: { width: 46, height: 24 }
 };
 
-export const DENSITY_VALUES: Record<DensityPreset, { humanCities: number; neutralNodes: number; extraEdgeRatio: number }> = {
-  low: { humanCities: 3, neutralNodes: 6, extraEdgeRatio: 0.252 },
-  standard: { humanCities: 4, neutralNodes: 7, extraEdgeRatio: 0.392 },
-  high: { humanCities: 6, neutralNodes: 10, extraEdgeRatio: 0.588 }
+export const DENSITY_VALUES: Record<DensityPreset, { humanCities: number; neutralSites: number }> = {
+  low: { humanCities: 2, neutralSites: 3 },
+  standard: { humanCities: 3, neutralSites: 4 },
+  high: { humanCities: 5, neutralSites: 7 }
 };
 
 export const DEFAULT_SEED = "20250529";

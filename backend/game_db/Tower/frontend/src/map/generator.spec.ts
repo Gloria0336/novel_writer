@@ -1,106 +1,71 @@
 import { describe, expect, it } from "vitest";
 
 import { configForPresets, generateTowerMap } from "./generator";
-
-function connectedNodeCount(map: ReturnType<typeof generateTowerMap>): number {
-  const seen = new Set<string>();
-  const queue = [map.nodes[0].id];
-  while (queue.length) {
-    const current = queue.shift()!;
-    if (seen.has(current)) continue;
-    seen.add(current);
-    for (const edge of map.edges) {
-      if (edge.a === current && !seen.has(edge.b)) queue.push(edge.b);
-      if (edge.b === current && !seen.has(edge.a)) queue.push(edge.a);
-    }
-  }
-  return seen.size;
-}
+import { findTileRoute, reachableTiles } from "./routing";
 
 describe("generateTowerMap", () => {
-  it("generates the same map for the same seed", () => {
+  it("generates the same hex map for the same seed", () => {
     const a = generateTowerMap({ seed: "demo-seed" });
     const b = generateTowerMap({ seed: "demo-seed" });
     expect(a).toEqual(b);
   });
 
-  it("generates different layouts for different seeds", () => {
+  it("generates different structure layouts for different seeds", () => {
     const a = generateTowerMap({ seed: "demo-a" });
     const b = generateTowerMap({ seed: "demo-b" });
-    expect(a.nodes.map((node) => `${node.id}:${node.grid.c},${node.grid.r}`).join("|")).not.toEqual(
-      b.nodes.map((node) => `${node.id}:${node.grid.c},${node.grid.r}`).join("|")
+    expect(a.structures.map((item) => `${item.id}:${item.footprint[0].q},${item.footprint[0].r}`).join("|")).not.toEqual(
+      b.structures.map((item) => `${item.id}:${item.footprint[0].q},${item.footprint[0].r}`).join("|")
     );
   });
 
-  it("does not create self-loop edges", () => {
-    const map = generateTowerMap({ seed: "loops" });
-    expect(map.edges.every((edge) => edge.a !== edge.b)).toBe(true);
+  it("creates one capital, one main nest, and configured cities", () => {
+    const map = generateTowerMap({ seed: "victory-points", humanCities: 4 });
+    expect(map.structures.filter((item) => item.structureType === "capital")).toHaveLength(1);
+    expect(map.structures.filter((item) => item.structureType === "main_nest")).toHaveLength(1);
+    expect(map.structures.filter((item) => item.structureType === "city")).toHaveLength(4);
   });
 
-  it("keeps the graph connected", () => {
-    const map = generateTowerMap({ seed: "connected" });
-    expect(connectedNodeCount(map)).toBe(map.nodes.length);
+  it("creates a complete bounded tile map", () => {
+    const map = generateTowerMap({ seed: "tiles", width: 24, height: 16 });
+    expect(map.tileMap.tiles).toHaveLength(24 * 16);
+    expect(map.tileMap.tiles.every((tile) => tile.coord.q >= 0 && tile.coord.q < 24 && tile.coord.r >= 0 && tile.coord.r < 16)).toBe(true);
   });
 
-  it("creates exactly one capital and one main nest", () => {
-    const map = generateTowerMap({ seed: "victory-points" });
-    expect(map.nodes.filter((node) => node.nodeType === "capital")).toHaveLength(1);
-    expect(map.nodes.filter((node) => node.nodeType === "main_nest")).toHaveLength(1);
+  it("marks roads, bridges or secret paths as tile features", () => {
+    const map = generateTowerMap({ seed: "features" });
+    expect(map.counts.roads).toBeGreaterThan(0);
+    expect(map.counts.secrets).toBeGreaterThan(0);
+    expect(map.tileMap.tiles.some((tile) => tile.features.includes("road") || tile.features.includes("bridge"))).toBe(true);
   });
 
-  it("keeps preset canvas sizes while using denser map presets", () => {
-    expect(configForPresets("sizes", "compact", "standard")).toMatchObject({
-      width: 58,
-      height: 38,
-      cellSize: 12,
-      humanCities: 4,
-      neutralNodes: 7,
-      extraEdgeRatio: 0.392
-    });
-    expect(configForPresets("sizes", "standard", "low")).toMatchObject({
-      width: 72,
-      height: 48,
-      humanCities: 3,
-      neutralNodes: 6,
-      extraEdgeRatio: 0.252
-    });
-    expect(configForPresets("sizes", "wide", "high")).toMatchObject({
-      width: 88,
-      height: 48,
-      humanCities: 6,
-      neutralNodes: 10,
-      extraEdgeRatio: 0.588
-    });
-  });
-
-  it("builds cartographic regions, elevation, and contours", () => {
-    const map = generateTowerMap({ seed: "cartography" });
-    expect(map.elevationGrid).toHaveLength(map.config.height);
-    expect(map.elevationGrid[0]).toHaveLength(map.config.width);
-    expect(map.elevationGrid.flat().every((value) => value >= 0 && value <= 1)).toBe(true);
-    expect(map.contourLines.length).toBeGreaterThan(20);
-    expect(map.contourLines.some((line) => line.kind === "major")).toBe(true);
-    expect(map.terrainRegions.length).toBeGreaterThan(Object.keys(map.counts).length);
-    expect(map.terrainRegions.every((region) => region.cells.length > 0 && region.outlines.length > 0)).toBe(true);
-  });
-
-  it("assigns nodes to connected terrain region ids", () => {
-    const map = generateTowerMap({ seed: "region-node-ids" });
-    const regionIds = new Set(map.terrainRegions.map((region) => region.id));
-    expect(map.nodes.every((node) => regionIds.has(node.terrainId))).toBe(true);
-  });
-
-  it("uses secret paths only for monster nest structures", () => {
-    const map = generateTowerMap({ seed: "secrets" });
-    const nodes = new Map(map.nodes.map((node) => [node.id, node]));
-    const secretEdges = map.edges.filter((edge) => edge.pathType === "secret");
-    expect(secretEdges.length).toBeGreaterThan(0);
-    for (const edge of secretEdges) {
-      const a = nodes.get(edge.a)!;
-      const b = nodes.get(edge.b)!;
-      expect([a.owner, b.owner]).toEqual(["monster", "monster"]);
-      expect([a.nodeType, b.nodeType].sort()).toEqual(expect.arrayContaining(["tribe"]));
-      expect([a.nodeType, b.nodeType].some((type) => type === "sub_nest" || type === "main_nest")).toBe(true);
+  it("keeps structures on passable footprint tiles", () => {
+    const map = generateTowerMap({ seed: "passable" });
+    for (const structure of map.structures) {
+      const tile = map.tileMap.tiles.find((item) => item.coord.q === structure.footprint[0].q && item.coord.r === structure.footprint[0].r);
+      expect(tile?.passable).toBe(true);
     }
+  });
+
+  it("keeps preset dimensions stable", () => {
+    expect(configForPresets("sizes", "compact", "standard")).toMatchObject({ width: 30, height: 20, humanCities: 3, neutralSites: 4 });
+    expect(configForPresets("sizes", "standard", "low")).toMatchObject({ width: 36, height: 24, humanCities: 2, neutralSites: 3 });
+    expect(configForPresets("sizes", "wide", "high")).toMatchObject({ width: 46, height: 24, humanCities: 5, neutralSites: 7 });
+  });
+
+  it("can route over passable hexes between same-side structures", () => {
+    const map = generateTowerMap({ seed: "route" });
+    const capital = map.structures.find((item) => item.structureType === "capital")!;
+    const city = map.structures.find((item) => item.structureType === "city")!;
+    expect(findTileRoute(map, capital.footprint[0], city.footprint[0])).toBeTruthy();
+  });
+
+  it("creates movable armies with reachable hexes", () => {
+    const map = generateTowerMap({ seed: "m2-armies" });
+    expect(map.armies).toHaveLength(4);
+    expect(map.counts.armies).toBe(4);
+    const army = map.armies[0];
+    const reach = reachableTiles(map, army);
+    expect(reach.get(`${army.position.q},${army.position.r}`)).toBe(0);
+    expect(reach.size).toBeGreaterThan(1);
   });
 });

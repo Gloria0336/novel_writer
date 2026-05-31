@@ -37,20 +37,91 @@ test("map sandbox opens, renders, selects, and exports JSON", async ({ page }) =
   });
   expect(hasPaint).toBe(true);
 
-  const firstNode = await page.evaluate(() => window.__TOWER_MAP__?.nodes[0]);
-  expect(firstNode).toBeTruthy();
+  const firstStructure = await page.evaluate(() => window.__TOWER_MAP__?.structures[0]);
+  expect(firstStructure).toBeTruthy();
   const box = await canvas.boundingBox();
   const mapSize = await page.evaluate(() => ({
     width: window.__TOWER_MAP__?.pixelWidth ?? 1,
     height: window.__TOWER_MAP__?.pixelHeight ?? 1
   }));
-  await canvas.click({
-    position: {
-      x: ((firstNode!.position.x / mapSize.width) * (box?.width ?? 1)),
-      y: ((firstNode!.position.y / mapSize.height) * (box?.height ?? 1))
+  await viewport.evaluate(
+    (element, target) => {
+      const zoom = target.boxWidth / target.mapWidth;
+      element.scrollLeft = Math.max(0, target.x * zoom - element.clientWidth / 2);
+      element.scrollTop = Math.max(0, target.y * zoom - element.clientHeight / 2);
+    },
+    {
+      x: firstStructure!.position.x,
+      y: firstStructure!.position.y,
+      boxWidth: box?.width ?? 1,
+      mapWidth: mapSize.width
     }
-  });
-  await expect(page.locator(".node-detail header strong").filter({ hasText: firstNode!.name })).toBeVisible();
+  );
+  await canvas.evaluate(
+    (element, target) => {
+      const rect = element.getBoundingClientRect();
+      const zoom = target.boxWidth / target.mapWidth;
+      element.dispatchEvent(
+        new MouseEvent("click", {
+          bubbles: true,
+          clientX: rect.left + target.x * zoom,
+          clientY: rect.top + target.y * zoom
+        })
+      );
+    },
+    {
+      x: firstStructure!.position.x,
+      y: firstStructure!.position.y,
+      boxWidth: box?.width ?? 1,
+      mapWidth: mapSize.width
+    }
+  );
+  await expect(page.locator(".node-detail header strong").filter({ hasText: firstStructure!.name })).toBeVisible();
+
+  const firstArmy = await page.evaluate(() => window.__TOWER_MAP__?.armies[0]);
+  expect(firstArmy).toBeTruthy();
+  const armyPoint = await page.evaluate((army) => {
+    const map = window.__TOWER_MAP__!;
+    const tile = map.tileMap.tiles.find((item) => item.coord.q === army.position.q && item.coord.r === army.position.r)!;
+    const offset = map.config.hexSize * 0.85;
+    return {
+      x: tile.position.x + (army.owner === "human" ? -offset : offset),
+      y: tile.position.y - offset * 0.35
+    };
+  }, firstArmy!);
+  await viewport.evaluate(
+    (element, target) => {
+      const zoom = target.boxWidth / target.mapWidth;
+      element.scrollLeft = Math.max(0, target.x * zoom - element.clientWidth / 2);
+      element.scrollTop = Math.max(0, target.y * zoom - element.clientHeight / 2);
+    },
+    {
+      x: armyPoint.x,
+      y: armyPoint.y,
+      boxWidth: box?.width ?? 1,
+      mapWidth: mapSize.width
+    }
+  );
+  await canvas.evaluate(
+    (element, target) => {
+      const rect = element.getBoundingClientRect();
+      const zoom = target.boxWidth / target.mapWidth;
+      element.dispatchEvent(
+        new MouseEvent("click", {
+          bubbles: true,
+          clientX: rect.left + target.x * zoom,
+          clientY: rect.top + target.y * zoom
+        })
+      );
+    },
+    {
+      x: armyPoint.x,
+      y: armyPoint.y,
+      boxWidth: box?.width ?? 1,
+      mapWidth: mapSize.width
+    }
+  );
+  await expect(page.locator(".node-detail header strong").filter({ hasText: firstArmy!.id })).toBeVisible();
 
   const downloadPromise = page.waitForEvent("download");
   await page.getByTestId("export-json").click();
@@ -66,5 +137,7 @@ test("map sandbox opens, renders, selects, and exports JSON", async ({ page }) =
     payload.on("end", resolve);
     payload.on("error", reject);
   });
-  expect(JSON.parse(raw).schemaVersion).toBe(1);
+  const parsed = JSON.parse(raw);
+  expect(parsed.schemaVersion).toBe(2);
+  expect(parsed.armies.length).toBeGreaterThan(0);
 });

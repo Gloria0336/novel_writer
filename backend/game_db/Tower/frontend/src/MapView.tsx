@@ -1,45 +1,43 @@
 import { ChangeEvent, useEffect, useMemo, useRef, useState } from "react";
 import type { PointerEvent, WheelEvent } from "react";
-import {
-  Download,
-  Eye,
-  FileInput,
-  Flag,
-  Layers,
-  LocateFixed,
-  MapPinned,
-  RefreshCw,
-  Route,
-  Shuffle,
-  Shield,
-  Swords
-} from "lucide-react";
+import { Download, Eye, FileInput, Flag, Layers, LocateFixed, MapPinned, RefreshCw, Shield, Shuffle, Swords } from "lucide-react";
 
 import { MapCanvas } from "./components/MapCanvas";
 import {
   BONUS_LABELS,
   DEFAULT_SEED,
-  NODE_TYPE_LABELS,
+  FEATURE_LABELS,
   OWNER_LABELS,
-  PATH_LABELS,
+  STRUCTURE_TYPE_LABELS,
   TERRAIN_LABELS
 } from "./map/constants";
 import { configForPresets, generateTowerMap } from "./map/generator";
-import { neighborsFor, findShortestRoute } from "./map/routing";
+import { coordKey, findTileRoute, reachableTiles } from "./map/routing";
 import { parseTowerMapJson, serializeTowerMap } from "./map/serialization";
-import type { DensityPreset, GenerationPreset, MapLayers, TowerMap, ViewMode } from "./types";
+import type { ArmyMove, DensityPreset, DeployIntent, GenerationPreset, HexCoord, MapLayers, TowerMap, ViewMode } from "./types";
+
+const INTENT_OPTIONS: { value: DeployIntent; label: string }[] = [
+  { value: "attack", label: "進攻 Attack" },
+  { value: "reinforce", label: "增援 Reinforce" },
+  { value: "defend", label: "防守 Defend" },
+  { value: "hold", label: "駐守 Hold" }
+];
 
 const DEFAULT_LAYERS: MapLayers = {
   terrain: true,
-  factionZones: true,
+  control: true,
   roads: true,
-  trails: true,
-  secrets: true,
-  bonuses: true,
+  bridges: true,
+  secretPaths: true,
+  features: true,
+  structures: true,
+  armies: true,
+  movement: true,
+  plannedPath: true,
   garrison: false
 };
 
-const MIN_ZOOM = 0.5;
+const MIN_ZOOM = 0.55;
 const MAX_ZOOM = 3;
 const WHEEL_ZOOM_SENSITIVITY = 0.0012;
 const ZOOM_EASING = 0.24;
@@ -64,10 +62,6 @@ const viewModeLabels: Record<ViewMode, string> = {
 
 function makeInitialMap() {
   return generateTowerMap(configForPresets(DEFAULT_SEED, "standard", "standard"));
-}
-
-function shortCost(value: number): string {
-  return Number.isFinite(value) ? value.toFixed(1) : "-";
 }
 
 function clampZoom(value: number): number {
@@ -98,10 +92,10 @@ export function MapView() {
   const [map, setMap] = useState<TowerMap>(makeInitialMap);
   const [layers, setLayers] = useState<MapLayers>(DEFAULT_LAYERS);
   const [viewMode, setViewMode] = useState<ViewMode>("omniscient");
-  const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
-  const [hoveredEdgeId, setHoveredEdgeId] = useState<string | null>(null);
-  const [routeStartId, setRouteStartId] = useState<string | null>(null);
-  const [routeEndId, setRouteEndId] = useState<string | null>(null);
+  const [selectedStructureId, setSelectedStructureId] = useState<string | null>(null);
+  const [selectedArmyId, setSelectedArmyId] = useState<string | null>(null);
+  const [selectedDestination, setSelectedDestination] = useState<HexCoord | null>(null);
+  const [selectedIntent, setSelectedIntent] = useState<DeployIntent>("attack");
   const [zoom, setZoom] = useState(1);
   const [isPanning, setIsPanning] = useState(false);
   const [status, setStatus] = useState("地圖已生成");
@@ -110,32 +104,28 @@ export function MapView() {
   const zoomRef = useRef(1);
   const targetZoomRef = useRef(1);
   const zoomFrameRef = useRef<number | null>(null);
-  const zoomAnchorRef = useRef<{
-    localX: number;
-    localY: number;
-    mapX: number;
-    mapY: number;
-  } | null>(null);
-  const panRef = useRef<{
-    pointerId: number;
-    x: number;
-    y: number;
-    scrollLeft: number;
-    scrollTop: number;
-  } | null>(null);
+  const zoomAnchorRef = useRef<{ localX: number; localY: number; mapX: number; mapY: number } | null>(null);
+  const panRef = useRef<{ pointerId: number; x: number; y: number; scrollLeft: number; scrollTop: number } | null>(null);
 
-  const selectedNode = useMemo(() => map.nodes.find((node) => node.id === selectedNodeId) ?? null, [map.nodes, selectedNodeId]);
-  const hoveredEdge = useMemo(() => map.edges.find((edge) => edge.id === hoveredEdgeId) ?? null, [hoveredEdgeId, map.edges]);
-  const route = useMemo(
-    () => (routeStartId && routeEndId ? findShortestRoute(map, routeStartId, routeEndId, viewMode) : null),
-    [map, routeEndId, routeStartId, viewMode]
+  const selectedStructure = useMemo(
+    () => map.structures.find((structure) => structure.id === selectedStructureId) ?? null,
+    [map.structures, selectedStructureId]
   );
-  const routeStart = useMemo(() => map.nodes.find((node) => node.id === routeStartId) ?? null, [map.nodes, routeStartId]);
-  const routeEnd = useMemo(() => map.nodes.find((node) => node.id === routeEndId) ?? null, [map.nodes, routeEndId]);
-  const selectedNeighbors = useMemo(
-    () => (selectedNode ? neighborsFor(map, selectedNode.id, viewMode) : []),
-    [map, selectedNode, viewMode]
-  );
+  const selectedArmy = useMemo(() => map.armies.find((army) => army.id === selectedArmyId) ?? null, [map.armies, selectedArmyId]);
+  const reachableMap = useMemo(() => (selectedArmy ? reachableTiles(map, selectedArmy) : new Map<string, number>()), [map, selectedArmy]);
+  const plannedPath = useMemo(() => {
+    if (!selectedArmy || !selectedDestination || !reachableMap.has(coordKey(selectedDestination))) return [];
+    return findTileRoute(map, selectedArmy.position, selectedDestination) ?? [];
+  }, [map, reachableMap, selectedArmy, selectedDestination]);
+  const selectedTile = useMemo(() => {
+    const coord = selectedDestination ?? selectedStructure?.footprint[0] ?? selectedArmy?.position;
+    if (!coord) return null;
+    return map.tileMap.tiles.find((tile) => tile.coord.q === coord.q && tile.coord.r === coord.r) ?? null;
+  }, [map.tileMap.tiles, selectedArmy, selectedDestination, selectedStructure]);
+  const plannedMove = useMemo<ArmyMove | null>(() => {
+    if (!selectedArmy || plannedPath.length < 2) return null;
+    return { armyId: selectedArmy.id, path: plannedPath, intent: selectedIntent, eliteIds: [] };
+  }, [plannedPath, selectedArmy, selectedIntent]);
 
   useEffect(() => {
     (window as unknown as { __TOWER_MAP__?: TowerMap }).__TOWER_MAP__ = map;
@@ -156,10 +146,9 @@ export function MapView() {
     const nextMap = generateTowerMap(configForPresets(trimmedSeed, preset, density));
     setMap(nextMap);
     setSeedInput(trimmedSeed);
-    setSelectedNodeId(null);
-    setHoveredEdgeId(null);
-    setRouteStartId(null);
-    setRouteEndId(null);
+    setSelectedStructureId(null);
+    setSelectedArmyId(null);
+    setSelectedDestination(null);
     setStatus(`已生成 ${trimmedSeed}`);
   }
 
@@ -173,7 +162,7 @@ export function MapView() {
     const url = URL.createObjectURL(blob);
     const anchor = document.createElement("a");
     anchor.href = url;
-    anchor.download = `tower-map-${map.seed}.json`;
+    anchor.download = `tower-hex-map-${map.seed}.json`;
     anchor.click();
     URL.revokeObjectURL(url);
     setStatus("JSON 已匯出");
@@ -190,10 +179,9 @@ export function MapView() {
       setSeedInput(importedMap.seed);
       setPreset(importedMap.config.preset);
       setDensity(importedMap.config.density);
-      setSelectedNodeId(null);
-      setHoveredEdgeId(null);
-      setRouteStartId(null);
-      setRouteEndId(null);
+      setSelectedStructureId(null);
+      setSelectedArmyId(null);
+      setSelectedDestination(null);
       setStatus(`已匯入 ${importedMap.seed}`);
     } catch (error) {
       setStatus(error instanceof Error ? error.message : "匯入失敗");
@@ -202,6 +190,26 @@ export function MapView() {
 
   const setLayer = (key: keyof MapLayers, checked: boolean) => {
     setLayers((current) => ({ ...current, [key]: checked }));
+  };
+
+  const selectStructure = (structureId: string | null) => {
+    setSelectedStructureId(structureId);
+    setSelectedArmyId(null);
+    setSelectedDestination(null);
+  };
+
+  const selectArmy = (armyId: string | null) => {
+    setSelectedArmyId(armyId);
+    setSelectedStructureId(null);
+    setSelectedDestination(null);
+  };
+
+  const selectDestination = (coord: HexCoord | null) => {
+    if (!coord || !selectedArmy || !reachableMap.has(coordKey(coord))) {
+      setSelectedDestination(null);
+      return;
+    }
+    setSelectedDestination(coord);
   };
 
   const applyAnimatedZoomFrame = () => {
@@ -224,7 +232,6 @@ export function MapView() {
       zoomFrameRef.current = null;
       return;
     }
-
     zoomFrameRef.current = requestAnimationFrame(applyAnimatedZoomFrame);
   };
 
@@ -237,22 +244,14 @@ export function MapView() {
     const viewport = viewportRef.current;
     if (!viewport) return;
     event.preventDefault();
-
     const rect = viewport.getBoundingClientRect();
     const localX = event.clientX - rect.left;
     const localY = event.clientY - rect.top;
     const contentX = viewport.scrollLeft + localX;
     const contentY = viewport.scrollTop + localY;
     const current = zoomRef.current;
-    const zoomFactor = Math.exp(-event.deltaY * WHEEL_ZOOM_SENSITIVITY);
-
-    zoomAnchorRef.current = {
-      localX,
-      localY,
-      mapX: contentX / current,
-      mapY: contentY / current
-    };
-    targetZoomRef.current = clampZoom(targetZoomRef.current * zoomFactor);
+    zoomAnchorRef.current = { localX, localY, mapX: contentX / current, mapY: contentY / current };
+    targetZoomRef.current = clampZoom(targetZoomRef.current * Math.exp(-event.deltaY * WHEEL_ZOOM_SENSITIVITY));
     scheduleAnimatedZoom();
   };
 
@@ -262,13 +261,7 @@ export function MapView() {
     if (!viewport) return;
     event.preventDefault();
     viewport.setPointerCapture(event.pointerId);
-    panRef.current = {
-      pointerId: event.pointerId,
-      x: event.clientX,
-      y: event.clientY,
-      scrollLeft: viewport.scrollLeft,
-      scrollTop: viewport.scrollTop
-    };
+    panRef.current = { pointerId: event.pointerId, x: event.clientX, y: event.clientY, scrollLeft: viewport.scrollLeft, scrollTop: viewport.scrollTop };
     setIsPanning(true);
   };
 
@@ -298,7 +291,7 @@ export function MapView() {
             <MapPinned size={22} />
             <div>
               <strong>Tower</strong>
-              <span>Map Sandbox</span>
+              <span>Hex Map</span>
             </div>
           </div>
           <small>{status}</small>
@@ -378,11 +371,15 @@ export function MapView() {
             圖層
           </h2>
           <LayerToggle label="地形" checked={layers.terrain} onChange={(checked) => setLayer("terrain", checked)} />
-          <LayerToggle label="勢力" checked={layers.factionZones} onChange={(checked) => setLayer("factionZones", checked)} />
-          <LayerToggle label="大道" checked={layers.roads} onChange={(checked) => setLayer("roads", checked)} />
-          <LayerToggle label="小徑" checked={layers.trails} onChange={(checked) => setLayer("trails", checked)} />
-          <LayerToggle label="密道" checked={layers.secrets} onChange={(checked) => setLayer("secrets", checked)} />
-          <LayerToggle label="加成" checked={layers.bonuses} onChange={(checked) => setLayer("bonuses", checked)} />
+          <LayerToggle label="控制" checked={layers.control} onChange={(checked) => setLayer("control", checked)} />
+          <LayerToggle label="道路" checked={layers.roads} onChange={(checked) => setLayer("roads", checked)} />
+          <LayerToggle label="橋" checked={layers.bridges} onChange={(checked) => setLayer("bridges", checked)} />
+          <LayerToggle label="密道" checked={layers.secretPaths} onChange={(checked) => setLayer("secretPaths", checked)} />
+          <LayerToggle label="地物" checked={layers.features} onChange={(checked) => setLayer("features", checked)} />
+          <LayerToggle label="結構" checked={layers.structures} onChange={(checked) => setLayer("structures", checked)} />
+          <LayerToggle label="軍隊" checked={layers.armies} onChange={(checked) => setLayer("armies", checked)} />
+          <LayerToggle label="可達" checked={layers.movement} onChange={(checked) => setLayer("movement", checked)} />
+          <LayerToggle label="路徑" checked={layers.plannedPath} onChange={(checked) => setLayer("plannedPath", checked)} />
           <LayerToggle label="駐軍" checked={layers.garrison} onChange={(checked) => setLayer("garrison", checked)} />
         </section>
       </aside>
@@ -404,22 +401,25 @@ export function MapView() {
             layers={layers}
             viewMode={viewMode}
             zoom={zoom}
-            selectedNodeId={selectedNodeId}
-            route={route}
-            hoveredEdgeId={hoveredEdgeId}
-            onSelectNode={setSelectedNodeId}
-            onHoverEdge={setHoveredEdgeId}
+            selectedStructureId={selectedStructureId}
+            selectedArmyId={selectedArmyId}
+            reachableTileKeys={new Set(reachableMap.keys())}
+            plannedPath={plannedPath}
+            onSelectStructure={selectStructure}
+            onSelectArmy={selectArmy}
+            onSelectDestination={selectDestination}
           />
         </div>
         <div className="status-strip">
           <span>Seed {map.seed}</span>
-          <span>節點 {map.nodes.length}</span>
-          <span>邊 {map.edges.length}</span>
-          <span>大道 {map.counts.roads}</span>
-          <span>小徑 {map.counts.trails}</span>
+          <span>地塊 {map.counts.tiles}</span>
+          <span>結構 {map.counts.structures}</span>
+          <span>軍隊 {map.counts.armies}</span>
+          <span>道路 {map.counts.roads}</span>
+          <span>橋 {map.counts.bridges}</span>
           <span>密道 {map.counts.secrets}</span>
           <span>{Math.round(zoom * 100)}%</span>
-          <span>{selectedNode ? selectedNode.name : "未選取"}</span>
+          <span>{selectedArmy ? selectedArmy.id : selectedStructure ? selectedStructure.name : "未選取"}</span>
         </div>
       </main>
 
@@ -427,58 +427,48 @@ export function MapView() {
         <section className="inspector-section">
           <h2>
             <Flag size={16} />
-            據點
+            結構
           </h2>
-          {selectedNode ? (
+          {selectedStructure ? (
             <div className="node-detail">
               <header>
-                <strong>{selectedNode.name}</strong>
-                <span>{NODE_TYPE_LABELS[selectedNode.nodeType]}</span>
+                <strong>{selectedStructure.name}</strong>
+                <span>{STRUCTURE_TYPE_LABELS[selectedStructure.structureType]}</span>
               </header>
               <dl className="detail-grid">
                 <div>
                   <dt>陣營</dt>
-                  <dd>{OWNER_LABELS[selectedNode.owner]}</dd>
+                  <dd>{selectedStructure.owner ? OWNER_LABELS[selectedStructure.owner] : "-"}</dd>
+                </div>
+                <div>
+                  <dt>座標</dt>
+                  <dd>
+                    {selectedStructure.footprint[0].q},{selectedStructure.footprint[0].r}
+                  </dd>
                 </div>
                 <div>
                   <dt>地形</dt>
-                  <dd>{TERRAIN_LABELS[selectedNode.terrainType]}</dd>
-                </div>
-                <div>
-                  <dt>駐軍</dt>
-                  <dd>{selectedNode.garrisonSummary.strength}</dd>
+                  <dd>{selectedTile ? TERRAIN_LABELS[selectedTile.terrainType] : "-"}</dd>
                 </div>
                 <div>
                   <dt>工事</dt>
-                  <dd>{selectedNode.fortification.toFixed(2)}</dd>
+                  <dd>{selectedStructure.fortification.toFixed(2)}</dd>
+                </div>
+                <div>
+                  <dt>駐軍</dt>
+                  <dd>{selectedStructure.garrisonSummary.strength}</dd>
+                </div>
+                <div>
+                  <dt>控制</dt>
+                  <dd>{selectedStructure.controlRadius}</dd>
                 </div>
               </dl>
-              <div className="button-row">
-                <button type="button" className="icon-button" onClick={() => setRouteStartId(selectedNode.id)} title="設為起點">
-                  <Route size={16} />
-                  起點
-                </button>
-                <button type="button" className="icon-button" onClick={() => setRouteEndId(selectedNode.id)} title="設為終點">
-                  <MapPinned size={16} />
-                  終點
-                </button>
-              </div>
               <div className="chip-list">
-                {selectedNode.bonuses.map((bonus, index) => (
+                {selectedStructure.bonuses.map((bonus, index) => (
                   <span key={`${bonus.type}-${bonus.source}-${index}`} title={bonus.description}>
                     {BONUS_LABELS[bonus.type]} {bonus.magnitude > 0 ? "+" : ""}
                     {bonus.magnitude}
                   </span>
-                ))}
-              </div>
-              <div className="neighbor-list">
-                {selectedNeighbors.map(({ node, edge }) => (
-                  <button key={`${edge.id}-${node.id}`} type="button" onClick={() => setSelectedNodeId(node.id)}>
-                    <span>{node.name}</span>
-                    <small>
-                      {PATH_LABELS[edge.pathType]} · {shortCost(edge.travelCost)}
-                    </small>
-                  </button>
                 ))}
               </div>
             </div>
@@ -489,58 +479,106 @@ export function MapView() {
 
         <section className="inspector-section">
           <h2>
-            <Route size={16} />
-            路線
+            <Swords size={16} />
+            Army
           </h2>
-          <dl className="detail-grid">
-            <div>
-              <dt>起點</dt>
-              <dd>{routeStart?.name ?? "-"}</dd>
+          {selectedArmy ? (
+            <div className="node-detail">
+              <header>
+                <strong>{selectedArmy.id}</strong>
+                <span>{OWNER_LABELS[selectedArmy.owner]}</span>
+              </header>
+              <dl className="detail-grid">
+                <div>
+                  <dt>Position</dt>
+                  <dd>
+                    {selectedArmy.position.q},{selectedArmy.position.r}
+                  </dd>
+                </div>
+                <div>
+                  <dt>Move</dt>
+                  <dd>{selectedArmy.movementPoints.toFixed(1)}</dd>
+                </div>
+                <div>
+                  <dt>Strength</dt>
+                  <dd>{selectedArmy.strength}</dd>
+                </div>
+                <div>
+                  <dt>Reach</dt>
+                  <dd>{reachableMap.size}</dd>
+                </div>
+              </dl>
+              <div className="chip-list">
+                {selectedArmy.units.map((unit) => (
+                  <span key={unit.templateId}>
+                    {unit.templateId} x{unit.count}
+                  </span>
+                ))}
+              </div>
+              <label className="intent-select">
+                <span>意圖 Intent</span>
+                <select
+                  value={selectedIntent}
+                  onChange={(event) => setSelectedIntent(event.target.value as DeployIntent)}
+                  aria-label="army-intent"
+                >
+                  {INTENT_OPTIONS.map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              {plannedPath.length ? (
+                <div className="route-chain">
+                  {plannedPath.map((coord) => (
+                    <span key={`${coord.q},${coord.r}`}>
+                      {coord.q},{coord.r}
+                    </span>
+                  ))}
+                </div>
+              ) : null}
+              {plannedMove ? (
+                <button
+                  type="button"
+                  className="intent-submit"
+                  onClick={() =>
+                    setStatus(
+                      `已下達 ${plannedMove.armyId} ${selectedIntent} → ${plannedMove.path[plannedMove.path.length - 1].q},${plannedMove.path[plannedMove.path.length - 1].r}`
+                    )
+                  }
+                >
+                  下達命令 ({selectedIntent})
+                </button>
+              ) : null}
             </div>
-            <div>
-              <dt>終點</dt>
-              <dd>{routeEnd?.name ?? "-"}</dd>
-            </div>
-            <div>
-              <dt>成本</dt>
-              <dd>{route ? shortCost(route.totalCost) : "-"}</dd>
-            </div>
-            <div>
-              <dt>視角</dt>
-              <dd>{viewModeLabels[viewMode]}</dd>
-            </div>
-          </dl>
-          {route && (
-            <div className="route-chain">
-              {route.nodeIds.map((nodeId) => (
-                <span key={nodeId}>{map.nodes.find((node) => node.id === nodeId)?.name ?? nodeId}</span>
-              ))}
-            </div>
+          ) : (
+            <div className="empty-state">--</div>
           )}
         </section>
 
         <section className="inspector-section">
           <h2>
-            <Swords size={16} />
-            路徑
+            <MapPinned size={16} />
+            地塊
           </h2>
-          {hoveredEdge ? (
+          {selectedTile ? (
             <dl className="detail-grid">
               <div>
-                <dt>類型</dt>
-                <dd>{PATH_LABELS[hoveredEdge.pathType]}</dd>
-              </div>
-              <div>
-                <dt>地形</dt>
-                <dd>{TERRAIN_LABELS[hoveredEdge.dominantTerrain]}</dd>
-              </div>
-              <div>
-                <dt>長度</dt>
-                <dd>{hoveredEdge.length.toFixed(1)}</dd>
+                <dt>通行</dt>
+                <dd>{selectedTile.passable ? "可" : "否"}</dd>
               </div>
               <div>
                 <dt>成本</dt>
-                <dd>{hoveredEdge.travelCost.toFixed(1)}</dd>
+                <dd>{selectedTile.movementCost.toFixed(2)}</dd>
+              </div>
+              <div>
+                <dt>高度</dt>
+                <dd>{selectedTile.elevation}</dd>
+              </div>
+              <div>
+                <dt>地物</dt>
+                <dd>{selectedTile.features.map((feature) => FEATURE_LABELS[feature]).join("、") || "-"}</dd>
               </div>
             </dl>
           ) : (
@@ -556,15 +594,15 @@ export function MapView() {
           <dl className="detail-grid">
             <div>
               <dt>人類</dt>
-              <dd>{map.counts.humanNodes}</dd>
+              <dd>{map.counts.humanStructures}</dd>
             </div>
             <div>
               <dt>魔物</dt>
-              <dd>{map.counts.monsterNodes}</dd>
+              <dd>{map.counts.monsterStructures}</dd>
             </div>
             <div>
-              <dt>中立</dt>
-              <dd>{map.counts.neutralNodes}</dd>
+              <dt>中立地物</dt>
+              <dd>{map.counts.neutralFeatures}</dd>
             </div>
             <div>
               <dt>尺寸</dt>

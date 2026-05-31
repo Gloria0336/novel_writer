@@ -1,5 +1,8 @@
 # 01 — 世界觀與陣營
 
+> 混合制（[09](09-hybrid-redesign-plan.md)）：據點改以 `Structure`（佔據地塊、控制周邊）表達，
+> 勝負目標語義不變。下文「據點 / 節點」即指 `Structure`。
+
 ## 世界設定
 
 異世界、傳統劍與魔法。世界上的**人類只有女性**，且天生擁有強大的基因與魔法天賦——
@@ -75,9 +78,9 @@
 
 ## 勝負條件
 
-- **人類勝**：佔領魔物主巢（`node_type=main_nest`），或殲滅全部巢穴。
-- **人類敗**：王城（`node_type=capital`）被魔物佔領。
+- **人類勝**：佔領魔物主巢（`structure_type=main_nest`），或殲滅全部巢穴。
+- **人類敗**：王城（`structure_type=capital`）被魔物佔領。
 - 反之為魔物方勝負條件。`GameState.winner` 記錄結果，`None` 表示進行中。
 
-相關模型：`Side`、`NodeType`、`Faction`、`GameState.winner`、`EliteTemplate`、`EliteInstance`
+相關模型：`Side`、`StructureType`、`Faction`、`GameState.winner`、`EliteTemplate`、`EliteInstance`
 （見 [`../schema/models.py`](../schema/models.py)）。

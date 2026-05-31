@@ -7,14 +7,14 @@ export type PositionedTech = {
   y: number;
 };
 
-export type LayoutEdge = {
+export type LayoutLink = {
   from: string;
   to: string;
 };
 
 export type TechLayout = {
   nodes: PositionedTech[];
-  edges: LayoutEdge[];
+  links: LayoutLink[];
   width: number;
   height: number;
 };
@@ -109,18 +109,18 @@ export function layoutTechTree(catalog: TechCatalog, side: Side, opts?: LayoutFi
     });
   }
 
-  const edges: LayoutEdge[] = [];
+  const links: LayoutLink[] = [];
   for (const node of nodes) {
     for (const prereq of node.prerequisites) {
       // 只畫在當前視圖內可見的邊
-      if (nodeSet.has(prereq)) edges.push({ from: prereq, to: node.id });
+      if (nodeSet.has(prereq)) links.push({ from: prereq, to: node.id });
     }
   }
 
   const width = PADDING * 2 + (maxDepth + 1) * COLUMN_STRIDE - COLUMN_GAP;
   const height = PADDING * 2 + Math.max(1, maxRows) * ROW_STRIDE - ROW_GAP;
 
-  return { nodes: positioned, edges, width, height };
+  return { nodes: positioned, links, width, height };
 }
 
 export function ancestorChain(catalog: TechCatalog, techId: string): Set<string> {

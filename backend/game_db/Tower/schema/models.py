@@ -1,187 +1,281 @@
-"""Tower — 塔防佔點策略遊戲 的資料模型 (canonical schema).
+"""Tower canonical schema.
 
-這份檔案是整個遊戲的「資料模型唯一真理來源」。所有設計文件 (../design/*.md)
-描述規則，本檔以 Pydantic v2 型別把規則的「資料形狀」固定下來。
-
-本階段只定義 *資料形狀*，不含回合引擎 / 戰鬥演算法 / 地圖生成 / AI 邏輯。
-那些演算法之後會以這些模型作為輸入輸出來實作。
-
-設計原則
---------
-- 全程確定性：所有隨機都源自 `GameState.master_seed`，再以 `derive_seed()`
-  衍生子 seed（地圖生成、每場戰鬥、每次情報擲值、每個突發事件各有獨立子 seed）。
-- 資料 / 規則解耦：魔物圖鑑、科技樹、單位、據點加成都來自 YAML（../data/*.yaml），
-  以 *Catalog 模型載入後驗證；新增魔物 / 科技只需改 YAML，不必改 schema。
-- 非對稱雙方：人類與魔物共用同一組模型，差異以 `enum` 與選填欄位表達。
+This module is the single source of truth for the Tower data shape.  M1 moves
+the strategy map from a point graph to one continuous axial hex tile map.
+Rules and balancing still live in ``design/*.md`` and ``data/*.yaml``; code that
+loads or generates state should validate through these Pydantic v2 models.
 """
 
 from __future__ import annotations
 
 import hashlib
-from enum import StrEnum
+from enum import Enum
+from typing import Any, Literal
 
-from pydantic import BaseModel, Field, NonNegativeFloat, NonNegativeInt, model_validator
+from pydantic import BaseModel, ConfigDict, Field, NonNegativeFloat, NonNegativeInt, model_validator
 
 
-# ---------------------------------------------------------------------------
-# 確定性 seed 工具
-# ---------------------------------------------------------------------------
-def derive_seed(master_seed: str, *parts: str | int) -> str:
-    """由 master seed 與一組標記衍生穩定的子 seed (hex)。
+class StrEnum(str, Enum):
+    """Small Python 3.10-compatible StrEnum shim.
 
-    例：derive_seed(gs.master_seed, "combat", node_id, gs.turn.month)
-    同樣的輸入永遠得到同樣的輸出，保證整局可重現。
+    The target runtime is Python 3.14, but the local validation environment may
+    use an older interpreter.
     """
-    raw = "::".join([master_seed, *[str(p) for p in parts]])
+
+    def __str__(self) -> str:
+        return self.value
+
+
+def derive_seed(master_seed: str, *parts: str | int) -> str:
+    """Derive a deterministic child seed from a master seed and stable labels."""
+    raw = "::".join([master_seed, *[str(part) for part in parts]])
     return hashlib.sha256(raw.encode("utf-8")).hexdigest()[:24]
 
 
-# ---------------------------------------------------------------------------
-# 列舉
-# ---------------------------------------------------------------------------
 class Side(StrEnum):
-    HUMAN = "human"      # 人類方（玩家）
-    MONSTER = "monster"  # 魔物方（AI）
+    HUMAN = "human"
+    MONSTER = "monster"
 
 
-class NodeType(StrEnum):
-    CAPITAL = "capital"      # 王城：唯一、易守難攻、被佔即敗
-    CITY = "city"            # 城市 A~C：人類次要據點
-    MAIN_NEST = "main_nest"  # 魔巢（主巢）：被佔人類即勝
-    SUB_NEST = "sub_nest"    # 副巢：隸屬某個巢穴的次級節點
-    TRIBE = "tribe"          # 部落：巢穴最外圍、最易被滲透
-    NEUTRAL = "neutral"      # 中立地形：可爭奪，提供地圖加成
+class TerrainType(StrEnum):
+    PLAIN = "plain"
+    FOREST = "forest"
+    SWAMP = "swamp"
+    DESERT = "desert"
+    MOUNTAIN = "mountain"
+    WATER = "water"
+
+
+class TileFeature(StrEnum):
+    ROAD = "road"
+    BRIDGE = "bridge"
+    SECRET_PATH = "secret_path"
+    WALL = "wall"
+    MOAT = "moat"
+    MINE = "mine"
+    RUIN = "ruin"
+    FORD = "ford"
+
+
+class StructureType(StrEnum):
+    CAPITAL = "capital"
+    CITY = "city"
+    MAIN_NEST = "main_nest"
+    SUB_NEST = "sub_nest"
+    TRIBE = "tribe"
+    TOWER = "tower"
+    BARRACKS = "barracks"
+    OUTPOST = "outpost"
+    FORT = "fort"
 
 
 class TurnPhase(StrEnum):
-    DOMESTIC = "domestic"          # 1. 內政階段
-    INTELLIGENCE = "intelligence"  # 2. 情報階段
-    MILITARY = "military"          # 3. 軍事階段（部屬）
-    COMBAT = "combat"              # 4. 戰鬥結算
+    DOMESTIC = "domestic"
+    INTELLIGENCE = "intelligence"
+    MILITARY = "military"
+    COMBAT = "combat"
 
 
 class ResourceKind(StrEnum):
-    # 人類方
-    COMBAT_RESOURCE = "combat_resource"  # 戰鬥資源：佔魔巢取得，投入研究 / 招募
-    RESEARCH_POINT = "research_point"     # 研究點：內政分配產生，推進科技
-    # 魔物方
-    SLAVE = "slave"                       # 奴隸：佔人類城取得，可轉兵力或魔物源
-    MONSTER_SOURCE = "monster_source"     # 魔物源：驅動孵化與進化
+    COMBAT_RESOURCE = "combat_resource"
+    RESEARCH_POINT = "research_point"
+    SLAVE = "slave"
+    MONSTER_SOURCE = "monster_source"
 
 
 class BonusType(StrEnum):
-    RESOURCE_YIELD = "resource_yield"     # 每月產出資源
-    RECRUIT_RATE = "recruit_rate"         # 招募 / 孵化加速
-    RESEARCH_RATE = "research_rate"       # 研究加速
-    VISION = "vision"                     # 情報視野（降低迷霧）
-    TERRAIN_DEFENSE = "terrain_defense"   # 地形防禦倍率
-    MOVEMENT = "movement"                 # 行軍加成
+    RESOURCE_YIELD = "resource_yield"
+    RECRUIT_RATE = "recruit_rate"
+    RESEARCH_RATE = "research_rate"
+    VISION = "vision"
+    TERRAIN_DEFENSE = "terrain_defense"
+    MOVEMENT = "movement"
 
 
 class DomesticActionType(StrEnum):
-    ALLOCATE = "allocate"   # 資源分配（轉換 / 投入）
-    RESEARCH = "research"   # 科技研發 / 進化
-    RECRUIT = "recruit"     # 產生兵力（招募 / 孵化）
-    BUILD = "build"         # 建築
+    ALLOCATE = "allocate"
+    RESEARCH = "research"
+    RECRUIT = "recruit"
+    BUILD = "build"
+    BUILD_ROAD = "build_road"
+    BUILD_BRIDGE = "build_bridge"
+    FORTIFY = "fortify"
+    TERRAFORM = "terraform"
 
 
 class RaceGroup(StrEnum):
-    GREENSKINS = "greenskins"  # 綠皮種族：哥布林系 / 河童系
-    FLESHES = "fleshes"        # 血肉族：史萊姆系 / 觸手系
-    FURES = "fures"            # 獸族：狼人系 / 牛頭人系
-    UNDEADS = "undeads"        # 不死族：骷髏系 / 殭屍系
-    DEMONS = "demons"          # 魔族：惡魔系
+    GREENSKINS = "greenskins"
+    FLESHES = "fleshes"
+    FURES = "fures"
+    UNDEADS = "undeads"
+    DEMONS = "demons"
 
 
 class TechCategory(StrEnum):
-    GENE = "gene"                       # 基因強化（人類）
-    WEAPON = "weapon"                   # 武器
-    FORTIFICATION = "fortification"     # 工事
-    RECON = "recon"                     # 偵察 / 反偵察
-    EVOLUTION = "evolution"             # 進化（魔物）—— 解鎖新物種
-    MONSTER_RESEARCH = "monster_research"  # 魔物科研 —— 數值強化，不解鎖新物種
-    LOGISTICS = "logistics"             # 後勤 / 行軍
+    GENE = "gene"
+    WEAPON = "weapon"
+    FORTIFICATION = "fortification"
+    RECON = "recon"
+    EVOLUTION = "evolution"
+    MONSTER_RESEARCH = "monster_research"
+    LOGISTICS = "logistics"
+    ENGINEERING = "engineering"
 
 
 class DeployIntent(StrEnum):
-    ATTACK = "attack"        # 沿邊進攻鄰接敵據點
-    REINFORCE = "reinforce"  # 增援己方據點
-    DEFEND = "defend"        # 留守強化本據點防禦
-    HOLD = "hold"            # 駐紮（不動）
+    ATTACK = "attack"
+    REINFORCE = "reinforce"
+    DEFEND = "defend"
+    HOLD = "hold"
 
 
 class CombatOutcome(StrEnum):
-    CAPTURED = "captured"    # 攻方佔領
-    REPELLED = "repelled"    # 守方擊退
-    ATTRITION = "attrition"  # 雙方消耗、未易主
-    STALEMATE = "stalemate"  # 僵持，無顯著傷亡
+    CAPTURED = "captured"
+    REPELLED = "repelled"
+    ATTRITION = "attrition"
+    STALEMATE = "stalemate"
 
 
 class RandomEventType(StrEnum):
-    REINFORCEMENT = "reinforcement"  # 援軍 / 增援
-    PLAGUE = "plague"                # 瘟疫 / 折損
-    BETRAYAL = "betrayal"            # 倒戈 / 內亂
-    RESOURCE_FIND = "resource_find"  # 資源發現
-    TERRAIN_SHIFT = "terrain_shift"  # 地形變動（加成改變）
-    MUTATION = "mutation"            # 魔物突變
+    REINFORCEMENT = "reinforcement"
+    PLAGUE = "plague"
+    BETRAYAL = "betrayal"
+    RESOURCE_FIND = "resource_find"
+    TERRAIN_SHIFT = "terrain_shift"
+    MUTATION = "mutation"
 
 
-# ---------------------------------------------------------------------------
-# 基礎結構
-# ---------------------------------------------------------------------------
+class ConstructionStatus(StrEnum):
+    QUEUED = "queued"
+    ACTIVE = "active"
+    PAUSED = "paused"
+    COMPLETE = "complete"
+    CANCELLED = "cancelled"
+
+
+class HexCoord(BaseModel):
+    """Axial hex coordinate.  All strategic map positions use ``q,r``."""
+
+    model_config = ConfigDict(frozen=True)
+
+    q: int
+    r: int
+
+    def key(self) -> str:
+        return f"{self.q},{self.r}"
+
+
 class Position(BaseModel):
-    """地圖上的座標（供前端佈局與距離計算）。"""
+    """Pixel position for frontend layout only."""
+
     x: float
     y: float
 
 
 class NodeBonus(BaseModel):
-    """某據點 / 地形提供的加成效果。"""
+    """Reusable bonus payload applied to a tile, a structure, or both."""
+
     type: BonusType
-    magnitude: float = Field(description="加成量；倍率類用 1.0=無、1.5=+50%，產出類為絕對值")
-    resource: ResourceKind | None = Field(default=None, description="當 type=RESOURCE_YIELD 時指明資源種類")
+    magnitude: float = Field(description="Multiplier deltas use 1.0=no change; yields are absolute values.")
+    resource: ResourceKind | None = Field(default=None)
+    scope: Literal["tile", "structure", "both"] = "structure"
     description: str = ""
 
 
-# ---------------------------------------------------------------------------
-# 圖鑑（由 YAML 載入後驗證；資料 / 規則解耦）
-# ---------------------------------------------------------------------------
+class Tile(BaseModel):
+    coord: HexCoord
+    terrain_type: TerrainType
+    elevation: int = Field(default=0, ge=0, le=5)
+    features: list[TileFeature] = Field(default_factory=list)
+    passable: bool = True
+    movement_cost: NonNegativeFloat = 0.0
+    owner: Side | None = None
+    structure_id: str | None = None
+    bonuses: list[NodeBonus] = Field(default_factory=list)
+
+    @model_validator(mode="after")
+    def _normalize_costs(self) -> Tile:
+        feature_set = set(self.features)
+        base_cost = {
+            TerrainType.PLAIN: 1.0,
+            TerrainType.FOREST: 1.5,
+            TerrainType.SWAMP: 2.2,
+            TerrainType.DESERT: 1.8,
+            TerrainType.MOUNTAIN: 2.6,
+            TerrainType.WATER: 5.0,
+        }[self.terrain_type]
+        base_cost += self.elevation * 0.15
+        if TileFeature.ROAD in feature_set:
+            base_cost *= 0.65
+        if TileFeature.SECRET_PATH in feature_set:
+            base_cost *= 0.75
+        if self.terrain_type == TerrainType.WATER:
+            self.passable = TileFeature.BRIDGE in feature_set or TileFeature.FORD in feature_set
+            base_cost = 1.15 if TileFeature.BRIDGE in feature_set else 2.0 if TileFeature.FORD in feature_set else base_cost
+        self.movement_cost = round(max(0.1, base_cost), 3)
+        return self
+
+
+class TileMap(BaseModel):
+    width: int = Field(ge=1)
+    height: int = Field(ge=1)
+    tiles: list[Tile]
+    master_seed: str
+
+    @model_validator(mode="after")
+    def _validate_tile_bounds(self) -> TileMap:
+        seen: set[tuple[int, int]] = set()
+        for tile in self.tiles:
+            key = (tile.coord.q, tile.coord.r)
+            if key in seen:
+                raise ValueError(f"duplicate tile coord: {tile.coord.key()}")
+            seen.add(key)
+            if not (0 <= tile.coord.q < self.width and 0 <= tile.coord.r < self.height):
+                raise ValueError(f"tile outside bounds: {tile.coord.key()}")
+        return self
+
+    def tile_at(self, coord: HexCoord | tuple[int, int]) -> Tile | None:
+        q, r = (coord.q, coord.r) if isinstance(coord, HexCoord) else coord
+        return next((tile for tile in self.tiles if tile.coord.q == q and tile.coord.r == r), None)
+
+    def neighbors(self, coord: HexCoord | tuple[int, int]) -> list[Tile]:
+        from .hexgeo import hex_neighbors
+
+        base = coord if isinstance(coord, HexCoord) else HexCoord(q=coord[0], r=coord[1])
+        return [tile for neighbor in hex_neighbors(base) if (tile := self.tile_at(neighbor)) is not None]
+
+
 class MonsterSpecies(BaseModel):
-    """魔物物種定義（../data/monsters.yaml）。"""
     id: str
     name: str
-    race_group: RaceGroup = Field(description="所屬種族大類；進化只在同大類內發生")
+    race_group: RaceGroup
     base_attack: NonNegativeFloat
     base_defense: NonNegativeFloat
     base_hp: NonNegativeFloat
-    upkeep: NonNegativeFloat = Field(default=0, description="每月維持成本（魔物源）")
-    slave_cost: NonNegativeInt = Field(default=0, description="以奴隸孵化所需數量")
-    monster_source_cost: NonNegativeFloat = Field(default=0, description="以魔物源孵化所需數量")
-    evolves_to: list[str] = Field(default_factory=list, description="可進化成的物種 id（限同 race_group）")
-    traits: list[str] = Field(default_factory=list, description="特性標籤，如 amphibious / split / horde")
+    upkeep: NonNegativeFloat = 0
+    slave_cost: NonNegativeInt = 0
+    monster_source_cost: NonNegativeFloat = 0
+    evolves_to: list[str] = Field(default_factory=list)
+    traits: list[str] = Field(default_factory=list)
     description: str = ""
 
 
 class UnitTemplate(BaseModel):
-    """單位範本（人類單位來自 ../data/units.yaml；魔物單位由物種實例化）。"""
     id: str
     name: str
     side: Side
     attack: NonNegativeFloat
     defense: NonNegativeFloat
     hp: NonNegativeFloat
+    range: NonNegativeFloat = 1.0
+    move_speed: NonNegativeFloat = 1.0
     upkeep: NonNegativeFloat = 0
-    cost: dict[ResourceKind, float] = Field(default_factory=dict, description="招募成本")
-    species_id: str | None = Field(default=None, description="魔物單位對應的物種 id")
+    cost: dict[ResourceKind, float] = Field(default_factory=dict)
+    species_id: str | None = None
     abilities: list[str] = Field(default_factory=list)
 
 
 class EliteTemplate(BaseModel):
-    """菁英單位（英雄 / 首領）範本（../data/elites.yaml）。
-
-    菁英是稀有的指揮型單位：本身參戰，並對同據點友軍提供光環加乘（aura）與特殊能力
-    （abilities）。開局選角時雙方各選 5–8 名組成 roster，實例化為 EliteInstance。
-    """
     id: str
     name: str
     side: Side
@@ -189,213 +283,244 @@ class EliteTemplate(BaseModel):
     defense: NonNegativeFloat
     hp: NonNegativeFloat
     upkeep: NonNegativeFloat = 0
-    aura: dict[str, float] = Field(
-        default_factory=dict,
-        description="對同據點友軍的光環倍率，如 {'ally_attack_mult': 1.2, 'ally_defense_mult': 1.1, 'ally_hp_mult': 1.1}",
-    )
-    abilities: list[str] = Field(
-        default_factory=list, description="特殊能力鍵值，如 bless / fear / aoe_spell，由效果套用表解讀"
-    )
-    growth: dict[str, float] = Field(
-        default_factory=dict,
-        description="每級成長，如 {'attack_per_level': 1.5, 'hp_per_level': 4, 'aura_attack_mult_per_level': 0.02}",
-    )
-    xp_per_level: NonNegativeFloat = Field(default=10, description="升一級所需 xp 基數（門檻 = 此值 × 當前 level）")
-    max_level: int = Field(default=5, ge=1, description="等級上限")
+    aura: dict[str, float] = Field(default_factory=dict)
+    abilities: list[str] = Field(default_factory=list)
+    growth: dict[str, float] = Field(default_factory=dict)
+    xp_per_level: NonNegativeFloat = 10
+    max_level: int = Field(default=5, ge=1)
     description: str = ""
 
 
 class TechNode(BaseModel):
-    """科技 / 進化節點（../data/tech_tree.yaml）。"""
     id: str
     name: str
     category: TechCategory
     side: Side
     cost: dict[ResourceKind, float] = Field(default_factory=dict)
-    prerequisites: list[str] = Field(default_factory=list, description="需先解鎖的 tech id")
-    effects: dict[str, float] = Field(
-        default_factory=dict,
-        description="效果鍵值，如 {'attack_mult': 1.1, 'intel_clarity': 0.15}",
-    )
+    prerequisites: list[str] = Field(default_factory=list)
+    excludes: list[str] = Field(default_factory=list)
+    effects: dict[str, float] = Field(default_factory=dict)
     description: str = ""
 
 
 class Catalog(BaseModel):
-    """所有 YAML 圖鑑載入後的彙整，作為一局遊戲的靜態規則資料。"""
     monsters: dict[str, MonsterSpecies] = Field(default_factory=dict)
     units: dict[str, UnitTemplate] = Field(default_factory=dict)
     elites: dict[str, EliteTemplate] = Field(default_factory=dict)
     techs: dict[str, TechNode] = Field(default_factory=dict)
     node_bonus_templates: dict[str, list[NodeBonus]] = Field(
-        default_factory=dict, description="據點類型 / 地形 → 預設加成組合"
+        default_factory=dict,
+        description="Template key may be a terrain, feature, or structure type.",
     )
 
 
-# ---------------------------------------------------------------------------
-# 在局實例：兵力、據點、地圖
-# ---------------------------------------------------------------------------
 class UnitStack(BaseModel):
-    """某據點上的一支同類部隊（實例）。"""
     template_id: str
     count: NonNegativeInt
-    # 實例化後的當前數值（含科技 / 加成修正後）；None 表示沿用範本基礎值。
     attack: NonNegativeFloat | None = None
     defense: NonNegativeFloat | None = None
     hp: NonNegativeFloat | None = None
 
 
 class EliteInstance(BaseModel):
-    """在局的菁英實例（由 EliteTemplate 於開局選角時實例化）。"""
-    instance_id: str = Field(description="本局唯一實例 id，供部屬 / 戰報引用")
+    instance_id: str
     template_id: str
     level: int = Field(default=1, ge=1)
     xp: NonNegativeFloat = 0
-    # 當前 hp；None 表示沿用範本基礎值（含等級成長 / 科技修正後）。
     hp: NonNegativeFloat | None = None
     alive: bool = True
 
 
-class MapNode(BaseModel):
-    """地圖上的一個網狀據點。"""
+class Structure(BaseModel):
     id: str
     name: str
-    node_type: NodeType
-    owner: Side | None = Field(default=None, description="None = 中立未佔")
-    position: Position
-    fortification: float = Field(default=1.0, description="工事倍率，套在守方防禦上；王城最高")
-    garrison: list[UnitStack] = Field(default_factory=list, description="駐軍")
-    elites: list[EliteInstance] = Field(default_factory=list, description="駐紮此據點的菁英，光環作用於同據點友軍")
+    structure_type: StructureType
+    owner: Side | None = None
+    footprint: list[HexCoord]
+    control_radius: NonNegativeInt = 1
+    fortification: NonNegativeFloat = 1.0
+    garrison: list[UnitStack] = Field(default_factory=list)
+    elites: list[EliteInstance] = Field(default_factory=list)
     bonuses: list[NodeBonus] = Field(default_factory=list)
-    parent_nest_id: str | None = Field(
-        default=None, description="副巢 / 部落 所屬的主巢 id，用於『巢穴=部落+副巢叢集』結構"
-    )
+    parent_nest_id: str | None = None
     tags: list[str] = Field(default_factory=list)
 
-
-class Edge(BaseModel):
-    """無向鄰接邊；攻擊 / 行軍只能沿邊發生。"""
-    a: str
-    b: str
-    travel_cost: float = 1.0
-
     @model_validator(mode="after")
-    def _no_self_loop(self) -> Edge:
-        if self.a == self.b:
-            raise ValueError(f"edge 不可自連: {self.a}")
+    def _has_footprint(self) -> Structure:
+        if not self.footprint:
+            raise ValueError("structure footprint may not be empty")
         return self
 
 
+def controlled_tiles(structure: Structure) -> list[HexCoord]:
+    """Return all coords in the structure footprint plus its control radius."""
+    from .hexgeo import hex_range
+
+    coords: dict[str, HexCoord] = {}
+    for coord in structure.footprint:
+        for candidate in hex_range(coord, int(structure.control_radius)):
+            coords[candidate.key()] = candidate
+    return sorted(coords.values(), key=lambda item: (item.q, item.r))
+
+
+class Army(BaseModel):
+    """Movable strategic army on the continuous hex map."""
+
+    id: str
+    owner: Side
+    position: HexCoord
+    movement_points: NonNegativeFloat = 0
+    base_movement_points: NonNegativeFloat = 0
+    units: list[UnitStack] = Field(default_factory=list)
+    elite_ids: list[str] = Field(default_factory=list)
+
+    @model_validator(mode="after")
+    def _has_units_or_elites(self) -> Army:
+        if not self.units and not self.elite_ids:
+            raise ValueError("army must contain at least one unit stack or elite")
+        return self
+
+    @model_validator(mode="after")
+    def _seed_base_movement_points(self) -> Army:
+        # Auto-seed the per-month movement budget from the initial allowance so
+        # reset_movement_points() (P2.1) has a stable baseline without callers
+        # passing it explicitly.
+        if self.base_movement_points == 0 and self.movement_points > 0:
+            self.base_movement_points = self.movement_points
+        return self
+
+
+class ArmyMove(BaseModel):
+    """MILITARY phase order for moving one army along validated hexes."""
+
+    army_id: str
+    path: list[HexCoord]
+    intent: DeployIntent = DeployIntent.HOLD
+    elite_ids: list[str] = Field(default_factory=list)
+
+    @model_validator(mode="after")
+    def _path_is_present(self) -> ArmyMove:
+        if not self.path:
+            raise ValueError("ArmyMove.path may not be empty")
+        if self.intent in (DeployIntent.DEFEND, DeployIntent.HOLD) and len(self.path) > 1:
+            raise ValueError("DEFEND/HOLD army moves may not change position")
+        return self
+
+    @property
+    def destination(self) -> HexCoord:
+        return self.path[-1]
+
+
+class Engagement(BaseModel):
+    """Strategic combat trigger discovered after M2 army movement."""
+
+    id: str
+    location: HexCoord
+    month: int
+    attackers: list[str] = Field(default_factory=list)
+    defenders: list[str] = Field(default_factory=list)
+    attacker_side: Side | None = None
+    defender_side: Side | None = None
+    structure_id: str | None = None
+    reason: Literal["army_collision", "structure_assault", "control_contest", "attack_order"] = "army_collision"
+
+
 class MapGenConfig(BaseModel):
-    """種子碼程序生成地圖的參數（演算法見 design/02-map-generation.md）。"""
     seed: str
-    human_cities: int = Field(default=3, ge=0, description="王城以外的城市數")
-    monster_nests: int = Field(default=3, ge=1, description="主巢數（含 1 個可勝利的魔巢）")
-    sub_nests_per_nest: tuple[int, int] = Field(default=(1, 3), description="每巢副巢數範圍 (min,max)")
-    tribes_per_nest: tuple[int, int] = Field(default=(2, 4), description="每巢部落數範圍 (min,max)")
-    neutral_nodes: int = Field(default=4, ge=0)
-    elite_roster_size: tuple[int, int] = Field(
-        default=(5, 8), description="開局選角時每方可選的菁英數量範圍 (min,max)"
-    )
-    extra_edge_ratio: float = Field(
-        default=0.25, ge=0, description="在生成樹之上額外加邊的比例，決定網狀程度"
-    )
+    width: int = Field(default=36, ge=8)
+    height: int = Field(default=24, ge=8)
+    human_cities: int = Field(default=3, ge=0)
+    sub_nests: tuple[int, int] = Field(default=(1, 3))
+    tribes: tuple[int, int] = Field(default=(2, 4))
+    neutral_sites: int = Field(default=4, ge=0)
+    elite_roster_size: tuple[int, int] = Field(default=(5, 8))
 
 
-# ---------------------------------------------------------------------------
-# 階段提交物（同時行動：雙方各自提交，系統收齊後結算）
-# ---------------------------------------------------------------------------
 class DomesticAction(BaseModel):
-    """內政階段的單一動作。"""
     type: DomesticActionType
-    target_id: str | None = Field(default=None, description="tech id / unit 範本 id / 建築型別 / 據點 id")
-    node_id: str | None = Field(default=None, description="動作發生的據點（招募 / 建築 / 分配）")
-    quantity: float = Field(default=1, description="數量 / 投入量")
-    payload: dict[str, float] = Field(default_factory=dict, description="補充參數，如資源轉換比例")
+    target_id: str | None = Field(default=None)
+    structure_id: str | None = Field(default=None)
+    quantity: float = 1
+    payload: dict[str, Any] = Field(default_factory=dict)
 
 
 class DomesticOrder(BaseModel):
-    """某方在內政階段提交的整批動作。"""
     side: Side
     month: int
     actions: list[DomesticAction] = Field(default_factory=list)
 
 
 class Building(BaseModel):
-    """建築實例（內政階段 BUILD 產生）。"""
     id: str
     name: str
-    node_id: str
+    structure_id: str
     level: int = 1
     bonuses: list[NodeBonus] = Field(default_factory=list)
 
 
 class TroopMovement(BaseModel):
-    """軍事階段：一支部隊的部屬。"""
-    from_node: str
-    to_node: str
+    """TODO(P2.2): replace ref-based deployment with ArmyMove path validation."""
+
+    from_ref: str
+    to_ref: str
     intent: DeployIntent
     units: list[UnitStack] = Field(default_factory=list)
-    elite_ids: list[str] = Field(
-        default_factory=list, description="隨此次部屬移動的菁英 instance_id；沿用相同沿邊 / DEFEND 規則"
-    )
+    elite_ids: list[str] = Field(default_factory=list)
 
     @model_validator(mode="after")
-    def _attack_moves(self) -> TroopMovement:
-        if self.intent in (DeployIntent.DEFEND, DeployIntent.HOLD) and self.from_node != self.to_node:
-            raise ValueError("DEFEND/HOLD 的 from_node 與 to_node 必須相同")
+    def _stationary_intents_stay_put(self) -> TroopMovement:
+        if self.intent in (DeployIntent.DEFEND, DeployIntent.HOLD) and self.from_ref != self.to_ref:
+            raise ValueError("DEFEND/HOLD movements must stay on the same reference until P2.2")
         return self
 
 
 class Deployment(BaseModel):
-    """某方在軍事階段提交的整批部屬。"""
     side: Side
     month: int
-    movements: list[TroopMovement] = Field(default_factory=list)
+    movements: list[ArmyMove] = Field(default_factory=list)
+    legacy_movements: list[TroopMovement] = Field(default_factory=list)
 
 
-# ---------------------------------------------------------------------------
-# 情報（戰爭迷霧）
-# ---------------------------------------------------------------------------
+class ConstructionProject(BaseModel):
+    """M1 shell for the M3 construction queue."""
+
+    id: str
+    owner: Side
+    kind: DomesticActionType
+    target_tiles: list[HexCoord] = Field(default_factory=list)
+    cost: dict[ResourceKind, float] = Field(default_factory=dict)
+    turns_remaining: NonNegativeInt = 1
+    status: ConstructionStatus = ConstructionStatus.QUEUED
+    payload: dict[str, Any] = Field(default_factory=dict)
+
+
 class IntelReport(BaseModel):
-    """情報階段產出的一份對敵觀測；可能模糊或錯誤。
-
-    清晰度 clarity ∈ [0,1]：由偵察科技 + 視野加成決定。
-    - clarity 高 → observed_* 接近真值、is_accurate 多為真、range 區間窄。
-    - clarity 低 → 數值被加噪、區間放寬，甚至 is_accurate=False（整份誤導）。
-    """
     observer: Side
-    target_node_id: str
+    target_id: str
+    target_kind: Literal["tile", "structure", "army"] = "structure"
     month: int
     clarity: float = Field(ge=0, le=1)
-    is_accurate: bool = Field(default=True, description="False 表示這份情報整體被誤導")
+    is_accurate: bool = True
     observed_owner: Side | None = None
-    observed_garrison_range: tuple[int, int] = Field(
-        default=(0, 0), description="估計駐軍數量區間；clarity 越低區間越寬"
-    )
-    observed_intents: list[DeployIntent] = Field(
-        default_factory=list, description="推測對方在此據點的意圖（可能含雜訊）"
-    )
-    seed: str = Field(default="", description="本份情報擲值所用子 seed")
+    observed_garrison_range: tuple[int, int] = (0, 0)
+    observed_intents: list[DeployIntent] = Field(default_factory=list)
+    seed: str = ""
     notes: str = ""
 
 
-# ---------------------------------------------------------------------------
-# 戰鬥結算與突發事件
-# ---------------------------------------------------------------------------
 class CombatRound(BaseModel):
-    """戰鬥過程中的一個回合（供戰報逐步呈現）。"""
     index: int
     attacker_power: float
     defender_power: float
-    roll_modifier: float = Field(default=0, description="由 seed 衍生的擲值修正")
+    roll_modifier: float = 0
     attacker_losses: float = 0
     defender_losses: float = 0
     note: str = ""
 
 
 class CombatReport(BaseModel):
-    """單一據點的一場戰鬥結算結果。"""
-    node_id: str
+    structure_id: str | None = None
+    location: HexCoord
     month: int
     attacker: Side
     defender: Side | None
@@ -412,22 +537,17 @@ class CombatReport(BaseModel):
 
 
 class RandomEvent(BaseModel):
-    """戰鬥結算階段觸發的突發事件。"""
     id: str
     type: RandomEventType
     month: int
-    affected_nodes: list[str] = Field(default_factory=list)
+    affected_targets: list[str] = Field(default_factory=list)
     affected_side: Side | None = None
     effects: dict[str, float] = Field(default_factory=dict)
     description: str = ""
     seed: str = ""
 
 
-# ---------------------------------------------------------------------------
-# 陣營與整局狀態
-# ---------------------------------------------------------------------------
 class ResourcePool(BaseModel):
-    """某陣營的資源存量；雙方共用同模型，只用到各自相關的鍵。"""
     amounts: dict[ResourceKind, float] = Field(default_factory=dict)
 
     def get(self, kind: ResourceKind) -> float:
@@ -439,18 +559,15 @@ class Faction(BaseModel):
     name: str
     resources: ResourcePool = Field(default_factory=ResourcePool)
     researched_techs: list[str] = Field(default_factory=list)
-    unlocked_species: list[str] = Field(default_factory=list, description="魔物方已解鎖可孵化的物種")
-    elite_roster: list[str] = Field(
-        default_factory=list, description="開局選角選定的 EliteTemplate id（5–8 名），實例化為 MapNode.elites"
-    )
-    intel_clarity_bonus: float = Field(default=0.0, description="偵察科技累積的情報清晰度加成")
+    unlocked_species: list[str] = Field(default_factory=list)
+    elite_roster: list[str] = Field(default_factory=list)
+    intel_clarity_bonus: float = 0.0
     is_ai: bool = False
 
 
 class TurnState(BaseModel):
-    month: int = Field(default=1, ge=1, description="第幾個月（每輪=一個月）")
+    month: int = Field(default=1, ge=1)
     phase: TurnPhase = TurnPhase.DOMESTIC
-    # 同時行動：各方該階段的提交，系統收齊後一次結算。
     domestic_orders: dict[Side, DomesticOrder] = Field(default_factory=dict)
     deployments: dict[Side, Deployment] = Field(default_factory=dict)
     intel_reports: list[IntelReport] = Field(default_factory=list)
@@ -460,23 +577,22 @@ class TurnState(BaseModel):
 
 
 class GameState(BaseModel):
-    """一局遊戲的完整可序列化狀態。"""
     master_seed: str
     turn: TurnState = Field(default_factory=TurnState)
     factions: dict[Side, Faction] = Field(default_factory=dict)
-    nodes: dict[str, MapNode] = Field(default_factory=dict)
-    edges: list[Edge] = Field(default_factory=list)
+    tile_map: TileMap
+    structures: dict[str, Structure] = Field(default_factory=dict)
+    armies: dict[str, Army] = Field(default_factory=dict)
+    construction: list[ConstructionProject] = Field(default_factory=list)
     buildings: dict[str, Building] = Field(default_factory=dict)
     map_config: MapGenConfig | None = None
     combat_log: list[CombatReport] = Field(default_factory=list)
+    engagements: list[Engagement] = Field(default_factory=list)
     event_log: list[RandomEvent] = Field(default_factory=list)
-    winner: Side | None = Field(default=None, description="None=進行中")
+    winner: Side | None = None
 
-    def neighbors(self, node_id: str) -> list[str]:
-        out: list[str] = []
-        for e in self.edges:
-            if e.a == node_id:
-                out.append(e.b)
-            elif e.b == node_id:
-                out.append(e.a)
-        return out
+    def tile_at(self, coord: HexCoord | tuple[int, int]) -> Tile | None:
+        return self.tile_map.tile_at(coord)
+
+    def hex_neighbors(self, coord: HexCoord | tuple[int, int]) -> list[Tile]:
+        return self.tile_map.neighbors(coord)

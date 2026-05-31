@@ -1,22 +1,19 @@
 import { describe, expect, it } from "vitest";
 
-import type { TowerMap } from "../types";
 import { generateTowerMap } from "./generator";
-import { parseTowerMapJson } from "./serialization";
+import { parseTowerMapJson, serializeTowerMap } from "./serialization";
 
 describe("parseTowerMapJson", () => {
-  it("hydrates legacy exports without cartographic fields", () => {
-    const map = generateTowerMap({ seed: "legacy-cartography" });
-    const legacy = {
-      ...map,
-      terrainRegions: map.terrainRegions.map(({ id, terrainType, bounds, tags }) => ({ id, terrainType, bounds, tags }))
-    } as Partial<TowerMap> & Record<string, unknown>;
-    delete legacy.elevationGrid;
-    delete legacy.contourLines;
+  it("round-trips the M1 hex map payload", () => {
+    const map = generateTowerMap({ seed: "serialization" });
+    const parsed = parseTowerMapJson(serializeTowerMap(map));
+    expect(parsed.schemaVersion).toBe(2);
+    expect(parsed.tileMap.tiles).toHaveLength(map.tileMap.tiles.length);
+    expect(parsed.structures).toHaveLength(map.structures.length);
+    expect(parsed.armies).toHaveLength(map.armies.length);
+  });
 
-    const parsed = parseTowerMapJson(JSON.stringify(legacy));
-    expect(parsed.elevationGrid).toHaveLength(parsed.config.height);
-    expect(parsed.contourLines.length).toBeGreaterThan(20);
-    expect(parsed.terrainRegions.every((region) => region.cells.length > 0 && region.outlines.length > 0)).toBe(true);
+  it("rejects old graph exports", () => {
+    expect(() => parseTowerMapJson(JSON.stringify({ schemaVersion: 1, nodes: [], edges: [] }))).toThrow("schemaVersion");
   });
 });

@@ -45,6 +45,21 @@
               × (1 + Σ 相關 rate 加成)
 ```
 
-相關模型：`ResourcePool`、`ResourceKind`、`NodeBonus`、`DomesticAction(type=ALLOCATE)`
-（見 [`../schema/models.py`](../schema/models.py)）。轉換比例放在 `DomesticAction.payload`，
+## 建造成本與佇列（混合制新增）
+
+[11](11-construction-and-terraform.md) 的建築 / 鋪路 / 造橋 / 設防 / 地形改造動作，於內政階段
+提交時**先扣資源**（人類用 `combat_resource`、魔物用 `monster_source`），並進**建造佇列**
+`ConstructionProject`（`cost / turns_remaining`），跨月完成：
+
+```
+提交（DOMESTIC）：扣 cost → 入佇列（turns_remaining = 範本工期）
+每月 RESOLVE：    turns_remaining -= 1；歸零 → 套用到地塊 / 結構
+```
+
+- 建造佔用資源預算，與招募 / 研究競爭，形成「擴張 vs 軍備 vs 科技」的取捨。
+- 完工的道路 / 橋 / 城牆 / 地形改造會改變移動、加成與**未來戰場地形**（回收於戰術層）。
+- 工期 / 成本表由 `data` 範本定，具體數值留待平衡階段。
+
+相關模型：`ResourcePool`、`ResourceKind`、`NodeBonus`、`DomesticAction`、`ConstructionProject`
+（見 [`../schema/models.py`](../schema/models.py)）。轉換 / 成本比例放在 `DomesticAction.payload`，
 具體數值表待平衡階段填入，本階段只固定資料形狀。

@@ -13,11 +13,28 @@
 | `fortification` 工事 | 城防強化 | `fortification_add` |
 | `recon` 偵察 | 斥候網、反偵察 | `intel_clarity`, `concealment` |
 | `logistics` 後勤 | 行軍補給 | `movement`, `upkeep_reduction` |
+| `engineering` 工程（新增）| 築城術、架橋術、地形工程、攻城器械 | `unlock_build_<kind>`, `build_speed`, `siege_mult` |
 
 效果套用：`*_mult` 乘進單位戰力（[04](04-units-and-combat.md)）；
-`fortification_add` 加進 `MapNode.fortification`；`intel_clarity` 加進 `Faction.intel_clarity_bonus`。
+`fortification_add` 加進 `Structure.fortification`；`intel_clarity` 加進 `Faction.intel_clarity_bonus`；
+`unlock_build_<kind>` 解鎖對應建造 / 地形改造動作（[11](11-construction-and-terraform.md)），
+`build_speed` 縮短建造佇列工期，`siege_mult` 提升戰場攻城效率。
 
 **菁英也吃科技加成**：`attack_mult` / `hp_mult` 同時乘進菁英本體數值（與菁英等級成長疊加）。
+
+## 流派分支：互斥節點創造玩法多樣性（混合制新增）
+
+為達成「自行發展科技樹創造複雜多變流派」的目標，科技 / 進化樹支援**互斥分支**：
+
+- `TechNode.excludes[]`：解鎖某節點後，其互斥節點本局**永久鎖死**，逼玩家在路線間取捨。
+- 範例（人類）：
+  - 「**精兵流**」`gene` 深化（少量超強單位）⟂「**設防流**」`fortification`+`engineering`
+    （築城鋪路、以地形與工事換戰場優勢）。
+  - 「**偵刺流**」`recon`+`logistics`（高機動、情報壓制、繞後）⟂「**攻城流**」`engineering` 攻城器械。
+- 範例（魔物）：`evolution` 走質（高階物種）⟂ `monster_research` 走量（群衝強化）的深層節點互斥。
+
+互斥關係全在 YAML（`excludes`），引擎解鎖時檢查；新增 / 調整流派不必改 schema。
+這讓同一棵樹依玩家選擇長出不同的「build」，配合連續地圖的建造改造，產生多變戰術。
 
 ---
 
