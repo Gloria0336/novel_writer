@@ -1,7 +1,186 @@
+# 來源：temp/v43.md（v43）第十二章「待展開情節」與第十一章「敘事線索」。
+# 說明：正文尚未開始，故此處記載的是「已存在於世界中、可被故事撿起來用」的線索，
+#       status 一律為 available（可用），而非 open（已在正文中埋下）。
+# 揭露層級請對照 bible/worldbuilding.md 的知情層級標記；涉及真相者見 context/secrets-lockbox.md。
+
+pending_author_decisions:
+  # v43 第十二章「待展開情節」原始項目
+  - id: item-03
+    topic: 武神的「個人因素」
+    question: 什麼樣的私事會讓裴思涵現身？
+  - id: item-11
+    topic: 各地名稱（進行中）
+    question: 兩岸港城的命名（俟人文地理細節補充後再行）。
+    done: 陸塊、海域、聯邦國名、龍隱城、樓蘭城已完成。
+  - id: item-29
+    topic: 天絕之道與其開戰動機的具體連結
+    question: 屬大戰章節，需具體化。
+  - id: item-30
+    topic: 同盟會由科研整合轉為政治實體的節點
+    question: 時程與觸發事件。
+  - id: story-core
+    topic: 故事本身
+    question: 主角是誰、核心衝突為何、第一幕結尾在哪裡。尚未決定。
+
 open_threads:
-  - id: core-mystery
-    hook: 故事目前最重要、尚未揭曉的懸念是什麼？
-    introduced_in: ch001
-    status: open
-    stakes: 如果這條線被揭開，會改變哪些角色、關係或世界規則？
+  # ── 世界級主線候選 ────────────────────────
+  - id: dao-gate-repair
+    hook: 道門被毀，三千年來無人成帝；修復真實存在且可達成，效果為全球性。
+    introduced_in: planned
+    status: available
+    knowledge_level: 山巔（僅知部分）
+    stakes: >
+      一旦修復，人人可走；但「每一條道的終點只能有一人」依然有效——先修復者可先佔席位。
+      各方獨佔的是先機，不是成果。真正的賭注遠大於此（見 secrets-lockbox）。
+    clues_scattered_in:
+      - 遺跡與傳承
+      - 天絕的靈魂碎片
+      - 各勢力內部檔案
+    likely_payoff_window: 長期
+
+  - id: fifth-fragment
+    hook: 天絕的第五片靈魂碎片流落在外，無人知曉。
+    introduced_in: planned
+    status: available
+    knowledge_level: 高階
+    stakes: >
+      若有人從流落在外的碎片得知真相，他持有的將是所有知情者共同想封鎖的東西。
+      碎片可被儀器找到——一代測量技術即可偵測局部源的方向，難處在背景雜訊；
+      而大道洲沒有這條路。
+    likely_payoff_window: 中長期
+
+  - id: fragment-signal-strengthening
+    hook: 若某片碎片的訊號變強而非變弱，代表有人在餵養它，或它正在恢復。
+    introduced_in: planned
+    status: available
+    knowledge_level: 需具測量能力者（聯邦、偉恩、荒阪、行會後裔）
+    stakes: 現成的預警機制，也是最乾淨的「事情開始了」訊號。
+    likely_payoff_window: 依需要
+
+  - id: path-outside-the-world
+    hook: 道門已毀，但仍有別的方式前往世界之外——可觀測、可互動，但無法論道。
+    introduced_in: planned
+    status: available
+    knowledge_level: 傳說（有傳說，但無人證實）
+    stakes: >
+      它給不了權力，只給認識。這幾乎必然是通往世界真相的路徑，
+      且沒有任何勢力守著它——因為沒有人相信它存在。
+    likely_payoff_window: 長期
+
+  - id: chaos-incidents
+    hook: 零星的「怪事」：地點性異變與異象、人與生物的異化、規則失效（法術與因果出錯）。
+    introduced_in: planned
+    status: available
+    knowledge_level: 常識（事件本身可見）／真相（其意義無人知曉）
+    stakes: >
+      沒有人把它們連起來，因為沒有人知道該連什麼。機制與全貌見 secrets-lockbox。
+    likely_payoff_window: 貫穿全書
+
+  - id: guild-measures-anomaly
+    hook: 行會的千年帳簿測到了異常，但只測到異常，尚不解其意。
+    introduced_in: planned
+    status: available
+    knowledge_level: 行會核心／具測量能力者
+    stakes: >
+      這是他們三千年前處境的重演——當年也是先發現尺對不齊，才理解世界多了一位大帝；
+      這一次沒有天絕在背後保護，也沒有人告訴他們要找什麼。
+    likely_payoff_window: 中長期
+
+  # ── 制度與勢力層級 ────────────────────────
+  - id: first-nonsect-on-stele
+    hook: 「第一個上碑的非門派組織」是一個從未發生、卻完全合法的歷史性事件。
+    introduced_in: planned
+    status: available
+    stakes: >
+      要達成它，實質上必須讓一個商會長出自己的道統——一條橫跨數十年的長線。
+      碑衡量的不是資產或規模，而是能不能造出強者。
+    likely_payoff_window: 長期
+
+  - id: subsidiary-city-registration
+    hook: 附屬城市自行登記加入正道聯盟「從未明文禁止，但默認不行」。
+    introduced_in: planned
+    status: available
+    stakes: >
+      阻力與實力無關，與依賴度有關——一座經濟上不依賴任何門派的附屬城，
+      理論上隨時可以走進那道門。上一個試過的是樓蘭城。
     likely_payoff_window: 中期
+
+  - id: loulan-record
+    hook: 樓蘭城毀城的記錄還在，只是沒人提。
+    introduced_in: planned
+    status: available
+    stakes: >
+      它不是永遠失落的歷史，而是有門檻的線索——需要門派典籍或聯盟檔案的接觸權限。
+    likely_payoff_window: 中期
+
+  - id: yaoguang-archives
+    hook: 瑤光宗跌出碑外、隱世不出，卻仍持有原生分支的機密檔案。
+    introduced_in: planned
+    status: available
+    stakes: 「正道門是加害者」與更深層資訊的可及入口之一。
+    likely_payoff_window: 中期
+
+  - id: dual-registration
+    hook: 極少數門派同時登記於聯邦監管制度與正道聯盟，低調維持至今。
+    introduced_in: planned
+    status: available
+    stakes: 登記本身合法，行使庇護則構成組織犯罪；聯邦知悉並監控。
+    likely_payoff_window: 中期
+
+  - id: enhanced-cultivators
+    hook: 靈氣科技可以增強修士，但屬秘密與禁忌的前沿；聯邦與偉恩皆在做，偉恩更隱密。
+    introduced_in: planned
+    status: available
+    stakes: >
+      世界默許科技讓弱者跟上，不默許它讓強者更強。偉恩在做一件聯邦未必知情的事——
+      檯面下的摩擦可能比表面所寫更深。
+    likely_payoff_window: 中期
+
+  - id: arasaka-dao-interference
+    hook: 荒阪的禁忌研究方向之一是「道與境界的人為干預」，以天絕碎片為儀器。
+    introduced_in: planned
+    status: available
+    stakes: >
+      這是第一個直接威脅悟道體系本身的東西。若境界可被人為干預，
+      「一道一人」「道不可外部檢測」整套規則就有了被繞過的可能。
+      它尚未成型——是一個還沒有人做成、但所有人都不肯放手的方向。
+    likely_payoff_window: 長期
+
+  - id: smuggling-route
+    hook: 絕天海主航線明確不是走私通道——那條路目前空白。
+    introduced_in: planned
+    status: available
+    stakes: 一條可由作者自由填入的體制外通道。
+    likely_payoff_window: 依需要
+
+  - id: yuntianjin
+    hook: 天錦門的雲天錦：任何人都能買，沒有人能複製。
+    introduced_in: planned
+    status: available
+    stakes: >
+      獨門不外傳使一件商品成為戰略物資；偉恩的高階儲存壟斷因此有一道縫，而那道縫在大道洲。
+    likely_payoff_window: 依需要
+
+  # ── 敘事姿態（非事件，寫作時的可用槓桿）──
+  - id: protagonist-invisibility
+    hook: 這個世界的頂層由長壽者、血脈與碑上的排序把持，唯一沒被納入計算的是無人留意的人。
+    introduced_in: planned
+    status: available
+    stakes: 主角不需要是天才，只需要是不被看見的人；藏拙是核心生存技能。
+    likely_payoff_window: 貫穿全書
+
+  - id: exile-is-not-death
+    hook: 黑市與移民聯邦，使「失去正道身分」不再是絕對死路。
+    introduced_in: planned
+    status: available
+    stakes: >
+      被逐出者仍有活路，故事不必在那裡結束。移民聯邦是真實可行的出路，
+      代價是把自由交出去。出身決定敘事形態：聯邦＝體制內憑實績攀爬；門派＝恩庇網絡中鑽營。
+    likely_payoff_window: 依需要
+
+  - id: truth-is-not-rare
+    hook: 真相並不稀有，它只是在某些地方犯法。
+    introduced_in: planned
+    status: available
+    stakes: 知識落差的形狀不是「誰知道」，而是「誰有能力測量」與「誰准你說」。
+    likely_payoff_window: 貫穿全書

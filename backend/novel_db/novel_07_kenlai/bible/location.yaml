@@ -1,18 +1,252 @@
+# 來源：temp/v43.md（v43）第四、七、九、十章。正文尚未開始，故 first_appearance 皆為 planned。
+# 命名規則：正道區用漢字（可帶現實語感），聯邦區與帝國區用西式語感。未命名之地由作者提供，AI 不代為命名。
+
+naming_rules:
+  people_and_orgs: 可帶現實語感，視為此世界的原生名稱（偉恩、荒阪、亞特蘭蒂斯）。
+  places: 需原創；正道區漢字、聯邦區西式、帝國區西式（與聯邦同調）。漢字地名可帶現實語感（如樓蘭城）。
+  pending: AI 不代為命名，新地名由作者逐步提供。
+
+administrative_hierarchy:
+  note: 僅適用於正道聯盟（大道洲）。
+  levels: 洲 → 州／省 → 郡／府 → 市／城
+  rules:
+    - 劃分方式與原因沒有固定規則，每個地方都不一樣。
+    - 州／省為純粹的地理稱謂，沒有管理者。
+    - 實際治權在郡／府與市／城兩級，但不一定；有市長、也有郡主府主，產生方式不作規定。
+    - 門派是組織概念而非地理概念，不構成行政區的劃分範圍。
+
 locations:
-  - id: main-location
-    name: 主要場景名稱
-    type: 住處 / 校園 / 公司 / 街區 / 異界
-    region: 城市、行政區或更大的地理範圍
-    first_appearance: ch001
+  # ── 陸塊與海域 ──────────────────────────────
+  - id: dadao-continent
+    name: 大道洲
+    type: 大陸（分北大道洲、南大道洲）
+    region: 正道聯盟轄地
+    first_appearance: planned
     summary: >
-      這個地點在正文中已成立的功能、樣貌與角色為何會來到這裡。
+      正道聯盟所在的大陸。三千年前的大戰將整片大陸打成兩半，中間形成絕天海，
+      但兩塊陸地仍統稱大道洲，底下分為北大道洲與南大道洲，兩塊皆有人居。
     atmosphere:
-      - 固定會被感知到的聲音、氣味、光線或材質
+      - 門派在山上、城市在山下，兩者物理分離
+      - 大多數城市依靈脈而建
     narrative_functions:
-      - 安全屋 / 衝突現場 / 情報交換 / 儀式空間
+      - 正道聯盟制度與門派政治的主舞台
+      - 附屬城市層：不由五方直接治理、又不算無主地的空間
     access_constraints:
-      - 出入門檻、營業時間、通勤限制、監視風險或危險來源
+      - 南北往返須渡絕天海，海象惡劣
     linked_people_or_factions:
-      - 角色、組織或勢力名稱
+      - 正道聯盟、天祠、窺天局、暗影隊、16 個上碑門派
     continuity_notes:
-      - 方位、樓層、附近地標、移動時間等需要保持一致的資訊
+      - 北大道洲靈脈較豐、土地貧瘠；南大道洲除靈脈外資源豐富。
+      - 雙向依賴：靈氣南下、物資北上。南方高度依賴北方靈氣；北方對南方物資部分依賴，自給仍可。
+      - 上碑門派南北分布：北 7、南 9，但前六名中北方佔五席。北方掌位階，南方掌票。
+      - 此地測量學清算最徹底，無科研傳承，卻使用行會留下的標準格式。
+
+  - id: juetian-sea
+    name: 絕天海
+    type: 海域（古戰場）
+    region: 南北大道洲之間
+    first_appearance: planned
+    summary: >
+      三千年前那場大戰打出來的新生海域，因該戰而得名。正道門舊址位於這片海域下方，
+      有價值之物早在當年就被正道門殘餘組織打撈殆盡，如今只剩極度混亂的靈氣環境。
+    atmosphere:
+      - 紊亂靈氣、惡劣海象
+      - 適應該環境而生的特種生物
+    narrative_functions:
+      - 把大道洲切得比地圖上更徹底：聯盟難以團結的物理成因
+      - 航運、護航行業與靈氣運輸線的舞台，適合安置低階與無門派角色
+    access_constraints:
+      - 中央大片區域難以航行
+      - 混亂靈氣對練氣與煉體兩者皆有害，皆難以通行
+    linked_people_or_factions:
+      - 跑這條航線的船隊與護航行業（有門派自營、有獨立經營，並以商會船隊名義加入正道聯盟）
+    continuity_notes:
+      - 此航線同時是靈氣運輸線，兩岸港口城市因此繁榮。
+      - 明確排除：並非走私與黑市主要通道；亦未形成專門的特種生物獵人群體。
+      - 兩岸港城尚未命名（待作者提供）。
+
+  - id: omnia-continent
+    name: 歐姆尼亞洲（簡稱歐洲）
+    type: 大陸
+    region: 波希特米亞聯邦所在，與大道洲隔海相望
+    first_appearance: planned
+    summary: >
+      波希特米亞聯邦的大陸。建國前為多個小國並立的戰國時代，約 2800 年前由同盟會
+      引發的革命熱潮統一為聯邦。三千年前的清算未及此地，測量學傳承因而延續。
+    narrative_functions:
+      - 法律、科技與凡修共治的世界；與大道洲形成結構對照
+    linked_people_or_factions:
+      - 波希特米亞聯邦、偉恩企業、大地綜合行會後裔
+    continuity_notes:
+      - 東岸為高譚市（偉恩據點），西岸為華盛頓市（首都）。
+
+  - id: atlantis-continent
+    name: 亞特蘭蒂斯洲
+    type: 大陸（帝國所有領土的集合）
+    region: 兩大陸之間的海域
+    first_appearance: planned
+    summary: >
+      亞特蘭蒂斯帝國全部領土的集合。海洋文明，政教合一，半鎖國。
+    atmosphere:
+      - 陸上城市面海、部分建於水上、另有水下城區
+      - 以海為核心的祭典與節慶滲透日常
+    access_constraints:
+      - 外人入境皆需許可；可經商，不可定居
+      - 邊陲管制極鬆、不敵視；中心敵視
+      - 例外：接納擅長水法的外人，但生活與文化上仍受本地排斥
+    linked_people_or_factions:
+      - 皇室、教會、偉恩與荒阪（邊陲滲透）
+    continuity_notes:
+      - 它擋在正道與聯邦之間的路中間——這是它的真正價值，非強弱。
+      - 邊陲＝漫長海岸線與離島，海路最難管，故滲透嚴重。
+      - 風貌梯度：越近中心越宏偉保守，越近邊陲越原始但與世界接軌。
+
+  - id: poseidon-peninsula
+    name: 波塞頓半島
+    type: 半島（帝國皇都所在）
+    region: 亞特蘭蒂斯洲
+    first_appearance: planned
+    summary: >
+      亞特蘭蒂斯帝國皇都所在的半島。皇都的核心是神殿與皇宮共構——並非兩座相鄰建築，
+      而是一座無法拆分的核心。
+    narrative_functions:
+      - 帝國權力與信仰的單一中心
+    access_constraints:
+      - 超級上古秘境的防禦屏障與預警偵測僅於皇都周邊生效
+    linked_people_or_factions:
+      - 皇室（波賽頓大帝直系血脈）、最高層教會
+    continuity_notes:
+      - 秘境不供給全國靈氣資源、不具攻擊能力、無法製造軍隊。
+
+  - id: penglai-islands
+    name: 蓬萊群島
+    type: 群島（無主自由貿易區）
+    region: 大道洲東北部外海
+    first_appearance: planned
+    summary: >
+      面積約與日本相當的群島，無主的自由貿易區，魚龍混雜的自由城市。
+      荒阪集團的大型總部節點之一即在島上。
+    atmosphere:
+      - 魚龍混雜、法外之地的自由城市感
+    narrative_functions:
+      - 黑市、情報、跨勢力交易的中立場域
+    linked_people_or_factions:
+      - 荒阪集團（已知節點之一）
+    continuity_notes:
+      - 荒阪的「總部」為複數等價節點，毀去其一不影響其餘。
+
+  - id: formosa-island
+    name: 福爾摩沙島
+    type: 島嶼（獨立自治，非聯盟成員）
+    region: 蓬萊群島南端、大陸東側
+    first_appearance: planned
+    summary: >
+      面積約與台灣相當的小島。在正道門分裂多年之後，效法波希特米亞聯邦創立了自己的
+      民權政府，完全獨立，並非正道聯盟成員。
+    access_constraints:
+      - 島上有秘境「大肚秘境」，使整座島成為天險——除島民外，外人難以出入
+    narrative_functions:
+      - 「不存在獨立生存的選項」目前唯一的實質例外
+    continuity_notes:
+      - 它依靠的不是庇護，而是地理上的不可及。
+
+  - id: dadu-secret-realm
+    name: 大肚秘境
+    type: 秘境
+    region: 福爾摩沙島
+    first_appearance: planned
+    summary: >
+      使福爾摩沙島成為天險的秘境，是該島得以完全獨立於正道聯盟之外的實質原因。
+    continuity_notes:
+      - 詳細機制未定；禁地與秘境的成因本就依地點而異，無統一性質。
+
+  - id: gotham-city
+    name: 高譚市
+    type: 城市（企業城）
+    region: 歐姆尼亞洲東岸，波希特米亞聯邦境內
+    first_appearance: planned
+    summary: >
+      偉恩家族的據點與偉恩企業核心。偉恩完全掌握該市的經濟、行政與司法，
+      市政府的司法與行政機關僅為傀儡。
+    narrative_functions:
+      - 「唯一講法律的地方，法律對唯一該管的對象無效」的具體場景
+    linked_people_or_factions:
+      - 偉恩家族、偉恩企業、波希特米亞聯邦（名義管轄）
+    continuity_notes:
+      - 名義上受聯邦法律管轄，但聯邦實務上不敢執法。
+
+  - id: washington-city
+    name: 華盛頓市
+    type: 城市（首都）
+    region: 歐姆尼亞洲西岸
+    first_appearance: planned
+    summary: >
+      波希特米亞聯邦首都，得名自國父恩菲・華盛頓。
+    linked_people_or_factions:
+      - 大總統柏拉圖・斯坦尼、上下議院、五權機關
+    continuity_notes:
+      - 聯邦名為聯邦、實為中央集權的統一國家。
+
+  - id: longyin-city
+    name: 龍隱城
+    type: 城市（門派附屬城）
+    region: 所在陸地待定
+    first_appearance: planned
+    summary: >
+      現存唯一武神裴思涵的出身地。該城為門派附屬城市，並非直屬於任一門派。
+    narrative_functions:
+      - 「現存唯一的武神來自沒有門派名字的地方」
+    linked_people_or_factions:
+      - 裴思涵（舊稱號「神龍大俠」即與此城有意關聯）
+    continuity_notes:
+      - 所在陸地（南／北大道洲）尚未決定，待作者裁決。
+
+  - id: loulan-city
+    name: 樓蘭城（已毀）
+    type: 城市（已毀滅的附屬城）
+    region: 大道洲
+    first_appearance: planned
+    summary: >
+      一千年以上之前，附屬城市樓蘭城嘗試自行登記加入正道聯盟。登記失敗，
+      其原本的上級門派促成報復，整座城市被毀。
+    narrative_functions:
+      - 「單方面終止合約」的極端案例；有門檻的線索而非失落的歷史
+    access_constraints:
+      - 記錄現存於門派典籍與聯盟檔案之中，民間無從查證
+    continuity_notes:
+      - 記錄並未被抹除，而是被刻意忽略與淡忘；聯盟高層為顏面選擇隱匿淡化。
+      - 今日城市不敢獨立的恐懼與此事無直接關聯，而是來自聯盟高層的長期壓迫。
+
+  # ── 地點類型（通則，非單一地點）────────────
+  - id: forbidden-zones
+    name: 禁地（通稱）
+    type: 地點類型
+    region: 全球
+    first_appearance: planned
+    summary: >
+      依地點而異，成因各不相同，無統一性質。與秘境同為極易產生異象之處（詳見 secrets-lockbox）。
+    continuity_notes:
+      - 每處禁地成因需個案設定，不可套用統一機制。
+
+  - id: unclaimed-lands
+    name: 無主地（通稱）
+    type: 地點類型
+    region: 全球
+    first_appearance: planned
+    summary: >
+      三種成因並存：貧瘠偏遠沒人要；各方互不相讓維持空白；有小型勢力實控但不屬五方。
+    continuity_notes:
+      - 不屬五方的小型勢力靠什麼存活，依勢力而異，各有生存之道。
+      - 非五方地區總體份量可觀，但分散而無法整合。
+
+  - id: sect-mountains
+    name: 山上（門派領地通稱）
+    type: 地點類型
+    region: 大道洲為主
+    first_appearance: planned
+    summary: >
+      門派領地多為一座山，世稱「山上」。門派所據之山即靈脈所在——佔山即佔靈脈。
+      門派極少直接設立於城市之中。
+    continuity_notes:
+      - 直屬城與門派同名、由門派直接管轄；附屬城自治，名字裡沒有主人。
+      - 16 個上碑門派各佔一山、即各佔一條靈脈。

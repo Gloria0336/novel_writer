@@ -1,31 +1,78 @@
 canon_outline:
-  project_status: planning
+  project_status: worldbuilding_complete_story_not_started
   current_chapter: planned
-  current_endpoint: 尚未開始正文
+  current_endpoint: 尚未開始正文。世界觀 v43 已匯入 canon。
   canon_scope:
     covered_chapters: []
-    note: 僅記錄已寫成正文的 canon 與可直接接續的落點。
-  chapter_beats:
-    - chapter: ch001
-      beat: 主角第一次面對核心衝突。
-      outcome: 故事主前提成立。
+    note: >
+      僅記錄已寫成正文的 canon。目前為零。
+      設定 canon（v43，438 項已確認決策）位於 bible/ 與 context/secrets-lockbox.md。
+  source_of_truth:
+    world_rules: bible/worldbuilding.md
+    places: bible/location.yaml
+    people: bible/characters.yaml
+    history: bible/timeline.yaml
+    threads: bible/plot-threads.yaml
+    hidden: context/secrets-lockbox.md
+    raw_reference: temp/v43.md
+  chapter_beats: []
   character_state_snapshot:
-    protagonist: >
-      記錄主角在目前 canon 中的最新狀態，方便跨章維持一致。
+    protagonist: 尚未建立。
   near_term_next_steps:
-    - 第一章要完成的劇情轉折
+    - 決定主角：出身哪一方、走練氣或煉體、初始境界與社會位置。
+    - 決定核心衝突與故事承諾（讀者被許諾的主要張力是什麼）。
+    - 決定敘事起點的地理位置，並補齊該地的地名（地名由作者提供）。
+    - 決定第一幕結尾。
+    - 回填 outline/act1.md 與 bible/characters.yaml 的 protagonist 區塊。
   continuity_flags:
-    - 若後續需要統一稱呼、時間或規則，請在此標記。
+    - 年代一律以「距今」表述，尚未設定曆法。
+    - 龍隱城所在陸地（南／北大道洲）未定。
+    - 絕天海兩岸港城尚未命名。
+    - 第五片天絕靈魂碎片的所在未定。
+    - 裴思涵現身的「個人因素」未定。
+    - 同盟會由科研整合轉為政治實體的節點（時程與觸發事件）未定。
+    - 天絕之道與其開戰動機的具體連結尚待具體化。
 
 speculative_long_arc:
   editable: true
   status: author_adjustable_projection
-  note: 這一區是根據目前方向做的長線推演，非既定 canon，可自由修改。
+  note: >
+    這一區是根據 v43 世界觀做的長線推演，非既定 canon，可自由修改或整段丟棄。
+    v43 本身將這類內容列為「敘事線索，尚待確認」。
   central_questions:
-    - 主角最終要解決的核心問題是什麼？
+    - 主角要解決的是個人的位置問題，還是世界的存續問題？兩者在哪一章接上？
+    - 「修復道門」的競爭要不要在故事中被主角捲入？
+    - 混沌要作為背景壓力，還是要走到「有意志」那一步？
+  structural_assets:
+    # 世界本身已備好的三段式壓力，可直接當作長線骨架
+    - level: 個人
+      material:
+        - 這個世界的頂層由長壽者、血脈與碑上的排序把持，唯一沒被納入計算的是無人留意的人。
+        - 藏拙是核心生存技能；出身決定敘事形態（聯邦＝憑實績攀爬／門派＝恩庇網絡鑽營）。
+        - 失去正道身分不是絕對死路：黑市、散修、移民聯邦都是活路，代價各不相同。
+    - level: 制度
+      material:
+        - 制度開著門、現實走不進去：碑的門是能力問題，登記的門是恐懼問題。
+        - 附屬城市層是少數不由五方直接治理、又不算無主地的空間——故事可以在這裡長時間發生而不驚動任何一方。
+        - 「第一個上碑的非門派組織」是從未發生卻完全合法的歷史性事件。
+    - level: 世界
+      material:
+        - 徵候是公開的，只是沒有人知道那是徵候。
+        - 山巔人以為在爭席位，實際上在爭補給線（此層屬 secrets-lockbox，不得提前說破）。
+        - 混沌從異象走向實體、神智、意志，是一條與世界衰退同步的成長曲線。
   projected_arc:
     - phase: 第一階段 / 開局
-      function: 建立角色、世界與主要衝突。
+      function: 建立主角、其社會位置與這個世界的規則感。
       likely_material:
-        - 第一個重大轉折
-        - 第一個需要付出代價的選擇
+        - 讓讀者親身感受「兩體系無法換算」「玉璞是界線」「庇護＝登記」這三條硬規則。
+        - 第一個需要付出代價的選擇，最好落在身分與庇護上（登記、附屬、被逐出）。
+    - phase: 第二階段 / 擴張
+      function: 把主角推出原本的知情層級。
+      likely_material:
+        - 接觸到一件「只有儀器讀得到、法術看不見」的事。
+        - 遇上第一樁無法用既有規則解釋的異常事件。
+    - phase: 第三階段 / 翻面
+      function: 讓主角理解他一直在爭的東西被誤解了。
+      likely_material:
+        - 碎片、行會的長期資料，或「世界之外那條路」三者擇一作為真相的合法來源。
+        - 揭露順序建議：第三層（道門可修復）→ 第二層（大帝會消散）→ 第一層（大帝是燃料）。

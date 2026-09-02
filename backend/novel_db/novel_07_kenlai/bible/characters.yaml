@@ -1,37 +1,191 @@
+# 來源：temp/v43.md（v43）。
+# 現況：v43 為世界觀文件，尚未產生主角與敘事角色。以下為設定中已具名的人物與組織主體。
+# 主角、配角待作者決定後填入 protagonist 區塊。
+
+status:
+  note: 世界觀已完成，主角與敘事角色尚未建立。
+  pending_decisions:
+    - 主角是誰、出身何方勢力（出身決定敘事形態：聯邦＝體制內憑實績攀爬；門派＝恩庇網絡中鑽營）
+    - 主角走練氣或煉體
+    - 第一批配角與敵對者
+
 characters:
+  # ── 待填：敘事核心 ─────────────────────────
   - id: protagonist
-    name: 主角名稱
-    aliases:
-      - 常用稱呼
+    name: 未定
+    aliases: []
     role: 主角 / 敘事核心
     age: 未定
-    occupation: 身分、職業或社會定位
-    appearance_public: >
-      外界通常看到的樣貌、穿著或第一印象。
-    appearance_current: >
-      角色目前的最新外觀與狀態；若與平時無差異，也可簡述目前呈現方式。
-    personality:
-      - 特質一
-      - 特質二
-      - 特質三
+    occupation: 未定
+    appearance_public: 未定
+    appearance_current: 未定
+    personality: []
     speech_style:
-      baseline: 平常說話節奏、語氣與慣用詞。
-      under_stress: 在壓力、恐懼或憤怒時的口吻變化。
-      humor: 調侃、自嘲或開玩笑時的風格。
+      baseline: 未定
+      under_stress: 未定
+      humor: 未定
+    abilities: []
+    current_status: 尚未建立。
+    progressions: []
+    goals: []
+    secrets: []
+    first_appearance: planned
+
+  # ── 歷史人物 ──────────────────────────────
+  - id: tianjue-emperor
+    name: 天絕大帝
+    aliases:
+      - 天絕
+    role: 歷史人物 / 世界核心事件的中心 / 最後一名大帝
+    age: 約 4300 年前證道，3000 年前戰死；擔任大帝的全部時間為 1300 年
+    occupation: 大帝境強者；僅創立一個小門派
+    appearance_public: 未定（形象親民）
+    appearance_current: >
+      肉身已毀，僅餘靈魂碎片。現存的靈魂碎片即是他的本體。
+    personality:
+      - 無心拉幫結派，不結黨、不建立勢力
+      - 形象親民，推動山上宗門與世俗界的融合
+      - 推動的是一個沒有他也能運作的方案，而非屬於他的組織
     abilities:
-      - 專長、資源或特殊能力
+      - 掌「天絕之道」：概念型之道，內容為排斥、拒絕、否定
+      - 成道後被動地對整個世界產生斥力（副產品，非主動施放）
+      - 以靈魂形體發動秘法，一次殺盡五名大帝境
     current_status: >
-      角色目前所處位置、困境、秘密或最新變化。
-    progressions:
-      - at_chapter: ch003
-        status: 角色第一次明確抗拒核心改變或故事推力。
-      - at_chapter: ch009
-        status: 角色首次主動使用能力、做出關鍵選擇或投入衝突。
-      - at_chapter: ch017 # 目前最新
-        status: 角色的身分認知、慾望、關係或代價進入新階段。
-    goals:
-      - 短期目標
-      - 長期目標
+      靈魂碎片仍存，故其道至今仍被佔據（道是否被佔據以靈魂是否尚存為準）。
+      五片碎片：正道聯盟封印一、聯邦一、荒阪一、戰時湮滅一、第五片流落在外無人知曉。
     secrets:
-      - 尚未公開的重要資訊
+      - 曾為秘密保護大地綜合行會的成員之一（偉恩家族亦為保護者之一）；宗門至今不知此關係
+      - 對自己造成的全域斥力「知情，但不夠清楚」——他自己就是那個看不見全域項的人
+    relationships_note: >
+      與行會的關係並非保護者與被保護者，而是唯一的觀測對象與唯一的觀測者。
+    first_appearance: planned
+
+  - id: poseidon-emperor
+    name: 波賽頓大帝
+    aliases:
+      - 波賽頓
+    role: 歷史人物 / 亞特蘭蒂斯帝國創立者 / 教會信仰對象
+    age: 約數萬年前證道
+    occupation: 大帝，掌「海之道」
+    current_status: >
+      公開說法（教義）：升華為神，仍在注視。實情見 context/secrets-lockbox.md。
+    secrets:
+      - 詳見 secrets-lockbox（帝國皇室最高層僅極少數知情）
+    relationships_note: 皇室為其直系血脈。
+    first_appearance: planned
+
+  - id: enfei-washington
+    name: 恩菲・華盛頓
+    aliases:
+      - 聯邦國父
+    role: 歷史人物 / 波希特米亞同盟會領導者 / 聯邦國父
+    occupation: 政治領袖
+    abilities:
+      - 凡人（無修為）
+    current_status: 已逝世。首都華盛頓市得名於他。
+    personality:
+      - 由和平運動走向介入與革命的實務主義者
+    first_appearance: planned
+
+  # ── 在世的具名人物 ────────────────────────
+  - id: pei-sihan
+    name: 裴思涵
+    aliases:
+      - 武神
+      - 裴武神
+      - 神龍大俠（成道前的舊稱號，今日鮮少被提起）
+    role: 現存唯一的武神
+    age: 約兩百多年前成道，未親歷三千年前的大戰
+    occupation: 煉體巔峰・武神
+    appearance_public: >
+      市井現身時與常人無異，不表明身分。
+    appearance_current: 未定
+    personality:
+      - 不介入世俗事務——指不介入勢力鬥爭，非不與人來往
+      - 神龍見首不見尾
+    abilities:
+      - 武神：以生死戰鬥成道，故適用「武神與大帝並無絕對高下」
+      - 每名武神的能力表現各不相同（她的具體能力待定）
+    current_status: >
+      身分可查，至今仍是知名人物。數十年一次現身，僅在特定事件或場合，不引發各方警覺。
+      現身理由純粹個人因素，與世局無關。
+    secrets:
+      - "「什麼樣的私事會讓她現身」尚未決定（待展開情節 #3）"
+    goals:
+      - 未定（現身動機屬個人因素）
+    first_appearance: planned
+    continuity_notes:
+      - 出身龍隱城——門派附屬城市，並非直屬於任一門派。所在陸地待定。
+      - 「神龍大俠」與其出身龍隱城有意關聯。
+      - 世人明確知道武神姓裴；她的匿名性不靠身分保密，只靠沒有人預期她會出現在眼前。
+      - 認得「神龍大俠」的那批人正在凋零——他們可能是唯一記得她年輕時樣貌與習性的人。
+
+  - id: plato-stanny
+    name: 柏拉圖・斯坦尼
+    aliases: []
+    role: 波希特米亞聯邦現任大總統
+    occupation: 大總統（由修士擔任）
+    abilities:
+      - 修士
+      - 十二先賢之一（在世的少數）
+    current_status: 在任。
+    first_appearance: planned
+    continuity_notes:
+      - 十二先賢今日僅少數在世，且皆為修士；凡人先賢皆已逝去。
+      - 大總統由修士擔任，總理由凡人選舉產生，兩者並立。
+
+  - id: arasaka-leader
+    name: 荒阪領導者（姓名未定）
+    aliases: []
+    role: 荒阪集團的唯一決策者
+    occupation: 荒阪家族世襲領導者
+    current_status: >
+      各方知道有這麼一個人存在，但身分不明、境界層級不明。
+    secrets:
+      - 身分、境界皆為敘事留白，可依需要開展
+    first_appearance: planned
+    continuity_notes:
+      - 「荒阪」之名源自創辦家族／創辦者本人。
+      - 決策集中於單一領導者，但集團本身無實質核心（複數等價節點）。
+
+  # ── 群體與組織主體（作為「角色」處理的集體）──
+  - id: shanding-people
+    name: 山巔人
+    role: 知曉部分真相的頂層群體
+    occupation: 三千年來累積的飛昇圓滿者（不含煉體體系）
+    current_status: >
+      有一定數量，多已隱世不出：或成為各方勢力的幕後，或單純隱居。
+    secrets:
+      - 知曉「天地損傷／道門被毀」的部分真相，且僅知部分
+      - 隱瞞動機為獨佔修復的先機；頂層之間有共識協議共同封鎖
+    continuity_notes:
+      - 為口語化自稱，非正式名詞、無官方定義，無固定組織，僅彼此心知肚明。
+      - 與煉體第九境「山巔」同形不同源。
+      - 明確排除：隱瞞並非為避免社會崩潰或全面戰爭。
+    first_appearance: planned
+
+  - id: wayne-family
+    name: 偉恩家族
+    role: 血脈世家 / 偉恩企業的主體
+    occupation: 跨國企業與靈氣科技壟斷者
+    current_status: >
+      數千年歷史，核心位於高譚市。血脈性質為高修煉資質，不指定方向、只提高上限，
+      無保底機制；實力靠家族體量與殘酷的內部競爭機制維持。
+    secrets:
+      - 曾是三千年前秘密保護行會的成員之一，卻拒絕加入由行會分化出的同盟會
+      - 沒有天絕的靈魂碎片：歷史上沒搶到
+      - 正在進行增強修士的研究，且比聯邦更為隱密
+    continuity_notes:
+      - 帝國是少而穩，偉恩是多而狠。
+      - 它是那個保護網絡唯一以組織形式活到今天的部分。
+    first_appearance: planned
+
+  - id: twelve-sages
+    name: 十二先賢
+    role: 波希特米亞同盟會的創始十二人
+    occupation: 政治家、哲學家、科學家、作家等；有凡人也有修士
+    current_status: 今日僅少數在世，且皆為修士；凡人先賢皆已逝去。
+    continuity_notes:
+      - 境界並未成為他們的隔閡。
+      - 偉恩不在十二先賢之列，因理念不合而離開。
     first_appearance: planned
