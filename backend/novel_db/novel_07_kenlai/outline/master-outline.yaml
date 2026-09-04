@@ -1,31 +1,78 @@
 canon_outline:
-  project_status: worldbuilding_complete_story_not_started
-  current_chapter: planned
-  current_endpoint: 尚未開始正文。世界觀 v43 已匯入 canon。
+  project_status: act1_in_progress_ch001_written
+  current_chapter: Ch001
+  current_endpoint: >
+    Day 1 上午，晨霧散盡、日出之後。艾茉森騎著靈駒史黛西離開洛克西亞鎮，
+    正在鎮與草場之間的路上，前往西部荒原的草場。
   canon_scope:
-    covered_chapters: []
+    covered_chapters: [Ch001]
     note: >
-      僅記錄已寫成正文的 canon。目前為零。
+      僅記錄已寫成正文的 canon。目前為 Ch001。
       設定 canon（v43，438 項已確認決策）位於 bible/ 與 context/secrets-lockbox.md。
+      **正文優先於設定**：chapters/ 與 bible/ 或 outline/ 衝突時，以正文為準並回頭修正後者。
   source_of_truth:
+    prose_canon: chapters/          # 最高權威
     world_rules: bible/worldbuilding.md
     places: bible/location.yaml
     people: bible/characters.yaml
     history: bible/timeline.yaml
     threads: bible/plot-threads.yaml
     hidden: context/secrets-lockbox.md
+    style_guide: context/CONTEXT.md（敘事文體規範，由 Ch001 定調）
     raw_reference: temp/v43.md
-  chapter_beats: []
+  chapter_beats:
+    - chapter: Ch001
+      status: written
+      title_in_file: 第一章
+      day: Day 1
+      time_span: 清晨鐘響 → 上午日出後
+      pov: 艾茉森・席恩・洛克西亞（第三人稱過去式；開場為不屬於任何人的環境鏡頭）
+      locations: [western-wasteland, loxia-ranch, loxia-family-quarter, morning-rock, loxia-town, loxia-town-street]
+      function: >
+        災前日常的基準線。在核心衝突介入之前，先建立「一天如何運作」「他是什麼樣的人」
+        「他與這座小鎮的關係」三件事。全章不推進任何劇情衝突。
+      beats:
+        - 牧場晨間作業啟動（鏡頭先於主角登場）→ 鐘聲報時 → 起床、更衣
+        - 山坡巨岩上的早課；靈氣極短停滯，立即散氣不強衝；「又快了一點」
+        - 下山途中見獸群外一頭躁動的年輕公牛，認出並判定無礙
+        - 進鎮，與孩子群、乳製品店、早餐店三段抬槓；靠窗吃早餐
+        - 回馬廄照料史黛西，發現前蹄輕微腫脹，下「今天少跑一點」的處置；上馬出發
+      opened_threads: [stacy-foreleg, restless-young-bull, faster-than-expected]
+      lockbox_leaks: 無。全章落在 [常識] 層，未觸及 secrets-lockbox 任何一層。
+      deviations_from_plan:
+        - 時態由規劃的「現在式」改為實際的「過去式」——以正文為準，已更新 outline/act1.md。
+        - 結構由規劃的三段改為實際的四段。
+        - 未執行：以旁人態度側寫「最有天賦但非法定繼承人」的位置（移交後續章節，改從族人一側著手）。
+        - 未執行：行政孤立感的畫面（空蕩公車站／一天一班車的告示）。
   character_state_snapshot:
-    protagonist: 尚未建立。
+    protagonist: >
+      艾茉森・席恩・洛克西亞，15 歲，西部荒原洛克西亞鎮，家族旁系。修仙練氣一系。
+      此刻只有理性我在場（感性我沉睡、折衷我尚未存在、觀察者永不上台）。
+      狀態安穩無傷，剛做完早課、吃過早餐，正騎馬前往草場。
+      唯一的個人資訊：他知道自己修煉速度快於預計，並自我警惕不能急。他沒有告訴任何人。
+    stacy: >
+      史黛西（靈駒）。前蹄旁輕微腫脹、無傷口（昨日撞到），主角已下「今天少跑一點」的處置。
+      **此限制尚未被測試，須跨章追蹤。**
+    world: 未變動。Ch001 完全未觸及五方勢力層級。
   near_term_next_steps:
-    - 決定主角：出身哪一方、走練氣或煉體、初始境界與社會位置。
+    - 續寫 Ch002：接點為草場的工作日常（Ch001 章尾主角正騎馬前往）。
     - 決定核心衝突與故事承諾（讀者被許諾的主要張力是什麼）。
-    - 決定敘事起點的地理位置，並補齊該地的地名（地名由作者提供）。
-    - 決定第一幕結尾。
-    - 回填 outline/act1.md 與 bible/characters.yaml 的 protagonist 區塊。
+    - 決定第一幕結尾（主角付出第一個不可逆代價的那一刻）。
+    - 決定第一幕篇幅，以及讀者是否預知災難將至（plot-threads protagonist-18）。
+    - 決定 Ch001 的鎮民群像是否要固定為具名角色。
+    - 決定獸災之夜與 Day 1 的間隔（兩者皆在主角 15 歲期間，故不超過一年）。
   continuity_flags:
-    - 年代一律以「距今」表述，尚未設定曆法。
+    # ── Ch001 產生的追蹤項 ──
+    - "[Ch001] 史黛西前蹄腫脹與「今天少跑一點」的限制尚未被測試。"
+    - "[Ch001] 躁動的年輕公牛未命名；若要成為重複元素，命名與否須一次決定並貫徹。"
+    - "[Ch001] 主角在早餐店被問「喝什麼？」後，正文未寫出回答，飲品品項尚未寫定。"
+    - "[Ch001] 牛仔帽與縛靈索在正文中尚未出現，取得時點未定，不可回溯假設災前即已隨身。"
+    - "[Ch001] 正文未點明主角境界（設定為龍門境，與正文的主動吸納靈氣描寫相容）。"
+    - "[Ch001] 靈駒競速賽已出現於海報，但舉辦地、規模與制度未定。"
+    - "[Ch001] 鎮上的鐘所在建築與敲鐘者未定。"
+    - "[Ch001] 史黛西的毛色與性別未於正文指明。"
+    # ── 既有的世界層追蹤項 ──
+    - 年代一律以「距今」表述，尚未設定曆法；正文亦未出現任何日期或季節。
     - 龍隱城所在陸地（南／北大道洲）未定。
     - 絕天海兩岸港城尚未命名。
     - 第五片天絕靈魂碎片的所在未定。
@@ -63,9 +110,17 @@ speculative_long_arc:
   projected_arc:
     - phase: 第一階段 / 開局
       function: 建立主角、其社會位置與這個世界的規則感。
+      progress: >
+        Ch001 已完成其中的「建立主角與其日常世界」。舞台定在洛克西亞鎮之後，
+        「這個世界的規則感」在第一幕已不可能由勢力層級的規則來建立——見下方修正。
       likely_material:
-        - 讓讀者親身感受「兩體系無法換算」「玉璞是界線」「庇護＝登記」這三條硬規則。
-        - 第一個需要付出代價的選擇，最好落在身分與庇護上（登記、附屬、被逐出）。
+        - >
+          修正：「兩體系無法換算」「玉璞是界線」「庇護＝登記」三條硬規則，
+          在洛克西亞鎮這個沒有行政設施的邊陲產業聚落無從演示，
+          已移交給主角離開家鄉之後的段落。第一幕改為建立地方性的規則感
+          （鐘聲、牧場、熟人網絡、修煉是私事而非身分）。詳見 outline/act1.md。
+        - 第一個需要付出代價的選擇，最好落在身分與庇護上（登記、附屬、被逐出）——
+          但依現行結構，這一刻更可能落在獸災之夜之後，而非第一幕之內。
     - phase: 第二階段 / 擴張
       function: 把主角推出原本的知情層級。
       likely_material:

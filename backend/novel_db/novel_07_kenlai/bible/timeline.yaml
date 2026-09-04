@@ -1,5 +1,7 @@
-# 來源：temp/v43.md（v43，世界背景）＋ temp/角色設定_艾茉森洛克西亞_v1.md（v1，主角悲劇）。
-# 年代一律以「距今（故事現在）」表示。正文尚未開始，故 story_timeline 仍為空；world_history 為固定背景年表。
+# 來源：temp/v43.md（v43，世界背景）＋ temp/角色設定_艾茉森洛克西亞_v1.md（v1，主角悲劇）
+#       ＋ chapters/Ch001.md（正文，最高權威）。
+# 年代一律以「距今（故事現在）」表示；world_history 為固定背景年表。
+# story_timeline 自 Ch001 起逐章記錄，Day 1 即正文起點（獸災之夜之前，主角 15 歲）。
 
 world_history:
   - when: 百萬年前起
@@ -75,6 +77,9 @@ world_history:
     note: >
       主角當時 15 歲、龍門境。「真正的罪是逃走而非誤判」的判斷見 context/secrets-lockbox.md 第五層，
       不可由旁白提前說破。
+      [Ch001] 正文起點（story_timeline 的 Day 1）在此夜之前，主角同樣是 15 歲——
+      故獸災之夜與 Day 1 相距不超過一年，但確切間隔尚未寫定，第一幕篇幅亦未定
+      （見 plot-threads protagonist-18）。Ch001 全章未提及獸潮、未出現任何預警或不祥暗示。
 
   - when: 現代（故事現在）
     event: >
@@ -92,12 +97,56 @@ recurring_cadence:
   - item: 西部荒原獸潮
     cadence: 跟隨當地獸群遷徙習慣，約兩年一次，屬可預期的週期性事件；主角的悲劇即為一次獸潮的極端個例。
 
-story_timeline: []
-# 正文開始後，逐章記錄：
-#  - day: Day 1
-#    time_of_day: 上午
-#    chapter: ch001
-#    location_id: <location.yaml 的 id>
+story_timeline:
+  # 說明：故事現在的時間軸。第一幕發生於獸災之夜「之前」，主角 15 歲。
+  # Ch001 未指明日期、季節與星期，僅確立「這是平凡的一天」；曆法仍未設定，故不標年月日。
+  - day: Day 1
+    time_of_day: 清晨（鐘響前後，霧未散）
+    chapter: Ch001
+    location_id: [western-wasteland, loxia-ranch, loxia-family-quarter]
+    event: >
+      牧場晨間作業啟動：柵欄敞開，牧者以氣息驅群，大地氂牛走上苔原吃靈草；靈駒棚舍備料。
+      鎮上鐘聲三響報時，艾茉森於第一聲醒、第二聲起身，盥洗更衣後離家。
+    state_change: 無。日常的起點。
+
+  - day: Day 1
+    time_of_day: 清晨至日出（霧漸散）
+    chapter: Ch001
+    location_id: morning-rock
+    event: >
+      艾茉森在山坡中段的巨岩上做早課。靈氣自丹田循經脈行周天數周後，於某處出現極短停滯；
+      他立即停手、散開靈氣，未強衝亦未續行，並確認體內無異常。下山前望見獸群外一頭
+      剛成年、近日脾氣不佳的公牛，認出牠、判定無大礙。
+    state_change: >
+      主角意識到自己的修煉速度快於原本預計（「又快了一點」），並自我警惕「越是如此，越不能急」。
+      此觀察目前無任何外部意義，僅為人物性格的展現。
+
+  - day: Day 1
+    time_of_day: 早晨（日光已穿過街道）
+    chapter: Ch001
+    location_id: [loxia-town, loxia-town-street]
+    event: >
+      艾茉森步行進鎮吃早餐。途中與趕著上學的孩子群、乳製品店店家、早餐店櫃檯各有一段簡短對話。
+      在靠窗位置吃完早餐，看著小鎮從睡夢中醒來。
+    state_change: >
+      無事件性變化。功能是確立主角與鎮民的熟稔關係，以及全鎮對他「每天都在修煉」的共同認知。
+
+  - day: Day 1
+    time_of_day: 上午（晨霧徹底散去，日出越過地平線）
+    chapter: Ch001
+    location_id: [loxia-family-quarter, western-wasteland]
+    event: >
+      艾茉森返回家族馬廄照料靈駒史黛西，發現其前蹄旁有輕微腫脹、無傷口（昨日撞到），
+      決定「今天少跑一點」。整備裝具後牽出馬廄、翻身上馬，離開洛克西亞鎮前往草場。
+    state_change: >
+      **史黛西前蹄輕微腫脹，主角已下「今天少跑一點」的處置——此傷勢與此限制須跨章追蹤，尚未被測試。**
+      章尾落點：一人一馬在鎮與草場之間的路上移動中。
+
+# 續寫格式（沿用上列欄位）：
+#  - day: Day N
+#    time_of_day: …
+#    chapter: ChXXX
+#    location_id: <location.yaml 的 id，可為單值或清單>
 #    event: …
 #    state_change: …
 
