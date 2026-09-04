@@ -20,7 +20,71 @@ pending_author_decisions:
     question: 時程與觸發事件。
   - id: story-core
     topic: 故事本身
-    question: 主角是誰、核心衝突為何、第一幕結尾在哪裡。尚未決定。
+    question: 主角已定（艾茉森・席恩・洛克西亞，見 bible/characters.yaml protagonist）；核心衝突為何、第一幕結尾在哪裡，尚未決定。
+
+  # 來源：temp/角色設定_艾茉森洛克西亞_v1.md 第九章「掛起項目」，皆經作者明示留待日後隨故事推進再定。
+  - id: protagonist-01
+    topic: 感性我甦醒的觸發事件
+    question: 感性我甦醒的具體觸發事件為何？
+  - id: protagonist-02
+    topic: 諸我切換的觸發源
+    question: 諸我切換的觸發源為外部刺激／情緒／環境／無規律，何者？
+  - id: protagonist-03
+    topic: 當前年齡與境界
+    question: 主角當前的年齡與修煉境界為何？
+  - id: protagonist-04
+    topic: 放逐後的經歷
+    question: 放逐後至今的經歷為何？（他「會很多技能」的來源）
+  - id: protagonist-05
+    topic: 外表年齡停滯的原因
+    question: 外表年齡停滯是境界的正常表現，或天奧玄體的異常？
+  - id: protagonist-06
+    topic: 獸災當夜留下的傷痕
+    question: 那晚（獸災之夜）在他身上留下了什麼傷痕？
+  - id: protagonist-07
+    topic: 誤判的具體落點
+    question: 誤判當下「我能處理」的具體落點是什麼？
+  - id: protagonist-08
+    topic: 察覺異狀後的行動
+    question: 察覺情況不對至遭襲之間，他做了什麼？是否嘗試通訊？
+  - id: protagonist-09
+    topic: 醒來時的現場
+    question: 他醒來時巡邏塔的現場狀態與事件順序為何？
+  - id: protagonist-10
+    topic: 昏迷段落的觀察者伏筆
+    question: 昏迷段落是否採用「不可能的視角」作為觀察者的伏筆？
+  - id: protagonist-11
+    topic: 逃走後是否曾回去過
+    question: 逃走之後，他是否曾回去過洛克西亞鎮廢墟？
+  - id: protagonist-12
+    topic: 放逐期間是否隱姓埋名
+    question: 放逐期間他是否隱姓埋名？
+  - id: protagonist-13
+    topic: 天奧玄體與失傳功法的具體關係
+    question: 「諸我＝契約同構、觀察者＝未締約者」這個對應是否採用？
+  - id: protagonist-14
+    topic: 神獸契約紀錄的現況
+    question: 家族曾契約神獸的紀錄，現況是傳說、文字記載，或實物遺留？
+  - id: protagonist-15
+    topic: 十五歲時的功法造詣
+    question: 十五歲當時，他是練到純支配，或已隱約觸及契約門檻？
+  - id: protagonist-16
+    topic: 終點一的版本
+    question: 終點 1（成為燃料）採融合版、選定版，或兩者皆有可能？
+  - id: protagonist-17
+    topic: 觀察者的最終本質與收斂時點
+    question: 觀察者的最終本質為集合體或混沌？何時收斂？
+  - id: protagonist-18
+    topic: 第一幕篇幅與讀者預知
+    question: 第一幕（天災前）篇幅多長？讀者是否預知災難將至？
+  - id: protagonist-19
+    topic: 家人的舊稱呼
+    question: 家人對他的舊稱呼是什麼？（屬於尚未分裂的他的名字）
+  - id: protagonist-20
+    topic: 不受天地條件所限的世界層解釋
+    question: >
+      他為何不受天地條件所限（世界觀三千年僵局的解釋，見 secrets-lockbox 第三層）？
+      可能方向：他的道向內不向外／體質神魂的特殊性／主線層面條件已被觸動。此為主線議題，未決。
 
 open_threads:
   # ── 世界級主線候選 ────────────────────────
@@ -184,3 +248,35 @@ open_threads:
     status: available
     stakes: 知識落差的形狀不是「誰知道」，而是「誰有能力測量」與「誰准你說」。
     likely_payoff_window: 貫穿全書
+
+  # ── 主角個人伏筆（來源：temp/角色設定_艾茉森洛克西亞_v1.md）──
+  - id: lost-technique-tianao
+    hook: 天奧玄體的來歷與洛克西亞家族失傳的一部功法有關，功法仍埋在洛克西亞鎮廢墟；主角與老金丹皆不知情。
+    introduced_in: planned
+    status: available
+    knowledge_level: 真相（家族已遺忘此體質的來歷，唯少數世界頂端之人或活化石認得天奧玄體）
+    stakes: >
+      所有線索收束到同一座標——洛克西亞鎮廢墟：他的體質、家族的傳承、他的罪，
+      而那是他最不敢回去的地方。廢墟無人守、無人維護，隨時可回去，障礙百分之百在他自己身上。
+    likely_payoff_window: 長期
+
+  - id: observer-nature
+    hook: 觀察者是主角其中一個「我」，永不上台、無外顯，天生就在，僅能經由不可靠的回憶被證實其存在。
+    introduced_in: planned
+    status: available
+    knowledge_level: 僅主角本人隱約察覺，且無法確認真偽
+    stakes: >
+      觀察者本質在故事中期須維持雙義——既像容器又像異物，直到終局才收斂為集合體或混沌，
+      並與三個終點（成為燃料／拒絕成為燃料）連動；若它有一天開始說話，即代表它獲得了意志。
+    likely_payoff_window: 長期
+
+  - id: fleeing-not-misjudgment
+    hook: 主角真正的罪不是獸災之夜的誤判（可原諒：十五歲、視野受限、史無前例），而是清醒獨自一人逃走。
+    introduced_in: planned
+    status: available
+    knowledge_level: 僅主角本人知曉；官方紀錄與倖存者皆視為天災、無人怪他
+    stakes: >
+      他把逃走重新命名為放逐；世界上有一份正式紀錄證明他無罪，而他知道那份紀錄是錯的——
+      他甚至無法讓自己有罪。家族沒落原因是地脈枯竭而非過錯，八千年間他人皆已遷離、
+      唯獨洛克西亞家族沒走，而主角做的事正是逃走。
+    likely_payoff_window: 長期

@@ -186,6 +186,63 @@ locations:
       - 大總統柏拉圖・斯坦尼、上下議院、五權機關
     continuity_notes:
       - 聯邦名為聯邦、實為中央集權的統一國家。
+      - 內陸另有西部荒原，語感近似美國大西部，為洛克西亞家族世居地（見 western-wasteland）。
+
+  # ── 西部荒原（主角出身地，來源：temp/角色設定_艾茉森洛克西亞_v1.md）──
+  - id: western-wasteland
+    name: 西部荒原
+    type: 地區（荒原）
+    region: 歐姆尼亞洲內陸，波希特米亞聯邦境內
+    first_appearance: planned
+    summary: >
+      語感近似美國大西部的荒原地區，主角艾茉森・席恩・洛克西亞的出身地。
+      地貌類似溫帶苔原，氣候偏冷；短小靈草遍布、喬木稀疏；靈氣濃度正常偏高——
+      自古即高於平均，吸引大量動物遷徙，但不足以養大一個宗門家族。
+      日照不強，經常為濕潤的多霧氣候。
+    atmosphere:
+      - 西部拓荒時期的牛仔文化語感，商業街由拓荒風格演變為現代建築
+      - 濕潤多霧、視野受限
+    narrative_functions:
+      - 主角出身地與童年場景；悲劇（獸災之夜）發生地
+    access_constraints:
+      - 距最近城鎮數百公里，每天僅一班車進出，其餘靠私人載具或靈駒
+      - 靈駒機動性極高，惟飼養成本極高（甚至比一台車貴），不適合城市環境
+    linked_people_or_factions:
+      - 洛克西亞家族
+    continuity_notes:
+      - 獸潮跟隨當地獸群遷徙習慣，約兩年一次，屬可預期的週期性事件。
+      - 荒原之所以還能住人，正因為它還會殺人：靈氣偏高吸引動物遷徙，既是資源也是獸患來源。
+
+  - id: loxia-town
+    name: 洛克西亞鎮
+    type: 城鎮（歷史既存聚落，無任何基礎行政設施）
+    region: 西部荒原
+    first_appearance: planned
+    summary: >
+      洛克西亞家族世居八千年之地，具一條街的商業聚落，居民組成為族人、外來員工與商家，
+      社會氛圍為溫和的共同體。因當地多霧、視野受限，鎮外圍設有數座巡邏塔。
+      主角艾茉森出身於此，悲劇「獸災之夜」亦發生於此。
+    narrative_functions:
+      - 主角的悲劇現場；家族失傳功法（天奧玄體來歷所繫）埋藏處
+    access_constraints:
+      - 行政上劃歸百公里外的新奧羅市管轄，鎮上本身無任何基礎行政設施
+    linked_people_or_factions:
+      - 洛克西亞家族、主角（艾茉森・席恩・洛克西亞）
+    continuity_notes:
+      - 獸災之夜後，鎮上廢墟經聯邦簡單封鎖，呈無人看守的廢棄狀態；主角逃走後是否曾回去過未定（見 plot-threads protagonist-11）。
+      - 家族失傳的一部功法仍埋在此處廢墟，主角與老金丹皆不知情，詳見 context/secrets-lockbox.md 第五層。
+      - 聯邦調查後將該夜事件登記為天災。
+
+  - id: new-aura-city
+    name: 新奧羅市（New Aura）
+    type: 城市（行政中心）
+    region: 西部荒原，距洛克西亞鎮約百公里
+    first_appearance: planned
+    summary: >
+      洛克西亞鎮行政上劃歸的城市。舊奧羅市原在洛克西亞鎮附近，後遷移至州際公路附近成為今日的新奧羅市；
+      舊奧羅市遺址仍存在，但只剩廢棄建築，無任何價值。
+    continuity_notes:
+      - 舊奧羅市遺址與洛克西亞鎮廢墟為兩處不同的廢棄地點，不可混淆。
 
   - id: longyin-city
     name: 龍隱城

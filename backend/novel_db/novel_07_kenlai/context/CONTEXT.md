@@ -1,13 +1,16 @@
 # Novel Context Compression (AI Injection Summary)
 > [!IMPORTANT]
-> 這是《Kenlai》每次寫作前的核心摘要。目前狀態：**世界觀已完成（v43 已匯入 canon），正文尚未開始。**
-> 完整設定見 `bible/worldbuilding.md`；真相與禁區見 `context/secrets-lockbox.md`。
+> 這是《Kenlai》每次寫作前的核心摘要。目前狀態：**世界觀與主角均已完成，正文尚未開始。**
+> 完整設定見 `bible/worldbuilding.md` 與 `bible/characters.yaml`（protagonist 條目）；真相與禁區見 `context/secrets-lockbox.md`。
 
 ## 當前進度 (Current Status)
 - **當前章節節點**: `planned`（尚無 ch001）
 - **當前場景**: 無。故事尚未開始。
-- **已完成**: v43 世界觀（438 項已確認決策）已拆分寫入 `bible/`、`outline/`、`context/`。
-- **下一步**: 決定主角、核心衝突、故事承諾與第一幕結尾。
+- **已完成**: v43 世界觀（438 項已確認決策）已拆分寫入 `bible/`、`outline/`、`context/`；
+  主角艾茉森・席恩・洛克西亞的設定（v1）已拆分寫入 `bible/characters.yaml`（protagonist）、
+  `context/secrets-lockbox.md`（第五層）、`bible/plot-threads.yaml`（protagonist-01~20 與三條伏筆）。
+- **下一步**: 決定核心衝突、故事承諾與第一幕結尾；並依需要逐步敲定主角的 20 項掛起設定
+  （見 `bible/plot-threads.yaml` 的 `pending_author_decisions`）。
 
 ## 一句話世界
 現代修仙世界，靈氣是科技的能源與科學的對象。三千年前一場復仇大戰打碎了大陸、殺光了六位大帝、毀掉了通往「世界之外」的道門——此後再無人成帝。五方勢力在這個沒有法律的世界上維持恐怖平衡，而世界本身正在慢慢壞掉，沒有人知道。
@@ -48,7 +51,9 @@
 - 反覆出現的形狀：**制度開著門，現實走不進去**；**知道的人不能說，能說的人不知道**。
 
 ## 存活角色 / 活躍角色
-- **主角**: 尚未建立。
+- **主角**: 艾茉森・席恩・洛克西亞（Emerson Cyn Loxia）。西部荒原洛克西亞家族旁系，天奧玄體，修仙練氣一系。
+  體內固定三個「我」＋一名觀察者（被動切換、性別隨之流動）；15 歲時因獸災之夜的誤判與逃走而自我放逐，
+  現況與境界未定。詳見 `bible/characters.yaml` protagonist 條目與 `context/secrets-lockbox.md` 第五層。
 - **已具名可用**: 裴思涵（現存唯一武神，數十年現身一次）、柏拉圖・斯坦尼（聯邦大總統，十二先賢之一）、荒阪領導者（身分不明）、天絕大帝（僅餘靈魂碎片）。
 
 ## 待接續的伏筆 / 暗示 (Hooks for Next Chapter)

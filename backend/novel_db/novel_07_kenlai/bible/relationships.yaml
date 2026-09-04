@@ -1,8 +1,8 @@
-# 來源：temp/v43.md（v43）。人物關係尚未建立（無主角），故此檔目前記載勢力層級的關係結構。
-# 待主角與配角確立後，再於 relationships 下補人物對。
+# 來源：temp/v43.md（v43，勢力關係）＋ temp/角色設定_艾茉森洛克西亞_v1.md（v1，主角人物關係）。
+# 配角與敵對者確立後，再於 relationships 下繼續補人物對。
 
 status:
-  note: 角色關係待建；以下為勢力關係，寫作時視為既定局勢背景。
+  note: 主角人物關係已建；配角與敵對者尚未確立。以下另有勢力關係，寫作時視為既定局勢背景。
 
 faction_diplomacy:
   - subject: 波希特米亞聯邦
@@ -109,10 +109,43 @@ faction_relationships:
       - 做東西的和買東西的一樣沒地位
 
 relationships:
-  # 人物關係待主角建立後填入。格式示例保留於下。
-  - pair: [protagonist, TBD]
-    dynamic: 待建立。
-    trust_level: 未定
-    tension: 未定
+  # 來源：temp/角色設定_艾茉森洛克西亞_v1.md。配角與敵對者確立後繼續補入。
+  - pair: [protagonist, 洛克西亞父母]
+    dynamic: >
+      父母於獸災之夜死於洛克西亞鎮內（家族內部）。主角受傷昏迷、醒來後小鎮已毀，
+      因害怕面對而逃走——父母之死是他自我放逐最直接的重量之一。
+    trust_level: 不適用（已逝）
+    tension: 不適用
+    conflict_points:
+      - 主角背負自責，但父母本人並未有機會責怪他，是他自己責怪自己
+    last_updated_in: planned
+
+  - pair: [protagonist, 老金丹]
+    dynamic: >
+      家族當代最高境界者，悲劇當夜死於獸災。與主角一樣不知道天奧玄體與家族失傳功法的關係，
+      同樣只知道「（主角的體質）有特殊」，不知特殊在何處。
+    trust_level: 不適用（已逝）
+    tension: 不適用
     conflict_points: []
+    last_updated_in: planned
+
+  - pair: [protagonist, 洛克西亞倖存族人]
+    dynamic: >
+      倖存者不知悲劇當晚的真相細節（不知主角的誤判與逃走），沒有人責怪他，是他自己責怪自己。
+      多年後相遇時，倖存者仍有可能認他為家族的傳承。
+    trust_level: 倖存者對主角＝高（建立在不知情之上的信任）；主角對倖存者＝愧疚，難以坦然接受
+    tension: 主角單方面的內在張力，外部無公開衝突
+    conflict_points:
+      - 倖存者的信任建立在不知情之上，一旦真相揭露將直接動搖
+    last_updated_in: planned
+
+  - pair: [protagonist, 靈駒史黛西]
+    dynamic: >
+      主角家鄉所贈的專屬靈駒，是唯一從獸災之夜活到現在、且靠氣息認人而不會因主角性別流動
+      而誤讀他的存在。牧者契典僅存「支配」半，故兩者關係只能是支配、無法締約——
+      史黛西是主角唯一的同伴，卻不是他能平等締結關係的對象。
+    trust_level: 高（單向，基於氣息認同而非契約）
+    tension: 低
+    conflict_points:
+      - 牧者契典「契約」半已失傳，兩者的關係形式本身即家族傳承殘缺的縮影
     last_updated_in: planned
